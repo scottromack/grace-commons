@@ -59,7 +59,7 @@ Term spot: one person's place on a waitlist, with the join number that orders th
 
 Term waitlist id: the opaque value naming one waitlist — a [Waitlist Id]; unique for the system's life.
 
-Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the system's life and drawn at random, so no one can guess another person's spot id, as [Capability](./capability.md) draws a token, though the id is no protection of the spot, which a caller's authority protects (Non-goal 9, Non-goal 10); a person who joins again gets a new spot id.
+Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the system's life (Identity 4, Capability requirement 2) and drawn at random, so no one can guess another person's spot id, as [Capability](./capability.md) draws a token, though the id is no protection of the spot, which a caller's authority protects (Non-goal 9, Non-goal 10); a person who joins again gets a new spot id.
 
 Term offering reference: the value naming what a waitlist is for — a class, an earlier appointment, a sold-out item in one size — in the deployment's own scheme — an [Offering Reference]; the atom reads nothing in it.
 
@@ -190,6 +190,10 @@ Operation 34: [Read Waitlist] MUST answer a waiting spot's spot id, person refer
 Operation 35: [Read Waitlist] MUST NOT write.
 Operation 36: [Read Waitlist] MUST NOT answer a spot that is not waiting.
 ```
+
+NOTE: open 2026-11-19-a — Operation 36 bars an answer of any spot that is not waiting, and Operation 33 answers every waiting spot of the waitlist, so a waiting spot of another waitlist is barred by neither rule but by Execution Contract Conformance 6 alone.
+
+NOTE: open 2026-11-19-b — Operation 23 and Operation 24 name the front spot without saying it is the one standing before Operation 22's write (the examples and Operation 24 settle it).
 
 Term next join number: (highest join number + 1) for a waitlist — the join number [Join] sets on the waitlist's next spot; one for a waitlist carrying no spot.
 
@@ -381,7 +385,7 @@ Where the atom breaks down: a line ordered by anything but arrival, such as need
 
 ### Concurrency
 
-Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Execution Contract Database 2; Operation 2, Invariant 6.1). Two [Join] calls for one person: the later reads the spot the earlier recorded and answers [Already Waiting] (Execution Contract Database 2; Operation 10, Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the front spot then standing (Operation 22); a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting]. A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Invariant 5.2).
+Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Execution Contract Database 2; Operation 2, Invariant 6.1). Two [Join] calls for one person: the later reads the spot the earlier recorded and answers [Already Waiting] (Execution Contract Database 2; Operation 10, Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the front spot then standing (Operation 22); a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting] (Operation 17). A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Operation 9, Invariant 5.2).
 
 ### Indeterminate outcome
 
@@ -671,16 +675,18 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 ## Status
 
-`done — 2026-11-17` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-17
+status: done — 2026-11-19
 formal: verified — waitlist.als + 18 twins (the static data model: State 1 through 4, Identity 3 and 4, Operation 4, 5 and 11 through 14, Invariant 1.1, 1.2, 2.1, 5.2, 6.1, 8.1 and 9.1 checked on every version a sequence of admitted calls leaves, Identity 1, 2 and 5 caught by the Identity 3 and 4 checks, Identity 6, 8, 12 and 13 by the Operation 4 and 11 checks); waitlist.tla + 40 twins (across steps: State 5 and 6, Invariant 1.2, 1.3, 3.1 through 3.3, 4.1, 5.1 and 7.1, Operation 1 through 4, 6 through 12 and 15 through 36, Identity 7 and 9 read through Operation 2, 4, 10 and 11); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 10 and 11 (the deployment's random draw) cannot be stated, 2026-11-19
-last gate: 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-19 — Final Critique 3, delta, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
-open: none
+open:
+- 2026-11-19-a · refining · Operation 36 · a waiting spot of another waitlist is barred by Execution Contract Conformance 6 alone, since Operation 33 floors the answer at every waiting spot of the waitlist and Operation 36 bars only a spot that is not waiting → state it as `[Read Waitlist] MUST NOT answer a spot other than a waiting spot of the waitlist`, and re-derive the TLA+ check Op36_ReadWaitlistOnlyWaiting and its coverage row over two waitlists
+- 2026-11-19-b · refining · Operation 23, 24 · "the front spot" is the one standing before Operation 22's write, which the examples, Operation 24 and Op23_CallNextAnswersFront (broken by waitlist-buggy-call-next-answers-new-front) fix but no rule says → name it in Operation 23 as the spot the call stands in called, with its coverage row
 ```
 
 ## Decisions
