@@ -42,10 +42,10 @@
 -- NOT CHECKED HERE (across steps; the TLA+ model's)
 --   State 4 (no communication removed), Invariant 2.1 (an id never changed) and 3.1 (a
 --   withdrawn communication never active again): each compares a communication with a later
---   state of itself (Check 3.1 and 4.1 read two versions of one communication). Operation 1,
---   4 to 18, 24, 25, 30, 41, 42, 44, 45 (the refusals), 23, 29, 33 (what a writing call
---   answers), 26 to 28, 31, 32 (what [Change] and [Withdraw] set and keep), and 34 to 43 (the
---   two reads) show only in a step. Identity 7, 9, 11 and 13 (codepoint comparison) show in
+--   state of itself (Check 3.1 and 4.1 read two versions of one communication). Operation 4
+--   to 8, 10 to 18, 24, 25, 30, 41, 42, 44, 45 (the refusals), 23, 29, 33 (what a writing call
+--   answers), 26 to 28, 31, 32 (what [Change] and [Withdraw] set and keep), and 34 to 43 and 46
+--   (the two reads) show only in a step. Identity 7, 9, 11 and 13 (codepoint comparison) show in
 --   which calls a guard admits and which communications a history matches, which the TLA+
 --   model reads through Operation 2, 10 and 38.
 --
@@ -72,12 +72,12 @@
 --     before the call.
 --
 -- NOT MODELED HERE
---   - The refusals (Operation 1, 4 to 18, 24, 25, 30, 44, 45): a refused call writes nothing
+--   - The refusals (Operation 4 to 8, 10 to 18, 24, 25, 30, 44, 45): a refused call writes nothing
 --     (Execution Contract Read 4), so it adds no record; which refusal answers is the TLA+
 --     model's. So a blank or over-the-cap value, or one that is not a string, a list or an
 --     instant, never reaches a record here. Operation 2, 3 and 10 are read as what a record
 --     carries, the guard that keeps it so being each detail action's.
---   - [Look Up] and [History For] (Operation 34 to 43): a read adds no record.
+--   - [Look Up] and [History For] (Operation 34 to 43, 46): a read adds no record.
 --   - Storage failure and the failed read (Execution Contract Database 3, Read 1): a write
 --     that did not commit leaves nothing.
 --   - The implementation's id scheme (Identity 5) and the deployment's duties at the seam

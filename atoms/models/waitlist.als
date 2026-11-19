@@ -52,7 +52,7 @@
 -- NOT CHECKED HERE (across steps; the TLA+ model's)
 --   State 5 and 6 (nothing removed), Invariant 1.3, 3.1 to 3.3 and 7.1 (a field never
 --   changed), 4.1 and 5.1 (an ended spot or a closed waitlist never changed): each compares a
---   record with a later state of itself. Operation 1 to 3, 6 to 10, 15 to 35 (the refusals,
+--   record with a later state of itself. Operation 1 to 3, 6 to 10, 15 to 36 (the refusals,
 --   what each call answers and writes, the front spot a [Call Next] calls, what [Close] does
 --   to the spots, and the two reads) show only in a step. Identity 7 and 9 (codepoint
 --   comparison) show in which calls a guard admits, which the TLA+ model reads through
@@ -79,7 +79,7 @@
 --   - The refusals (Operation 1, 7 to 10, 16, 17, 20, 21, 25): a refused call writes nothing
 --     (Execution Contract Read 4), so it adds no record; which refusal answers is the TLA+
 --     model's. So a blank reference, or one over the string cap, never reaches a record here.
---   - [Read Spot] and [Read Waitlist] (Operation 29 to 35) and the ahead count, which is
+--   - [Read Spot] and [Read Waitlist] (Operation 29 to 36) and the ahead count, which is
 --     computed at a read and never stored: a read adds no record.
 --   - Storage failure and the failed read (Execution Contract Database 3, Read 1): a write
 --     that did not commit leaves nothing.

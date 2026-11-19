@@ -150,7 +150,7 @@ history_for(reference, optional start_instant, optional end_instant)
 ```
 
 ```
-Operation 1: IF the medium of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-medium.
+Deleted: Operation 1. Operation 2 owns it, with Capability requirement 10 (Scott, 2026-11-19).
 Operation 2: IF the medium of the call DOES NOT EQUAL blank AND the medium of the call IS NOT IN the medium set THEN a detail action MUST answer invalid-medium.
 Operation 3: IF the occurred instant of the call DOES NOT EQUAL blank AND the injected now PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant.
 Operation 4: IF the outside participants of the call EQUALS blank THEN [Record] MUST answer invalid-outside-participants.
@@ -158,7 +158,7 @@ Operation 5: IF a member of the outside participants of the call EQUALS blank OR
 Operation 6: IF a member of the inside participants of the call EQUALS blank OR a member of the inside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-inside-participants.
 Operation 7: IF the summary of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-summary.
 Operation 8: IF a member of the item references of the call EQUALS blank OR a member of the item references of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-item-references.
-Operation 9: IF the outcome of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outcome.
+Deleted: Operation 9. Operation 10 owns it, with Capability requirement 11 (Scott, 2026-11-19).
 Operation 10: IF the outcome of the call DOES NOT EQUAL blank AND the outcome of the call IS NOT IN the outcome set THEN a detail action MUST answer invalid-outcome.
 Operation 11: IF the medium of the call is malformed THEN a detail action MUST answer invalid-medium (Execution Contract Input 1).
 Operation 12: IF the occurred instant of the call is malformed THEN a detail action MUST answer invalid-occurred-instant (Execution Contract Input 1).
@@ -195,6 +195,7 @@ Operation 42: IF the start instant is malformed OR the end instant is malformed 
 Operation 43: [History For] MUST NOT write.
 Operation 44: IF the medium of the call EQUALS blank THEN [Record] MUST answer invalid-medium.
 Operation 45: IF the occurred instant of the call EQUALS blank THEN [Record] MUST answer invalid-occurred-instant (Execution Contract Input 1, Execution Contract Logic confinement 12).
+Operation 46: [History For] MUST NOT answer a communication that is not a match.
 ```
 
 Term detail action: [Record] | [Change] — the actions that carry details.
@@ -224,7 +225,7 @@ The case space, and the rule that owns each case:
 | a detail action | the occurred instant later than now | [Invalid Occurred Instant] | none (Operation 3) |
 | a detail action | the occurred instant not an instant | [Invalid Occurred Instant] | none (Operation 12) |
 | [Record] | the occurred instant blank | [Invalid Occurred Instant] | none (Operation 45) |
-| a detail action | the medium over the string cap, not a string, or not in the medium set | [Invalid Medium] | none (Operation 1, Operation 2, Operation 11) |
+| a detail action | the medium over the string cap, not a string, or not in the medium set | [Invalid Medium] | none (Operation 2, Operation 11) |
 | [Record] | the medium blank | [Invalid Medium] | none (Operation 44) |
 | [Record] | the outside participants blank, omitted or an empty list | [Invalid Outside Participants] | none (Operation 4) |
 | a detail action | an outside participant blank or over the string cap, or not a list of strings | [Invalid Outside Participants] | none (Operation 5, Operation 13) |
@@ -232,7 +233,7 @@ The case space, and the rule that owns each case:
 | a detail action | the direction neither inbound nor outbound | [Invalid Direction] | none (Operation 15) |
 | a detail action | the summary over the string cap, or not a string | [Invalid Summary] | none (Operation 7, Operation 16) |
 | a detail action | an item reference blank or over the string cap, or not a list of strings | [Invalid Item References] | none (Operation 8, Operation 17) |
-| a detail action | the outcome over the string cap, not a string, or not in the outcome set | [Invalid Outcome] | none (Operation 9, Operation 10, Operation 18) |
+| a detail action | the outcome over the string cap, not a string, or not in the outcome set | [Invalid Outcome] | none (Operation 10, Operation 18) |
 | [Change] | the communication stands active, every supplied detail valid, database accepts | ok | every supplied detail is set, every other detail stands, and the earlier version stays readable (Operation 26, Operation 27, Operation 29, Execution Contract Database 5) |
 | [Change] | the communication stands active and the call supplies no detail | ok | none, no write (Operation 28) |
 | [Change] | the communication stands withdrawn | [Not Active] | none (Operation 25) |
@@ -240,7 +241,7 @@ The case space, and the rule that owns each case:
 | [Withdraw] | the communication stands withdrawn | [Not Active] | none (Operation 30) |
 | a keyed action | no communication carries the communication id, or the id is not a string | [Not Known] | none (Operation 24) |
 | [Look Up] | the communication exists, either status | the communication | none (Operation 34, Operation 35) |
-| [History For] | active communications match the reference inside the range | each match, in order of occurred instant, earliest first, ties in codepoint order of communication id | none (Operation 36, Operation 37, Operation 39, Operation 40, Operation 43) |
+| [History For] | active communications match the reference inside the range | each match, in order of occurred instant, earliest first, ties in codepoint order of communication id | none (Operation 36, Operation 37, Operation 39, Operation 40, Operation 43, Operation 46) |
 | [History For] | no match, a range ending earlier than the range starts, the reference blank, over the string cap or not a string, or an instant not an instant | an empty list | none (Operation 38, Operation 41, Operation 42) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -553,7 +554,7 @@ Projection: withdrawn
 
 #### Invalid Medium
 
-The refusal of a [Medium] over the string cap, one that is not a string, or one the medium set does not offer, on [Record] or [Change], and of a blank one on [Record] (Operation 1, Operation 2, Operation 11, Operation 44).
+The refusal of a [Medium] over the string cap, one that is not a string, or one the medium set does not offer, on [Record] or [Change], and of a blank one on [Record] (Operation 2, Operation 11, Operation 44).
 
 Kind:       Member
 Member of:  the action rejection
@@ -616,7 +617,7 @@ Projection: invalid-item-references
 
 #### Invalid Outcome
 
-The refusal of an [Outcome] over the string cap, one that is not a string, or one the outcome set does not offer, on [Record] or [Change] (Operation 9, Operation 10, Operation 18).
+The refusal of an [Outcome] over the string cap, one that is not a string, or one the outcome set does not offer, on [Record] or [Change] (Operation 10, Operation 18).
 
 Kind:       Member
 Member of:  the action rejection
@@ -704,7 +705,7 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 ```
 status: done — 2026-11-17
-formal: verified — communication.als + 15 twins (the static data model: State 1 and 3, Identity 3 and 4, Operation 2, 3 and 10 read as what every version carries, Operation 19 through 22, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 and 2 caught by the Identity 3 and 4 checks, Identity 6, 8, 10 and 12 by the Operation 19 check); communication.tla + 45 twins (across steps, under medium and outcome sets the deployment may change between calls: State 4, Invariant 2.1 and 3.1, Operation 1 through 19 and 23 through 45, State 2 read through Operation 19, Identity 7, 9, 11 and 13 through Operation 2, 10 and 38, the other half of Operation 36 read from the terms history and History For); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 5 (the implementation's id scheme) cannot be stated, 2026-11-19
+formal: verified — communication.als + 15 twins (the static data model: State 1 and 3, Identity 3 and 4, Operation 2, 3 and 10 read as what every version carries, Operation 19 through 22, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 and 2 caught by the Identity 3 and 4 checks, Identity 6, 8, 10 and 12 by the Operation 19 check); communication.tla + 45 twins (across steps, under medium and outcome sets the deployment may change between calls: State 4, Invariant 2.1 and 3.1, Operation 2 through 8, 10 through 19 and 23 through 46, State 2 read through Operation 19, Identity 7, 9, 11 and 13 through Operation 2, 10 and 38, deleted Operation 1 and 9 read through Operation 2 and 10); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 5 (the implementation's id scheme) cannot be stated, 2026-11-19
 last gate: 2026-11-17 — Final Critique 3, a delta round, frozen at 4aa45fb6 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none

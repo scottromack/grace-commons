@@ -232,7 +232,7 @@ Carries(s, i) == st[s] # "none" /\ cid[s] = i
 \* detail omitted.
 MediumRefused(c, rec) ==
     \/ rec /\ c.m \in Blanks                                    \* Operation 44
-    \/ c.m \in OverCaps                                         \* Operation 1
+    \/ c.m \in OverCaps                                         \* Operation 2, Capability requirement 10
     \/ c.m \in NotStrings                                       \* Operation 11
     \/ c.m \notin Blanks /\ c.m \notin mset                     \* Operation 2
 OccurredRefused(c, t, rec) ==
@@ -255,7 +255,7 @@ ItemsRefused(c) ==
     \/ c.itm.ok /\ \E x \in c.itm.m : Bad(x)                    \* Operation 8
     \/ FALSE                                                    \* BUG: the list's type unchecked
 OutcomeRefused(c) ==
-    \/ c.oc \in OverCaps                                        \* Operation 9
+    \/ c.oc \in OverCaps                                        \* Operation 10, Capability requirement 11
     \/ c.oc \in NotStrings                                      \* Operation 18
     \/ c.oc \notin Blanks /\ c.oc \notin oset                   \* Operation 10
 
@@ -276,7 +276,7 @@ Refusal(c, t, rec) ==
 Called(op, i, c, t, a) == [NoCall EXCEPT !.op = op, !.i = i, !.c = c, !.t = t, !.ans = a]
 
 \* RecordRefused: a [Record] some refusal applies to answers it and writes
-\* nothing (Operation 1 to 18, 44, 45).
+\* nothing (Operation 2 to 8, 10 to 18, 44, 45).
 RecordRefused(c, t) ==
     /\ Refusal(c, t, TRUE) # "none"
     /\ last' = Called("record", NotId, c, t, Refusal(c, t, TRUE))
@@ -323,7 +323,7 @@ ChangeWithdrawn(i, c, t) ==
     /\ UNCHANGED <<records, deployment>>
 
 \* ChangeRefused: a [Change] of an active communication some refusal applies
-\* to answers it and writes nothing (Operation 1 to 3, 5 to 18).
+\* to answers it and writes nothing (Operation 2, 3, 5 to 8, 10 to 18).
 ChangeRefused(i, c, t) ==
     /\ \E s \in Slots : Carries(s, i) /\ st[s] = "active"
     /\ Refusal(c, t, FALSE) # "none"
@@ -523,7 +523,7 @@ Target == CHOOSE s \in Slots : st[s] # "none" /\ cid[s] = last'.i
 Reached == Detail /\ (Rec \/ ActiveId)
 
 \* The page's grounds, detail by detail, as the checks read them: each detail
-\* passes every rule on it (Operation 1 to 18, 44, 45).
+\* passes every rule on it (Operation 2 to 8, 10 to 18, 44, 45).
 MediumOk == /\ ~(Rec /\ C.m \in Blanks) /\ C.m \notin OverCaps /\ C.m \notin NotStrings
             /\ (C.m \in Blanks \/ C.m \in mset)
 OccurredOk == /\ ~(Rec /\ C.o = NoInstant) /\ (C.o = NoInstant \/ C.o \in Times)
@@ -560,16 +560,12 @@ Inv2_1_IdKept ==
 Inv3_1_WithdrawnFinal ==
     [][\A s \in Slots : st[s] = "withdrawn" => st'[s] = "withdrawn"]_vars
 
-\* Op1_MediumOverCapRefused: a detail action whose medium is over the string
-\* cap answered invalid-medium and wrote nothing (Operation 1).
-Op1_MediumOverCapRefused ==
-    [][(Reached /\ C.m \in OverCaps) => Refused("invalid-medium")]_vars
-
 \* Op2_MediumOutsideSetRefused: a detail action whose medium is not blank and
 \* not in the medium set, compared codepoint for codepoint, answered
 \* invalid-medium and wrote nothing: record("fax", ...) and record("Phone",
-\* ...) where the set offers phone, and a [Change] to a medium the deployment
-\* dropped (Operation 2, Identity 11).
+\* ...) where the set offers phone, a [Change] to a medium the deployment
+\* dropped, and a medium over the string cap, which no medium set offers
+\* (Operation 2, Capability requirement 10, Identity 11).
 Op2_MediumOutsideSetRefused ==
     [][(Reached /\ C.m \notin Blanks /\ C.m \notin mset) => Refused("invalid-medium")]_vars
 
@@ -614,18 +610,11 @@ Op8_ItemMemberRefused ==
             /\ SummaryOk /\ C.itm.ok /\ \E x \in C.itm.m : Bad(x))
          => Refused("invalid-item-references")]_vars
 
-\* Op9_OutcomeOverCapRefused: a detail action whose earlier details pass and
-\* whose outcome is over the string cap answered invalid-outcome and wrote
-\* nothing (Operation 9).
-Op9_OutcomeOverCapRefused ==
-    [][(Reached /\ MediumOk /\ OccurredOk /\ OutsideOk /\ InsideOk /\ DirectionOk
-            /\ SummaryOk /\ ItemsOk /\ C.oc \in OverCaps)
-         => Refused("invalid-outcome")]_vars
-
 \* Op10_OutcomeOutsideSetRefused: the same for an outcome not blank and not
 \* in the outcome set, compared codepoint for codepoint: outcome busy at the
 \* sales team, Connected where the set offers connected, and any outcome at
-\* the property manager (Operation 10, Identity 13).
+\* the property manager, and an outcome over the string cap, which no outcome
+\* set offers (Operation 10, Capability requirement 11, Identity 13).
 Op10_OutcomeOutsideSetRefused ==
     [][(Reached /\ MediumOk /\ OccurredOk /\ OutsideOk /\ InsideOk /\ DirectionOk
             /\ SummaryOk /\ ItemsOk /\ C.oc \notin Blanks /\ C.oc \notin oset)
@@ -832,11 +821,10 @@ Op36_HistoryEveryMatch ==
     [][(History /\ GoodQuery)
          => \A s \in Slots : IsMatch(s) => \E k \in DOMAIN H : H[k] = cid[s]]_vars
 
-\* HistoryTerm_OnlyMatches: every communication such a [History For]
+\* Op46_HistoryOnlyMatches: every communication such a [History For]
 \* answered is a match: none outside the range, none not naming the
-\* reference (the term history: "the matches a [History For] call answers";
-\* the term History For).
-HistoryTerm_OnlyMatches ==
+\* reference (Operation 46).
+Op46_HistoryOnlyMatches ==
     [][(History /\ GoodQuery)
          => \A k \in DOMAIN H : \E s \in Slots : IsMatch(s) /\ cid[s] = H[k]]_vars
 

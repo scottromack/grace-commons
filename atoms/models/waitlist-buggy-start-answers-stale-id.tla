@@ -396,14 +396,14 @@ ReadWaitlistUnknown(w) ==
 
 \* ReadWaitlistKnown: a [Read Waitlist] answers the waitlist's waitlist id,
 \* offering reference and waitlist state (Operation 32), and every waiting
-\* spot of it, lowest join number first (Operation 33), each with its spot
-\* id, person reference, join number and join instant (Operation 34), and
-\* writes nothing (Operation 35).
+\* spot of it, lowest join number first (Operation 33), and no spot that is
+\* not waiting (Operation 36), each with its spot id, person reference, join
+\* number and join instant (Operation 34), and writes nothing (Operation 35).
 ReadWaitlistKnown(w) ==
     /\ wst[w] # "none"
     /\ last' = [NoCall EXCEPT !.op = "read_waitlist", !.w = w, !.ans = "waitlist",
                   !.rw = [wid |-> w, off |-> woff[w], st |-> wst[w],                \* Operation 32
-                          spots |-> Sorted({Entry(s) : s \in WaitingOf(w)})]]     \* Operation 33
+                          spots |-> Sorted({Entry(s) : s \in WaitingOf(w)})]]     \* Operation 33, 36
     /\ wrote' = {}                                             \* Operation 35
     /\ UNCHANGED records
 
@@ -711,12 +711,10 @@ Op33_ReadWaitlistEveryWaitingInOrder ==
                   (k + 1 \in DOMAIN last'.rw.spots)
                     => last'.rw.spots[k].num < last'.rw.spots[k + 1].num)]_vars
 
-\* ReadWaitlistTerm_OnlyWaiting: every spot such a [Read Waitlist] answered
+\* Op36_ReadWaitlistOnlyWaiting: every spot such a [Read Waitlist] answered
 \* is a waiting spot of the waitlist: Ana's called spot and Ben's left one
-\* are not in the pottery class's read_waitlist(w1) (the term Read Waitlist:
-\* "every waiting spot on it"; the NOTE under the Operations: "an ended spot
-\* is read by [Read Spot]"; the pottery class).
-ReadWaitlistTerm_OnlyWaiting ==
+\* are not in the pottery class's read_waitlist(w1) (Operation 36).
+Op36_ReadWaitlistOnlyWaiting ==
     [][(last'.op = "read_waitlist" /\ wst[last'.w] # "none")
          => \A k \in DOMAIN last'.rw.spots : last'.rw.spots[k].sid \in WaitingOf(last'.w)]_vars
 
