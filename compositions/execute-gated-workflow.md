@@ -214,7 +214,7 @@ Term liveness sum: `((completion bound + reconciliation cadence) + reconciliatio
 
 NOTE: watch the reconciliation's own run (Term liveness sum).
 
-Term escalation reach: `((compensation window + reconciliation cadence) + reconciliation run bound)` — how long after an owed record commits the sweep may open the record's unresolved finding.
+Term escalation reach: `((compensation window + reconciliation cadence) + reconciliation run bound)` — how long after an owed record commits the sweep may open the record's unresolved finding, the clock offset allowance apart: Reconciliation 29 and Term aged record each spend it on the comparison of a stamp the composition's clock wrote with the sweep's now, so it falls out of the audit horizon's comparison with the reach (Capability requirement 25).
 
 Term service identity: the composition's registered actor reference and credential — `application_actor_ref` and `application_credential` — under which the composition attests every write no present human's invocation owns.
 
@@ -242,7 +242,6 @@ Primitive policy 6: IF a guarded transition's guard label names no [Gate Spec] e
 Primitive policy 7: IF a [Gate Spec] entry names no guard label of the declaration THEN [Start Workflow] MUST answer invalid-request.
 Primitive policy 8: IF an entry's approver reference OR scope EQUALS blank THEN [Start Workflow] MUST answer invalid-request.
 Primitive policy 9: IF a capped field's length EXCEEDS the field's cap THEN the action MUST answer invalid-request.
-NOTE: open 2026-11-04-a — a declared state or action name, which a fire intent's moot plan carries, is in no capped field.
 Primitive policy 10: IF the guarded transition count EXCEEDS the guarded transition cap THEN [Start Workflow] MUST answer invalid-request.
 Primitive policy 11: IF the instance id OR the action EQUALS blank THEN the action MUST answer invalid-request.
 Primitive policy 12: An action refused under Primitive policy 1 through 11 MUST NOT write.
@@ -270,11 +269,11 @@ Term decisions: approve | reject | withdraw.
 
 Term reason-bearing decisions: reject | withdraw — Approval Step's mandatory-reason rule.
 
-Term capped field: a guard label, an approver reference, a scope, a subject reference, a declaration reference or a reason — each bounded by a cap the deployment derives from its Audit Trail instance's payload budget and reference caps.
+Term capped field: a guard label, an approver reference, a scope, a subject reference, a declaration reference, a reason, a from-state name or an action name (the two a gate key carries, and so a fire intent's moot plan) — each bounded by a cap the deployment derives from its Audit Trail instance's payload budget and reference caps.
 
 Term guarded transition count: how many transitions of the declaration carry a guard label — the count that bounds a moot plan, since several transitions may share one label.
 
-Term guarded transition cap: the budget-derived bound on the guarded transition count.
+Term guarded transition cap: the bound on the guarded transition count at which the widest fire intent, firing event and moot record a workflow of that count can need, each built from the capped fields' caps and the id widths, still fits the Audit Trail instance's payload budget.
 
 Term action: the transition name a call addresses — a well-formed but undeclared action lands on invalid-transition, never invalid-request.
 
@@ -541,7 +540,7 @@ Wiring decision 9: A re-bind MUST write the gate binding with the consumed mark 
 
 Term live approvals: the bound steps in Approved that are neither consumed nor mooted.
 
-Term consumption rule: a bound step is consumed where a firing event names it; or where the workflow machine's history holds a guarded firing out of its gate key, inside the widened horizon, whose fired instant DOES NOT PRECEDE the bound step's submitted instant AND that no firing event names — a committed firing whose record is still owed; or where a guarded firing out of its gate key IS IN the aged entries AND whose fired instant DOES NOT PRECEDE the bound step's submitted instant; or where its consumed mark is set.
+Term consumption rule: a bound step is consumed where a firing event names it; or where the workflow machine's history holds a guarded firing out of its gate key, inside the widened horizon, whose fired instant DOES NOT PRECEDE the bound step's submitted instant AND that no firing event names — a committed firing whose record is still owed; or where a guarded firing out of its gate key IS IN the aged entries AND whose fired instant DOES NOT PRECEDE the bound step's submitted instant; or where its consumed mark is set; the aged arm is out of reach under Capability requirement 3, which keeps a workflow's lifetime inside the audit horizon, so no firing a workflow that can still fire has made is an aged entry, as no fire intent the mooting rule reads is purged while its workflow can fire.
 
 Term mooting rule: a bound step is mooted where a moot record names it, where a committed firing's fire intent names it in its moot plan, or where its mooted mark is set.
 
@@ -597,11 +596,9 @@ Reconciliation 25: IF the firing leg's candidate count EXCEEDS one THEN the casc
 Reconciliation 26: IF the candidate count EXCEEDS the intent candidates cap THEN the sweep MUST open an unresolved finding for the record on Audit Trail's alerting surface.
 Reconciliation 27: The sweep MUST NOT re-emit a start event.
 Reconciliation 28: The sweep MUST retry ONLY a transient arm.
-Reconciliation 29: IF an owed record's escalation instant PRECEDES the sweep's now THEN the sweep MUST open an unresolved finding for the record on Audit Trail's alerting surface.
+Reconciliation 29: IF an owed record's escalation instant plus the clock offset allowance PRECEDES the sweep's now THEN the sweep MUST open an unresolved finding for the record on Audit Trail's alerting surface.
 Reconciliation 30: IF Audit Trail answers invalid-credential to the service identity THEN the deployment MUST page on the answer as a service credential fault.
 ```
-
-NOTE: open 2026-11-18-a — whether Reconciliation 29 spends the clock offset allowance, as Term aged record does, where it compares the escalation instant, the composition call's stamp, with the sweep's now.
 
 Term sweep: the reconciliation the composition runs outside every invocation, on the cadence — four legs diffing the constituent records against the trail.
 
@@ -1184,10 +1181,7 @@ formal: verified — execute-gated-workflow.tla + 13 twins, re-derived 2026-11-0
 last gate: 2026-11-19 — Final Critique 17, a delta round, one reader (Linus beam-free), frozen at cd319558 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 1 foundational, 2 refining, 1 rhetorical, all four placed refining or refuted by both triages: the foundational is the open line 2026-11-18-a re-found (Reconciliation 29 spends no clock offset allowance where it compares the composition call's escalation instant with the sweep's now), whose cure needs the decision the line names and which the finder's threshold does not make (it moves the latest instant the sweep may open the finding without lengthening Term escalation reach or Capability requirement 25's bound), so the line stands, extended; refuted (External check 7 and External check 8 each name the quantity the auditor recomputes; Term compensation window declares the window a duration and Term escalation instant adds it to the commit instant; Term finding owns the unresolved finding on Audit Trail's alerting surface); 2026-11-18 — Final Critique 16 — delta, frozen at 1295612 — foundational count 1, not clean, no sample
 
 open:
-- 2026-11-18-a · refining · Reconciliation 29; Term escalation instant; Term escalation reach; Capability requirement 25 · Reconciliation 29 compares the escalation instant, the composition call's stamp, with the sweep's now, a reading of the sweep's own call, and names no clock offset allowance, where Term aged record spends it on the same two readings (Execution Contract Logic confinement 18) → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-04-a · refining · Primitive policy 9; Term capped field; Term moot plan · a fire intent's moot plan carries the declaration's state and action names, which no cap bounds, so the intent's payload is sized by names the capped fields leave out → a field an attacker or operator controls gets an explicit cap and a refusal (decided 2026-11-19, group 8 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-08-a · refining · Term mooting rule; Term consumption rule; Capability requirement 3 · the consumption rule reads a firing past the horizon (Wiring decision 5) and the mooting rule reads no record past it, so where a workflow outlives the audit horizon an approval mooted only by an owed cascade's fire intent reads as live again once that intent is purged, and clears a firing; under Capability requirement 3 an intent is never aged while its workflow can fire, so the arm is out of reach → state that the consumption rule's aged arm is likewise unreachable under Capability requirement 3, or give the mooting rule an aged arm
-- 2026-10-31-b · refining · Audit arm 11; Term stage · the page reads an Audit Trail refusal at an outcome as leaving the act committed (post-commit), where Execution Contract Read 4 says a refused call writes nothing → Audit Trail declares the surfaces it exposes, or the pages that pass through it cite the Execution Contract's direct-invocation rule; one form, not five (decided 2026-11-19, group 5 of Scott's ruling of 2026-11-19T21:32Z)
+- 2026-10-31-b · foundational · Audit arm 11; Term stage; the four signatures' refuses lines · recording-failure carrying post-commit stands on each writing action's refuses line though the action's load-bearing write committed, where Execution Contract Read 4 says a refused call writes nothing and Read 7 puts a failure whose effects commit on the answers line, so one build rolls the act back with the refusal and another keeps it → waits for Scott: move the post-commit case to the answers line, one form for every page that passes through Audit Trail
 ```
 
 <details markdown="block">
