@@ -35,6 +35,8 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 ### Structure › Identity model
 
 ```
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it: a rule that the transition MUST NOT allocate an id restates it.
+Deleted: Identity 4. Execution Contract Logic confinement 14 owns it: the business caller is never the source of an injected value.
 Deleted: Identity 5. Invariant 6.1 owns it.
 Deleted: Identity 8. Invariant 6.1 owns it.
 ```
@@ -138,5 +140,6 @@ Deleted: Assign race 3. Execution Contract Database 2 owns it.
 ### Composition notes
 
 ```
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Deleted: Composition note 2. Term task reference owns it: the host owns what a task is.
 ```

@@ -42,7 +42,7 @@ abstract sig Call {
 
 -- RecordingCall: a call that records a new assignment, [Assign] or [Reassign]. The host
 -- allocates its assignment id at the seam (Identity 2); the transition allocates none
--- (Identity 3).
+-- (Execution Contract Logic confinement 3).
 abstract sig RecordingCall extends Call {
     allocatedId : one Id
 }
@@ -97,7 +97,7 @@ fact ClockNeverRunsBackward {
 
 -- The host supplies an id it allocates to one call only (Execution Contract Logic
 -- confinement 16). The page's own rules say only that the host allocates the id
--- (Identity 2) and the transition does not (Identity 3), so this is where Invariant 6.1
+-- (Identity 2) and the transition does not (Execution Contract Logic confinement 3), so this is where Invariant 6.1
 -- comes from.
 fact HostSuppliesAnIdToOneCall {
     all disj a, b : RecordingCall | a.allocatedId != b.allocatedId

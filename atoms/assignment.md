@@ -40,8 +40,6 @@ Work gets handed to people, and the handing has to be answerable: who holds this
 ```
 Identity 1: The atom MUST identify an assignment by the assignment id.
 Identity 2: The host MUST allocate an assignment id at the atom's seam.
-Identity 3: The transition MUST NOT allocate an assignment id.
-Identity 4: The business caller MUST NOT supply an assignment id.
 Identity 6: The atom MUST NOT identify an assignment by the task reference.
 Identity 7: The atom MUST NOT identify an assignment by the task reference with the assignee reference.
 ```
@@ -79,6 +77,8 @@ State 13: The atom MUST NOT re-derive an instant an assignment carries from a la
 
 Term status: active | recalled | transferred — in force, withdrawn with nobody after, or handed on to a new assignee.
 
+Term terminal status: recalled or transferred — a status no action moves an assignment out of (Invariant 4.1, Invariant 4.2).
+
 Term assignment instant: the instant the assignment was created — an [Assignment Instant].
 
 Term recall instant: the instant the assignment was withdrawn — a [Recall Instant].
@@ -89,7 +89,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 8, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MUST supply at the seam, for each [Assign] call and each [Reassign] call, an assignment id no assignment has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 ```
 
@@ -127,25 +127,26 @@ Operation 8: IF no assignment EXISTS for the assignment id THEN [Recall] MUST an
 Operation 9: IF the assignment's status EQUALS recalled THEN [Recall] MUST answer not-active.
 Operation 10: IF the assignment's status EQUALS transferred THEN [Recall] MUST answer not-active.
 Operation 11: [Recall] MUST stand the assignment in recalled.
-Operation 12: [Recall] MUST leave the task reference with no active assignment.
+Operation 12: [Recall] MUST leave the assignment's task reference with no active assignment.
 Operation 13: IF the database refuses the write THEN [Recall] MUST answer storage-failure.
 Operation 14: IF no assignment EXISTS for the assignment id THEN [Reassign] MUST answer not-known.
 Operation 15: IF the assignment's status EQUALS recalled THEN [Reassign] MUST answer not-active.
 Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST answer not-active.
 Operation 17: IF new assignee reference EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
-Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task reference.
+Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the old assignment's task reference.
 Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the database refuses either write THEN [Reassign] MUST answer storage-failure.
 Operation 25: [Active For] MUST answer the active assignment for the task reference.
-Operation 26: [Active For] MUST answer none for a task reference with no active assignment.
-Operation 27: [History For] MUST answer EVERY assignment carrying the task reference.
+Operation 26: [Active For] MUST answer none for a task reference with no active assignment, a blank one included.
+Operation 27: [History For] MUST answer EVERY assignment carrying the task reference, none for a blank one.
 Operation 28: [History For] MUST order the answer by assignment instant, earliest first.
 Operation 28a: [History For] MUST order two assignments sharing an assignment instant by recording commit, earliest first.
 Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
 Operation 30b: [Reassign] MUST stamp the new assignment's assignment instant from the injected now.
 Operation 38: [Reassign] MUST set the new assignment's assignee reference to the new assignee reference.
+Operation 39: [Recall] MUST answer ok.
 ```
 
 NOTE: watch read-order polarity (Operation 28).
@@ -162,7 +163,7 @@ The case space, and the rule that owns each case:
 | [Assign] | blank task reference or assignee reference | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Assign] | task already has an active assignment | [Already Assigned] | none (Operation 6) |
 | [Assign] | database refuses the write | [Storage Failure] | none (Operation 7) |
-| [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's; its assignment id, task reference, assignee reference and assignment instant stand (Operation 11, Operation 12, Invariant 2.1) |
+| [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's; its assignment id, task reference, assignee reference and assignment instant stand (Operation 11, Operation 12, Operation 39, Invariant 2.1) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
 | [Recall] | database refuses the write | [Storage Failure] | none — the assignment stays [Active] (Operation 13) |
 | [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and its transfer instant stamped from the injected now; and a new [Active] one carrying the same task reference, the new assignee reference and an assignment instant stamped from the injected now (Operation 18, Operation 19, Operation 21, Operation 30b, Operation 38, State 7, Invariant 2.1, Invariant 8.3) |
@@ -176,6 +177,8 @@ The case space, and the rule that owns each case:
 | any call | its read of the assignment records fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 
 Where two cases of one action hold at once, the refusal listed first on the action's refuses line answers (Execution Contract Refusal 1).
+
+An [Assign] is undone by a [Recall]; a [Recall] leaves the recalled assignment final (Invariant 4.1, Invariant 10.1), so a later [Assign] records afresh and no undo is owed; a [Reassign] leaves the old assignment final the same way and is handed on by another [Reassign] (Execution Contract Undo 4).
 
 ### Invariants
 
@@ -198,7 +201,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
 - **Invariant 5 — Id stability.**
   ```
-  Invariant 5.1: [Assign] MUST set the assignment id.
+  Invariant 5.1: EVERY assignment MUST carry the assignment id the host allocated for the call recording the assignment.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -212,7 +215,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
   Invariant 8.1: IF recall instant DOES NOT EQUAL blank THEN recall instant MUST NOT PRECEDE assignment instant.
   Invariant 8.2: IF transfer instant DOES NOT EQUAL blank THEN transfer instant MUST NOT PRECEDE assignment instant.
-  Invariant 8.3: The atom MUST stamp EVERY instant an assignment carries once.
+  Invariant 8.3: An instant an assignment carries MUST NOT change.
   ```
 - **Invariant 9 — Complete responsibility history.**
   ```
@@ -273,6 +276,7 @@ Check 2.2: An auditor MUST read a recalled assignment as the recalling call leav
 Check 2.3: An auditor MUST read a transferred assignment as handed on to the assignment the transferring call recorded for the same task reference (Operation 18, Operation 19, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
 Check 4.1: An auditor MUST find no assignment carrying an instant that PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
+Check 6.1: An auditor MUST find no assignment id carried by two assignments (Invariant 6.1).
 ```
 
 ### External checks
@@ -302,26 +306,19 @@ Non-goal 11: The atom MUST NOT read a task's state.
 Non-goal 12: The atom MUST NOT recall an assignment on the task's completion.
 ```
 
-NOTE: the owners — a Capacity Constraint pattern *(forthcoming)* (Non-goal 9); a Team Assignment pattern *(forthcoming)* (Non-goal 10); the host's task system (Non-goal 11, External check 3); the composing pattern (Non-goal 12, Composition note 4).
+NOTE: the owners — [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) (Non-goal 9); a Team Assignment pattern *(forthcoming)* (Non-goal 10); the host's task system (Non-goal 11, External check 3); the composing pattern (Non-goal 12, Composition note 4).
 
 Where the atom breaks down: when responsibility is genuinely shared at the same time; when an assignment must end on its own without anyone withdrawing it; when the assigner must be authorized before assigning; when the assignee must consent before holding.
-
-## Edge cases
-
-### Reassign atomicity
-
-### The assign race
 
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 3: A composing pattern MUST own whether an assignee may hold the task.
 Composition note 4: A composing pattern MUST own whether a completed task's assignment is recalled.
 Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] and [Reassign] under the assigner's credential.
 ```
 
-NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md). Forthcoming: Acceptance, Temporal Grant, Capacity Constraint, Team Assignment.
+NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md), [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md). Forthcoming: Acceptance, Temporal Grant, Team Assignment.
 
 ## Terms
 
@@ -343,7 +340,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference, recording commit.
+Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference, recording commit, terminal status.
 
 #### Assignment
 
@@ -356,7 +353,7 @@ Kind: Type
 The [Assignment]'s lifecycle state — [Active], [Recalled] or [Transferred]. Set to [Active] on creation; moves once, to one terminal state, and never back (State 1, Invariant 3.2).
 
 Kind:       Field
-Field of:   the assignment
+Field of:   Assignment
 Projection: status
 
 #### Assign
@@ -579,7 +576,7 @@ It inherits from:
 ```
 status: doing
 formal: verified — assignment.tla + 1 twin (2026-06-03); assignment.als + 11 twins (the static data model, 2026-11-11: State 1 through 4 and Invariant 5.1, 6.1, 7.2, 8.1, 8.2, 9.1 and 9.2 checked on every record an admitted [Assign], [Recall] or [Reassign] leaves, Invariant 7.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 2.1, 3.2, 4.1, 4.2, 8.3 and 10.1: whether two active assignments co-exist depends on the order of the calls that wrote them, and the others each compare a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 2, 3, 4, 8.3 and 10 (across steps); owed rows: Invariant 2; Invariant 3; Invariant 4; Invariant 8.3; Invariant 10, 2026-11-11
-last gate: 2026-11-20 — Final Critique 10, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 369b7bb0 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus counted 0 foundational, 0 refining and pressed three questions the page answers; the blind second triage placed one unpressed candidate foundational: Invariant 8.1, Invariant 8.2 and Check 4.1 compare an instant an earlier call stamped with a later call's reading, and Capability requirement 1 and Term now cite Logic confinement 7 and 11 without saying the atom spends no clock allowance, so a deployment of two nodes within an allowance and one clock conform and differ; cured in Term now, as Invitation, Owed Record and Actor Identity word it; the delta set was a substitute, the reach being nothing, and the held GRACE-lang Term for Final Critique 9 is still waiting for the quiet window); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus glm-5.3-flash), frozen at 5c0294d2 — foundational count 1 after the blind second triage, not clean, no sample (Linus counted 0 foundational and 1 refining, the form of a citation to labels that no range spans; the first triage placed it refining, the blind second triage placed it foundational because two conforming parsers read GRACE-lang Hard invariant 31's "run of labels" two ways, and the cure is a held replacement to GRACE-lang Hard invariant 31, held.md, which the quiet window lands; no edit to this page's rules); 2026-11-20 — Final Critique 8, a delta round, one reader (Linus glm-5.3-flash), frozen at 670bdcb2 — foundational count 1 after the blind second triage, not clean, no sample (the clock's monotonicity, which Invariant 8.1, Invariant 8.2 and Check 4.1 rely on, was never cited; Capability requirement 1 now cites Execution Contract Logic confinement 7); 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 11, a full round, three readers (GRID beam-free, EOS claude-sonnet-5-5, Linus nemotron-3.5-super-vl-free), frozen at f5f1914b — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample (GRID and EOS found that no rule obliges [Recall] to answer ok, cured by Operation 39; EOS's Identity 4 against the signatures placed refining, cured with Identity 3 by tombstoning both to Execution Contract Logic confinement 3 and 14; Linus counted 0); 2026-11-20 — Final Critique 10, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 369b7bb0 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus counted 0 foundational, 0 refining and pressed three questions the page answers; the blind second triage placed one unpressed candidate foundational: Invariant 8.1, Invariant 8.2 and Check 4.1 compare an instant an earlier call stamped with a later call's reading, and Capability requirement 1 and Term now cite Logic confinement 7 and 11 without saying the atom spends no clock allowance, so a deployment of two nodes within an allowance and one clock conform and differ; cured in Term now, as Invitation, Owed Record and Actor Identity word it; the delta set was a substitute, the reach being nothing, and the held GRACE-lang Term for Final Critique 9 is still waiting for the quiet window); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus glm-5.3-flash), frozen at 5c0294d2 — foundational count 1 after the blind second triage, not clean, no sample (Linus counted 0 foundational and 1 refining, the form of a citation to labels that no range spans; the first triage placed it refining, the blind second triage placed it foundational because two conforming parsers read GRACE-lang Hard invariant 31's "run of labels" two ways, and the cure is a held replacement to GRACE-lang Hard invariant 31, held.md, which the quiet window lands; no edit to this page's rules); 2026-11-20 — Final Critique 8, a delta round, one reader (Linus glm-5.3-flash), frozen at 670bdcb2 — foundational count 1 after the blind second triage, not clean, no sample (the clock's monotonicity, which Invariant 8.1, Invariant 8.2 and Check 4.1 rely on, was never cited; Capability requirement 1 now cites Execution Contract Logic confinement 7); 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
 
 open: none
 ```
