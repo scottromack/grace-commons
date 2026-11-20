@@ -137,19 +137,22 @@ Operation 24: [List Destroyed] MUST NOT answer an erasure tombstone that is not 
 Operation 25: IF window start EQUALS blank OR window end EQUALS blank THEN [List Destroyed] MUST answer invalid-request.
 Operation 26: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Destroyed] MUST answer invalid-request.
 Operation 27: IF window start is malformed OR window end is malformed THEN [List Destroyed] MUST answer invalid-request (Execution Contract Input 1).
+Operation 28: IF a string input of the call is malformed THEN [Record Destruction] MUST answer invalid-request (Execution Contract Input 1).
 ```
 
 NOTE: watch the listing page (Operation 15, Operation 24, Term matching erasure tombstone).
 
 NOTE: watch the blank optional input (Term matching erasure tombstone).
 
-NOTE: watch the untyped input (Operation 27, Term window start).
+NOTE: watch the untyped input (Operation 27, Operation 28, Term window start, Term string input).
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
 Term destruction instant: the clock reading the erasure tombstone was stamped from, the instant the destroying pattern states for the destruction (Non-goal 1) — a [Destruction Instant].
 
 Term recognized kinds: retention-purge, erasure-request, and EVERY deployment kind the deployment declared.
+
+Term string input: a destroyed pattern, a destroyed id, an authority reference OR an actor reference — every caller-supplied string [Record Destruction] accepts, malformed where it is not a string; the authority kind is the value of its declared set (Term authority kind), and a value outside the set answers by Operation 7.
 
 Term window: the half-open span from window start to window end, window start included and window end excluded, in place of Execution Contract Query 2's closed range.
 
@@ -171,7 +174,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Record Destruction] | every field present, within its cap, a recognized kind, no erasure tombstone for the pair, database accepts | recorded | one erasure tombstone lands, destruction instant stamped from now, and no field of it changes afterward (Operation 1, Operation 2, Operation 3, Invariant 1.1) |
 | [Record Destruction] | an erasure tombstone already names the pair | [Duplicate] | none (Operation 4) |
-| [Record Destruction] | a blank field, a field over its cap, or a kind not recognized | [Invalid Request] | none (Operation 5 through 9), and the caller's delete is not made (Composition note 6) |
+| [Record Destruction] | a blank field, a field over its cap, a string input that is not a string, or a kind not recognized | [Invalid Request] | none (Operation 5 through 9, Operation 28), and the caller's delete is not made (Composition note 6) |
 | [Record Destruction] | database refuses the write | [Storage Failure] | none, and the caller's delete in the same transaction rolls back with it (Operation 10, Execution Contract Constituent failure 1) |
 | [Read Tombstone] | an erasure tombstone names the pair | the erasure tombstone | none (Operation 12) |
 | [Read Tombstone] | no erasure tombstone names the pair | none | none (Operation 13) |
@@ -228,6 +231,8 @@ A person asks a clinic to erase their marketing preferences. The clinic's erasur
 The retention service retries the purge of `inv_8c21` after a timeout it misread as a failure: `record_destruction(destroyed_pattern: "event-log", destroyed_id: "inv_8c21", ...)` → duplicate (Operation 4). The first call landed; the record stays destroyed once.
 
 `record_destruction(destroyed_pattern: "event-log", destroyed_id: "inv_9d02", authority_kind: "cleanup", authority_ref: "ret_31f0", actor_ref: "svc_retention_r01")` → invalid-request: "cleanup" is no recognized kind (Operation 7).
+
+`record_destruction(destroyed_pattern: "event-log", destroyed_id: 42, authority_kind: retention-purge, authority_ref: "ret_31f0", actor_ref: "svc_retention_r01")` → invalid-request: the destroyed id is a number, not a string (Operation 28).
 
 `record_destruction(...)` whose write the database refuses → storage-failure, and the delete it rode with rolls back: the record is still there, and still under retention (Operation 10, Execution Contract Constituent failure 1).
 
@@ -326,6 +331,8 @@ Composition note 4: A composing pattern MUST own the authority reference's meani
 Composition note 5: A composing pattern MUST call [Read Tombstone] for a destroyed id the destroyed pattern's database holds no record for.
 Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable THEN a composing pattern MUST NOT remove the destroyed record.
 Composition note 7: A composing pattern MUST own whether a duplicate answer permits removing the destroyed record.
+Composition note 8: A composing pattern MUST NOT supply an authority reference derived from a person's data.
+Composition note 9: A composing pattern MUST NOT supply an actor reference derived from a person's data, such as the account name of the person whose record was destroyed.
 ```
 
 NOTE: composing patterns — the nine compositions whose Composition state names an extraction-pending fact against this atom: [Audit Trail](../compositions/audit-trail.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Reserve from Pool](../compositions/reserve-from-pool.md), [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), [Chain of Custody](../compositions/chain-of-custody.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md), [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Multi-Party Approval](../compositions/multi-party-approval.md).
@@ -350,11 +357,11 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-01) through the Grace connector.
 
-Term terms: erasure tombstone, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
+Term terms: erasure tombstone, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, string input, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
 
 #### Record Destruction
 
-The behavior a destroying pattern invokes, in the transaction that removes a record, to record that the record was destroyed. It takes the [Destroyed Pattern], [Destroyed Id], [Authority Kind], [Authority Reference] and [Actor Reference], stamps [Destruction Instant] from the injected [Now], and answers recorded. It refuses [Duplicate] where an erasure tombstone already names the pair, [Invalid Request] for a blank, over-long or unrecognized input, and [Storage Failure] where the database refuses the write. It reads nothing of the destroyed pattern.
+The behavior a destroying pattern invokes, in the transaction that removes a record, to record that the record was destroyed. It takes the [Destroyed Pattern], [Destroyed Id], [Authority Kind], [Authority Reference] and [Actor Reference], stamps [Destruction Instant] from the injected [Now], and answers recorded. It refuses [Duplicate] where an erasure tombstone already names the pair, [Invalid Request] for a blank, over-long, non-string or unrecognized input, and [Storage Failure] where the database refuses the write. It reads nothing of the destroyed pattern.
 
 Kind: Operation
 
@@ -477,7 +484,7 @@ Projection: duplicate
 
 #### Invalid Request
 
-The refusal an action answers for a blank input, an input over its cap, an unrecognized [Authority Kind], a window that ends before it starts, or a malformed window bound or continuation key. Nothing is written.
+The refusal an action answers for a blank input, an input over its cap, an input that is not a string where a string is declared, an unrecognized [Authority Kind], a window that ends before it starts, or a malformed window bound or continuation key. Nothing is written.
 
 Kind:       Member
 Member of:  the action rejection
@@ -533,12 +540,10 @@ Inherited from:
 
 ```
 status: doing
-formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 27; Clock dependence 1, 2026-11-11
+formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
-open:
-- 2026-11-02-a · refining · Composition note 3; Identity 3, Identity 4 · a person-derived authority reference or actor reference is barred nowhere, though a destroyed id derived from a person's data is (Composition note 3), and no rule says whether an actor reference naming a person's own account is the person's data → Composition note 3 reaches the authority reference and the actor reference (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-02-b · refining · State 1; Operation 5 through 9 · the atom declares no type for its string inputs beyond blank and cap, so a value of another type answers by Execution Contract Input 1 only through Operation 27 on the list's window → each [Record Destruction] input carries a declared type and a malformed refusal (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+open: none
 ```
 
 <details markdown="block">
