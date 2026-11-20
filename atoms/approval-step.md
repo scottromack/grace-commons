@@ -249,7 +249,7 @@ Term admitted withdraw: an admitted resolve on [Withdraw].
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
-Term landing read: a [Read] of the step by step id after a lost resolving action, and a [Read] filtered on subject reference, approver reference, submitter reference, scope and a range of submission instant spanning the call after a lost [Submit] — the read whose answer shows whether the call landed.
+Term landing read: a [Read] of the step by step id after a lost resolving action, whose answer shows the step's state and its deciding actor or withdrawing actor, and a [Read] filtered on subject reference, approver reference, submitter reference, scope and a range of submission instant spanning the call's resolved submission instant after a lost [Submit] — the read whose answer shows whether the call landed; where an earlier [Submit] carries the same field set, its answer holds both steps and shows only that a step carrying the field set stands (Indeterminate outcome 4).
 
 Term success token: approved on [Approve], rejected_outcome on [Reject] and withdrawn on [Withdraw] — the answer an admitted resolve returns.
 
@@ -803,7 +803,7 @@ Projection: invalid-query
 ```
 status: doing
 formal: verified — approval-step.tla + 3 twins (2026-06-03); approval-step.als + 10 twins (the static data model, 2026-11-11: Invariant 2.1, 4.1, 4.2, 5.1, 6.1 through 6.4, 7.1, 8.1, 8.2 and State 13 checked on every record [Submit] or one admitted resolve leaves, Invariant 4 and 5 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 3, 9 and 10: each compares a step with a later version of it or with a second step, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and Invariant 3 (across steps); owed rows: Invariant 1; Invariant 3, 2026-11-11
-last gate: 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 16, a delta round, frozen at 44b2d6a — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open: none
 ```
