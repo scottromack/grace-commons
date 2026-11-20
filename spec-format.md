@@ -101,9 +101,9 @@ Reference examples: [`atoms/personal-todo.md`](./atoms/personal-todo.md) for the
 
 The table titled *Heading tables* owns each heading's name, level, order and requirement, in the rows whose shape is atom; this list says what each holds.
 
-1. **Frontmatter** (Jekyll: `title`, `parent`, `nav_order`, `has_toc`, `toc`). Drives site rendering; the site nav order is per-category.
+1. **Frontmatter** (Jekyll: `title`, `id`, `audience`, `parent`, `has_toc`, `toc`). Drives site rendering. No `nav_order` is required: the site lists patterns by its own index.
 
-2. **Title and summary blockquote.** The atom's name as an H1, followed immediately by a one-paragraph blockquote summarizing what the atom is, what responsibility it isolates, and what its load-bearing contribution to a composing system is. The blockquote is the elevator pitch a reader sees before scrolling.
+2. **Title.** The atom's name as an H1. No summary blockquote follows it: the Summary (item 3) is the one-paragraph summary of what the atom is, what responsibility it isolates and what its load-bearing contribution to a composing system is, and a blockquote above it would say it twice.
 
 3. **Summary.** *(Done specs only — write the Summary as part of grounding confirmation, when the spec is stable enough to anchor from.)* **Tier 1 — plain language for anyone.** 3–6 sentences answering: what is this, what does it do, and what does it guarantee? Zero unexplained jargon. Every acronym spelled out and defined inline at first use, except the short common-acronym whitelist (see Authoring conventions). Every technical term that is not everyday English — including "invariant", "state machine", "composition", "atom" — defined in plain language the first time it appears in the Summary. The formal layer and the main text carry the precision; the Summary carries the accessibility. A Summary that a non-engineer with domain knowledge cannot read without a glossary is a Pass 1 finding.
 
@@ -153,7 +153,7 @@ Reference examples: [`compositions/idempotent-reservation.md`](./compositions/id
 
 The table titled *Heading tables* owns each heading's name, level, order and requirement, in the rows whose shape is composition; this list says what each holds.
 
-1. **Frontmatter, title, summary blockquote.** Same as atom shape. The blockquote captures what the composition wires together and what the emergent guarantee is.
+1. **Frontmatter and title.** Same as atom shape, with no summary blockquote: the Summary (item 2) names what the composition wires together and what the emergent guarantee is.
 
 2. **Summary.** *(Done specs only.)* Same Tier 1 rule as the atom shape: plain language for anyone, 3–6 sentences, zero unexplained jargon, every acronym spelled out and defined inline. For compositions, name what the composition wires together and what the resulting guarantee is — the property no single constituent can provide alone — in plain terms. "Composition guarantees that only appear when the atoms work together" is the plain-language form of "emergent invariant"; use whichever fits the sentence, but define the term the first time it appears.
 
