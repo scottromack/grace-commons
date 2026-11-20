@@ -685,7 +685,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -696,7 +696,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-20",
   "title": "Erasure Tombstone"
  },
  "event-log": {
