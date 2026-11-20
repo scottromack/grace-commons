@@ -46,8 +46,6 @@ Identity 6: The atom MUST NOT identify an assignment by the task reference.
 Identity 7: The atom MUST NOT identify an assignment by the task reference with the assignee reference.
 ```
 
-NOTE: open 2026-10-26-a — the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4).
-
 Term assignment: one binding of a unit of work to a responsible actor — an [Assignment].
 
 Term assignment id: the opaque value naming one assignment — an [Assignment Id].
@@ -56,15 +54,13 @@ Term task reference: the opaque reference naming the unit of work — a [Task Re
 
 Term assignee reference: the opaque reference naming the responsible actor — an [Assignee Reference]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment id here.
+Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the assignment id here.
 
-Term transition: the atom's evaluation of one call against the assignment records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the assignment records, as Execution Contract Logic confinement 14 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+Term business caller: the business caller per Execution Contract Logic confinement 14.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
-
-NOTE: open 2026-10-21-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -94,6 +90,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
+Capability requirement 5: The deployment MUST supply at the seam, for each [Assign] call and each [Reassign] call, an assignment id no assignment has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 ```
 
 ### Operations
@@ -584,9 +581,7 @@ status: doing
 formal: verified — assignment.tla + 1 twin (2026-06-03); assignment.als + 11 twins (the static data model, 2026-11-11: State 1 through 4 and Invariant 5.1, 6.1, 7.2, 8.1, 8.2, 9.1 and 9.2 checked on every record an admitted [Assign], [Recall] or [Reassign] leaves, Invariant 7.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 2.1, 3.2, 4.1, 4.2, 8.3 and 10.1: whether two active assignments co-exist depends on the order of the calls that wrote them, and the others each compare a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 2, 3, 4, 8.3 and 10 (across steps); owed rows: Invariant 2; Invariant 3; Invariant 4; Invariant 8.3; Invariant 10, 2026-11-11
 last gate: 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
 
-open:
-- 2026-10-21-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the three there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
-- 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 · the assignment id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
+open: none
 ```
 
 <details markdown="block">
