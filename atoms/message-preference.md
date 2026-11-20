@@ -212,7 +212,7 @@ The case space, and the rule that owns each case:
 | [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted]; the prior's preference id, principal reference, declared channels, set instant, preference fields and metadata stand (Operation 14, Invariant 1.1, Invariant 1.2, Invariant 1.3) |
 | [Set] | blank or malformed principal reference, a malformed channel preferences, or every preference field blank (an empty map is blank) | [Invalid Request] | none (Operation 4, Operation 5, Operation 44, Operation 45) |
 | [Set] | a channel preferences key outside the injected set | [Undeclared Channel] | none (Operation 8, Execution Contract Refusal 1) |
-| [Set] | the injected declared channel set is degenerate | no answer the signature block carries; the deployment surfaces the fault | none (Instance 13 through 16; Operation 4, Operation 5, Operation 8, Operation 44 and Operation 45 stand aside) |
+| [Set] | the injected declared channel set is degenerate | no answer the signature block carries; the deployment surfaces the fault | none (Instance 13 through 16; Operation 4, Operation 5, Operation 8, Operation 44, Operation 45 and Operation 48 stand aside) |
 | [Suspend] | id names a record in [Active] | ok | [Active] → [Suspended], suspension instant stamped; the principal reference and the other recorded fields stand (Operation 20, State 9, Invariant 1.1, Invariant 1.2, Invariant 1.3, Invariant 6.3) |
 | [Suspend] | id names a record in [Suspended] or [Deleted] | [Not Active] | none; a recorded suspension instant stands (Operation 18, Operation 19, Invariant 1.5) |
 | [Delete] | id names a record in [Active] or [Suspended] | ok | → [Deleted], deletion instant stamped; a suspension instant the record carries stands (Operation 26, State 10, Invariant 1.5) |
@@ -367,11 +367,11 @@ This atom's acceptance is provable: an external auditor clears it from the prefe
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST enumerate EVERY preference record's preference id, principal reference, set instant, status, suspension instant and deletion instant from the database (Invariant 9.1).
+Check 1.1: An auditor MUST enumerate EVERY preference record's preference id, principal reference, declared channels, set instant, status, suspension instant and deletion instant from the database (Invariant 9.1).
 Check 1.2: An auditor MUST find EVERY supplied preference field that DOES NOT EQUAL blank on the preference record (State 3).
 Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal reference at an instant from set instant, status and deletion instant (Invariant 3.1).
 Check 2.2: An auditor MUST read a currency interval as half-open from set instant to deletion instant, and as open-ended where deletion instant EQUALS blank (State 11, State 12, State 13).
-Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1).
+Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1, Execution Contract Database 8).
 Check 5.1: An auditor MUST find EVERY channel preferences key in the preference record's own declared channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark a declared channels that EQUALS blank a conformance failure (Invariant 10.1, Invariant 10.2).
 ```
@@ -798,14 +798,14 @@ Projection: ok
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11; Operation 48, 2026-11-20
-last gate: 2026-11-20 — Final Critique 12, frozen at afcc3ab3 — foundational count 4 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (Linus's two reports, GRID's one and EOS's four: the opaque input cap's unit and scope, the clock's guarantees cited, the timestamps' tie, two [Set] calls for one principal serialized; refining and rhetorical cured with them, one question to Scott); 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
+last gate: 2026-11-20 — Final Critique 13, a delta round, frozen at 15e8c30f — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed three foundational, all three placed refuted by both triages: Concurrency 5 against Execution Contract Database 2's first sentence, which keeps a write from committing against a state its guards did not see; Operation 48's degenerate arm against Instance 14 through 16, which forbid [Set] to write; "currently in effect" against Term currently in effect; the degenerate row's list, Check 3.1's Database 8 citation and Check 1.1's declared channels cured as refining); 2026-11-20 — Final Critique 12, frozen at afcc3ab3 — foundational count 4 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (Linus's two reports, GRID's one and EOS's four: the opaque input cap's unit and scope, the clock's guarantees cited, the timestamps' tie, two [Set] calls for one principal serialized; refining and rhetorical cured with them, one question to Scott); 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
 open: none
 ```
