@@ -87,7 +87,7 @@ State 21: IF metadata EQUALS blank THEN [Set] MUST NOT store metadata on the pre
 
 NOTE: watch the blank optional input (State 3, State 4, State 5, State 21).
 
-Term status: active | suspended | deleted — in force, paused, or retired and terminal.
+Term status: active | suspended | deleted — in force, paused, or retired and terminal; [Suspend] and [Delete] each answer [Ok] once admitted.
 
 Term channel preferences: the optional map from a declared channel name to an opaque per-channel preference value — a [Channel Preferences]; malformed where it is no map.
 
@@ -96,6 +96,8 @@ Term frequency limit: the optional opaque value carrying the principal's frequen
 Term quiet hours: the optional opaque value carrying the windows delivery should skip — a [Quiet Hours].
 
 Term format: the optional opaque value carrying format preferences — a [Format].
+
+Term opaque input cap: the bound on the number of bytes of one opaque input the call carries (a channel preferences value, a frequency limit, quiet hours, a format or metadata), counted on the value as the call carries it; 65,536 bytes where a deployment declares none.
 
 Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; deployment context, never a preference field.
 
@@ -142,9 +144,6 @@ read(preference_id)
   answers preference_record | not-known
 ```
 
-NOTE: open 2026-11-03-a — the success arm ok of suspend and delete resolves to no declaration, unlike every other arm.
-
-NOTE: open 2026-11-03-b — no signature arm, rule or order declares the per-principal history read the Summary's record of changes and the Account-closure example rest on.
 
 ```
 Operation 1: [Set] MUST record EXACTLY ONE preference record per successful call.
@@ -184,6 +183,7 @@ Operation 44: IF a principal reference is malformed AND the injected declared ch
 Operation 45: IF a channel preferences is malformed AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request (Execution Contract Input 1).
 Operation 46: IF a preference id is malformed THEN [Suspend] MUST answer not-known (Execution Contract Input 1).
 Operation 47: IF a preference id is malformed THEN [Delete] MUST answer not-known (Execution Contract Input 1).
+Operation 48: IF an opaque input EXCEEDS the opaque input cap AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request (Execution Contract Input 2).
 ```
 
 NOTE: watch the untyped input (Operation 44, Operation 45, Operation 46, Operation 47, Term preference id, Term principal reference, Term channel preferences).
@@ -448,12 +448,10 @@ Channel set evolution 4: A composing pattern MUST own how a preference record na
 
 ```
 Opaque input bound 1: The atom MUST store EVERY opaque input that DOES NOT EQUAL blank as supplied.
-Opaque input bound 2: The atom MUST NOT bound an opaque input's size.
-Opaque input bound 3: The deployment MUST own an opaque input's size bound.
-Opaque input bound 4: The deployment MUST disclose the opaque input size bound.
+Opaque input bound 2: The atom MUST bound an opaque input's size at the opaque input cap.
+Opaque input bound 3: The deployment MAY declare the opaque input cap PER Execution Contract Input 2.
+Opaque input bound 4: The deployment MUST disclose the opaque input cap.
 ```
-
-NOTE: open 2026-11-03-c — no signature arm answers a call that exceeds the deployment's opaque input size bound.
 
 ### Re-creation after deletion
 
@@ -506,13 +504,13 @@ Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve
 
 Term value sets: status = active | suspended | deleted. preference field = channel preferences | frequency limit | quiet hours | format.
 
-Term bounds: opaque input size bound (the deployment's cap on a stored opaque value).
+Term bounds: opaque input cap (the bound on the number of bytes of one opaque input; 65,536 bytes where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: preference record, database instance, database name, declared channel set, degenerate, seam, transition, preference id, principal reference, blank, preference field, currently in effect, currency interval, supersession, now, business caller, guard, status, channel preferences, frequency limit, quiet hours, format, metadata, declared channels, set instant, suspension instant, deletion instant.
+Term terms: preference record, database instance, database name, declared channel set, degenerate, seam, transition, preference id, principal reference, blank, preference field, currently in effect, currency interval, supersession, now, business caller, guard, status, channel preferences, frequency limit, quiet hours, format, metadata, opaque input cap, declared channels, set instant, suspension instant, deletion instant.
 
 #### Set
 
@@ -692,7 +690,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Set] returns when the request's shape fails — a blank or malformed [Principal Reference] (Operation 4, Operation 44), a malformed [Channel Preferences] (Operation 45), or every preference field blank, an empty [Channel Preferences] map among them (Operation 5). A [Channel Preferences] key naming an undeclared channel is not this refusal; it is [Undeclared Channel], its own class with its own remedy.
+The refusal [Set] returns when the request's shape fails — a blank or malformed [Principal Reference] (Operation 4, Operation 44), a malformed [Channel Preferences] (Operation 45), or every preference field blank, an empty [Channel Preferences] map among them (Operation 5), or an opaque input over the opaque input cap (Operation 48). A [Channel Preferences] key naming an undeclared channel is not this refusal; it is [Undeclared Channel], its own class with its own remedy.
 
 Kind:       Member
 Member of:  the Set rejection
@@ -735,6 +733,15 @@ Member of:  the Delete rejection
 Role:       Outcome
 Projection: already-deleted
 
+#### Ok
+
+The answer [Suspend] and [Delete] give once the call is admitted (Operation 20, Operation 26); it carries nothing.
+
+Kind:       Member
+Member of:  the action answer
+Role:       Outcome
+Projection: ok
+
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -768,6 +775,7 @@ Projection: already-deleted
 [None]: #none
 [Not Active]: #not-active
 [Already Deleted]: #already-deleted
+[Ok]: #ok
 
 ---
 
@@ -793,13 +801,10 @@ Projection: already-deleted
 
 ```
 status: doing
-formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11
+formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11; Operation 48, 2026-11-20
 last gate: 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
-open:
-- 2026-11-03-a · refining · Operations (signature block) · the success arm ok of suspend and delete is declared nowhere, no term entry and no Terms-registry line, where every other arm resolves to a declaration (GRACE-lang Closed vocabulary 4, 27); Notification routes the same form (its 2026-10-21-f) → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-03-b · refining · Summary; Examples (Account closure) · the per-principal history of preference changes is promised queryable (the example filters the database on principal_ref and returns the chronological chain) and no signature arm declares that read, no rule owns it and no order governs it, while the Execution Contract's atom interface contract bars a composing pattern from reading the atom's table outside the declared surfaces → declare a history read with its order, or hand the access request to the pattern that owns it
-- 2026-11-03-c · refining · Opaque input bound 2, 3, 4 · the atom bounds no opaque input (bound 2), the deployment owns and discloses the size bound (bound 3, bound 4), and no signature arm answers a call that exceeds it, where Execution Contract Input 2 states a bound as a default cap whose over-cap call answers the specification's malformed-input refusal → state the cap with its default and cite Input 2, or settle that an opaque input is uncapped
+open: none
 ```
 
 <details markdown="block">
