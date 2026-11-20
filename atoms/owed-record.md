@@ -201,7 +201,7 @@ Term listing key: an owed record's due-by instant paired with its owed id, compa
 
 Term continuation key: the listing key of the last owed record a previous [List Owed] call answered — a [Continuation Key], malformed where it is not an instant paired with an owed id.
 
-Term matching owed record: an owed record of the owing pattern whose status EQUALS the listed status and, where continuation key DOES NOT EQUAL blank, whose listing key EXCEEDS the continuation key. Where none match the answer is empty, an owing pattern that EXCEEDS the pattern name cap among them (Execution Contract Query 5 keeps this answer in place of its own).
+Term matching owed record: an owed record of the owing pattern whose status EQUALS the listed status and, where continuation key DOES NOT EQUAL blank, whose listing key EXCEEDS the continuation key. Where none match the answer is empty, an owing pattern that EXCEEDS the pattern name cap among them; this answer stands in place of Execution Contract Query 5's.
 
 The case space, and the rule that owns each case:
 
@@ -668,14 +668,14 @@ Inherited from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — owed-record.als + 18 twins (the static data model: State 1 through 6, Identity 1, Invariant 2.1 and 4.1, Operation 4, 7, 8, 9, 10, 14, 25, 27 and 48 checked on every version an ordered sequence of admitted calls leaves); owed-record.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 1.2, 2.2, 3.1, 3.2 and 5.1, State 8, Concurrency 2, Operation 24, 35, 36, 44 through 47, with State 7, State 9 and Concurrency 1 checked through them); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; 2026-11-11, re-derived 2026-11-20 after the cures of open lines 2026-11-02-a and 2026-11-02-b ([Read Owed], [List Owed] of discharged, the window cap: Operation 48 in Alloy, Operation 35 and 44 through 47 in TLA+, 5 twins added); owed rows: Operation 31, 32 and 39, Clock dependence 1, 2026-11-20
-last gate: 2026-11-20 — Final Critique 3, frozen at 125fa86b — foundational count 2 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (the recording instant's Term against Operation 3, found by GRID and EOS; the clock allowance the atom spends none of, found by Linus; Concurrency 1 and 2 against the guards and the retry after a lost answer refuted by Execution Contract Read 4 and Error model 1; GRID's pass lapsed on a forbidden read); 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 4, a delta round, one reader (Linus beam-free), frozen at ff2e5d8 — foundational count 0 after the blind second triage, clean, one sample (Linus's report claimed two foundational: that [Record Owed] never rejects a blank owing pattern, owed id or cause id, refuted by both triages, Operation 7 answering invalid-request for each and String 5 reading a whitespace-only value as blank, the reach holding Operation 9 and 10 and not 7; and that Term matching owed record's closing sentence reads two ways for an over-cap owing pattern, refuted by both, the sentence stating the answer is empty and Operation 34 refusing only a blank pattern; its five refining lines were refuted or rhetorical, and the one wording cure, the Term's closing clause naming whose answer stands in place of Execution Contract Query 5's, is made); 2026-11-20 — Final Critique 3, frozen at 125fa86b — foundational count 2 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (the recording instant's Term against Operation 3, found by GRID and EOS; the clock allowance the atom spends none of, found by Linus; Concurrency 1 and 2 against the guards and the retry after a lost answer refuted by Execution Contract Read 4 and Error model 1; GRID's pass lapsed on a forbidden read); 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open: none
 ```
