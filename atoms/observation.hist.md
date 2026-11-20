@@ -83,6 +83,7 @@ Deleted: Operation 41. Execution Contract Read 4 owns it.
 Deleted: Operation 52. Execution Contract Logic confinement 11 owns it.
 Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 39. Execution Contract Read 4 owns it: a call whose write fails answers storage-failure.
 ```
 
 ### Structure › Invariants › Invariant 7 — Record durability
