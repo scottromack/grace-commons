@@ -195,7 +195,7 @@ This covers every refusal but [Storage Failure], which answers when the database
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5); each check of one state, Check 1.1 through 2.3, holds at every commit, not at head alone (Execution Contract Database 8). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -210,8 +210,6 @@ Check 2.3: An auditor MUST find no two taggings sharing a tag id AND an item ref
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
 
 NOTE: EVERY check names the rule the check tests.
-
-NOTE: open 2026-11-19-a — Check 2.1 and Check 2.2 test a property of one state and name no commit, so an auditor reading the tags at head passes a build that broke Database 2, renamed one of two same-named tags and kept the other, where an auditor reading every commit fails it; no rule of the Execution Contract says a check of one state holds at every commit (Check 2.1, Check 2.2, Check 2.3, the Generation acceptance preamble).
 
 ### External checks
 
@@ -445,8 +443,7 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
 
-open:
-- 2026-11-19-a · refining · Check 2.1, Check 2.2, Check 2.3, Generation acceptance · a check of one state (no two tags sharing a name, an id, a tagging) names no commit, so an auditor reading head and one reading every commit disagree about a build that broke Database 2 and later renamed one of the two same-named tags; Generation acceptance 1 covers only a check that compares a record with an earlier state, and every page with a uniqueness check shares the gap (Cart Check 2.3, Category Check 3.1, Post Check 3.1) → a check of one state holds at every commit, not at head alone: the Execution Contract states it once (unit `method: a check of one state holds at every commit`) and every page whose checks name a state cites it (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 ## Decisions
