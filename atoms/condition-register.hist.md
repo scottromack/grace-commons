@@ -24,6 +24,13 @@ Deleted: Operation 30. Term matching record owns it.
 Deleted: Operation 32. Term matching record owns it.
 ```
 
+### Structure › Invariants
+
+```
+Deleted: Invariant 2.2. Invariant 2.1 and Operation 4 own it.
+Deleted: Invariant 3.2. Invariant 3.1 and Operation 15 own it.
+```
+
 ### Generation acceptance › Conformance checks
 
 ```

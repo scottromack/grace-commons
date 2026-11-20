@@ -85,7 +85,7 @@ Term status: open | closed — a standing record still seen, or no longer seen. 
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 20.
 Capability requirement 2: The deployment MUST supply the condition records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MUST declare EVERY condition a composing pattern declares, with the condition's shape.
 Capability requirement 4: The deployment MAY override the name cap.
@@ -236,12 +236,10 @@ The case space, and the rule that owns each case:
 - **Invariant 2 — One sighting per subject.**
   ```
   Invariant 2.1: Two sightings MUST NOT share a condition and a subject.
-  Invariant 2.2: The database MUST refuse a write recording a second sighting for one condition and one subject.
   ```
 - **Invariant 3 — One open span per condition and scope.**
   ```
   Invariant 3.1: Two open standing records MUST NOT share a condition and a scope.
-  Invariant 3.2: The database MUST refuse a write opening a second open standing record for one condition and one scope.
   ```
 - **Invariant 4 — A span runs forward.**
   ```
@@ -254,8 +252,6 @@ The case space, and the rule that owns each case:
   Invariant 5.1: EVERY sighting's run id MUST stand non-blank.
   Invariant 5.2: EVERY standing record's first run id and last run id MUST stand non-blank.
   ```
-
-NOTE: open 2026-11-04-a — Invariant 2.2 and Invariant 3.2 are written as an act the database performs, which Standard label 14 bars the Invariant family; eight invariants in four atoms (Condition Register, Owed Record, Erasure Tombstone, Capability) take the same form, and a race's loser answers by Execution Contract Database 2, not by the refusal.
 
 Invariants 1 and 4 give *a faithful history*: what a run saw reads the same forever, and a span only grows forward until it closes. Invariant 2 gives *one sighting per subject*, however many runs find it. Invariant 3 gives *distinct spans*: an outage is one record while it lasts, and a recurrence is another. Invariant 5 gives *provenance*: every record names the run that saw it.
 
@@ -285,7 +281,7 @@ The same sweep finds act `act_88e1` past its window and closes it as escalated. 
 
 - **Regulator audit — when did the outage begin and end?** The auditor lists the standing records of store-unavailable that opened in the quarter. Each outage is one record whose span is the first and last run that saw it, with both runs named; none can have been shortened, because first seen never changes and last seen only advances (Invariant 1.2, Invariant 4.3).
 - **A run that crashes mid-outage.** The sweep dies with an outage open. The next run still sees it and advances the same record; there is no second open record (Invariant 3.1).
-- **Two sweeps on one instance.** Two runs report the same outage at once. One opens the record and the other advances it, because the database serializes the two calls and the later reads the record the earlier opened (Execution Contract Database 2), with the refusal of a second open record behind it (Invariant 3.2).
+- **Two sweeps on one instance.** Two runs report the same outage at once. One opens the record and the other advances it, because the database serializes the two calls and the later reads the record the earlier opened (Execution Contract Database 2), with Invariant 3.1 behind it.
 
 ---
 
@@ -375,8 +371,6 @@ Composition note 5: A composing pattern MUST supply a run id that no other run c
 ```
 
 NOTE: watch the fresh holder value (Composition note 5).
-
-NOTE: open 2026-11-03-a — a conflict retry under Execution Contract Database 2 may keep its one clock reading, so a call serialized after a later one answers storage-failure through the row on Invariant 4.3 where a locking build answers advanced (Operation 13, Operation 21).
 
 NOTE: composing patterns — the three compositions that name an extraction-pending register against this atom: [Recoverable Invocation](../compositions/recoverable-invocation.md) (its findings, the conditions its sweep declares), [Audit Trail](../compositions/audit-trail.md) (its outage record) and [Immutable Ledger](../compositions/immutable-ledger.md) (its write-ownership findings).
 
@@ -663,9 +657,7 @@ status: doing
 formal: verified — condition-register.als + 14 twins (the static data model: State 1 through 5 and 8, Invariant 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, Identity 4 and a condition's one shape checked on every database a run of admitted calls leaves); condition-register.tla + 10 twins (across steps: Invariant 1.1 through 1.4, 2.1, 3.1, 4.1 through 4.3 and Operation 22 over every sequence of calls, each call carrying any clock reading); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28, 29 and 31; Concurrency 1 through 3, 2026-11-11
 last gate: 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 
-open:
-- 2026-11-03-a · refining · Operation 13, Operation 21 · a conflict retry under Execution Contract Database 2 may keep its one clock reading (Logic confinement 3), so a call serialized after a later one answers storage-failure through the row on Invariant 4.3 where a build that locks before it reads the clock answers advanced; the Execution Contract owns whether a retry reads the clock again → a retry reads the clock again; the Execution Contract states it once (Database 2 with Logic confinement 3) and pages cite it (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-04-a · refining · Invariant 2.2, Invariant 3.2 · the two are written as an act the database performs (Standard label 14 bars an act in the Invariant family), as are eight invariants in four atoms → Standard label 14 stands: each such invariant, here and in the four atoms, is restated as a state (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+open: none
 ```
 
 <details markdown="block">

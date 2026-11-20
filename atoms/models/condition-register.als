@@ -33,8 +33,8 @@
 --   One shape      — a condition's records are of its declared shape alone (Term matching
 --                    record: "a condition has one shape, so its records are of that shape
 --                    alone"; Operation 1, 2, 8, 9).
--- Invariant 2.2 and 3.2 (the database refuses a second sighting, a second open record) are
--- the guards that keep 2.1 and 3.1: in one commit order (Execution Contract Order 1,
+-- The deleted Invariant 2.2 and 3.2 (the database refuses a second sighting, a second open
+-- record) are owned by 2.1 and 3.1: in one commit order (Execution Contract Order 1,
 -- Database 2) the action's own guard (Operation 4, 15) and the database's refusal decide on
 -- the same state, so the model has one guard for each pair and the checks of 2.1 and 3.1
 -- test both. Invariant 4.1 and 4.3 likewise refuse a write, and what they leave in a record
@@ -265,14 +265,14 @@ pred standingGuards[c : ScopeCall] {
 
 -- recordSighting: an admitted [Record Sighting]: a declared condition of the sighting shape
 -- (Operation 1, 2), subject and run id not blank (Operation 3), no sighting yet for the
--- condition and the subject (Operation 4; the database's refusal, Invariant 2.2). It records
+-- condition and the subject (Operation 4; the database's refusal, Invariant 2.1). It records
 -- exactly one sighting (Operation 5) carrying the call's condition, subject and run id
 -- (Operation 38), stamped from the injected now (Operation 6).
 pred recordSighting[pre : DB, c : SightCall, post : DB] {
     c.conditionIn in Declared.sightingConditions                -- Operation 1, 2
     c.subjectIn not in blank and c.runIn not in blank           -- Operation 3
     no s : pre.sightings | s.condition = c.conditionIn and s.subject = c.subjectIn
-                                                                -- Operation 4, Invariant 2.2
+                                                                -- Operation 4, Invariant 2.1
     some s : Sighting - pre.sightings {
         post.sightings = pre.sightings + s                      -- Operation 5
         s.condition = c.conditionIn                             -- Operation 38
@@ -286,14 +286,14 @@ pred recordSighting[pre : DB, c : SightCall, post : DB] {
 
 -- opens: an admitted [Report Standing] where no standing record stands open for the
 -- condition and the scope (Operation 15; the database's refusal of a second open record,
--- Invariant 3.2). It records exactly one standing record in open, carrying the call's
+-- Invariant 3.1). It records exactly one standing record in open, carrying the call's
 -- condition and the record id the host allocated (Operation 39), the scope the call supplies
 -- or blank (Operation 40, 41), the run id as first and last run id (Operation 16), and first
 -- and last seen stamped from the injected now (Operation 17). A new record carries no
 -- closing run id and no closing instant: nothing has closed it.
 pred opens[pre : DB, c : StandCall, post : DB] {
     standingGuards[c]
-    no openFor[pre, c]                                          -- Operation 15, Invariant 3.2
+    no openFor[pre, c]                                          -- Operation 15, Invariant 3.1
     some r : Standing - pre.standings {
         post.standings = pre.standings + r                      -- Operation 15
         r.recordId   = c.seamId                                 -- Operation 39

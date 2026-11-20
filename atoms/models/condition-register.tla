@@ -171,12 +171,12 @@ Init ==
 \* RecordSighting: [Record Sighting] of condition c about subject u by run r at
 \* clock reading t. Where a sighting of c about u exists the call answers
 \* duplicate and writes nothing (Operation 4; the database refuses the write,
-\* Invariant 2.2), so it is no step. Otherwise exactly one sighting lands in
+\* Invariant 2.1), so it is no step. Otherwise exactly one sighting lands in
 \* the first free slot, carrying c, u and r (Operation 5, 38) and the seen
 \* instant t (Operation 6).
 RecordSighting(c, u, r, t) ==
     /\ part = "sightings"
-    /\ ~\E j \in SightSlots : sight[j].cond = c /\ sight[j].subj = u     \* Operation 4, Invariant 2.2
+    /\ ~\E j \in SightSlots : sight[j].cond = c /\ sight[j].subj = u     \* Operation 4, Invariant 2.1
     /\ \E i \in SightSlots :
          /\ ~Sighted(i)
          /\ \A j \in SightSlots : ~Sighted(j) => i <= j
@@ -200,14 +200,14 @@ Advance(c, s, r, t) ==
 
 \* Open: [Report Standing] of condition c in scope s by run r at clock reading
 \* t, where no standing record stands open for c and s (Operation 15; the
-\* database refuses a second open record, Invariant 3.2). Exactly one standing
+\* database refuses a second open record, Invariant 3.1). Exactly one standing
 \* record lands in open under the first record id no record carries (Identity
 \* 3, Operation 39), carrying c, the scope as read (Operation 40, 41), r as
 \* first and last run id (Operation 16) and t as first and last seen
 \* (Operation 17).
 Open(c, s, r, t) ==
     /\ part = "standing"
-    /\ OpenFor(c, s) = {}                                             \* Operation 15, Invariant 3.2
+    /\ OpenFor(c, s) = {}                                             \* Operation 15, Invariant 3.1
     /\ \E i \in RecordIds :
          /\ ~Recorded(i)
          /\ \A j \in RecordIds : ~Recorded(j) => i <= j
