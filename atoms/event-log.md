@@ -70,8 +70,6 @@ State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
 
-NOTE: open 2026-10-20-d — who supplies a log instance's log name (State 3) and who starts a fresh log instance (State 5) is not stated: a composing pattern (Identity 10) or the deployment.
-
 Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
 Term sequence number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
@@ -95,6 +93,8 @@ Capability requirement 1: The deployment MUST supply now at the seam PER Executi
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6 and Execution Contract Query 1 through 4.
 Capability requirement 3: The deployment MUST supply EVERY event id PER Execution Contract Logic confinement 16.
 Capability requirement 4: The deployment MAY declare the payload cap PER Execution Contract Input 2.
+Capability requirement 5: The deployment MUST supply the log name of EVERY log instance the deployment runs.
+Capability requirement 6: The deployment MUST begin a fresh log instance for EVERY log instance a composing pattern owns PER Identity 10.
 ```
 
 ### Operations
@@ -319,17 +319,15 @@ Term records: event — one recorded fact, carrying event id, sequence number, r
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, cite, renumber, add, erase, match, find, declare.
 
-Term value sets: event field = event id | sequence number | recording instant | data.
+Term value sets: event field (declared once, at `Term event field`; cited here by GRACE-lang Closed vocabulary 15).
 
 Term bounds: payload cap (the per-instance bound on data's size).
 
 Term cadences: empty.
 
-Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed (declared once, at `Term landed`; cited here by GRACE-lang Closed vocabulary 15).
 
 Term terms: event id, seam, now, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap, committed version.
-
-NOTE: open 2026-10-23-a — landed and event field are each declared twice, the two declarations agreeing (Term landed and Term qualifiers; Term event field and Term value sets).
 
 #### Event Log
 
@@ -492,9 +490,7 @@ status: doing
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12
 last gate: 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
 
-open:
-- 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-10-23-a · refining · Term landed; Term qualifiers; Term event field; Term value sets · landed and event field are each declared twice (Term landed and Term qualifiers; Term event field and Term value sets), the declarations agreeing → keep one declaration of each twice-declared name, the other citing it (GRACE-lang Closed vocabulary 15)
+open: none
 ```
 
 <details markdown="block">
