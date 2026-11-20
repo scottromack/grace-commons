@@ -658,7 +658,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -678,7 +678,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-20",
   "title": "Duplicate Prevention"
  },
  "erasure-tombstone": {
