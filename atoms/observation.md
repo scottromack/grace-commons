@@ -786,7 +786,7 @@ formal: verified — observation.als + 3 twins (the static data model: the amend
 last gate: 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open:
-- 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → stamp the retraction from now, or name the instant's owner in a non-goal
+- 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → an admitted retract stamps its retraction instant from now, as the amend stamps its successor's (one field, one rule, the model re-derived) (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:14Z and 12:42Z, answering 2026-11-20 11:30Z)
 ```
 
 <details markdown="block">

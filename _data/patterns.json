@@ -1037,7 +1037,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1052,7 +1052,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Message Preference"
  },
  "moderation": {
@@ -1317,7 +1317,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1328,7 +1328,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-19",
+  "status": "doing",
   "title": "Post"
  },
  "preference-aware-notification-fanout": {
@@ -1450,7 +1450,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1470,7 +1470,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Provisional Commitment"
  },
  "punch-card": {

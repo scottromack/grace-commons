@@ -798,16 +798,17 @@ Projection: ok
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-20
+status: doing
 formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11; Operation 48, 2026-11-20
 last gate: 2026-11-20 — Final Critique 13, a delta round, frozen at 15e8c30f — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed three foundational, all three placed refuted by both triages: Concurrency 5 against Execution Contract Database 2's first sentence, which keeps a write from committing against a state its guards did not see; Operation 48's degenerate arm against Instance 14 through 16, which forbid [Set] to write; "currently in effect" against Term currently in effect; the degenerate row's list, Check 3.1's Database 8 citation and Check 1.1's declared channels cured as refining); 2026-11-20 — Final Critique 12, frozen at afcc3ab3 — foundational count 4 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (Linus's two reports, GRID's one and EOS's four: the opaque input cap's unit and scope, the clock's guarantees cited, the timestamps' tie, two [Set] calls for one principal serialized; refining and rhetorical cured with them, one question to Scott); 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
-open: none
+open:
+- 2026-11-20-a · refining · Summary; the Account-closure example; the calls · the Summary and the example promise the per-principal history of preference changes is queryable, and no call declares that read, which the Execution Contract's atom interface contract requires of a composing pattern's access → declare history_for(principal_ref), answering every record of the principal in set-instant order, paged PER Execution Contract Read 6, so the promise has its call (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-20 09:53Z)
 ```
 
 <details markdown="block">

@@ -507,16 +507,17 @@ Post is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`done — 2026-11-19` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-19
+status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
 
-open: none
+open:
+- 2026-11-20-a · refining · Non-goals; owners NOTE · Unpublish is the author's own act and no Non-goal or owners NOTE names Moderation as the owner of a moderator's hiding of a post, so a reader cannot tell whose act it is → Unpublish stays the author's own act; a Non-goal names Moderation as the owner of a moderator's hiding, and the owners NOTE with it (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-19 04:03Z)
 ```
 
 ## Decisions

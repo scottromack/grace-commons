@@ -756,16 +756,17 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`doing` — see the Ledger.
 
 ## Ledger
 
 ```
-status: done — 2026-11-20
+status: doing
 formal: verified — provisional-commitment.tla + 4 twins (2026-06-04); provisional-commitment.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 2.2, 6.1, 7.1 through 7.3, 8.1 and 8.2, State 1 through 5 and Identity 5 checked on every commitment record an admitted [Place Hold], [Confirm], [Release] or [Expire] leaves, built from the version its call found; Invariant 7.1, 8.1 and 8.2 a cross-check with the TLA+ model; Invariant 8.1 and 8.2 resting on the deployment's clock never going backward (Execution Contract Logic confinement 7), Invariant 6.1 on Capability requirement 27 and Execution Contract Logic confinement 9, Identity 5 on fresh id material (Capability requirement 23); nothing testable in Alloy for Invariant 2.1, 3.1, 5.1 or 10.1: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 5.1, Invariant 10.1 and Identity 4 (across steps); owed rows: Invariant 5; Invariant 10; Identity 4; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-11-11
 last gate: 2026-11-20 — Final Critique 16, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a6 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 15, a delta round, frozen at a579d088 — foundational count 1 after the blind second triage, cured by the settle, not clean, no sample; 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
-open: none
+open:
+- 2026-11-20-a · refining · Capability requirement 3, 4, 16, 18, 19, 28 and 31; the availability read span; the registry-unavailable refusal · the critical-section rules stand in the atom and have drawn a foundational finding in Final Critique 9, 11, 14 and 15, where the atom's job is the hold lifecycle → the critical-section rules leave the atom; the atom keeps its hold lifecycle and its at most one open hold per resource; a Non-goal names Lease as the owner of exclusive standing over a resource key for the span of a call; the models that read a moved rule are re-derived (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-20 05:32Z and 07:05Z)
 ```
 
 <details markdown="block">
