@@ -33,6 +33,8 @@
 \*                   amendment's instant                            (Inv8_2_SuccessorAtAmendment)
 \*   Invariant 9.1 — a written transition metadata field never
 \*                   changes                                        (Inv9_1_MetadataKept)
+\*   Invariant 10.1 — a retracted observation's retraction instant
+\*                   is the retraction's instant                    (Inv10_1_RetractionAtRetraction)
 \*
 \* WHICH REFUSAL ANSWERS
 \* Each chain action's refuses line is read in the page's order (Execution
@@ -73,7 +75,6 @@
 \*   Answer's, computed in every state, which Inv6_1_RetractedAdmitsNone
 \*   reads; storage-failure is not modeled.
 \* - [Read] and its order (Operation 42 to 51): a read writes nothing.
-\* - A retraction instant: the page records none (open line 2026-10-22-c).
 
 EXTENDS Integers, Sequences, FiniteSets
 
@@ -118,11 +119,12 @@ VARIABLES
     succ,    \* id -> its successor id, transition metadata (0: none)
     amBy,    \* id -> its amending actor (and amendment reason), transition metadata ("none": unwritten)
     retBy,   \* id -> its retracting actor (and retraction reason), transition metadata ("none": unwritten)
+    retAt,   \* id -> its retraction instant, transition metadata (0: unwritten)
     now,     \* the clock reading the seam supplies (Term now)
     nextId   \* the next observation id the seam will supply (Identity 2)
 
 \* vars: every variable; a step that changes none of them is a stutter.
-vars == <<st, subj, otype, rby, val, at, pred, succ, amBy, retBy, now, nextId>>
+vars == <<st, subj, otype, rby, val, at, pred, succ, amBy, retBy, retAt, now, nextId>>
 
 \* Known: the observation id names a recorded observation.
 Known(o) == st[o] # "none"
@@ -149,6 +151,7 @@ TypeOK ==
     /\ succ \in [Ids -> 0..MaxObs]
     /\ amBy \in [Ids -> Actors \cup {"none"}]
     /\ retBy \in [Ids -> Actors \cup {"none"}]
+    /\ retAt \in [Ids -> 0..MaxTime]
     /\ now \in Times
     /\ nextId \in 1..(MaxObs + 1)
 
@@ -164,6 +167,7 @@ Init ==
     /\ succ = [o \in Ids |-> 0]
     /\ amBy = [o \in Ids |-> "none"]
     /\ retBy = [o \in Ids |-> "none"]
+    /\ retAt = [o \in Ids |-> 0]
     /\ now = 1
     /\ nextId = 1
 
@@ -199,7 +203,7 @@ Answer(a, o) == FirstFrom(a, o, 1)
 Tick ==
     /\ now < MaxTime
     /\ now' = now + 1
-    /\ UNCHANGED <<st, subj, otype, rby, val, at, pred, succ, amBy, retBy, nextId>>
+    /\ UNCHANGED <<st, subj, otype, rby, val, at, pred, succ, amBy, retBy, retAt, nextId>>
 
 \* Record: an admitted [Record] records exactly one observation under the
 \* observation id the seam supplies, carrying the call's subject reference,
@@ -215,7 +219,7 @@ Record(s, t, r, v, i) ==
     /\ val' = [val EXCEPT ![nextId] = v]
     /\ at' = [at EXCEPT ![nextId] = i]
     /\ nextId' = nextId + 1
-    /\ UNCHANGED <<pred, succ, amBy, retBy, now>>
+    /\ UNCHANGED <<pred, succ, amBy, retBy, retAt, now>>
 
 \* Amend: an admitted [Amend] by amending actor b supplying value v records
 \* exactly one successor under the id the seam supplies (Operation 24),
@@ -238,16 +242,17 @@ Amend(o, b, v) ==
     /\ succ' = [succ EXCEPT ![o] = nextId]
     /\ amBy' = [amBy EXCEPT ![nextId] = b]
     /\ nextId' = nextId + 1
-    /\ UNCHANGED <<retBy, now>>
+    /\ UNCHANGED <<retBy, retAt, now>>
 
 \* Retract: an admitted [Retract] by retracting actor b stands the
-\* observation in retracted and writes the retracting actor (Operation 35,
-\* 36); an amended observation may be retracted (Operation 38), and its
-\* successor id stays.
+\* observation in retracted, writes the retracting actor and stamps now as
+\* its retraction instant (Operation 35, 36, 64); an amended observation may
+\* be retracted (Operation 38), and its successor id stays.
 Retract(o, b) ==
     /\ Answer("retract", o) = "ok"
     /\ st' = [st EXCEPT ![o] = "retracted"]
     /\ retBy' = [retBy EXCEPT ![o] = b]
+    /\ retAt' = [retAt EXCEPT ![o] = now]
     /\ succ' = [succ EXCEPT ![o] = 0]   \* BUG: was unchanged
     /\ UNCHANGED <<subj, otype, rby, val, at, pred, amBy, now, nextId>>
 
@@ -335,14 +340,21 @@ Inv8_1_InstantKept ==
 Inv8_2_SuccessorAtAmendment ==
     [][\A n \in Ids : (~Known(n) /\ Known(n)' /\ pred'[n] # 0) => at'[n] = now]_vars
 
+\* Inv10_1_RetractionAtRetraction: an observation stood in retracted by a step
+\* carries, from that step, the reading of the clock at the retraction as its
+\* retraction instant (Invariant 10.1, Operation 64).
+Inv10_1_RetractionAtRetraction ==
+    [][\A o \in Ids : (st[o] # "retracted" /\ st'[o] = "retracted") => retAt'[o] = now]_vars
+
 \* Inv9_1_MetadataKept: no step changes a successor id, predecessor id,
-\* amending actor or retracting actor once written (each actor standing for
-\* its reason) (Invariant 9.1).
+\* amending actor, retracting actor or retraction instant once written (each
+\* actor standing for its reason) (Invariant 9.1).
 Inv9_1_MetadataKept ==
     [][\A o \in Ids :
           /\ succ[o] # 0 => succ'[o] = succ[o]
           /\ pred[o] # 0 => pred'[o] = pred[o]
           /\ amBy[o] # "none" => amBy'[o] = amBy[o]
-          /\ retBy[o] # "none" => retBy'[o] = retBy[o]]_vars
+          /\ retBy[o] # "none" => retBy'[o] = retBy[o]
+          /\ retAt[o] # 0 => retAt'[o] = retAt[o]]_vars
 
 ====

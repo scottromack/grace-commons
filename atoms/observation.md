@@ -107,7 +107,7 @@ State 7: The atom MUST NOT offer an un-retract surface.
 State 8: EVERY observation MUST carry observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state.
 State 9: EVERY amended observation MUST carry a successor id.
 State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
-State 11: EVERY retracted observation MUST carry retracting actor and retraction reason.
+State 11: EVERY retracted observation MUST carry retracting actor, retraction reason and retraction instant.
 State 13: The atom MUST store a resolved recording instant standing within the future bound as the call supplied the value.
 State 14: The atom MUST NOT normalize a recording instant's timezone.
 ```
@@ -195,6 +195,7 @@ Operation 60: IF value carries a string that EXCEEDS the string cap THEN a conte
 Operation 61: IF a filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 Operation 62: An admitted record MUST record EVERY required input PER Execution Contract Input 4.
 Operation 63: IF a supplied recording instant is malformed THEN [Record] MUST answer invalid-observation (Execution Contract Input 1).
+Operation 64: An admitted retract MUST stamp the observation's retraction instant from now.
 ```
 
 NOTE: watch the blank filter value (Operation 48).
@@ -202,8 +203,6 @@ NOTE: watch the blank filter value (Operation 48).
 NOTE: watch the filter value over the cap (Operation 61).
 
 NOTE: watch the required input no rule records (Operation 57).
-
-NOTE: open 2026-10-22-c — an admitted retract records no instant (Operation 36), where an admitted amend stamps the successor's (Operation 27).
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -227,7 +226,7 @@ Term resolved recording instant: the recording instant the observation carries �
 
 Term content field: observation id, subject reference, recording actor, observation type, value, unit OR recording instant — every field an observation is recorded with but the state, and nothing changes.
 
-Term transition metadata: successor id, predecessor id, amending actor, amendment reason, retracting actor OR retraction reason — every field a chain action writes.
+Term transition metadata: successor id, predecessor id, amending actor, amendment reason, retracting actor, retraction reason OR retraction instant — every field a chain action writes.
 
 Term amendment chain: the observations one predecessor id and successor id sequence links — one measurement's correction history for one subject.
 
@@ -294,6 +293,10 @@ Term matching observations: the observations meeting EVERY supplied filter — w
   ```
   Invariant 9.1: A recorded transition metadata field MUST NOT change.
   ```
+- **Invariant 10 — Retraction Instant is the retraction's.**
+  ```
+  Invariant 10.1: A retracted observation's retraction instant MUST stand at the retraction's instant.
+  ```
 
 ---
 
@@ -311,7 +314,7 @@ The successor's subject reference, observation type and recording actor came fro
 
 ### Retracting a wrong-patient entry
 
-A glucose result was charted against the wrong patient. It cannot be amended into the right one, because amendment cannot move a patient: `retract("obs-0450", retracted_by: "dr.mensah", reason: "Recorded against wrong patient — belongs to p77")` → retracted. The record stays, flagged (Operation 35 through 37). The correct observation is a fresh [Record] against `p77`.
+A glucose result was charted against the wrong patient. It cannot be amended into the right one, because amendment cannot move a patient: `retract("obs-0450", retracted_by: "dr.mensah", reason: "Recorded against wrong patient — belongs to p77")` → retracted. The record stays, flagged, carrying the retracting clinician, the reason and the instant of the retraction, the reading of the clock at the call (Operation 35 through 37, Operation 64, Invariant 10.1). The correct observation is a fresh [Record] against `p77`.
 
 An amended observation can still be retracted — retraction reaches any link in a chain, and retracting one link leaves its predecessor and successor untouched (Operation 38).
 
@@ -336,7 +339,7 @@ An amended observation can still be retracted — retraction reaches any link in
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries every observation for a patient across all states. The result carries the recorded, amended and retracted alike, and the chain is walkable in both directions — Check 2.1 through 2.4 are what make the amendment trail verifiable from the database rather than from a narrative about it.
-- **Disputed observation.** A patient disputes a glucose value. The original's value and clinician are immutable (Invariant 1.1); whether it was amended, by whom and why is on the successor (State 10); whether it was withdrawn and why is on the record itself (State 11). The dispute resolves against the chain, and what the chain cannot say is whether the measurement was *clinically* correct — that is a clinical judgment, not a record property.
+- **Disputed observation.** A patient disputes a glucose value. The original's value and clinician are immutable (Invariant 1.1); whether it was amended, by whom and why is on the successor (State 10); whether it was withdrawn, by whom, why and when is on the record itself (State 11). The dispute resolves against the chain, and what the chain cannot say is whether the measurement was *clinically* correct — that is a clinical judgment, not a record property.
 - **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete, short of what a composed Retention Window purged, which its purge records name (Execution Contract Database 6). What the database cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
 
 ---
@@ -361,6 +364,7 @@ Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (O
 Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
 Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
 Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).
+Check 5.5: An auditor MUST find a retraction instant on EVERY retracted observation (State 11, Operation 64, Invariant 10.1).
 Check 6.1: An auditor MUST find two reads of one database state ordering two observations sharing a recording instant by observation id (Operation 43).
 ```
 
@@ -491,7 +495,7 @@ Kind: Operation
 
 #### Retract
 
-The behavior that withdraws an erroneous observation, marking it [Retracted] with [Retracting Actor] and [Retraction Reason]. The record is retained, not destroyed. A [Recorded] or [Amended] observation may be retracted; a [Retracted] one may not (terminal).
+The behavior that withdraws an erroneous observation, marking it [Retracted] with [Retracting Actor], [Retraction Reason] and [Retraction Instant]. The record is retained, not destroyed. A [Recorded] or [Amended] observation may be retracted; a [Retracted] one may not (terminal).
 
 Kind: Operation
 
@@ -613,6 +617,14 @@ Kind:       Field
 Field of:   Observation
 Projection: retraction_reason
 
+#### Retraction Instant
+
+The wall-time the observation was retracted — now, the reading the host injects at the seam, at the [Retract] call; never supplied by the caller. Set at [Retract] time, immutable thereafter (Invariant 9, Invariant 10).
+
+Kind:       Field
+Field of:   Observation
+Projection: retracted_at
+
 #### Database Name
 
 The identifier of the database instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Reference] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
@@ -655,7 +667,7 @@ Role:      Outcome
 
 #### Retracted
 
-The terminal state of an observation withdrawn as erroneous. Retained and visible but flagged invalid, carrying [Retracting Actor] and [Retraction Reason]; no further transition (Invariant 6).
+The terminal state of an observation withdrawn as erroneous. Retained and visible but flagged invalid, carrying [Retracting Actor], [Retraction Reason] and [Retraction Instant]; no further transition (Invariant 6).
 
 Kind:      Member
 Member of: the observation state
@@ -747,6 +759,7 @@ Projection: invalid-query
 [Amendment Reason]: #amendment-reason
 [Retracting Actor]: #retracting-actor
 [Retraction Reason]: #retraction-reason
+[Retraction Instant]: #retraction-instant
 [Database Name]: #database-name
 [Reason]: #reason
 [Query]: #query
@@ -782,11 +795,10 @@ Projection: invalid-query
 
 ```
 status: doing
-formal: verified — observation.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2 through 6 in one state, 2026-06-03; coverage 2026-11-10, unit formal: more coverage for the yes votes); observation.tla + 12 twins (across steps, 2026-11-11: one observation's amendment chain under [Record], [Amend] and [Retract], refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.1, 7.1, 8.1, 8.2 and 9.1, Invariant 3.1, 3.2, 4.1 and 5.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 7, 8 and 9: each compares an observation with a later version of it, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/observation.md formal layer`): no owed rows, 2026-11-11
+formal: verified — observation.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2 through 6 in one state, 2026-06-03; coverage 2026-11-10, unit formal: more coverage for the yes votes); observation.tla + 14 twins (across steps, 2026-11-11, the retraction instant 2026-11-20: one observation's amendment chain under [Record], [Amend] and [Retract], refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.1, 7.1, 8.1, 8.2, 9.1 and 10.1, Invariant 3.1, 3.2, 4.1 and 5.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 7, 8, 9 and 10: each compares an observation with a later version of it, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/observation.md formal layer`): no owed rows, 2026-11-11
 last gate: 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
-open:
-- 2026-10-22-c · refining · Operation 36; State 11 · an admitted retract records the retracting actor and the reason and no instant, where an admitted amend stamps the successor's recording instant from now (Operation 27), so the records cannot say when an observation was withdrawn → an admitted retract stamps its retraction instant from now, as the amend stamps its successor's (one field, one rule, the model re-derived) (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:14Z and 12:42Z, answering 2026-11-20 11:30Z)
+open: none
 ```
 
 <details markdown="block">

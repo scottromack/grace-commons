@@ -1175,12 +1175,12 @@
   "composed_by": [],
   "domain": null,
   "grounded": false,
-  "invariants": 9,
+  "invariants": 10,
   "kind": "atom",
   "models": {
    "als": true,
    "tla": true,
-   "twins": 15
+   "twins": 17
   },
   "regulated_by": [],
   "security": false,
