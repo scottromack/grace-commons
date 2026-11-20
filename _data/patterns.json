@@ -282,7 +282,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 13,
   "kind": "atom",
   "models": {
@@ -305,7 +305,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-20",
   "title": "Capability"
  },
  "capability-backed-sharing": {

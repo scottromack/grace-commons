@@ -413,7 +413,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 #### External checks
 
 ```
-External check 1: An auditor needing a refused [Redeem] shown MUST read the refused call from the composing Audit Trail, where the deployment composes one (Operation 23 through 26).
+External check 1: An auditor needing a [Redeem] answering a redemption failure shown MUST read that call from the composing Audit Trail, where the deployment composes one (Operation 23 through 26).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
 ```
 
@@ -794,14 +794,14 @@ Inherited from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
-last gate: 2026-11-17 — Final Critique 12, a delta round, frozen at 5a146b13 — foundational count 0 after the blind second triage, clean, no sample
+last gate: 2026-11-20 — Final Critique 13, a delta round, one reader (Linus claude-haiku-5-5), frozen at b3cc5b70 — foundational count 0 after the blind second triage, clean, one sample; Linus's three held questions placed refuted by both triages (a zero counter outside [Redeemed] is unreachable, Operation 32, Operation 46, Operation 36 through 38; Term redemption failure declares expired among its members; Operation 23 through 26 answer on the answers line); External check 1 names the call by its answer; 2026-11-17 — Final Critique 12, a delta round, frozen at 5a146b13 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
