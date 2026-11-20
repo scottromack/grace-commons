@@ -9,8 +9,6 @@ toc: true
 
 # State Machine
 
-NOTE: open 2026-11-05-b — the atom shape asks a `nav_order` and a summary blockquote under this heading, which every atom lacks.
-
 <details markdown="block">
 <summary>Table of contents</summary>
 {: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
@@ -145,6 +143,7 @@ read_declaration(instance_id)
 
 workflows_about(subject_ref)
   answers instance_ids
+  refuses invalid-request
 ```
 
 ```
@@ -211,8 +210,8 @@ Operation 81: [Workflows About] MUST answer the instance id of EVERY workflow ca
 Operation 82: [Workflows About] MUST order the answer by instantiation instant, earliest first.
 Operation 83: [Workflows About] MUST order two workflows sharing an instantiation instant by recording commit, earliest first.
 Operation 84: [Workflows About] MUST answer an empty list for a subject reference no workflow carries (Identity 15).
-Operation 85: IF the subject reference is malformed THEN [Workflows About] MUST answer an empty list (Execution Contract Query 1, Execution Contract Query 5).
-Operation 86: IF the subject reference is malformed AND the read of the workflow records fails THEN [Workflows About] MUST answer an empty list (Execution Contract Read 1).
+Operation 85: IF the subject reference is malformed THEN [Workflows About] MUST answer invalid-request (Execution Contract Query 1, Execution Contract Query 5).
+Operation 86: IF the subject reference is malformed AND the read of the workflow records fails THEN [Workflows About] MUST answer invalid-request (Execution Contract Read 1).
 ```
 
 NOTE: watch the integer range (Operation 45, Operation 58).
@@ -224,10 +223,6 @@ NOTE: watch the blank optional input (Operation 2, Operation 56, Operation 59, O
 NOTE: watch the required input no rule records (Operation 67, Operation 68).
 
 NOTE: watch the cap's refusal (Operation 75 through 78, Declaration 20).
-
-NOTE: open 2026-11-17-a — [Workflows About] answers an empty list to a malformed subject reference, where Operation 9 and Operation 75 answer invalid-request to the same defects in an instance id (Operation 85).
-
-NOTE: open 2026-11-05-a — seven watch flags on this page name no line in GRACE-lang's Watch list (the id's length against the cap, the seam citation, the deployment's composition note, the blank optional input, the required input no rule records, the cap's refusal, the cap's measure).
 
 NOTE: open 2026-10-31-a — no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries (State 2, State 3, State 15, Operation 67).
 
@@ -292,14 +287,14 @@ Where two rows hold at once, the earlier row answers: the rows follow the refuse
 
 | # | Condition | [Workflows About] answers | Owner |
 |---|---|---|---|
-| 1 | the subject reference is blank, over the string cap or not a string | an empty list | Operation 85, Operation 86 |
+| 1 | the subject reference is blank, over the string cap or not a string | invalid-request | Operation 85, Operation 86 |
 | 2 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
 | 3 | no workflow carries the subject reference | an empty list | Operation 84 |
 | 4 | one or more workflows carry the subject reference | the instance id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit | Operation 80 through 83 |
 
 Where two rows hold at once, the earlier row answers: row 1 answers a malformed subject reference whatever the workflow records hold or fail to answer (Operation 86; Execution Contract Query 5).
 
-[Workflows About] writes nothing (Operation 50) and its signature lists no refusal, so every row is an answer.
+[Workflows About] writes nothing (Operation 50), and its refuses line lists invalid-request alone: row 1 refuses, row 2 is the answer Execution Contract Read 1 gives every action whose read fails, and rows 3 and 4 answer.
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
@@ -407,7 +402,7 @@ A quality system instantiates a batch-release workflow. The declaration names `s
 
 ### Workflows about one subject
 
-A re-test of the batch starts a second workflow: `instantiate(declaration, subject_ref: "batch-x91")` → `wf_01HR…`. `workflows_about("batch-x91")` → `["wf_01HQ…", "wf_01HR…"]`: the first workflow, which stands in the terminal state `released`, is listed because it carries the subject reference and comes first because it began first (Operation 80 through 83). `workflows_about("batch-x00")` → `[]`, as it would for a batch that exists and has no workflow, since the atom does not confirm a subject (Identity 15, Operation 84); `workflows_about("")` → `[]` as well (Operation 85).
+A re-test of the batch starts a second workflow: `instantiate(declaration, subject_ref: "batch-x91")` → `wf_01HR…`. `workflows_about("batch-x91")` → `["wf_01HQ…", "wf_01HR…"]`: the first workflow, which stands in the terminal state `released`, is listed because it carries the subject reference and comes first because it began first (Operation 80 through 83). `workflows_about("batch-x00")` → `[]`, as it would for a batch that exists and has no workflow, since the atom does not confirm a subject (Identity 15, Operation 84); `workflows_about("")` → invalid-request, not `[]`: a blank subject reference is malformed, as a blank instance id is for the actions that address a workflow (Operation 85, Operation 9).
 
 ### The audit question
 
@@ -614,7 +609,7 @@ Kind: Operation
 
 #### Workflows About
 
-The read-only query returning the [Workflow Id] of every workflow carrying a given [Subject Reference], a workflow in a terminal state among them, by [Instantiation Instant] earliest first, two sharing one by the commit that recorded each. It answers an empty list for a [Subject Reference] no workflow carries and for one that is blank, over the string cap or not a string. It refuses nothing.
+The read-only query returning the [Workflow Id] of every workflow carrying a given [Subject Reference], a workflow in a terminal state among them, by [Instantiation Instant] earliest first, two sharing one by the commit that recorded each. It answers an empty list for a [Subject Reference] no workflow carries. Rejected [Invalid Request] for a [Subject Reference] that is blank, over the string cap or not a string.
 
 Kind: Operation
 
@@ -929,10 +924,7 @@ formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit form
 last gate: 2026-11-17 — Final Critique 22, delta, frozen at 5a146b1 — foundational count 0, clean, one sample
 
 open:
-- 2026-11-05-a · refining · the Watch list in GRACE-lang.md · the page carries watch flags whose names the list's census does not hold, and the list is a shared method page the mayor edits → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-05-b · refining · frontmatter; the H1 · spec-format's atom shape asks a `nav_order` and a one-paragraph blockquote under the H1, which this page and every atom in the corpus lack, so the page cannot be cured alone → the corpus's practice stands, and spec-format's atom shape is amended once to match it. The `## Summary` section already is the one-paragraph summary, so a title-and-summary blockquote would say it twice ("make all things mean one thing"); `nav_order` is not required (the site lists patterns by its own index). The category lines GRACE-lang's Closed vocabulary 2 and 3 require (a composing-patterns line where a page names composing patterns, a cited line where it cites the Execution Contract) are the grammar, so they are added wherever owed, as one sweep with a check. One unit: `method: the atom head is the corpus's practice; the vocabulary's category lines added where owed` (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 86) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
-- 2026-11-17-a · refining · Operation 85; the [Workflows About] entry · a malformed subject reference answers an empty list, where Operation 9 and Operation 75 answer invalid-request to the same defects in an instance id, so a caller cannot tell a malformed lookup from a subject no workflow carries and the signature lists no refusal → a malformed subject reference answers invalid-request, as Operation 9 and 75 do; the signature lists the refusal (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
 
 <details markdown="block">
