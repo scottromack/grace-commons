@@ -256,7 +256,7 @@ Non-goal 13: The atom MUST NOT offer a moderator's hiding of a post.
 Non-goal 14: A deployment needing a moderator to hide a post MUST compose Moderation.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10); [Moderation](./moderation.md) (Non-goal 13, Non-goal 14); a moderator's hiding is Moderation's act and not [Unpublish], which stays the author's own act as the composing pattern that knows the caller admits it (Non-goal 2, Non-goal 11).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10); [Moderation](./moderation.md) (Non-goal 13, Non-goal 14); a moderator's hiding is Moderation's act and not [Unpublish], whose caller the composing pattern that knows the caller admits (Non-goal 2, Non-goal 11).
 
 Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.md); a message to one person, which is a communication.
 
@@ -509,14 +509,14 @@ Post is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
+last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 369b7bb0 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed none and held three questions (whether Non-goal 13 and Non-goal 14 conflict, whether a moderator's hiding overlaps Unpublish, whether a deployment that composes no Moderation leaves a state no rule covers); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
 
 open: none
 ```
