@@ -60,7 +60,7 @@ Term transition: the evaluation of one call against the notification records, as
 
 Term business caller: the business caller per Execution Contract Logic confinement 14.
 
-Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
+Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it; the atom spends no clock allowance, since Invariant 8.1 through 8.3 compare a terminal stamp a call writes from now only with the creation instant an earlier call stamped from the deployment's one clock, whose monotonicity and agreement across nodes the deployment owns (Execution Contract Logic confinement 7 and Execution Contract Logic confinement 18).
 
 NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
@@ -649,14 +649,14 @@ Projection: storage-failure
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-20 — Final Critique 13, a delta round, frozen at 1216b9d1 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that Invariant 8.1 through 8.3 compare a terminal stamp with the creation instant across two clocks and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks the invariants as written and Logic confinement 7 gives the deployment the clocks' agreement and skew, a wording the settle added to Term now; five further items refuted (String 6 and Operation 33's citation of Query 1 stand, Operation 9 and Deliver persistence 3 own the retry, the NOTE and the String 8 and 9 references are no defect); 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open: none
 ```
