@@ -13,6 +13,7 @@ The dated record of how [Provisional Commitment](./provisional-commitment.md) go
 Entries that record a round or a migration rather than a turn the pattern took.
 
 - **2026-06-23 — Expiry stays a stored terminal reached by an explicit expire event; the derived-expiry refactor is withdrawn for this atom.** *Chose:* stored `Expired` with lapse instant, the window-not-elapsed rejection and confirm's window-elapsed guard restored. *Over:* the corpus-wide derive-expiry-at-read-time move applied two days earlier. *Because:* this atom's lapse has a side effect — expire releases the resource, and in a pool-backed composition returns a capacity slot — which Reserve from Pool and Idempotent Reservation call and map; derived expiry is for side-effect-free lapses only.
+- **2026-11-20 — The critical section leaves the atom, and Lease owns exclusive standing over a resource for the span of a call.** *Chose:* Capability requirement 3, 4, 18, 19, 28, 31 and 32, Operation 42, the availability read span, the critical section bound and the registry-unavailable refusal removed; Capability requirement 16 keeps the verdict alone; Non-goal 29 and Non-goal 30 name Lease as the owner; the atom keeps its hold lifecycle, Capability requirement 17 and Concurrency 3. *Over:* keeping the rules and curing each finding in place. *Because:* the rules drew a foundational finding in Final Critique 9, 11, 14 and 15, four rounds on one mechanic, and the atom's job is the hold lifecycle; Scott's session decided it on 2026-11-20 (rounds/escalations.md 12:42Z, answering 05:32Z and 07:05Z), for the direction that recurring glue goes to the atom that owns it. What leaves with it: a build composing Lease ends the section at the lease's terminus, an instant, not at the later of the caller's return and the hold write's end; the stronger guarantee is Lease's to state, with its fences, and a deployment that wants the old liveness reads it there.
 
 - **2026-09-13 — The window boundary is declared once, as a term, instead of being restated at four guard sites.** *Chose:* open and lapsed as a two-member window reading, with the boundary instant declared onto the lapsed side. *Over:* repeating `now < expires_at` and `now ≥ expires_at` in each guard, which is how the prose carried it. *Because:* the boundary is one proposition and a spec pays for a proposition once (GRACE-lang Authority 3); four copies are four chances for an edit to move three of them. It also routes the comparison out of the rules, which carry no arithmetic (GRACE-lang Hard invariant 24).
 
@@ -56,11 +57,18 @@ Deleted: Identity 13. Execution Contract Database 7 owns it.
 ### Structure › Capability requirement
 
 ```
-Deleted: Capability requirement 5. Capability requirement 18 and Capability requirement 19 own it.
+Deleted: Capability requirement 3. Non-goal 30 owns it.
+Deleted: Capability requirement 4. Non-goal 30 owns it.
+Deleted: Capability requirement 5. Non-goal 30 owns it.
 Deleted: Capability requirement 6. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 13 owns it.
 Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 18. Non-goal 30 owns it.
+Deleted: Capability requirement 19. Non-goal 30 owns it.
+Deleted: Capability requirement 28. Non-goal 30 owns it.
+Deleted: Capability requirement 31. Non-goal 30 owns it.
+Deleted: Capability requirement 32. Non-goal 30 owns it.
 Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
@@ -81,6 +89,7 @@ Deleted: Operation 29. Execution Contract Refusal 1 owns it.
 Deleted: Operation 32. Operation 30 owns it.
 Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 42. Non-goal 30 owns it.
 ```
 
 ### Structure › Invariants › Invariant 3 — Terminal absorption

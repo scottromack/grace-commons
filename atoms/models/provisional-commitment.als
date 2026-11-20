@@ -67,8 +67,8 @@
 -- once on a copy, with the same verdicts.
 --
 -- NOT MODELED HERE
---   - The registry (Operation 5, 42, Concurrency 3, Capability requirement 3, 4, 10, 11,
---     16 to 20): its verdict decides whether a [Place Hold] is admitted, never what an
+--   - The registry (Operation 5, Concurrency 3, Capability requirement 10, 11, 16, 17
+--     and 20): its verdict decides whether a [Place Hold] is admitted, never what an
 --     admitted one writes, and availability is not the atom's (Non-goal 11).
 --   - [Read] (Operation 38 to 41): a read writes nothing (Operation 40), so it adds no record.
 --   - Which refusal answers (Execution Contract Refusal 1), storage failure and a refused
