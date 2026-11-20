@@ -252,9 +252,11 @@ Non-goal 9: The atom MUST NOT draw a body.
 Non-goal 10: The atom MUST NOT find a post by a word in a body.
 Non-goal 11: The atom MUST NOT tell who may publish a post.
 Non-goal 12: The atom MUST NOT tell who may read a post.
+Non-goal 13: The atom MUST NOT offer a moderator's hiding of a post.
+Non-goal 14: A deployment needing a moderator to hide a post MUST compose Moderation.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10); [Moderation](./moderation.md) (Non-goal 13, Non-goal 14); a moderator's hiding is Moderation's act and not [Unpublish], which stays the author's own act as the composing pattern that knows the caller admits it (Non-goal 2, Non-goal 11).
 
 Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.md); a message to one person, which is a communication.
 
@@ -291,7 +293,7 @@ Term actors: the atom; the host; the deployment (also: a deployment); a composin
 
 Term records: post — one titled piece of writing by one author, carrying post id, author reference, title, body, written instant, status and, once published, published instant.
 
-Term record verbs: identify, assign, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, replace, change, write, share, find, read, tell, publish, file, hold, give, draw, own.
+Term record verbs: identify, assign, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, replace, change, write, share, find, read, tell, publish, file, hold, give, draw, own, offer, hide, compose.
 
 Term value sets: text action, post action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — draft | published; action rejection — invalid-author-reference | invalid-title | invalid-body | unknown-post | storage-failure.
 
@@ -516,8 +518,7 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
 
-open:
-- 2026-11-20-a · refining · Non-goals; owners NOTE · Unpublish is the author's own act and no Non-goal or owners NOTE names Moderation as the owner of a moderator's hiding of a post, so a reader cannot tell whose act it is → Unpublish stays the author's own act; a Non-goal names Moderation as the owner of a moderator's hiding, and the owners NOTE with it (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-19 04:03Z)
+open: none
 ```
 
 ## Decisions
