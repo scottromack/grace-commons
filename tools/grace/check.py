@@ -6,7 +6,7 @@ must — a bare fenced block classified by its first line, `Term`
 declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
 and tombstone reuse (Hard invariant 25, Hard invariant 27) — a tombstone read on the page and in the
-section titled *Deleted rules* of the history file beside it, where a done pattern keeps it — the rule form and the statement shapes (Rule shape 1, Rule shape 2,
+section titled *Deleted rules* of the history file beside it, where a pattern keeps it, whatever its status — the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
 Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
 words (Timing 10, Timing 11), arithmetic in a rule (Closed vocabulary 9; a rule carries none since v0.70),
@@ -302,8 +302,8 @@ BOLD_BULLET_DECL = re.compile(r"^\s*- \*\*`?[a-z][a-z0-9_ -]*`?\*\* — ")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 _LABEL_TEXT = r"((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)"
 # A tombstone is its own line (GRACE-lang v0.46): `Deleted: Label. The owner, and why.`
-# It stands on the page, or in the history file's *Deleted rules* once the
-# pattern is done (Hard invariant 25, v0.71); cites.py reads both places.
+# It stands on the page, or in the history file's *Deleted rules*, whatever
+# the pattern's status (Hard invariant 25, v0.74); cites.py reads both places.
 TOMBSTONE = cites.TOMBSTONE
 # the retired shape, a NOTE whose text began with a label and the word deleted
 LEGACY_TOMBSTONE = re.compile(r"^NOTE:\s*" + _LABEL_TEXT + r"\s+deleted\b")
@@ -1112,8 +1112,8 @@ def scan(path: Path) -> list[Finding]:
                     add(r.line, "R-when-empty", f"{r.label}: WHEN block with no child rule")
         i = j + 1
 
-    # a done pattern's tombstones, in its history file's *Deleted rules*
-    # (Hard invariant 25, v0.71): every line there is a tombstone in the one form,
+    # a pattern's tombstones, in its history file's *Deleted rules*, whatever
+    # its status (Hard invariant 25, v0.74): every line there is a tombstone in the one form,
     # and each reserves its label on this page as one written here does
     hist = cites.history_file(path)
     for k, raw in cites.deleted_rules(path):

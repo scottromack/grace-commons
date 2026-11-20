@@ -4,7 +4,7 @@ nav_order: 2
 parent: The Library
 ---
 
-# GRACE lang v0.73 — Minimal Earned Grammar
+# GRACE lang v0.74 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -416,7 +416,7 @@ Deleted: Hard invariant 24. Closed vocabulary 31 through 34 and Hard invariant 3
 Hard invariant 35: The parser MUST reject an arithmetic operator in a definition outside the operator's own pair of parentheses.
 Hard invariant 36: The parser MUST reject a division outside a definition.
 Hard invariant 37: The parser MUST reject a division whose definition names no rounding.
-Hard invariant 25: The parser MUST reserve the label a tombstone carries, from the section titled Deleted rules of the spec's history file once the spec is done and from the spec for any other status.
+Hard invariant 25: The parser MUST reserve the label a tombstone carries, from the section titled Deleted rules of the spec's history file whatever the spec's status, and from the spec where the spec carries a tombstone.
 Hard invariant 26: A writer MUST NOT renumber an invariant.
 Hard invariant 27: A writer MUST NOT reuse a tombstoned label.
 Hard invariant 28: A cross-spec reference in a normative block MUST name the spec before the label — `Lease Operation 2`, `Audit Trail Invariant 1.2`.
@@ -430,7 +430,7 @@ Hard invariant 34: The parser MUST reject `NOT EXCEEDS`.
 
 Term pronoun: it | its | itself | they | their | them | he | she | his | her, and this, that, these, those standing alone — the set Hard invariant 4 rejects and `tools/grace/check.py` enforces; a relative whose, that or which opening a clause is not a pronoun.
 
-Term tombstone: a line inside a normative block in the form `Deleted: Label. The owner, and why.` — the label, a period, one space, and a sentence ending with a period; it reserves the label (Hard invariant 25, Hard invariant 27), carries no obligation, and is recognized by that form alone. It stands in the spec until the spec is done, and then under the heading *Deleted rules* at the end of the spec's history file (`<spec>.hist.md`, beside the spec), byte for byte and under the heading it stood under; the label stays reserved, and only where the line lives changes.
+Term tombstone: a line inside a normative block in the form `Deleted: Label. The owner, and why.` — the label, a period, one space, and a sentence ending with a period; it reserves the label (Hard invariant 25, Hard invariant 27), carries no obligation, and is recognized by that form alone. It stands under the heading *Deleted rules* at the end of the spec's history file (`<spec>.hist.md`, beside the spec), whatever the spec's status, byte for byte and under the heading it stood under; one still written in the spec is read there as well, and the label is reserved wherever the line stands.
 
 Term range citation: a run of labels of one family written as the first label, the word through and the last number — `Operation 3 through 7`, `Invariant 2.1 through 2.4`, `reconcile step 5.2 through 5.4`; a cross-spec range names the spec first (Hard invariant 28); the family is written once and singular, the last number carries the first number's shape, and both ends are included.
 

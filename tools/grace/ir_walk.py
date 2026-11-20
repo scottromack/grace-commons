@@ -168,7 +168,7 @@ def walk_rules(lines: list[str], where) -> tuple[list[dict], list[dict]]:
 
 def history_tombstones(path: Path, root: Path) -> list[dict]:
     """The tombstones in the section titled *Deleted rules* of the history file
-    beside the spec, where a done pattern keeps them (GRACE-lang Hard invariant
+    beside the spec, where a pattern keeps them, whatever its status (GRACE-lang Hard invariant
     25, v0.71), in file order, each with the file it stands in."""
     hist = cites.history_file(path)
     where = repo_path(hist, root) or hist.as_posix()

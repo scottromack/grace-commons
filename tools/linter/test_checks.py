@@ -1189,7 +1189,7 @@ TOMB_HISTORY = "# Synthetic — history\n\n## {section}\n\n### Structure › Ope
 def check_tombstone_places_synthetic(problems: list[str]) -> int:
     """GRACE-lang Hard invariant 25 (v0.71): a tombstone reserves its label on
     the page, or from the section titled *Deleted rules* of the history file
-    beside it once the pattern is done, and every reader reads both places. In
+    beside it whatever the pattern's status (v0.74), and every reader reads both places. In
     check.py: a citation of a moved label resolves; a rule reusing it, a line
     there not in the form, and a label tombstoned in both places fire; a
     tombstone in another section of the history file reserves nothing. In
@@ -1203,11 +1203,13 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
     import ir  # noqa: E402
     from lint import check_rests_on_refs, label_families  # noqa: E402
 
-    def run(page: str, hist: str | None, section: str = "Deleted rules"):
+    def run(page: str, hist: str | None, section: str = "Deleted rules", status: str | None = None):
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "atoms" / "synthetic.md"
             f.parent.mkdir(exist_ok=True)
-            f.write_text(TOMB_PAGE.format(page=page), encoding="utf-8")
+            f.write_text(TOMB_PAGE.format(page=page)
+                         + (f"\n## Status\n\n`{status}` — see the Ledger.\n\n## Ledger\n\n```\nstatus: {status}\n```\n"
+                            if status else ""), encoding="utf-8")
             if hist is not None:
                 (Path(d) / "atoms" / "synthetic.hist.md").write_text(
                     TOMB_HISTORY.format(section=section, hist=hist), encoding="utf-8")
@@ -1228,12 +1230,15 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
         ("a label tombstoned in both places", "Deleted: Operation 1. Operation 2 owns it.\n" + cite, moved,
          "Deleted rules", {("synthetic.hist.md", "L-dup-tombstone")}),
         ("a tombstone in another section", cite, moved, "Decisions", {("synthetic.md", "X-ref")}),
+        ("a rule reusing a moved label, the page doing", cite + "Operation 1: The atom MUST read the log.\n",
+         moved, "Deleted rules", {("synthetic.md", "L-tombstone-reuse")}, "doing"),
+        ("a citation of a moved tombstone, the page doing", cite, moved, "Deleted rules", set(), "doing"),
     ]
     gating = {"L-tombstone-reuse", "D-tombstone-form", "L-dup-tombstone", "X-ref", "F-unlabelled",
               "F-fence-first"}
-    for name, page, hist, section, want in cases:
+    for name, page, hist, section, want, *status in cases:
         n += 1
-        got = {(fn, code) for fn, code, _ in run(page, hist, section) if code in gating}
+        got = {(fn, code) for fn, code, _ in run(page, hist, section, *status) if code in gating}
         if got != want:
             problems.append(f"tombstone places: {name} gave {sorted(got)}, want {sorted(want)}")
     reuse = [m for fn, code, m in run(cite + "Operation 1: The atom MUST read the log.\n", moved)
@@ -2765,7 +2770,7 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         return head + body
 
     def hist(tomb):
-        # the tombstones of a done pattern, in its history file (Hard invariant 25, v0.71)
+        # a pattern's tombstones, in its history file (Hard invariant 25, v0.74)
         return ("# X — history\n\n## Deleted rules\n\n### Invariants\n\n```\n"
                 + "".join(f"Deleted: Invariant {n}. Identity 1 owns it.\n" for n in tomb) + "```\n")
 

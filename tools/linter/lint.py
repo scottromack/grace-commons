@@ -326,8 +326,8 @@ def line_of(text: str, idx: int) -> int:
 
 def deleted_text(path: Path, hist_text: str | None = None) -> str:
     """The lines of the section titled *Deleted rules* in a spec's history file,
-    where a done pattern keeps its tombstones (GRACE-lang Hard invariant 25,
-    v0.71), as one text: every check that reads a tombstone off a page reads
+    where a pattern keeps its tombstones, whatever its status (GRACE-lang
+    Hard invariant 25, v0.74), as one text: every check that reads a tombstone off a page reads
     these too. `hist_text` is the history file's text where it was read from
     somewhere other than the disk (git); else the file beside `path` is read."""
     grace = str(Path(__file__).resolve().parents[1] / "grace")
