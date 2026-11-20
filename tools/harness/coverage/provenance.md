@@ -43,6 +43,7 @@ The Alloy model builds one chain as what an ordered sequence of admitted calls l
 | Invariant 8.4 — an archived chain's last entry's event type is archived | no | `checked` covered (TLA+) | `Inv8_4_ArchivedLast`, by sequence number (Check 7.2). Broken by `provenance-buggy-archive-unrecorded.tla` (Operation 30 dropped); `-transfer-on-archived` breaks it too. |
 | Invariant 10.1 — the chain count does not fall | no | `checked` covered (TLA+) | `Inv10_1_ChainsNeverFall`. Broken by `provenance-buggy-archive-deletes.tla` ([Archive] disposes of the chain, Non-goal 19). |
 | Operation 42 through 44 — a refused action leaves the chain, appends nothing, takes no number | no | `checked` covered (TLA+) | `Op42_RefusedLeavesChain`, on storage-failure, the refusal after every guard passed. Broken by `provenance-buggy-storage-takes-number.tla`. |
+| Correction 3, 4 — a caller corrects by a new [Transform] whose descriptor names the corrected sequence number | no | `unstatable` | Duties on the caller; the descriptor is opaque to the atom (String 1 through 4, Non-goal 9 through 11), so no model state tells a correcting [Transform] from another; an auditor reads it (External check 2). |
 
 Out of scope, named (the models' headers): the refusal codes and which answers (Execution Contract Refusal 1); artifact reference, metadata, descriptor and recipient contents (Operation 61 through 65); [Read]'s filters (Operation 47 through 49, 59, 60); id uniqueness (Identity 15, 16, the host's allocation); tamper evidence (Tamper Evidence), custodian identity (Actor Identity), disclosure scope (Selective Disclosure).
 
@@ -53,5 +54,5 @@ Alloy: `for 5` calls reaches the full lifecycle (originate, transfer, transform,
 ## Outcome
 
 - GAP rows: none. Every Invariant row is `checked` by one model, but Invariant 8.1, by typing.
-- Owed: none.
+- Owed: none. Unstatable: Correction 3 and 4.
 - Result: **clean** — no finding about the page.
