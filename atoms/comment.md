@@ -138,7 +138,7 @@ Operation 15: [Edit] MUST answer ok.
 Operation 16: IF the comment's status EQUALS shown THEN [Retract] MUST stand the comment in retracted.
 Operation 17: IF the comment's status EQUALS retracted THEN [Retract] MUST NOT write.
 Operation 18: [Retract] MUST answer ok.
-Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, then in codepoint order of comment id.
+Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, oldest first, then in codepoint order of comment id.
 Operation 20: [List] MUST answer blank text for EVERY retracted comment.
 Operation 21: [List] MUST answer an empty list for a target reference no comment carries.
 Operation 22: [List] MUST NOT write.
@@ -531,8 +531,7 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 2, a delta round, one counted reader (Linus claude-sonnet-5-5; the first pass read the round's freeze record and lapsed, its report triaged and not counted, and the seat ran the pass again on the same text), frozen at e3af1687 — foundational count 0 after the blind second triage, clean, one sample; the two reports claimed no foundational and the blind second triage placed none (refuted: Operation 19 fixes the tie of the list's order, Operation 20 and Operation 16 the retracted text Non-goal 8 keeps in every version, Logic confinement 16 the comment id a call carries onward, Term comment action the actions Operation 4 names, and Term blank the spellings of a blank); the settle's own refining cure: Operation 27 carried two obligations joined by AND, so Operation 27 answers the parent's comment id for every reply and Operation 28 the blank parent comment id for every comment that is not a reply (GRACE-lang Rule shape 3); the round read the reach of Final Critique 1's cures (7 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
-open:
-- 2026-11-19-a · refining · Operation 19 · [List] orders comments by "added instant order" and names no direction, the form Post's Operation 21 and 22 cured as "earliest first" (Execution Contract Read 5: a specification that names its own order keeps it, so the default direction does not apply) → name the direction beside the order, as the case table and the Summary already say oldest first
+open: none
 ```
 
 ## Decisions
