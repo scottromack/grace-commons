@@ -101,7 +101,7 @@ Capability requirement 5: The deployment MUST supply the subscription records PE
 Capability requirement 6: The id entropy MUST NOT EXCEED the subscription id's random material.
 Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 8: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Capability requirement 9: The deployment MAY declare the audience cap PER Execution Contract Input 2, the audience size of an event scope counting as a value a record of the atom holds, and MUST NOT declare the audience cap below one.
+Capability requirement 9: The deployment MAY declare the audience cap ONLY IF the audience cap EXCEEDS 0 PER Execution Contract Input 2, the audience size of an event scope counting as a value a record of the atom holds.
 ```
 
 ### Operations
@@ -559,7 +559,7 @@ Projection: not-active
 ```
 status: doing
 formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 32 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1); 2026-11-20, with an audience cap of 2: Operation 33 (Op33_FullScopeRefused, broken by subscription-buggy-subscribe-ignores-audience-cap.tla), its order behind Operation 6 (Op6_ActivePairRefused, broken by subscription-buggy-subscribe-full-before-already.tla) and Term audience cap at the read (AudienceCap_ReadWithinCap)); nothing testable for Operation 23: the answer's order is no state a model can find wrong; owed rows: none, 2026-11-11
-last gate: 2026-11-20 — Final Critique 11, a delta round, frozen at 125fa86b — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-20 — Final Critique 12, a delta round, frozen at 6c79ec3e — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 11, a delta round, frozen at 125fa86b — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
