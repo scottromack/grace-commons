@@ -151,7 +151,7 @@ Operation 15: [Allocate] MUST stamp expiry instant from the expiry deadline.
 Operation 16: [Allocate] MUST NOT recompute expiry instant from a later clock reading.
 Operation 17: [Allocate] MUST set remaining redemptions to the max redemptions.
 Operation 18: IF the database refuses the write THEN [Allocate] MUST answer storage-failure.
-Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, revoked, not-known, storage-failure.
+Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, a redemption failure, storage-failure.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF no capability EXISTS for the capability token THEN [Redeem] MUST answer not-known.
@@ -162,7 +162,7 @@ Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUAL
 Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
 Operation 29: [Redeem] MUST carry the scope and the allocator reference in a redeemed answer.
 Operation 71: A redeeming [Redeem] MUST lower remaining redemptions by one.
-Operation 31: A refused [Redeem] MUST NOT lower remaining redemptions.
+Operation 31: A [Redeem] answering a redemption failure MUST NOT lower remaining redemptions.
 Operation 32: IF remaining redemptions reaches zero THEN [Redeem] MUST stand the capability in redeemed.
 Operation 33: IF remaining redemptions reaches zero THEN [Redeem] MUST stamp redemption instant from the injected now.
 Operation 35: IF no capability EXISTS for the capability token THEN [Revoke] MUST answer not-known.
@@ -187,13 +187,10 @@ Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
 Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
-Operation 65: [Redeem] MUST NOT evaluate a rule of the redeem refusal order BEFORE EVERY earlier rule of the redeem refusal order has answered no refusal.
 Operation 70: IF a supplied max redemptions is malformed OR a supplied ttl is malformed THEN [Allocate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
 Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
 ```
-
-NOTE: open 2026-10-21-i — Operation 19's list and Term redemption failure state one outcome space.
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
@@ -244,8 +241,6 @@ Term reason: the [Revoke] input the capability keeps as revocation reason — a 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming capability token, allocator reference, both OR no field; a capability matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY capability; consumed per call, never stored.
 
 Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
-
-Term redeem refusal order: Operation 23 through 26 — [Redeem]'s refusal rules, earliest first; Operation 63 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
@@ -407,7 +402,7 @@ Check 4.1: An auditor MUST find no stored expired status on any capability (Inva
 Check 4.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 13.2).
 Check 4.3: An auditor MUST reproduce the effective status from the stored status and the expiry instant against the read-time clock (Invariant 13.4).
 Check 5.1: An auditor MUST find no terminal field written by a lapse (Invariant 13.3, Invariant 6.3, Invariant 6.4).
-Check 5.2: An auditor MUST find EVERY revoked capability's remaining redemptions above zero (Invariant 7.2, Operation 46).
+Check 5.2: An auditor MUST find EVERY revoked capability's remaining redemptions above zero (Operation 46, Operation 31, Operation 32, Invariant 7.2).
 Check 6.1: An auditor MUST find a revocation instant, a revoked by reference and a revocation reason on EVERY revoked capability (Invariant 9.1, Invariant 9.2, Invariant 9.3).
 ```
 
@@ -418,11 +413,9 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 #### External checks
 
 ```
-External check 1: An auditor MUST read a refused [Redeem] from the composing Audit Trail (Invariant 7.3).
+External check 1: An auditor needing a refused [Redeem] shown MUST read the refused call from the composing Audit Trail, where the deployment composes one (Operation 23 through 26).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
 ```
-
-NOTE: open 2026-10-21-f — External check 1 sends the auditor to records no rule obliges the composing Audit Trail to keep, and Check 5.2 cites Invariant 7.2 for a property [Revoke]'s guard and Operation 46 entail.
 
 ## Non-goals
 
@@ -509,9 +502,7 @@ Term records: capability — one bearer-token authorization, carrying capability
 
 Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, reconcile, attest, declare, call, configure, name, match, retain, wire.
 
-Term value sets: status = allocated | redeemed | revoked. revocation field = revocation instant | revoked by reference | revocation reason. redemption failure = exhausted | expired | revoked | not-known.
-
-NOTE: open 2026-10-21-e — the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares.
+Term value sets: status = allocated | redeemed | revoked. revocation field = revocation instant | revoked by reference | revocation reason. redemption failure is declared above and cited here (GRACE-lang Closed vocabulary 15). action outcome = not-known. Revoke rejection = already-terminal. action rejection = invalid-request | storage-failure. derived effective status = allocated | redeemed | revoked | expired.
 
 Term bounds: default capability ttl (the validity duration [Allocate] applies where the call supplies none); single-use default (the max redemptions [Allocate] applies where the call supplies none); zero duration (the floor a ttl must exceed); zero (the floor a max redemptions must exceed); whole count (the whole numbers a supplied max redemptions is drawn from); window length (the whole numbers of seconds a ttl and the default capability ttl carry); token entropy (the floor a capability token's random material is drawn from); maximum length (the deployment's cap per string input).
 
@@ -812,10 +803,7 @@ status: doing
 formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
 last gate: 2026-11-17 — Final Critique 12, a delta round, frozen at 5a146b13 — foundational count 0 after the blind second triage, clean, no sample
 
-open:
-- 2026-10-21-e · refining · Term value sets; the term entries · the term entries name member-of targets (the action outcome, the Revoke rejection, the action rejection, the derived effective status), none of which Term value sets declares → declare each target
-- 2026-10-21-f · refining · External check 1; Check 5.2 · External check 1 reads a refused [Redeem] from the composing Audit Trail, which no rule obliges to record a refusal, and cites Invariant 7.3, another proposition, which a refusal cannot show: a refused call writes nothing (Execution Contract Read 4), so it shows one call refused, not that none was admitted; Check 5.2 cites Invariant 7.2 for a property the page entails from [Revoke]'s guard and Operation 46 → name what each check reads and cite the rules it tests
-- 2026-10-21-i · refining · Operation 19; Term redemption failure; Term redeem refusal order · Operation 19's list and Term redemption failure restate one outcome space, whose members the signature and the [Redeem] entry call answers and Term redeem refusal order, Operation 31 and Operation 65 call refusals, and Operation 65 orders rules that never apply together (Term lapsed holds only in allocated) → one owner, keeping the reach by which Operation 31 holds a refused redemption's counter
+open: none
 ```
 
 <details markdown="block">
