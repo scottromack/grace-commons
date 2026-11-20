@@ -23,8 +23,9 @@
 --                   cascade's commit (a cross-check with Cascade_Completeness).
 --   Invariant 2.2 — a cascade counts, and records a per-session event for, only tokens its
 --                   set carried.
---   Invariant 2.3 — a cascade's set is the union of the map's entry for the credential id
---                   and the event-derived set, as both stood at the cascade's commit.
+--   Action wiring 18 — a cascade's set is the union of the map's entry for the credential id
+--                   and the event-derived set, as both stood at the cascade's commit (the
+--                   assertion A_Invariant_2_3 keeps its name; the rule was Invariant 2.3).
 --   Invariant 2.4 — every session a login issued under the credential before the cascade is
 --                   in the cascade's set, whether or not the login's map write landed.
 --   Invariant 3.1 — every session-to-credential entry names the credential id the issuing
@@ -464,8 +465,8 @@ assert A_Invariant_2_2 {
 }
 check A_Invariant_2_2 for 3 but 6 Event
 
--- A_Invariant_2_3: a cascade's set is the union of the credential-to-sessions map's entry
--- and the event-derived set, as both stood at the cascade's commit.
+-- A_Invariant_2_3 (Action wiring 18; once Invariant 2.3): a cascade's set is the union of the
+-- credential-to-sessions map's entry and the event-derived set, as both stood at the cascade's commit.
 assert A_Invariant_2_3 {
     conforms implies all k : Cascade |
         k.cset = (c2sOver[k.earlier])[k.kcred] + eventSet[k.kcred, k.earlier]

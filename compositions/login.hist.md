@@ -104,6 +104,12 @@ Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 19. Execution Contract Database 1 owns it: the cascade is one transaction, so no reachable state holds an initiation without its completion and the abandoned arm has nothing to catch (Scott, 2026-11-17 9:19 PM Central, "as recommended", rounds/escalations.md 2026-11-18 03:19Z, item 2: do not compose Recoverable Invocation for the cascade).
 ```
 
+### Composition-level invariants › Invariant 2 — Cascade completeness
+
+```
+  Deleted: Invariant 2.3. Action wiring 18 owns it: the cascade set is the union of the credential-to-sessions map's entry and the event-derived set (Term cascade set).
+```
+
 ### Composition-level invariants › Invariant 4 — Login event log completeness
 
 ```

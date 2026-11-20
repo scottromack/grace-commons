@@ -20,6 +20,10 @@
 \*     simply does not fire if the session slot is unavailable; aborting
 \*     on storage failure is modeled by the precondition.
 \*   * Cross-system clock skew (single logical clock).
+\*   * The sweep (login.md Reconciliation 2 through 24): its reconciliation window,
+\*     cadence, escalation edge and revocation horizon are comparisons of clock
+\*     readings, which one logical clock cannot hold (login.als says the same of
+\*     Check 2.3, Reconciliation 2, 13, 14 and Primitive policy 18).
 \*   * Credential.verify internals — modeled as a guard: the credential
 \*     must be "active" for Login to fire. What "active" means to the
 \*     Permissions or Actor Identity stores is out of scope here.
