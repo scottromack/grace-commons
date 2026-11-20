@@ -20,7 +20,7 @@ toc: true
 
 Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat. A hold is placed, stays open for a fixed window, and resolves at most once, into one of three recorded end states: confirmed, released, or expired. The window is a promise in both directions: the resource stays reserved until the hold resolves, a confirmed hold keeping it, and the requester must decide before the window closes.
 
-Resolving at most once is the guarantee. A resolving call against an already-settled hold is refused. A confirm or release past the window is refused. An expire before the window closes is refused. Each hold carries a permanent id; its resource, requester and window are fixed at placement and never change. A settled hold is therefore an unambiguous and provable record of what happened.
+Resolving at most once is the guarantee. A resolving call against an already-settled hold is refused. A confirm or release at or past the window's close is refused. An expire before the window closes is refused. Each hold carries a permanent id; its resource, requester and window are fixed at placement and never change. A settled hold is therefore an unambiguous and provable record of what happened.
 
 Retry safety, the full transition history, and pool-wide capacity limits are deliberately outside the atom — each is a separate pattern that composes with it.
 
@@ -30,7 +30,7 @@ Retry safety, the full transition history, and pool-wide capacity limits are del
 
 ## Intent
 
-A requester needs a resource whose allocation is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (so the registry returns it to availability). If neither happens before the period elapses, the hold awaits an [Expire], which the deployment fires on a cadence or on the next access and which moves the hold to its terminal [Expired] state, so the registry returns the resource.
+A requester needs a resource whose allocation is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (so the registry returns it to availability). If neither happens before the period elapses, the hold awaits an [Expire], which the deployment fires on a cadence or when it next reads the commitment and which moves the hold to its terminal [Expired] state, so the registry returns the resource.
 
 Expiry is a written transition rather than a status inferred at read time because the lapse has a side effect — on it the registry returns the resource, and in a pool-backed composition the capacity pattern returns a capacity slot. A side-effect-free lapse could be derived; this one releases something and so needs a write.
 
@@ -66,7 +66,7 @@ Term id: the opaque value naming one commitment — an [Id]; assigned from the i
 
 Term property: resource | requester | placement instant | expiry instant — what a commitment carries that is not the commitment's identity.
 
-Term reference: id, resource OR requester — every opaque reference this atom records.
+Term reference: id, resource OR requester — every opaque reference this atom records, canonicalized at the seam before it is compared or recorded (Execution Contract Logic confinement 13).
 
 Term registry: the deployment's owner of what a resource is and what availability means; outside this atom (Non-goal 11).
 
@@ -101,14 +101,15 @@ State 11: The atom MUST NOT offer a commitment removal surface.
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 16: The deployment MUST supply the registry's availability verdict and the availability read span at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
-Capability requirement 4: The registry MUST release the critical section on the caller's return.
+Capability requirement 4: The registry MUST release the critical section at the later of the caller's return and the end of any hold write in flight for the resource.
 Capability requirement 18: The registry MUST bound the critical section's availability read by the critical section bound the registry declares.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
 Capability requirement 28: The registry MUST NOT release the critical section before the caller's return.
+Capability requirement 29: The registry MUST NOT return the resource to availability BEFORE the database has written the releasing action's terminal state.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the expire cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the expire cadence falls inside.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
@@ -116,6 +117,7 @@ Capability requirement 11: The registry MUST NOT return the resource to availabi
 Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
 Capability requirement 20: The registry MUST NOT remove the resource from availability on a refused [Place Hold].
 Capability requirement 12: IF no [Expire] call answering storage-failure EXISTS for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST resolve the lapsed commitment WITHIN the reclamation window.
+Capability requirement 30: IF an [Expire] call answered storage-failure for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST resolve the lapsed commitment at the expire cadence's next firing.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 21: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 22: The deployment MAY declare the duration bounds PER Execution Contract Input 2.
@@ -132,7 +134,7 @@ Term hold write in flight: a hold write the database has neither committed nor r
 
 Term critical section bound: the span the registry declares as the availability read span of a critical section at which [Place Hold] answers registry-unavailable (Capability requirement 18, Operation 42).
 
-Term availability read span: the time from the availability read's start to the availability verdict's landing, or to the critical section bound where no verdict has landed.
+Term availability read span: the time from the call's arrival at the resource's critical section to the availability verdict's landing, or to the critical section bound where no verdict has landed; a call that waits for the section counts the wait.
 
 ### Operations
 
@@ -298,7 +300,7 @@ The same atom, five regulated domains, one mechanic.
 
 ### Banking — credit-limit hold
 
-`place_hold(card, cardholder, 604800)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, a capture after the window closes is refused window-elapsed, and the scheme's settlement sweep fires `expire(auth_c41)` on the eighth day, after which a capture is refused not-held. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
+`place_hold(card, cardholder, 604800)` → `auth_c41`; available credit drops by $250. The merchant captures within the window — `confirm(auth_c41)` — and the charge settles; or voids it — `release(auth_c41)` — and credit restores. If neither, a capture after the window closes is refused window-elapsed, and the scheme's settlement sweep fires `expire(auth_c41)` once the seven days have passed, after which a capture is refused not-held. Each transition feeds liquidity reporting aligned with the BCBS (Basel Committee on Banking Supervision).
 
 ### Healthcare — bed assignment
 
@@ -314,14 +316,14 @@ The same atom, five regulated domains, one mechanic.
 
 ### Airline — seat hold
 
-`place_hold(seat, passenger, 900)` → `seat_a22`, the carrier's fare-lock per IATA (International Air Transport Association) practice. Payment confirms; backing out releases; abandonment expires. The attached fare quote is invalidated whenever the hold leaves availability, which a composing Fare Quote pattern observes from the terminal state.
+`place_hold(seat, passenger, 900)` → `seat_a22`, the carrier's fare-lock per IATA (International Air Transport Association) practice. Payment confirms; backing out releases; abandonment expires. The attached fare quote is invalidated whenever the hold leaves availability, which a composing fare-quote pattern *(forthcoming)* observes from the terminal state.
 
 What differs across the five: resource semantics, window length, the regulatory framing of the trail, and which patterns compose. What does not differ: an undecided hold ends in a recorded expire, on which the registry returns the resource.
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
-- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred or Erasure Tombstone pattern redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
+- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred pattern *(forthcoming)* redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist, and [Erasure Tombstone](./erasure-tombstone.md) keeps the permanent record that the destruction happened (Non-goal 27, Non-goal 28).
 - **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC (Coordinated Universal Time). Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. [Read] answers every commitment the database holds (Operation 38), and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
 
 ---
@@ -333,11 +335,11 @@ This atom's acceptance is provable: an external auditor clears it from the commi
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY commitment whose state EQUALS EXACTLY ONE OF held, confirmed, released, expired (Invariant 1.1).
+Check 1.1: An auditor MUST find a state that IS IN held, confirmed, released, expired on EVERY commitment (Invariant 1.1).
 Check 1.2: An auditor MUST find a terminal instant on EVERY commitment whose state IS IN the terminal states (State 2, State 3, State 4).
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
 Check 2.1: An auditor MUST find no commitment carrying two terminal instants (Invariant 2.2).
-Check 2.2: An auditor MUST find no commitment leaving a terminal state across two committed versions of the commitment (Invariant 3.1; Execution Contract Generation acceptance 1).
+Check 2.2: An auditor MUST find no commitment leaving a terminal state across two committed versions of the commitment (Invariant 2.1, Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find no late resolution in the database (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the database (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the database (Invariant 6.1).
@@ -360,7 +362,7 @@ External check 1: A deployment needing the resource of a confirmed commitment re
 External check 2: A deployment needing the transitions of one commitment ordered MUST read the composing Event Log (Non-goal 3).
 External check 3: A deployment needing a rejection observed MUST read the composing Event Log (Non-goal 23).
 External check 4: A deployment needing a requester bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
-External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window (Capability requirement 8).
+External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window AND find no reclamation lag that EXCEEDS the reclamation window (Capability requirement 8, Capability requirement 12).
 ```
 
 ---
@@ -394,15 +396,15 @@ Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
 Non-goal 24: The atom MUST NOT hold a resource fungible below the commitment's grain.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
 Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing Event Log sequence number.
+Non-goal 27: The atom MUST NOT remove a requester's personal data.
+Non-goal 28: A deployment needing the destruction of a requester's personal data recorded MUST compose Erasure Tombstone.
 ```
 
-NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reservation.md) (Non-goal 1, Non-goal 2); the registry (Non-goal 11, Non-goal 12, External check 1); the deployment (Non-goal 13, Capability requirement 7; Non-goal 25 for a lapse awaiting the next access OR met by an [Expire] call answering storage-failure, and Capability requirement 12 for a cadence's firings); a composition of two tiers of commitment (Non-goal 24).
+NOTE: the owners — [Idempotent Reservation](../compositions/idempotent-reservation.md) (Non-goal 1, Non-goal 2); [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) (Non-goal 5, Non-goal 6); a reversal pattern *(forthcoming)* (Non-goal 9, Non-goal 10); [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 27, Non-goal 28); the registry (Non-goal 11, Non-goal 12, External check 1); the deployment (Non-goal 13, Capability requirement 7; Non-goal 25 for a lapse awaiting the deployment's next read of the commitment OR met by an [Expire] call answering storage-failure, and Capability requirement 12 and Capability requirement 30 for a cadence's firings); a composition of two tiers of commitment (Non-goal 24).
 
 ---
 
 ## Edge cases
-
-### Atomic writes
 
 ### Concurrency
 
@@ -493,7 +495,7 @@ Kind: Operation
 
 #### Expire
 
-The resolving behavior — the side-effecting lapse — that moves a lapsed [Held] [Commitment] to [Expired]; on it the registry returns the resource to availability, and in a pool-backed composition the capacity pattern returns a capacity slot. Legal only while the commitment reads lapsed; rejected [Window Not Elapsed] while it reads open. Fired by the deployment on a cadence or on the next access; the atom does not decide which (Non-goal 13) and does not guarantee that it fires (Non-goal 25).
+The resolving behavior — the side-effecting lapse — that moves a lapsed [Held] [Commitment] to [Expired]; on it the registry returns the resource to availability, and in a pool-backed composition the capacity pattern returns a capacity slot. Legal only while the commitment reads lapsed; rejected [Window Not Elapsed] while it reads open. Fired by the deployment on a cadence or when it next reads the commitment; the atom does not decide which (Non-goal 13) and does not guarantee that it fires (Non-goal 25).
 
 Kind: Operation
 
@@ -633,7 +635,7 @@ Projection: invalid-request
 
 #### Registry Unavailable
 
-The refusal [Place Hold] returns when the critical section bound DOES NOT EXCEED the availability read span (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the place hold may be retried, and the condition lasts only while another call holds the resource's critical section. The registry ends that hold on the holding caller's return (Capability requirement 4), never before it (Capability requirement 28) and never while a hold write in flight stands (Capability requirement 19), so a hold write the database never resolves, or a caller that never returns, leaves every later [Place Hold] on the resource answering registry-unavailable until the database resolves the write or the caller returns. Nothing in this atom ends the section sooner: a registry cannot tell a dead caller from a paused one, and a hold write it gave up on could still commit (Execution Contract Database 3). No commitment is recorded.
+The refusal [Place Hold] returns when the critical section bound DOES NOT EXCEED the availability read span (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the place hold may be retried, and the condition lasts only while another call holds the resource's critical section. The registry ends that hold at the later of the holding caller's return and the end of any hold write in flight (Capability requirement 4), never before the return (Capability requirement 28) and never while a hold write in flight stands (Capability requirement 19), so a hold write the database never resolves, or a caller that never returns, leaves every later [Place Hold] on the resource answering registry-unavailable until the write has ended and the caller has returned. Nothing in this atom ends the section sooner: a registry cannot tell a dead caller from a paused one, and a hold write it gave up on could still commit (Execution Contract Database 3). No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -731,7 +733,7 @@ Projection: storage-failure
 ## Standards references
 
 - **ISO (International Organization for Standardization) 9001:2015 clause 8.5.2 (Identification and traceability)** — the minimum anchor. A resource under provisional commitment must be identifiable and traceable through every transition; the identity model and the per-commitment instants satisfy it directly.
-- **ISO 9001:2015 clause 8.5.4 (Preservation)** — the resource is preserved in its committed state for the window's length; Invariant 6.1 is the operational form.
+- **ISO 9001:2015 clause 8.5.4 (Preservation)** — the resource is preserved in its committed state for the window's length; Capability requirement 17 is the operational form.
 - **Basel III liquidity framework (BCBS 238 LCR — the Liquidity Coverage Ratio)** — credit-limit holds and intraday liquidity reservations follow this lifecycle. Terminal absorption matches Basel's expectation that settlement events are facts about the past.
 - **The Joint Commission, *Provision of Care, Treatment, and Services*** — bed-management and capacity coordination require resource encumbrance to be auditable and time-bounded; Invariant 7 is the structural correlate.
 - **IATA Resolution 830a and related ticketing-time-limit rules** — airline fare-lock and seat-hold semantics formalize the window contract this atom abstracts; the atom is vocabulary-neutral, IATA is one instantiation.
@@ -759,7 +761,7 @@ It inherits from:
 ```
 status: doing
 formal: verified — provisional-commitment.tla + 4 twins (2026-06-04); provisional-commitment.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 2.2, 6.1, 7.1 through 7.3, 8.1 and 8.2, State 1 through 5 and Identity 5 checked on every commitment record an admitted [Place Hold], [Confirm], [Release] or [Expire] leaves, built from the version its call found; Invariant 7.1, 8.1 and 8.2 a cross-check with the TLA+ model; Invariant 8.1 and 8.2 resting on the deployment's clock never going backward (Execution Contract Logic confinement 7), Invariant 6.1 on Capability requirement 27 and Execution Contract Logic confinement 9, Identity 5 on fresh id material (Capability requirement 23); nothing testable in Alloy for Invariant 2.1, 3.1, 5.1 or 10.1: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 5.1, Invariant 10.1 and Identity 4 (across steps); owed rows: Invariant 5; Invariant 10; Identity 4; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-11-11
-last gate: 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
+last gate: 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
 open: none
 ```
