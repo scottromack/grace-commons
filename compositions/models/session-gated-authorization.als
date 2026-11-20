@@ -48,9 +48,9 @@
 --   and Session Composition note 4 obeyed after a revocation or a lapse (Composes 7).
 --   Composes 4, Composition state 1 and 2: the composition holds no record, and the model
 --   gives it none.
---   Primitive policy 1, 10: the length bound's value against Permissions' string cap is the
---   deployment's declaration (open line 2026-09-27-a); here an input is over the bound or not.
---   Check 3.1 (each answer exactly one of five) holds by the model's typing, not a rule a
+--   Primitive policy 1, 10, 11: each input's length bound against its constituent's cap is the
+--   deployment's declaration; here an input is over the bound or not.
+--   External check 3 (each answer exactly one of five) holds by the model's typing, not a rule a
 --   twin could break.
 --
 -- SCOPE

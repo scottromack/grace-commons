@@ -74,7 +74,7 @@ Composition state 4: A deployment needing a record of a [Check Permitted] answer
 ### Primitive policy
 
 ```
-Primitive policy 1: A deployment MAY declare the length bound PER Execution Contract Input 2.
+Primitive policy 1: A deployment MAY declare the length bound of EVERY opaque input PER Execution Contract Input 2.
 Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session token.
 Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action scope.
 Primitive policy 4: IF an input EXCEEDS the length bound THEN [Check Permitted] MUST answer invalid-request.
@@ -83,12 +83,11 @@ Primitive policy 6: [Check Permitted] MUST NOT trim an input.
 Primitive policy 7: [Check Permitted] MUST NOT case-fold an input.
 Primitive policy 8: [Check Permitted] MUST NOT normalize an input.
 Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input the boundary predicate refuses.
-Primitive policy 10: The length bound MUST NOT EXCEED the Permissions instance's string cap.
+Primitive policy 10: The action scope's length bound MUST NOT EXCEED the Permissions instance's string cap.
+Primitive policy 11: The session token's length bound MUST NOT EXCEED Session's maximum length.
 ```
 
 NOTE: watch the unset setting (Primitive policy 1).
-
-NOTE: open 2026-11-18-a — the default length bound is the Permissions instance's string cap and Session's own maximum length is larger, with a session token format the deployment owns, so a session token Session accepts can exceed the bound and answer invalid-request on every call (Primitive policy 1, Primitive policy 10, Term length bound).
 
 ### Action wiring
 
@@ -118,7 +117,7 @@ Action wiring 15: [Check Permitted] MUST NOT write.
 Term boundary predicate: the composition's own input check — an input EQUALS blank OR an input EXCEEDS the length bound.
 
 
-Term length bound: the cap the composition holds an opaque input to, counted in Unicode code points — a [Length Bound]; the Permissions instance's string cap where a deployment declares none, and a declared cap replaces it (Primitive policy 10, Execution Contract Input 2).
+Term length bound: the cap the composition holds one opaque input to, counted in Unicode code points — a [Length Bound]; for the session token, Session's maximum length, and for the action scope, the Permissions instance's string cap, where a deployment declares none, and a declared cap replaces the default for its input (Primitive policy 10, Primitive policy 11, Execution Contract Input 2).
 
 Term valid answer: Session's validate answer carrying a principal reference and an expiry instant.
 
@@ -297,29 +296,25 @@ This composition introduces no per-call event log, so the acceptance bar has two
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find Session's state naming a disputed session token's status at the instant the gate's validate call answered (Invariant 1.1, Concurrency 1).
 Check 2.1: An auditor MUST find Session's state naming the principal reference a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the pair a disputed permitted answer rests on, at the disputed instant (Invariant 4.1).
-Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid, state-unavailable (Invariant 3.1, Invariant 3.2, Execution Contract Constituent failure 3).
 ```
 
 NOTE: EVERY check names the rule the check tests.
-
-NOTE: open 2026-11-05-a — which tier Check 1.1 and Check 3.1 sit in, the instant and the answers read from no record without Audit Trail (Check 1.1, Check 3.1).
 
 ### External checks
 
 ```
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing the principal binding confirmed MUST read the deployment's own implementation (Invariant 2.1).
-External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Composition state 1).
+External check 3: An auditor needing an enumeration of authorization attempts, EVERY answer of which EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid, state-unavailable, MUST read a composed Audit Trail (Composition state 1, Invariant 3.1, Invariant 3.2, Execution Contract Constituent failure 3).
 External check 4: An auditor needing a gate rejection's record MUST read a composed Audit Trail (Composition state 1).
 External check 5: An auditor needing Permissions' permitted confirmed unexposed MUST read the deployment's own wiring (Composes 5, Non-goal 9).
 External check 6: An auditor needing proof that no permitted answer followed a validate call that answered at an instant Session's state shows the session expired MUST read a composed Audit Trail, since the composition's own state carries no answer (Composition state 1, Invariant 1.1, Concurrency 1, Session Composition note 4).
 External check 7: An auditor needing proof that no permitted answer followed a validate call that answered at an instant Session's state shows the session revoked MUST read a composed Audit Trail, since the composition's own state carries no answer (Composition state 1, Invariant 1.1, Concurrency 1, Session Composition note 4).
 ```
 
-NOTE: watch the external answer that moves (Check 1.1, External check 6, External check 7).
+NOTE: watch the external answer that moves (External check 6, External check 7).
 
 ---
 
@@ -426,7 +421,7 @@ Projection: invalid-request
 
 #### Length Bound
 
-The cap the composition holds an opaque input to at the composition boundary: the Permissions instance's string cap where the deployment declares none, and a declared cap never above it (Primitive policy 1, Primitive policy 10). An argument over the cap is refused as [Invalid Request] before either constituent runs (Primitive policy 4).
+The cap the composition holds one opaque input to at the composition boundary: for the session token Session's maximum length, and for the action scope the Permissions instance's string cap, where the deployment declares none, and a declared cap never above the cap its constituent holds the input to: the Permissions instance's string cap for the action scope, Session's maximum length for the session token (Primitive policy 1, Primitive policy 10, Primitive policy 11). An argument over the cap is refused as [Invalid Request] before either constituent runs (Primitive policy 4).
 
 Kind:      Parameter
 Parameter of: the deployment
@@ -465,10 +460,7 @@ status: doing
 formal: verified — session-gated-authorization.als + 12 twins (the static data model, re-derived 2026-11-12 as [Check Permitted] calls over the answers their constituents give, the 2026-06-03 trace model's `var` fields `dyn_status` and `dyn_call_log`, `always` checks and `eventually` runs gone, and the facts that stated Invariant 1, 2 and 4 now checks: Invariant 1.1, 2.1, 2.2, 3.1 through 3.3, 4.1 and 4.2, Action wiring 3, 6, 9, 10 and 12, Primitive policy 2, 3, 4 and 9); session-gated-authorization.tla + 6 twins + 4 probes (the operation sequences, 2026-11-12: each call two steps with Session and Permissions moving between them; the stepping checks Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status taken over as Composes7_RevocationTerminal, Composes7_ExpiryTerminal and AW14_GateReflectsCurrentStatus, with Invariant 1.1 and 2.1, Action wiring 13 through 15 and Concurrency 1 and 2); Invariant 4.1 against the closure table's state-unavailable landing is a finding (an admitted gate over a pair no active grant covers whose permitted read fails); coverage 2026-11-12 (unit `compositions/session-gated-authorization.md formal layer`): owed rows: none, 2026-11-12
 last gate: 2026-11-18 — Final Critique 11, delta, frozen at 89cb072 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (qwen3.8-flash) claimed three foundational, all refuted by rules outside the delta set: Non-goal 9 forbids exposing Permissions' permitted beside [Check Permitted] (External check 5), Action wiring 5, 6, 10 and Invariant 4.1 and 4.2 pin the grant leg of the replacement (Composes 5), and Term length bound, Term boundary predicate and Primitive policy 4 scope the bound over the session token and the action scope, the page's only inputs (Primitive policy 1); of four refining none changed the page (the closure table's inputs and calls leave out Revoke, which Non-goal 4 bars; the measure of unexposed is Non-goal 9's; `permitted` is the page's name for Permissions' read throughout; Primitive policy 1 declares this page's setting and cites Input 2) and one rhetorical was left; the settle's own open line 2026-11-18-a records a bound the default cannot hold a long token to; 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
 
-open:
-- 2026-11-18-a · refining · Primitive policy 1; Primitive policy 10; Term length bound · the default length bound is the Permissions instance's string cap (256 code points) and Session's maximum length is 1,024 with a token format the deployment owns, so a session token Session accepts can exceed the bound and answer invalid-request on every call → a field an attacker or operator controls gets an explicit cap and a refusal (decided 2026-11-19, group 8 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-05-a · refining · Check 1.1, Check 3.1 · the instant a validate call answered (Check 1.1) and every answer (Check 3.1) are on no record the composition holds without Audit Trail (Composition state 1), while the page files both checks in the tier cleared from the constituents' own state; whether the two checks move under a composed Audit Trail, as External checks 6 and 7 did, or stay on the runtime surface is a decision no rule makes → the next round that reads the Generation acceptance tier
-- 2026-09-27-a · refining · Primitive policy 10 · added from the cold regeneration's finding (council read 236), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
+open: none
 ```
 
 <details markdown="block">

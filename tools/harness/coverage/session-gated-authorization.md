@@ -48,9 +48,9 @@ The Alloy model builds every set of calls the wiring can make over any answers t
 | Action wiring 15; Composition state 1; Non-goal 1 through 4 — `check_permitted` writes nothing | no | `checked` covered (TLA+) | `AW15_CallDoesNotWrite`: neither step of a call changes Session's or Permissions' records (the 2026-11-10 `Dyn_Call_Does_Not_Write`). Broken by `session-gated-authorization-buggy-callwrites.tla` (a permitted answer consumes its grant). |
 | Composes 7 (Session Composition note 4 over time) — a revoked session is refused at every later gate | YES | `checked` **covered (TLA+)** | `Composes7_RevocationTerminal` (the 2026-11-10 `Dyn_Revocation_Terminal`, read at the composition's boundary; `-probe-revokedrefusal`). Broken by `session-gated-authorization-buggy-refresh.tla` (the gate revives the session) and `session-gated-authorization-buggy-cachedanswer.tla`. |
 | Composes 7 (Session Composition note 4 over time) — a lapsed session is never valid at a later gate | YES | `checked` **covered (TLA+)** | `Composes7_ExpiryTerminal` (the 2026-11-10 `Dyn_Expiry_Terminal`; `-probe-expiredrefusal`). Broken by `session-gated-authorization-buggy-refresh.tla` and `session-gated-authorization-buggy-cachedanswer.tla`. |
-| Check 3.1 — every answer exactly one of five | no | `unstatable` by the typing | Each model's answer is one value of a five-valued type; no rule of the wiring could make it two, so no twin could break a check of it. |
+| External check 3 — every answer exactly one of five | no | `unstatable` by the typing | Each model's answer is one value of a five-valued type; no rule of the wiring could make it two, so no twin could break a check of it. |
 
-Out of scope, named: the length bound's value against Permissions' string cap (Primitive policy 1, 10) is the deployment's declaration, open line 2026-09-27-a; the models take an input as over the bound or not. Composes 4 and Composition state 1, 2 (no record held): the models give the composition no state but the call in flight.
+Out of scope, named: each input's length bound against its constituent's cap (Primitive policy 1, 10, 11) is the deployment's declaration; the models take an input as over the bound or not. Composes 4 and Composition state 1, 2 (no record held): the models give the composition no state but the call in flight.
 
 ## Step 3 — bound saturation
 

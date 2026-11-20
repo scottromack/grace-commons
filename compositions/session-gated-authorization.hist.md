@@ -18,6 +18,8 @@ Entries that record a migration rather than a turn the pattern took.
 
 - **2026-09-27 — The length bound sits under the Permissions string cap, and the page steps down to run the round that rule owes.** *Chose:* Primitive policy 10, and `partially resolved` until a three-pass round clears it. *Over:* a routed line on a grounded page. *Because:* a cold regeneration met the gap — Permissions answers an over-length argument denied, so a bound above its cap reports a malformed request as a refusal, the collapse Primitive policy 2 through 4 exist to prevent — and the entry *Touch triggers re-pass* in `pressure-testing.md` downgrades a grounded page for a load-bearing edit (council read 236).
 
+- **2026-11-20 — The length bound is held per input, and Check 1.1 and Check 3.1 move under External check 3, 6 and 7.** *Chose:* the session token's bound defaults to Session's maximum length and the action scope's to the Permissions instance's string cap, a declared bound never above its constituent's cap (Primitive policy 1, 10, 11, Term length bound); Check 1.1 deleted to External check 6 and 7, Check 3.1 to External check 3. *Over:* one bound for both inputs at the string cap, under which a session token Session accepts (up to 1,024 code points) answered invalid-request on every call; and over keeping the two checks on a runtime surface the composition holds no record for. *Because:* open lines 2026-11-18-a, 2026-11-05-a and 2026-09-27-a (Scott, 2026-11-19, group 8 of his ruling of 21:32Z: a field an attacker or operator controls gets an explicit cap and a refusal; the checks follow External checks 6 and 7, which moved for the same reason).
+
 ## Migration notes
 
 - **2026-09-15 — Wiring decision 1, moved from Action wiring.** Wiring decision 1 is Action wiring 4's words, moved to the heading that names what it is when the headings were standardized (council read 80).
@@ -43,8 +45,10 @@ Deleted: Action wiring 4. Wiring decision 1 owns it.
 ### Generation acceptance › Conformance checks
 
 ```
+Deleted: Check 1.1. External check 6 and External check 7 own it.
 Deleted: Check 1.2. External check 6 owns it.
 Deleted: Check 1.3. External check 7 owns it.
+Deleted: Check 3.1. External check 3 owns it.
 ```
 
 ### Composition notes
