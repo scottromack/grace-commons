@@ -145,7 +145,7 @@ Operation 1: IF subject reference EQUALS blank THEN [Submit] MUST answer invalid
 Operation 2: IF approver reference EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 3: IF submitter reference EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
-Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 5: IF a carried reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF now PRECEDES the resolved submission instant THEN [Submit] MUST answer invalid-request.
 Operation 63: IF the resolved submission instant is malformed THEN [Submit] MUST answer invalid-request (Execution Contract Input 1).
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
@@ -188,7 +188,7 @@ Operation 45: IF a filter's axis IS IN the string axes AND the filter's value EQ
 Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
-Operation 57: IF a supplied reason EQUALS blank THEN [Approve] MUST answer invalid-request.
+Operation 57: IF a carried reason EQUALS blank THEN [Approve] MUST answer invalid-request.
 Operation 58: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
 Operation 66: IF a filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
 ```
@@ -225,6 +225,8 @@ Term attribution field: deciding actor, decision reason, decision instant, withd
 
 Term attribution reference: deciding actor on an approved step or a rejected step, and withdrawing actor on a withdrawn step — the actor reference a terminal step carries.
 
+Term terminal instant: decision instant on an approved step or a rejected step, and withdrawal instant on a withdrawn step — the instant a terminal step carries.
+
 Term attribution check: Operation 15 through 19, Operation 57, Operation 64 through 65.
 
 Term attribution fault: an attribution check the call fails.
@@ -235,7 +237,9 @@ Term string axes: step id | subject reference | approver reference | submitter r
 
 Term query: what a read asks for — a [Query]; any combination of the filter axes, a filter on submission instant, decision instant or withdrawal instant carrying a range.
 
-Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submission instant the guards all admit.
+Term carried reason: the reason the call's input holds, blank included — a call that omits reason carries none, and the omission is no blank reason (State 8, String 6).
+
+Term admitted submit: a [Submit] call whose references, scope, carried reason and resolved submission instant the guards all admit.
 
 Term authorization anchor: the approver reference on a deciding action, and the submitter reference on [Withdraw].
 
@@ -293,7 +297,7 @@ NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one 
 - **Invariant 6 — Decision attribution completeness.**
   ```
   Invariant 6.1: EVERY terminal step's attribution reference MUST stand non-blank.
-  Invariant 6.2: EVERY terminal step MUST carry the terminal state's instant.
+  Invariant 6.2: EVERY terminal step MUST carry the terminal instant.
   Invariant 6.3: EVERY rejected step's decision reason MUST stand non-blank.
   Invariant 6.4: EVERY withdrawn step's withdrawal reason MUST stand non-blank.
   ```
@@ -370,7 +374,7 @@ Check 1.1: An auditor MUST find EVERY step standing in EXACTLY ONE OF pending, a
 Check 2.1: An auditor MUST find EVERY step's step id, subject reference, approver reference, submitter reference and scope non-blank (Invariant 8.1).
 Check 2.2: An auditor MUST find a submission instant on EVERY step (Invariant 8.2).
 Check 3.1: An auditor MUST find EVERY terminal step's attribution reference non-blank (Invariant 6.1).
-Check 3.2: An auditor MUST find the terminal state's instant on EVERY terminal step (Invariant 6.2).
+Check 3.2: An auditor MUST find the terminal instant on EVERY terminal step (Invariant 6.2).
 Check 3.3: An auditor MUST find EVERY rejected step's decision reason non-blank (Invariant 6.3).
 Check 3.4: An auditor MUST find EVERY withdrawn step's withdrawal reason non-blank (Invariant 6.4).
 Check 3.5: An auditor MUST find no terminal step's terminal instant preceding the step's submission instant (Invariant 7.1).
@@ -422,15 +426,11 @@ Non-goal 21: A deployment needing a verifiable time anchor MUST compose a truste
 Non-goal 22: The atom MUST NOT own the clock's monotonicity (Execution Contract Logic confinement 7).
 ```
 
-NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); Delegation *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Notification](./notification.md) (Non-goal 11, Non-goal 12; Composition note 5); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17; Non-goal 20); [Execute Gated Workflow](../compositions/execute-gated-workflow.md) (Non-goal 7, Non-goal 8); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20); Trusted Timestamping *(forthcoming)* (Non-goal 21).
+NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); Delegation *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Notification](./notification.md) (Non-goal 11, Non-goal 12; Composition note 5); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Execute Gated Workflow](../compositions/execute-gated-workflow.md) (Non-goal 7, Non-goal 8); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); Trusted Timestamping *(forthcoming)* (Non-goal 20, Non-goal 21).
 
 ---
 
 ## Edge cases
-
-### Atomic writes
-
-### Concurrency
 
 ### Indeterminate outcome
 
@@ -497,7 +497,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, attribution check, attribution fault, filter axes, string axes, query, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, landing read, success token, committed version, string input, blank, string cap.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, terminal instant, attribution check, attribution fault, filter axes, string axes, query, carried reason, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, landing read, success token, committed version, string input, blank, string cap.
 
 #### Approval Step
 
@@ -537,7 +537,7 @@ Kind: Operation
 
 #### Step Id
 
-The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the database instance. It must be a non-empty string. The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
+The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the database instance. The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
 
 Kind:       Field
 Field of:   Approval Step
@@ -577,7 +577,7 @@ Projection: scope
 
 #### Reason
 
-The optional submission-context string supplied at [Submit] — a description of what is being approved, the underlying business rule, or a summary of the deviation. Stored under its own name; immutable thereafter. Its absence is valid; if supplied it must not be blank. (Distinct from the [Decision Reason] and [Withdrawal Reason] fields the resolving actions write.)
+The optional submission-context string supplied at [Submit] — a description of what is being approved, the underlying business rule, or a summary of the deviation. Stored under its own name; immutable thereafter. (Distinct from the [Decision Reason] and [Withdrawal Reason] fields the resolving actions write.)
 
 Kind:       Field
 Field of:   Approval Step
@@ -585,7 +585,7 @@ Projection: reason
 
 #### Submission Instant
 
-The timestamp at which the step was submitted, set on [Submit] (caller-supplied or wall-clock-defaulted; must not be in the future). Immutable. It is the lower bound the temporal-ordering invariant measures decision and withdrawal timestamps against (Invariant 7).
+The timestamp at which the step was submitted, set on [Submit] (caller-supplied or wall-clock-defaulted). Immutable. It is the lower bound the temporal-ordering invariant measures decision and withdrawal timestamps against (Invariant 7).
 
 Kind:       Field
 Field of:   Approval Step
@@ -601,7 +601,7 @@ Projection: state
 
 #### Deciding Actor
 
-The opaque reference to the actor who decided, stamped on [Approve] or [Reject]. Present on [Approved] and [Rejected] steps; immutable once set. It must match [Approver Reference] for the decision to be accepted (Invariant 4) and must not be blank (Invariant 6).
+The opaque reference to the actor who decided, stamped on [Approve] or [Reject]. Present on [Approved] and [Rejected] steps; immutable once set. Invariant 4 holds it to [Approver Reference] and Invariant 6 holds it non-blank.
 
 Kind:       Field
 Field of:   Approval Step
@@ -617,7 +617,7 @@ Projection: decision_reason
 
 #### Decision Instant
 
-The timestamp at which the decision was recorded, stamped on [Approve] or [Reject] (caller-supplied or wall-clock-defaulted; must not be in the future). Present on [Approved] and [Rejected] steps; immutable once set. [Decision Instant] ≥ [Submission Instant] always holds (Invariant 7).
+The timestamp at which the decision was recorded, stamped on [Approve] or [Reject] (caller-supplied or wall-clock-defaulted). Present on [Approved] and [Rejected] steps; immutable once set. [Decision Instant] ≥ [Submission Instant] always holds (Invariant 7).
 
 Kind:       Field
 Field of:   Approval Step
@@ -625,7 +625,7 @@ Projection: decided_at
 
 #### Withdrawing Actor
 
-The opaque reference to the actor who withdrew the request, stamped on [Withdraw]. Present on [Withdrawn] steps; immutable once set. It must match [Submitter Reference] for the withdrawal to be accepted (Invariant 5) and must not be blank (Invariant 6).
+The opaque reference to the actor who withdrew the request, stamped on [Withdraw]. Present on [Withdrawn] steps; immutable once set. Invariant 5 holds it to [Submitter Reference] and Invariant 6 holds it non-blank.
 
 Kind:       Field
 Field of:   Approval Step
@@ -641,7 +641,7 @@ Projection: withdrawal_reason
 
 #### Withdrawal Instant
 
-The timestamp at which the withdrawal was recorded, stamped on [Withdraw] (caller-supplied or wall-clock-defaulted; must not be in the future). Present on [Withdrawn] steps; immutable once set. [Withdrawal Instant] ≥ [Submission Instant] always holds (Invariant 7).
+The timestamp at which the withdrawal was recorded, stamped on [Withdraw] (caller-supplied or wall-clock-defaulted). Present on [Withdrawn] steps; immutable once set. [Withdrawal Instant] ≥ [Submission Instant] always holds (Invariant 7).
 
 Kind:       Field
 Field of:   Approval Step
@@ -803,7 +803,7 @@ Projection: invalid-query
 ```
 status: doing
 formal: verified — approval-step.tla + 3 twins (2026-06-03); approval-step.als + 10 twins (the static data model, 2026-11-11: Invariant 2.1, 4.1, 4.2, 5.1, 6.1 through 6.4, 7.1, 8.1, 8.2 and State 13 checked on every record [Submit] or one admitted resolve leaves, Invariant 4 and 5 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 3, 9 and 10: each compares a step with a later version of it or with a second step, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and Invariant 3 (across steps); owed rows: Invariant 1; Invariant 3, 2026-11-11
-last gate: 2026-11-20 — Final Critique 17, a delta round, frozen at 88bcb94 — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 16, a delta round, frozen at 44b2d6a — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 18, frozen at 6c79ec3 — foundational count 1 after the blind second triage, cured, not clean, no sample; 2026-11-20 — Final Critique 17, a delta round, frozen at 88bcb94 — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 16, a delta round, frozen at 44b2d6a — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open: none
 ```
