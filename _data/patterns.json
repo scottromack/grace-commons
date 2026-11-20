@@ -1450,7 +1450,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1470,7 +1470,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-20",
   "title": "Provisional Commitment"
  },
  "punch-card": {

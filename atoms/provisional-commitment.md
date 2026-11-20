@@ -101,13 +101,14 @@ State 11: The atom MUST NOT offer a commitment removal surface.
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 7.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 16: The deployment MUST supply the registry's availability verdict and the availability read span at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
 Capability requirement 4: The registry MUST release the critical section at the later of the caller's return and the end of any hold write in flight for the resource.
 Capability requirement 18: The registry MUST bound a critical section's availability read span by the critical section bound the registry declares.
 Capability requirement 31: The deployment MUST supply the availability read span at the seam WITHIN the critical section bound.
+Capability requirement 32: The registry MUST declare the critical section bound PER Execution Contract Logic confinement 15 and Execution Contract Logic confinement 17.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
 Capability requirement 28: The registry MUST NOT release the critical section before the caller's return.
 Capability requirement 29: The registry MUST NOT return the resource to availability BEFORE the database has written the releasing action's terminal state.
@@ -433,8 +434,8 @@ Term string cap: the bound on a string input's length in Unicode code points; 25
 ## Composition notes
 
 ```
-Composition note 1: A composing Duplicate Prevention MUST map an idempotency token to the id an admitted place hold answered.
-Composition note 2: A composing Duplicate Prevention MUST answer a repeated token with the mapped id.
+Composition note 1: A composing pattern MUST map an idempotency token to the id an admitted place hold answered.
+Composition note 2: A composing pattern MUST answer a repeated token with the mapped id.
 Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
 Composition note 5: A composing Retention Window MUST place a commitment under retention ONLY IF the commitment's state IS IN the terminal states.
@@ -446,7 +447,7 @@ Composition note 10: A composing reversal pattern MUST NOT change the offset com
 Composition note 11: A composing Actor Identity MUST attest the actor behind EVERY call.
 ```
 
-NOTE: composing patterns — [Reserve from Pool](../compositions/reserve-from-pool.md).
+NOTE: composing patterns — [Reserve from Pool](../compositions/reserve-from-pool.md); [Idempotent Reservation](../compositions/idempotent-reservation.md), whose token results map holds the token-to-id mapping of Composition note 1 and Composition note 2, an extraction-pending fact (Execution Contract Composition state); a Duplicate Prevention it composes answers only whether a token was seen.
 
 ---
 
@@ -755,14 +756,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — provisional-commitment.tla + 4 twins (2026-06-04); provisional-commitment.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 2.2, 6.1, 7.1 through 7.3, 8.1 and 8.2, State 1 through 5 and Identity 5 checked on every commitment record an admitted [Place Hold], [Confirm], [Release] or [Expire] leaves, built from the version its call found; Invariant 7.1, 8.1 and 8.2 a cross-check with the TLA+ model; Invariant 8.1 and 8.2 resting on the deployment's clock never going backward (Execution Contract Logic confinement 7), Invariant 6.1 on Capability requirement 27 and Execution Contract Logic confinement 9, Identity 5 on fresh id material (Capability requirement 23); nothing testable in Alloy for Invariant 2.1, 3.1, 5.1 or 10.1: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 5.1, Invariant 10.1 and Identity 4 (across steps); owed rows: Invariant 5; Invariant 10; Identity 4; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-11-11
-last gate: 2026-11-20 — Final Critique 15, a delta round, frozen at a579d088 — foundational count 1 after the blind second triage, cured by the settle, not clean, no sample; 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
+last gate: 2026-11-20 — Final Critique 16, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a6 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 15, a delta round, frozen at a579d088 — foundational count 1 after the blind second triage, cured by the settle, not clean, no sample; 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
 open: none
 ```
