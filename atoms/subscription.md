@@ -26,7 +26,7 @@ Two queries do the real work: one asks whether a given subscriber is currently s
 
 The pattern deliberately does no delivering: it does not know when events happen, what they contain, or how to reach anyone — that is a separate delivery pattern's job, which keeps the subscription list a clean, auditable administrative record on its own.
 
-At most one active subscription can exist per subscriber-and-scope pair, which keeps a double subscription from listing one subscriber twice in a scope's audience, and cancellation is immediate and permanent while the full history (including cancelled subscriptions) stays in the subscription records, which an auditor reads directly.
+At most one active subscription can exist per subscriber-and-scope pair, which keeps a double subscription from listing one subscriber twice in a scope's audience, and a scope holds at most an audience cap's many active subscriptions, which bounds the list a fanout reads; cancellation is immediate and permanent while the full history (including cancelled subscriptions) stays in the subscription records, which an auditor reads directly.
 
 The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. This atom is an atomic concept: a freestanding pattern whose specification names no other pattern.
 
@@ -101,6 +101,7 @@ Capability requirement 5: The deployment MUST supply the subscription records PE
 Capability requirement 6: The id entropy MUST NOT EXCEED the subscription id's random material.
 Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 8: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
+Capability requirement 9: The deployment MAY declare the audience cap PER Execution Contract Input 2.
 ```
 
 ### Operations
@@ -108,7 +109,7 @@ Capability requirement 8: The deployment MUST declare which composing patterns t
 ```
 subscribe(subscriber_ref, event_scope)
   answers subscription_id
-  refuses invalid-request | already-subscribed | storage-failure
+  refuses invalid-request | already-subscribed | scope-full | storage-failure
 
 cancel(subscription_id)
   answers ok
@@ -128,6 +129,7 @@ Operation 3: [Subscribe] MUST answer subscription id.
 Operation 4: IF subscriber reference EQUALS blank THEN [Subscribe] MUST answer invalid-request.
 Operation 5: IF event scope EQUALS blank THEN [Subscribe] MUST answer invalid-request.
 Operation 6: IF an active subscription EXISTS for the pair THEN [Subscribe] MUST answer already-subscribed.
+Operation 33: IF the audience cap DOES NOT EXCEED the audience size of the event scope THEN [Subscribe] MUST answer scope-full.
 Operation 7: The atom MUST NOT interpret subscriber reference beyond the presence check, Operation 29 and Operation 30.
 Operation 8: The atom MUST NOT interpret event scope beyond the presence check, Operation 29 and Operation 30.
 Operation 9: IF no subscription EXISTS for the subscription id THEN [Cancel] MUST answer not-known.
@@ -155,8 +157,6 @@ NOTE: watch the cap's refusal (Operation 29).
 
 NOTE: watch the untyped input (Operation 30, Operation 31, Term subscriber reference, Term event scope, Term subscription id).
 
-NOTE: open 2026-11-03-b — [Subscribers For] answers every active subscription's subscriber reference for a scope with no cardinality cap (Operation 19).
-
 Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 256 code points where a deployment declares none.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
@@ -164,6 +164,10 @@ NOTE: watch the cap's measure (Term string cap, Term bounds).
 Term string input: a subscriber reference or an event scope a [Subscribe] call supplies — every caller-supplied string this atom records; a subscription id and the inputs of [Subscribed] and [Subscribers For] are compared with the records and bound by no cap, so one too long matches no subscription.
 
 Term pair: one subscriber reference with one event scope — what at-most-one ranges over.
+
+Term audience cap: the most active subscriptions one event scope holds, and so the most subscriber references [Subscribers For] answers; 10,000 where a deployment declares none.
+
+Term audience size: the number of active subscriptions an event scope holds.
 
 Term business caller: the party whose action the call carries; never the source of an injected value.
 
@@ -173,9 +177,10 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Subscribe] | refs present, no active subscription for the pair, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
+| [Subscribe] | refs present, no active subscription for the pair, the scope below the audience cap, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
 | [Subscribe] | blank or malformed subscriber reference or event scope, or a string input over the string cap | [Invalid Request] | none (Operation 4, Operation 5, Operation 29, Operation 30) |
 | [Subscribe] | the pair already has an active subscription | [Already Subscribed] | none (Operation 6) |
+| [Subscribe] | the scope already holds as many active subscriptions as the audience cap allows | [Scope Full] | none (Operation 33) |
 | [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped; the subscription id, subscriber reference, event scope and subscription instant stand (Operation 11, Operation 32, State 5, Invariant 1.1) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing, a malformed id included | [Not Known] | none (Operation 9, Operation 31) |
@@ -243,6 +248,8 @@ An administrator issues subscriptions for each compliance officer: `subscribe(of
 
 A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → already-subscribed. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription records; sub_97 is the new active record.
 
+On a deployment that declares an audience cap of 2, a scope `policy:updated` holding active subscriptions for officer_a and officer_b: `subscribe(officer_c, policy:updated)` is rejected as [Scope Full] (Operation 33); once `cancel(sub_p1)` stands officer_a's subscription in cancelled, the same call is accepted, and `subscribers_for(policy:updated)` answers two references, never more than the cap.
+
 ### Regulated adversarial scenarios
 
 Three scenarios the subscription records must survive in regulated contexts:
@@ -303,7 +310,7 @@ Non-goal 17: The atom MUST NOT record an event's firing history.
 Non-goal 18: A deployment needing a retention bound MUST compose Retention Window.
 ```
 
-NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12); the composing system (Non-goal 6, Non-goal 7, Composition note 5); a temporal-subscription pattern *(forthcoming)* (Non-goal 10); an Actor Registry *(forthcoming)* (Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14); [Permissions](./permissions.md) (Non-goal 15, Cancel capability 3); [Event Log](./event-log.md) (Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
+NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12); the deployment's own operating policy (Lost ledger 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); a temporal-subscription pattern *(forthcoming)* (Non-goal 10); an Actor Registry *(forthcoming)* (Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14); [Permissions](./permissions.md) (Non-goal 15, Cancel capability 3); [Event Log](./event-log.md) (Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
 
 Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two active subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1, Lost ledger 3, Lost ledger 4).
 
@@ -325,10 +332,8 @@ Cancel capability 3: A deployment needing richer authorization MUST compose Perm
 Lost ledger 1: The atom MUST NOT recover a subscription id.
 Lost ledger 2: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
 Lost ledger 3: A deployment losing a subscription id MUST read the subscription as permanently active.
-Lost ledger 4: A deployment needing recovery from a lost subscription id MUST compose an administrative-recovery pattern.
+Lost ledger 4: A deployment needing recovery from a lost subscription id MUST supply the recovery as the deployment's own operating policy, outside the atom, since no declared surface of the atom returns a subscription id to the recovery (Cancel capability 2, Lost ledger 1).
 ```
-
-NOTE: open 2026-11-03-a — Lost ledger 4 names an administrative-recovery pattern that no page, link or roadmap row carries, and no declared surface of this atom returns a subscription id to it (Cancel capability 2).
 
 ### The pair race
 
@@ -358,17 +363,17 @@ Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp
 
 Term value sets: status = active | cancelled.
 
-Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap.
+Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap; audience cap (the most active subscriptions one event scope holds, 10,000 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version, string cap, string input.
+Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version, string cap, string input, audience cap, audience size.
 
 #### Subscribe
 
-The behavior that records a named actor's interest — creating a new [Active] subscription for a ([Subscriber Reference], [Event Scope]) pair with a fresh [Subscription Id] and stamping [Subscription Instant]. Returns the [Subscription Id], or a rejection ([Invalid Request], [Already Subscribed], [Storage Failure]).
+The behavior that records a named actor's interest — creating a new [Active] subscription for a ([Subscriber Reference], [Event Scope]) pair with a fresh [Subscription Id] and stamping [Subscription Instant]. Returns the [Subscription Id], or a rejection ([Invalid Request], [Already Subscribed], [Scope Full], [Storage Failure]).
 
 Kind: Operation
 
@@ -386,7 +391,7 @@ Kind: Operation
 
 #### Subscribers For
 
-The read-only fanout query — returns the [Subscriber Reference] values of all [Active] subscriptions for an [Event Scope] (unordered; empty if none). The list a composing pattern needs when an event fires.
+The read-only fanout query — returns the [Subscriber Reference] values of all [Active] subscriptions for an [Event Scope] (unordered; empty if none; never more than the audience cap, Operation 33). The list a composing pattern needs when an event fires.
 
 Kind: Operation
 
@@ -472,6 +477,15 @@ Member of:  the Subscribe rejection
 Role:       Outcome
 Projection: already-subscribed
 
+#### Scope Full
+
+The rejection [Subscribe] returns when the event scope already holds as many [Active] subscriptions as the audience cap allows (Operation 33) — the bound that keeps the list [Subscribers For] answers within the cap; the caller cancels an active subscription of the scope, or the deployment declares a higher cap.
+
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: scope-full
+
 #### Storage Failure
 
 The rejection [Subscribe] or [Cancel] returns when the database write fails.
@@ -518,6 +532,7 @@ Projection: not-active
 [Cancelled]: #cancelled
 [Invalid Request]: #invalid-request
 [Already Subscribed]: #already-subscribed
+[Scope Full]: #scope-full
 [Storage Failure]: #storage-failure
 [Not Known]: #not-known
 [Not Active]: #not-active
@@ -543,12 +558,10 @@ Projection: not-active
 
 ```
 status: doing
-formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 30 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1)); nothing testable for Operation 23: the answer's order is no state a model can find wrong; owed rows: none, 2026-11-11
+formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 32 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1); 2026-11-20, with an audience cap of 2: Operation 33 (Op33_FullScopeRefused, broken by subscription-buggy-subscribe-ignores-audience-cap.tla), its order behind Operation 6 (Op6_ActivePairRefused, broken by subscription-buggy-subscribe-full-before-already.tla) and Term audience cap at the read (AudienceCap_ReadWithinCap)); nothing testable for Operation 23: the answer's order is no state a model can find wrong; owed rows: none, 2026-11-11
 last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
-open:
-- 2026-11-03-a · refining · Lost ledger 4 · the administrative-recovery pattern it tells a deployment to compose is named by no page, link or roadmap row, and Cancel capability 2 bars the enumeration it would need → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-03-b · refining · Operation 19; Check 3.2 · [Subscribers For] answers EVERY active subscription's subscriber reference with no cardinality cap, and pressure-testing's rule that a set-valued outcome field resolves to a cap was written for compositions' outcomes → a field an attacker or operator controls gets an explicit cap and a refusal (decided 2026-11-19, group 8 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 <details markdown="block">

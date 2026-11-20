@@ -1891,7 +1891,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 32
+   "twins": 34
   },
   "regulated_by": [
    "notification-fanout",

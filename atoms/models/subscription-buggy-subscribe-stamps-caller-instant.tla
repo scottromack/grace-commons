@@ -11,9 +11,12 @@ CONSTANTS
     MaxN,        \* how many subscription rows the database holds in the model
     MaxIds,      \* how many ids the seam supplies (one per [Subscribe] call)
     MaxTime,     \* the last clock reading the model reaches
-    Refs,        \* the strings a call may carry as subscriber reference or event scope
+    Refs,        \* the strings a call may carry as subscriber reference
+    Scopes,      \* the strings in Refs a call may carry as event scope
+    Callers,     \* the business callers a [Cancel] may carry (the atom never reads one)
     OverCap,     \* the strings in Refs longer than the string cap (Term string cap)
-    Malformed    \* the tokens in Refs standing for an input that is no string
+    Malformed,   \* the tokens in Refs standing for an input that is no string
+    AudienceCap  \* the audience cap (Term audience cap, Capability requirement 9)
 
 \* Slots: the database's rows, in the order they are written.
 Slots == 1..MaxN
@@ -33,8 +36,8 @@ Blank == -1
 NoId == 0
 
 \* Refusals: the answers by which a call refuses.
-Refusals == {"invalid-request", "already-subscribed", "not-known", "not-active",
-             "storage-failure"}
+Refusals == {"invalid-request", "already-subscribed", "scope-full", "not-known",
+             "not-active", "storage-failure"}
 
 \* Valid: a string input [Subscribe] admits: not blank (Operation 4, 5), not
 \* over the string cap (Operation 29) and not malformed (Operation 30).
@@ -87,6 +90,14 @@ ActivePair(r, e) == \E s \in Slots : held[s] /\ st[s] = "active" /\ sub[s] = r /
 \* the event scope exactly — the audience the active set gives.
 ActiveRefs(e) == {sub[s] : s \in {t \in Slots : held[t] /\ st[t] = "active" /\ scp[t] = e}}
 
+\* AudienceSize: the number of active subscriptions the event scope holds
+\* (Term audience size).
+AudienceSize(e) == Cardinality({s \in Slots : held[s] /\ st[s] = "active" /\ scp[s] = e})
+
+\* Full: the audience cap does not exceed the scope's audience size, the
+\* condition of Operation 33.
+Full(e) == AudienceCap <= AudienceSize(e)
+
 \* ActiveAt: the row was active at instant t, read from its stored instants as
 \* an auditor reads it, never from its status: subscription instant at or
 \* before t, and cancellation instant absent or after t (Term active at an
@@ -99,7 +110,7 @@ TypeOK ==
     /\ held \in [Slots -> BOOLEAN]
     /\ nid \in [Slots -> 0..MaxIds]
     /\ sub \in [Slots -> Refs]
-    /\ scp \in [Slots -> Refs]
+    /\ scp \in [Slots -> Scopes]
     /\ sAt \in [Slots -> {Blank} \cup 0..MaxTime]
     /\ st \in [Slots -> {"none", "active", "cancelled"}]
     /\ cAt \in [Slots -> {Blank} \cup 0..MaxTime]
@@ -141,9 +152,10 @@ Tick ==
     /\ UNCHANGED <<held, nid, sub, scp, sAt, st, cAt, rows, nextId>>
 
 \* SubscribeLands: [Subscribe] with a subscriber reference and an event scope
-\* it admits, no active subscription for the pair, the database accepting,
-\* records one subscription in the next row carrying the id the seam supplied,
-\* the reference and the scope as given, the subscription instant from now,
+\* it admits, no active subscription for the pair, the scope below the
+\* audience cap (Operation 33), the database accepting, records one
+\* subscription in the next row carrying the id the seam supplied, the
+\* reference and the scope as given, the subscription instant from now,
 \* standing in active (Operation 1, 2, 7, 8, State 4, Identity 2), and answers
 \* the id (Operation 3).
 SubscribeLands(r, e, t) ==
@@ -151,6 +163,7 @@ SubscribeLands(r, e, t) ==
     /\ rows < MaxN
     /\ Valid(r) /\ Valid(e)
     /\ ~ActivePair(r, e)
+    /\ ~Full(e)
     /\ held' = [held EXCEPT ![rows + 1] = TRUE]
     /\ nid' = [nid EXCEPT ![rows + 1] = nextId]
     /\ sub' = [sub EXCEPT ![rows + 1] = r]
@@ -179,7 +192,9 @@ SubscribeInvalid(r, e) ==
     /\ UNCHANGED <<held, nid, sub, scp, sAt, st, cAt, rows, now>>
 
 \* SubscribeAlready: [Subscribe] for a pair that already has an active
-\* subscription answers already-subscribed and writes nothing (Operation 6).
+\* subscription answers already-subscribed and writes nothing (Operation 6),
+\* whether or not its scope is full: already-subscribed stands ahead of
+\* scope-full on the refuses line (Execution Contract Refusal 1).
 SubscribeAlready(r, e) ==
     /\ nextId <= MaxIds
     /\ Valid(r) /\ Valid(e)
@@ -190,12 +205,28 @@ SubscribeAlready(r, e) ==
     /\ wrote' = {}
     /\ UNCHANGED <<held, nid, sub, scp, sAt, st, cAt, rows, now>>
 
+\* SubscribeFull: [Subscribe] for a pair with no active subscription, into a
+\* scope already holding the audience cap's many active subscriptions,
+\* answers scope-full and writes nothing (Operation 33); the id the seam
+\* supplied the call is spent.
+SubscribeFull(r, e) ==
+    /\ nextId <= MaxIds
+    /\ Valid(r) /\ Valid(e)
+    /\ ~ActivePair(r, e)
+    /\ Full(e)
+    /\ nextId' = nextId + 1
+    /\ last' = [NoCall EXCEPT !.op = "subscribe", !.id = nextId, !.sub = r, !.scp = e,
+                              !.ans = "scope-full", !.at = now]
+    /\ wrote' = {}
+    /\ UNCHANGED <<held, nid, sub, scp, sAt, st, cAt, rows, now>>
+
 \* SubscribeRefusedByDb: [Subscribe] whose guards pass and whose write the
 \* database refuses answers storage-failure (Operation 13) and records nothing.
 SubscribeRefusedByDb(r, e) ==
     /\ nextId <= MaxIds
     /\ Valid(r) /\ Valid(e)
     /\ ~ActivePair(r, e)
+    /\ ~Full(e)
     /\ nextId' = nextId + 1
     /\ last' = [NoCall EXCEPT !.op = "subscribe", !.id = nextId, !.sub = r, !.scp = e,
                               !.db = "refused", !.ans = "storage-failure", !.at = now]
@@ -269,16 +300,17 @@ SubscribersFor(e) ==
 \* refused as the page says.
 Next ==
     \/ Tick
-    \/ \E r, e \in Refs, t \in 0..MaxTime : SubscribeLands(r, e, t)   \* BUG
-    \/ \E r, e \in Refs : SubscribeInvalid(r, e)
-    \/ \E r, e \in Refs : SubscribeAlready(r, e)
-    \/ \E r, e \in Refs : SubscribeRefusedByDb(r, e)
-    \/ \E i \in QueryIds, c \in Refs : CancelUnknown(i, c)
-    \/ \E s \in Slots, c \in Refs : CancelNotActive(s, c)
-    \/ \E s \in Slots, c \in Refs : CancelRefusedByDb(s, c)
-    \/ \E s \in Slots, c \in Refs : CancelLands(s, c)
-    \/ \E r, e \in Refs : Subscribed(r, e)
-    \/ \E e \in Refs : SubscribersFor(e)
+    \/ \E r \in Refs, e \in Scopes, t \in 0..MaxTime : SubscribeLands(r, e, t)   \* BUG
+    \/ \E r \in Refs, e \in Scopes : SubscribeInvalid(r, e)
+    \/ \E r \in Refs, e \in Scopes : SubscribeAlready(r, e)
+    \/ \E r \in Refs, e \in Scopes : SubscribeFull(r, e)
+    \/ \E r \in Refs, e \in Scopes : SubscribeRefusedByDb(r, e)
+    \/ \E i \in QueryIds, c \in Callers : CancelUnknown(i, c)
+    \/ \E s \in Slots, c \in Callers : CancelNotActive(s, c)
+    \/ \E s \in Slots, c \in Callers : CancelRefusedByDb(s, c)
+    \/ \E s \in Slots, c \in Callers : CancelLands(s, c)
+    \/ \E r \in Refs, e \in Scopes : Subscribed(r, e)
+    \/ \E e \in Scopes : SubscribersFor(e)
 
 \* Spec: every behaviour from Init by Next steps.
 Spec == Init /\ [][Next]_vars
@@ -419,11 +451,28 @@ Op5_BlankScopeRefused ==
 
 \* Op6_ActivePairRefused: a [Subscribe] it admits as input, for a pair that
 \* had an active subscription when the call was made, answers
-\* already-subscribed (Operation 6).
+\* already-subscribed (Operation 6), a full scope included: already-subscribed
+\* stands ahead of scope-full on the refuses line (Execution Contract
+\* Refusal 1).
 Op6_ActivePairRefused ==
     [][(/\ last'.op = "subscribe" /\ Valid(last'.sub) /\ Valid(last'.scp)
         /\ ActivePair(last'.sub, last'.scp))
          => last'.ans = "already-subscribed"]_vars
+
+\* Op33_FullScopeRefused: a [Subscribe] it admits as input, for a pair with
+\* no active subscription, into a scope whose audience size the audience cap
+\* did not exceed when the call was made, answers scope-full (Operation 33;
+\* a pair already active is Operation 6's, ahead of it on the refuses line).
+Op33_FullScopeRefused ==
+    [][(/\ last'.op = "subscribe" /\ Valid(last'.sub) /\ Valid(last'.scp)
+        /\ ~ActivePair(last'.sub, last'.scp) /\ Full(last'.scp))
+         => last'.ans = "scope-full"]_vars
+
+\* AudienceCap_ReadWithinCap: a [Subscribers For] answered no more subscriber
+\* references than the audience cap (Term audience cap: the most subscriber
+\* references [Subscribers For] answers; Operation 19 with Operation 33).
+AudienceCap_ReadWithinCap ==
+    last.op = "subscribers_for" => Cardinality(last.refs) <= AudienceCap
 
 \* Op7_SubscriberKeptAsGiven: a [Subscribe] that answered ok recorded the
 \* subscriber reference exactly as the call carried it: the atom interprets
