@@ -93,8 +93,8 @@ Capability requirement 1: The deployment MUST supply now at the seam PER Executi
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Read 6 and Execution Contract Query 1 through 4.
 Capability requirement 3: The deployment MUST supply EVERY event id PER Execution Contract Logic confinement 16.
 Capability requirement 4: The deployment MAY declare the payload cap PER Execution Contract Input 2.
-Capability requirement 5: The deployment MUST supply the log name of EVERY log instance the deployment runs.
-Capability requirement 6: The deployment MUST begin a fresh log instance for EVERY log instance a composing pattern owns PER Identity 10.
+Capability requirement 5: The deployment MUST supply the log name of EVERY log instance the deployment runs PER Execution Contract Logic confinement 15.
+Capability requirement 6: The deployment MUST begin a fresh log instance at the first start for EVERY log instance a composing pattern owns PER Identity 10 and Execution Contract Logic confinement 17.
 ```
 
 ### Operations
@@ -234,7 +234,7 @@ Check 2.1: An auditor MUST find no two landed events sharing a sequence number (
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
-Check 3.2: IF no event landing between the commits two reads of one query answer at EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1, Invariant 5.2, Execution Contract Read 6).
+Check 3.2: IF no event landing EXISTS between the two commits at which two reads of one query answer THEN an auditor MUST find the two reads, each as of the commit the read answers at, answering alike (Invariant 5.1, Invariant 5.2, Execution Contract Read 6, Execution Contract Generation acceptance 1).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
 Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
@@ -481,14 +481,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12
-last gate: 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 16, a delta round, one reader (Linus claude-haiku-5-5), frozen at 61ab031f — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims (a purge between the two reads of Check 3.2, and the auditor's own reads against Execution Contract Generation acceptance 1) placed refining B by the first triage and refuted C by the blind second: the check reads each query as of a committed version, Database 5 removes every version of what a purge erases, so both reads lack the purged event and the check holds, and Check 3.2 now cites Generation acceptance 1; 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
 
 open: none
 ```
