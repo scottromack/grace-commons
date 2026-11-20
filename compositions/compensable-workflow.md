@@ -956,8 +956,8 @@ last gate: 2026-11-18 — Final Critique 9, a delta round, one reader (Linus lon
 open:
 - 2026-11-03-a · refining · Action wiring 16, Action wiring 32 · the parallel compensation order carries no semantics, so PER and the advance result's single step are unevaluable under it → say what a parallel compensating advance runs and names, or retire the order
 - 2026-11-03-b · refining · Composes 3 · nothing provisions the per-run Event Log instance or maps the compensable workflow id to it → name the owner
-- 2026-11-03-c · refining · Action wiring 1 · nothing says how the bound's elapsing is observed or what a failed take of the critical section answers → decide the answer
-- 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → decide whether the halted rest is bounded or answered by the horizon assertion alone
+- 2026-11-03-c · refining · Action wiring 1 · nothing says how the bound's elapsing is observed or what a failed take of the critical section answers → the bound's elapsing is observed at the next sweep's injected clock reading; a failed take of the critical section answers storage-failure (the Execution Contract's Step 3, the write) (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+- 2026-11-03-d · refining · Capability requirement 17 · the longest attempt gap includes a rest in the halted phase, which the deployment cannot keep → the halted rest is bounded by a deployment-declared halt bound (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 - 2026-11-03-e · refining · Composes 4 · a fire by another caller breaks Invariant 2.1 with no fault halt → bar a second caller or name its owner
 - 2026-11-18-a · refining · Term step completion bound · the bound is measured by the host's clock and the latest halt event carries Event Log's recording instant, with no named place the clock allowance is spent → name where Execution Contract Logic confinement 18's allowance applies, or say the two are never compared
 ```

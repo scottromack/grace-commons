@@ -537,8 +537,8 @@ formal: verified — erasure-tombstone.als + 16 twins (the static data model: St
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open:
-- 2026-11-02-a · refining · Composition note 3; Identity 3, Identity 4 · a person-derived authority reference or actor reference is barred nowhere, though a destroyed id derived from a person's data is (Composition note 3), and no rule says whether an actor reference naming a person's own account is the person's data → decide whether Composition note 3 reaches the authority reference and the actor reference
-- 2026-11-02-b · refining · State 1; Operation 5 through 9 · the atom declares no type for its string inputs beyond blank and cap, so a value of another type answers by Execution Contract Input 1 only through Operation 27 on the list's window → decide whether each [Record Destruction] input carries a declared type and a malformed refusal
+- 2026-11-02-a · refining · Composition note 3; Identity 3, Identity 4 · a person-derived authority reference or actor reference is barred nowhere, though a destroyed id derived from a person's data is (Composition note 3), and no rule says whether an actor reference naming a person's own account is the person's data → Composition note 3 reaches the authority reference and the actor reference (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+- 2026-11-02-b · refining · State 1; Operation 5 through 9 · the atom declares no type for its string inputs beyond blank and cap, so a value of another type answers by Execution Contract Input 1 only through Operation 27 on the list's window → each [Record Destruction] input carries a declared type and a malformed refusal (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
 
 <details markdown="block">

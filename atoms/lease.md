@@ -450,7 +450,7 @@ formal: verified — lease.tla + 5 twins + 1 probe (vote yes: one holder, the te
 last gate: 2026-10-04 — Final Critique 4, fresh reader, three passes, frozen at 46804b7 — 0 foundational, 44 refining reports, 13 rhetorical reports
 
 open:
-- 2026-10-04-a · refining · Sizing 1 through 9; Composition note 8 · the sizing is a holder-side discipline with its own latched reading, the atom says a lease does not know what the holder does, and a composer restates the rules as its own → an extraction candidate; decide once a second composer binds it
+- 2026-10-04-a · refining · Sizing 1 through 9; Composition note 8 · the sizing is a holder-side discipline with its own latched reading, the atom says a lease does not know what the holder does, and a composer restates the rules as its own → no extraction now ("generalize nothing"); the line closes with that decision and reopens only when a second composer binds the rules (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 - 2026-10-04-b · refining · Sizing 3a, 5a, Term share term; Capability requirement · the holder's own span clock is assigned to the deployment in a WHY alone, and no term spends the rate two clocks drift at → a capability requirement, or a drift term in the start floor
 - 2026-10-04-c · refining · Operation 1b, 5c · a waiter dropped at a host restart is answered nothing, and only a WHY says its caller reads no answer → say it in a rule
 - 2026-10-04-d · refining · Check 4.1, 4.2, 7.2; Generation acceptance · the waiter checks omit a release, Check 7.2 cites Sizing 6 for nothing it tests, and no check covers a host restart, arrival order, one reading per unit, the release rules or Capability requirement 8 through 11 → a check per rule

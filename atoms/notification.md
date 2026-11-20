@@ -656,9 +656,9 @@ last gate: 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 —
 
 open:
 - 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
-- 2026-10-21-f · refining · Operations (signature block) · the success arm ok and the answer arm notification_ids resolve to no declaration (GRACE-lang Closed vocabulary 4, 27), the corpus's form on sixteen and seven specifications → declare each, or settle in the grammar whether an arm owes a term entry
+- 2026-10-21-f · refining · Operations (signature block) · the success arm ok and the answer arm notification_ids resolve to no declaration (GRACE-lang Closed vocabulary 4, 27), the corpus's form on sixteen and seven specifications → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
 - 2026-10-21-g · refining · Deliver persistence 4 · a high-assurance deployment is declared nowhere, and the alert names no receiver → declare the class and the receiver, or say whose they are
-- 2026-11-05-a · refining · Bulk expiry 1, Bulk expiry 2 · the two rules bind every composing pattern as written, where Non-goal 4 and Payload retention 4 carry the conditioned form (IF a composing pattern expires in bulk THEN …) → condition both on a composing pattern that expires in bulk, once the corpus settles whether a bulk expiry is a composing pattern's obligation or a deployment's
+- 2026-11-05-a · refining · Bulk expiry 1, Bulk expiry 2 · the two rules bind every composing pattern as written, where Non-goal 4 and Payload retention 4 carry the conditioned form (IF a composing pattern expires in bulk THEN …) → a bulk expiry is a composing pattern's obligation, so both rules take the conditioned form Non-goal 4 already uses (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
 
 <details markdown="block">

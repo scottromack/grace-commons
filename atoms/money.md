@@ -670,7 +670,7 @@ formal: verified — money.als + 6 twins (the static data model, one call and it
 last gate: 2026-11-13 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8b6954c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; it raised External check 1's missing source for the declared cap as refining, cured, and the later holding of a money past the cap as refining Kind C, recorded in the NOTE beside Capability requirement 3); 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
 
 open:
-- 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → settle whether the atom bounds a currency by a string cap, and what the refusal is, the corpus's default being 1,024 code points
+- 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
 ```
 
 ## Decisions

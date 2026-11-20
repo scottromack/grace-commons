@@ -547,8 +547,8 @@ formal: verified — subscription.als + 2 twins (the static data model: Invarian
 last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
 open:
-- 2026-11-03-a · refining · Lost ledger 4 · the administrative-recovery pattern it tells a deployment to compose is named by no page, link or roadmap row, and Cancel capability 2 bars the enumeration it would need → decide whether the roadmap lists the pattern (and the owners NOTE marks it *(forthcoming)*), or Lost ledger 4 closes by a named non-goal
-- 2026-11-03-b · refining · Operation 19; Check 3.2 · [Subscribers For] answers EVERY active subscription's subscriber reference with no cardinality cap, and pressure-testing's rule that a set-valued outcome field resolves to a cap was written for compositions' outcomes → decide whether the atom declares a cap (and a continuation, which Operation 19 and Check 3.2 must then read) or states the cost and leaves the size to the composing pattern
+- 2026-11-03-a · refining · Lost ledger 4 · the administrative-recovery pattern it tells a deployment to compose is named by no page, link or roadmap row, and Cancel capability 2 bars the enumeration it would need → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
+- 2026-11-03-b · refining · Operation 19; Check 3.2 · [Subscribers For] answers EVERY active subscription's subscriber reference with no cardinality cap, and pressure-testing's rule that a set-valued outcome field resolves to a cap was written for compositions' outcomes → a field an attacker or operator controls gets an explicit cap and a refusal (decided 2026-11-19, group 8 of Scott's ruling of 2026-11-19T21:32Z)
 ```
 
 <details markdown="block">

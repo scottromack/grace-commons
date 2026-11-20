@@ -495,8 +495,8 @@ formal: verified — reaction.als + 8 twins (the static data model: State 1 and 
 last gate: 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
 
 open:
-- 2026-11-14-a · refining · Operation 23 through 28 · each writes "the reference is malformed", a predicate Term condition operator (a closed value set) does not list, and the form stands in 23 atoms; Execution Contract Input 1 and Query 5 own the predicate and each line cites it → decide whether the grammar admits the predicate or each atom writes the refusal over the type its input carries, then rewrite the lines
-- 2026-11-14-b · refining · the signature form; Operation 1 through 30 · the answer arm ok resolves to no declaration (Closed vocabulary 4), and 167 atoms write it → decide whether the grammar declares ok as a family answer or each atom declares it
+- 2026-11-14-a · refining · Operation 23 through 28 · each writes "the reference is malformed", a predicate Term condition operator (a closed value set) does not list, and the form stands in 23 atoms; Execution Contract Input 1 and Query 5 own the predicate and each line cites it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
+- 2026-11-14-b · refining · the signature form; Operation 1 through 30 · the answer arm ok resolves to no declaration (Closed vocabulary 4), and 167 atoms write it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
 ```
 
 ## Decisions

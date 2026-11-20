@@ -560,7 +560,7 @@ formal: verified — shared-cart.als + 26 twins (the static data model: Invarian
 last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 
 open:
-- 2026-11-04-a · refining · Composition note 3; Non-goal 9; Unshare Cart · the sweep of a departing actor's grants through [Unshare Cart] needs the caller to hold the cart's share scope and the grant id, and no action answers the grant ids [Open Cart] gives the opener, so a departing sharer holding the cart's last share scope, or a departing opener, leaves grants the sweep cannot name → decide who may revoke a departing actor's grants and how their grant ids surface (an answer on [Open Cart], or a grant listing)
+- 2026-11-04-a · refining · Composition note 3; Non-goal 9; Unshare Cart · the sweep of a departing actor's grants through [Unshare Cart] needs the caller to hold the cart's share scope and the grant id, and no action answers the grant ids [Open Cart] gives the opener, so a departing sharer holding the cart's last share scope, or a departing opener, leaves grants the sweep cannot name → [Open Cart] answers the opener's grant ids; a departing actor's grants are swept by Actor Suspension, which a Non-goal names. **Scott: yes (3:41 PM).** (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
 
 <details markdown="block">

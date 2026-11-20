@@ -1018,9 +1018,9 @@ open:
 - 2026-11-03-b · refining · Invariant 4.3, Check 5.3 · Actor Identity's invariants and checks re-asserted where the Execution Contract's Substrate composition invocation gives them by reference → delete both to that section
 - 2026-11-03-c · refining · Term audit horizon, Term access retention floor, Term bounds · audit_trail_retention_policy is not Audit Trail's declared knob, its retention policy, and Capability-Backed Sharing carries the same name → name the knob corpus-wide in one unit
 - 2026-11-03-d · refining · Composes 29, Composes 30 · the axes of Credential's read the enumeration uses are not named → name them
-- 2026-11-03-e · refining · Action wiring 72, Term open members · a member the constituents no longer know reads as open in a report, resolved only at revoke time by Action wiring 34 → decide whether a report names it unresolved
+- 2026-11-03-e · refining · Action wiring 72, Term open members · a member the constituents no longer know reads as open in a report, resolved only at revoke time by Action wiring 34 → a report names such a member unresolved (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 - 2026-11-03-f · refining · Action wiring · no closure table as the subsection's first block → write the table
-- 2026-11-03-g · refining · Capability requirement 48, Capability requirement 49, Primitive policy 22 · the plan carries live session tokens into the sealed record, and a deployment holding hashed tokens only cannot adopt the page → decide whether the plan carries a digest of the token beside the injected one, or a Session handle returns
+- 2026-11-03-g · refining · Capability requirement 48, Capability requirement 49, Primitive policy 22 · the plan carries live session tokens into the sealed record, and a deployment holding hashed tokens only cannot adopt the page → the plan carries a digest of the token, never the live token (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
 
 <details markdown="block">
