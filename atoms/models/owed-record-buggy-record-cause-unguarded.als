@@ -31,6 +31,13 @@ one sig Strings {
     overPatternCap : set Str
 }
 
+-- Deployment: the bound the deployment sets for the atom that this model reads: the window
+-- cap (Term window cap), the longest due-by window [Record Owed] accepts, 31,536,000 seconds
+-- unless the deployment overrides it (Capability requirement 7).
+one sig Deployment {
+    windowCap : one Int
+}
+
 -- Status: the owed record's status (Term status): open, flagged or discharged.
 abstract sig Status {}
 
@@ -97,10 +104,17 @@ fact ClockReadsTheModelsSpan {
 }
 
 -- The composing pattern owns the due-by window (Composition note 4) and passes any whole
--- number of seconds, zero or below included, from -7 to 7 here. The page puts no upper
--- bound on it (open 2026-11-02-b); this bound is the model's, so a deadline stays in range.
+-- number of seconds, zero or below included and past the window cap included, from -7 to 7
+-- here. This bound is the model's, so a deadline stays an instant the model can hold.
 fact WindowWithinTheModelsSpan {
     all c : RecordCall | c.windowIn >= -7 and c.windowIn <= 7
+}
+
+-- The deployment's window cap exceeds zero (Capability requirement 6: an override exceeds
+-- zero; the default, 31,536,000 seconds, does too), from 1 to 6 seconds here, so a window the
+-- composing pattern passes can exceed it (the span above reaches 7). The span is the model's.
+fact WindowCapFromTheDeployment {
+    Deployment.windowCap > 0 and Deployment.windowCap <= 6
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -146,7 +160,8 @@ pred keepsWhatWasOwed[pre, post : Rec] {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- recordWrites: the owed record an admitted [Record Owed] records, and the guards it
--- passes first: no id blank (Operation 7), a window above zero (Operation 8), the owing
+-- passes first: no id blank (Operation 7), a window above zero (Operation 8) and within the
+-- window cap (Operation 48), the owing
 -- pattern within the pattern name cap (Operation 9), the owed id and the cause id within
 -- the id cap (Operation 10), and no owed record committed before it for the owing pattern
 -- and the owed id (Operation 6, Invariant 2.2: the database refuses that write). The record
@@ -158,6 +173,7 @@ pred recordWrites[c : RecordCall, r : Rec] {
     usable[c.idIn, Strings.overIdCap]                                 -- Operation 7, 10
     c.causeIn not in Strings.overIdCap  -- BUG: a blank cause id accepted
     c.windowIn > 0                                                    -- Operation 8
+    c.windowIn <= Deployment.windowCap                                -- Operation 48
     no v : Rec | C/lt[v.writtenBy, c] and names[c, v]                 -- Operation 6, Invariant 2.2
     r.pattern    = c.patIn                                            -- Operation 1
     r.owedId     = c.idIn                                             -- Operation 1
@@ -347,6 +363,15 @@ assert A_Operation_8 {
 }
 check A_Operation_8 for 4 but 5 Int
 
+-- A_Operation_48: no record falls due further from the instant it was recorded than the
+-- deployment's window cap, since a window past the cap answers invalid-request and records
+-- nothing (Operation 48, Term window cap): Operation 8's companion, from above.
+assert A_Operation_48 {
+    all r : Rec | recorded[r] implies
+        (all d : r.dueBy, t : r.recordedAt | minus[d, t] <= Deployment.windowCap)
+}
+check A_Operation_48 for 4 but 5 Int
+
 -- A_Operation_9: no record carries an owing pattern longer than the pattern name cap
 -- (Operation 9).
 assert A_Operation_9 {
@@ -403,6 +428,13 @@ run ShowOpen {
 run ShowDischargedOnTime {
     some r : Rec | recorded[r] and r.status = Discharged and no r.flaggedAt
         and (all t : r.dischargedAt, d : r.dueBy | t < d)
+} for 4 but 5 Int
+
+-- ShowWindowAtTheCap: an obligation recorded with a due-by window of the window cap exactly,
+-- which the page admits: invalid-request answers only a window that exceeds the cap
+-- (Operation 48).
+run ShowWindowAtTheCap {
+    some r : Rec | recorded[r] and minus[r.dueBy, r.recordedAt] = Deployment.windowCap
 } for 4 but 5 Int
 
 -- ShowFlagged: an obligation flagged by a sweep once due and left for a person.

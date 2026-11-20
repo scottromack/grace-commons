@@ -86,6 +86,7 @@ Capability requirement 3: The deployment MAY override the id cap.
 Capability requirement 4: The deployment MAY override the pattern name cap.
 Capability requirement 5: The deployment MAY override the page size.
 Capability requirement 6: The deployment MAY override a bound ONLY IF the override EXCEEDS zero.
+Capability requirement 7: The deployment MAY override the window cap.
 ```
 
 Term id cap: 256 characters — the longest owed id, cause id, fulfilment id or actor reference the atom accepts, unless the deployment overrides it.
@@ -93,6 +94,8 @@ Term id cap: 256 characters — the longest owed id, cause id, fulfilment id or 
 Term pattern name cap: 128 characters — the longest owing pattern the atom accepts, unless the deployment overrides it.
 
 Term page size: 1,000 owed records — the most [List Owed] answers in one call, unless the deployment overrides it.
+
+Term window cap: 31,536,000 seconds — the longest due-by window the atom accepts, unless the deployment overrides it.
 
 Term zero: the count of nothing — the floor an overriding bound and a due-by window must exceed.
 
@@ -114,6 +117,10 @@ flag(owing_pattern, owed_id, actor_ref)
 list_owed(owing_pattern, listed_status, optional continuation_key)
   answers the matching owed records
   refuses invalid-request
+
+read_owed(owing_pattern, owed_id)
+  answers the owed record
+  refuses not-known | invalid-request
 ```
 
 ```
@@ -150,7 +157,7 @@ Operation 30: IF the database refuses the write THEN [Flag] MUST answer storage-
 Operation 31: [List Owed] MUST answer the matching owed records with the earliest listing keys, up to the page size.
 Operation 32: [List Owed] MUST order the answer by due-by instant, then by owed id.
 Operation 34: IF owing pattern EQUALS blank THEN [List Owed] MUST answer invalid-request.
-Operation 35: IF listed status IS NOT IN open, flagged THEN [List Owed] MUST answer invalid-request.
+Operation 35: IF listed status IS NOT IN open, flagged, discharged THEN [List Owed] MUST answer invalid-request.
 Operation 36: [List Owed] MUST NOT write.
 Operation 37: The atom MUST NOT offer a removal action.
 Operation 38: The atom MUST NOT offer a reopen action.
@@ -159,6 +166,11 @@ Operation 40: IF continuation key DOES NOT EQUAL blank AND the continuation key 
 Operation 41: IF a due-by window is malformed THEN [Record Owed] MUST answer invalid-request (Execution Contract Input 1).
 Operation 42: IF owing pattern EQUALS blank OR owed id EQUALS blank THEN [Discharge] MUST answer invalid-request.
 Operation 43: IF owing pattern EQUALS blank OR owed id EQUALS blank THEN [Flag] MUST answer invalid-request.
+Operation 44: IF owing pattern DOES NOT EQUAL blank AND owed id DOES NOT EQUAL blank AND an owed record EXISTS for the owing pattern and the owed id THEN [Read Owed] MUST answer the owed record.
+Operation 45: IF owing pattern EQUALS blank OR owed id EQUALS blank THEN [Read Owed] MUST answer invalid-request.
+Operation 46: IF owing pattern DOES NOT EQUAL blank AND owed id DOES NOT EQUAL blank AND no owed record EXISTS for the owing pattern and the owed id THEN [Read Owed] MUST answer not-known.
+Operation 47: [Read Owed] MUST NOT write.
+Operation 48: IF due-by window EXCEEDS the window cap THEN [Record Owed] MUST answer invalid-request.
 ```
 
 NOTE: watch the blank id (Operation 12, Operation 21).
@@ -169,13 +181,9 @@ NOTE: watch the untyped input (Operation 41, Term due-by window).
 
 NOTE: watch the listing page (Operation 31, Operation 39, Term matching owed record).
 
-NOTE: open 2026-11-02-a — the atom answers no read of a discharged owed record or of one record by its ids, so a discharged record is reached only by an auditor's read of the database (Check 3.1).
-
-NOTE: open 2026-11-02-b — a due-by window has no upper bound, so a window past the instant range [Record Owed] stamps has no rule.
-
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term due-by window: the whole number of seconds a [Record Owed] call allows for the obligation to be met — a [Due-By Window], malformed where it is not a whole number; consumed to compute the due-by deadline, never stored under this name.
+Term due-by window: the whole number of seconds a [Record Owed] call allows for the obligation to be met, above zero and within the window cap — a [Due-By Window], malformed where it is not a whole number; consumed to compute the due-by deadline, never stored under this name.
 
 Term due-by deadline: `(recording_instant + due_by_window)` — what [Record Owed] stores as due-by instant, computed once.
 
@@ -187,7 +195,7 @@ Term discharge instant: the instant the obligation was met — a [Discharge Inst
 
 Term flag instant: the instant the owed record was flagged for a person — a [Flag Instant].
 
-Term listed status: the status a [List Owed] call asks for, open or flagged — a [Listed Status].
+Term listed status: the status a [List Owed] call asks for, open, flagged or discharged — a [Listed Status].
 
 Term listing key: an owed record's due-by instant paired with its owed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10).
 
@@ -201,7 +209,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Record Owed] | every id present and within its cap, a window above zero, no owed record for the pair, database accepts | recorded | one owed record lands in [Open], recording instant and due-by instant stamped (Operation 1 through 5) |
 | [Record Owed] | an owed record already names the pair | [Duplicate] | none (Operation 6) |
-| [Record Owed] | a blank or over-long id, a blank or malformed window, or a window of zero or less | [Invalid Request] | none (Operation 7 through 10, Operation 41) |
+| [Record Owed] | a blank or over-long id, a blank or malformed window, a window of zero or less, or a window past the window cap | [Invalid Request] | none (Operation 7 through 10, Operation 41, Operation 48) |
 | [Discharge] | the record is [Open] or [Flagged], a fulfilment id present | discharged | the record moves to [Discharged], fulfilment id and discharge instant written; the owing pattern, owed id, cause id, recording instant and due-by instant stand (Operation 15 through 19, Invariant 1.1) |
 | [Discharge] | a pair that is not blank and names nothing | [Not Known] | none (Operation 12) |
 | [Discharge], [Flag] | a blank owing pattern or a blank owed id | [Invalid Request] | none (Operation 42, Operation 43) |
@@ -210,8 +218,11 @@ The case space, and the rule that owns each case:
 | [Flag] | the record is [Open] and its due-by instant still ahead | [Not Due] | none (Operation 24) |
 | [Flag] | the record is [Flagged] or [Discharged] | [Already Flagged] or [Already Discharged] | none (Operation 22, Operation 23) |
 | [Record Owed], [Discharge], [Flag] | database refuses the write | [Storage Failure] | none, and the caller's transaction rolls back with it (Operation 11, Operation 20, Operation 30) |
-| [List Owed] | a pattern, open or flagged, an optional continuation key | the matching owed records with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 31, Operation 32, Operation 39) |
-| [List Owed] | a blank pattern, a status other than open or flagged, or a malformed continuation key | [Invalid Request] | none (Operation 34, Operation 35, Operation 40) |
+| [List Owed] | a pattern, open, flagged or discharged, an optional continuation key | the matching owed records with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 31, Operation 32, Operation 39) |
+| [List Owed] | a blank pattern, a status other than open, flagged or discharged, or a malformed continuation key | [Invalid Request] | none (Operation 34, Operation 35, Operation 40) |
+| [Read Owed] | a pattern and an id naming an owed record, whatever its status | the owed record | none (Operation 44, Operation 47) |
+| [Read Owed] | a pair that is not blank and names nothing | [Not Known] | none (Operation 46) |
+| [Read Owed] | a blank owing pattern or a blank owed id | [Invalid Request] | none (Operation 45) |
 
 ### Invariants
 
@@ -269,7 +280,7 @@ A second `discharge(..., owed_id: "aud_51c0", fulfilment_id: "evt_9a13")` → al
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — was every act recorded?** The auditor reads every owed record of Audit Trail from the database, lists the open and flagged ones through [List Owed], and matches each discharged one to its fulfilment id (Check 3.1). Every flagged one is an act whose record was late, with the instant it was found and who found it; none can be missing, because the obligation was written with the act (Invariant 5.1, Composition note 1).
+- **Regulator audit — was every act recorded?** The auditor reads every owed record of Audit Trail from the database, lists the open, flagged and discharged ones through [List Owed], reads any one by its pair through [Read Owed], and matches each discharged one to its fulfilment id (Check 3.1). Every flagged one is an act whose record was late, with the instant it was found and who found it; none can be missing, because the obligation was written with the act (Invariant 5.1, Composition note 1).
 - **A sweep that runs early.** A misconfigured sweep tries to flag obligations the moment they are recorded. Each call answers not-due, and no record is escalated before its time (Invariant 4.1).
 - **Two writers settle one obligation.** A recovering process and an operator discharge the same owed record at once. One lands; the other answers already-discharged, so the record names one fulfilment (Invariant 3.1).
 
@@ -316,9 +327,7 @@ Non-goal 10: The atom MUST NOT attest an actor reference.
 Non-goal 11: A deployment needing an attested actor MUST compose Actor Identity.
 ```
 
-NOTE: the owners — the owing pattern (Non-goal 1, Non-goal 2); [Recoverable Invocation](../compositions/recoverable-invocation.md) (Non-goal 3, Non-goal 4); the deployment's operator (Non-goal 5); [Notification Fanout](../compositions/notification-fanout.md) (Non-goal 6, Non-goal 7); [Retention Window](./retention-window.md) (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11).
-
-NOTE: open 2026-11-03-a — Non-goal 1, Non-goal 2 and Non-goal 5 name their owners (the owing pattern, the deployment's operator) with no page to link, which the Non-goals form asks for.
+NOTE: the owners — a composing pattern, the owing pattern (Non-goal 1, Non-goal 2); [Recoverable Invocation](../compositions/recoverable-invocation.md) (Non-goal 3, Non-goal 4); the deployment (Non-goal 5); [Notification Fanout](../compositions/notification-fanout.md) (Non-goal 6, Non-goal 7); [Retention Window](./retention-window.md) (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11).
 
 ## Edge cases
 
@@ -369,9 +378,9 @@ Term records: owed record — the record that one write is owed, carrying owing 
 
 Term record verbs: identify, interpret, stand, carry, offer, remove, supply, override, exceed, record, stamp, answer, accept, read, write, order, change, share, refuse, leave, fall, find, make, confirm, run, decide, retain, attest, compose, compare, trim, normalize, case-fold, call, own.
 
-Term value sets: status = open | flagged | discharged. listed status = open | flagged. settlement field = fulfilment id | discharge instant | flag instant | actor reference.
+Term value sets: status = open | flagged | discharged. listed status = open | flagged | discharged. settlement field = fulfilment id | discharge instant | flag instant | actor reference.
 
-Term bounds: id cap (the longest id the atom accepts); pattern name cap (the longest owing pattern the atom accepts); page size (the most owed records [List Owed] answers in one call); zero (the floor an overriding bound and a due-by window must exceed).
+Term bounds: id cap (the longest id the atom accepts); pattern name cap (the longest owing pattern the atom accepts); page size (the most owed records [List Owed] answers in one call); window cap (the longest due-by window the atom accepts); zero (the floor an overriding bound and a due-by window must exceed).
 
 Term cadences: empty.
 
@@ -382,6 +391,12 @@ Term terms: owed record, owing pattern, owed id, cause id, fulfilment id, actor 
 #### Record Owed
 
 The behavior an owing pattern invokes, in the transaction that commits a cause, to record that a write is owed. It takes the [Owing Pattern], [Owed Id], [Cause Id] and [Due-By Window], stamps [Recording Instant] and [Due-By Instant], and enters the record in [Open].
+
+Kind: Operation
+
+#### Read Owed
+
+The behavior an auditor or a composing pattern invokes to read one owed record by its [Owing Pattern] and [Owed Id], whatever its [Status]. It only reads.
 
 Kind: Operation
 
@@ -399,7 +414,7 @@ Kind: Operation
 
 #### List Owed
 
-The behavior a sweep or an auditor invokes to list the owed records of one [Owing Pattern] in one [Listed Status], ordered by due-by instant then owed id, a page at a time, continuing past a [Continuation Key]. It only reads.
+The behavior a sweep or an auditor invokes to list the owed records of one [Owing Pattern] in one [Listed Status], [Discharged] among them, ordered by due-by instant then owed id, a page at a time, continuing past a [Continuation Key]. It only reads.
 
 Kind: Operation
 
@@ -485,7 +500,7 @@ Projection: status
 
 #### Due-By Window
 
-The whole number of seconds a [Record Owed] call allows, above zero; consumed to compute [Due-By Instant], never stored under this name.
+The whole number of seconds a [Record Owed] call allows, above zero and within the window cap; consumed to compute [Due-By Instant], never stored under this name.
 
 Kind:         Parameter
 Parameter of: Record Owed
@@ -493,7 +508,7 @@ Projection:   due_by_window
 
 #### Listed Status
 
-The status a [List Owed] call asks for: [Open] or [Flagged].
+The status a [List Owed] call asks for: [Open], [Flagged] or [Discharged].
 
 Kind:         Parameter
 Parameter of: List Owed
@@ -550,7 +565,7 @@ Projection: duplicate
 
 #### Not Known
 
-The refusal [Discharge] or [Flag] answers where no owed record names the owing pattern and owed id.
+The refusal [Discharge], [Flag] or [Read Owed] answers where no owed record names the owing pattern and owed id.
 
 Kind:       Member
 Member of:  the action rejection
@@ -586,7 +601,7 @@ Projection: not-due
 
 #### Invalid Request
 
-The refusal an action answers for a blank, malformed or over-long input, a [Due-By Window] of zero or less, or a [Listed Status] other than open or flagged. Nothing is written.
+The refusal an action answers for a blank, malformed or over-long input, a [Due-By Window] of zero or less or past the window cap, or a [Listed Status] other than open, flagged or discharged. Nothing is written.
 
 Kind:       Member
 Member of:  the action rejection
@@ -608,6 +623,7 @@ Projection: storage-failure
 [Discharge]: #discharge
 [Flag]: #flag
 [List Owed]: #list-owed
+[Read Owed]: #read-owed
 [Owing Pattern]: #owing-pattern
 [Owed Id]: #owed-id
 [Cause Id]: #cause-id
@@ -651,13 +667,10 @@ Inherited from:
 
 ```
 status: doing
-formal: verified — owed-record.als + 17 twins (the static data model: State 1 through 6, Identity 1, Invariant 2.1 and 4.1, Operation 4, 7, 8, 9, 10, 14, 25 and 27 checked on every version an ordered sequence of admitted calls leaves); owed-record.tla + 10 twins (across steps, while the clock moves: Invariant 1.1, 1.2, 2.2, 3.1, 3.2 and 5.1, State 8, Concurrency 2, Operation 24 and 36, with State 7, State 9 and Concurrency 1 checked through them); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 31, 32 and 39, Clock dependence 1, 2026-11-11
+formal: verified — owed-record.als + 18 twins (the static data model: State 1 through 6, Identity 1, Invariant 2.1 and 4.1, Operation 4, 7, 8, 9, 10, 14, 25, 27 and 48 checked on every version an ordered sequence of admitted calls leaves); owed-record.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 1.2, 2.2, 3.1, 3.2 and 5.1, State 8, Concurrency 2, Operation 24, 35, 36, 44 through 47, with State 7, State 9 and Concurrency 1 checked through them); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; 2026-11-11, re-derived 2026-11-20 after the cures of open lines 2026-11-02-a and 2026-11-02-b ([Read Owed], [List Owed] of discharged, the window cap: Operation 48 in Alloy, Operation 35 and 44 through 47 in TLA+, 5 twins added); owed rows: Operation 31, 32 and 39, Clock dependence 1, 2026-11-20
 last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
-open:
-- 2026-11-03-a · refining · Non-goal 1; Non-goal 2; Non-goal 5 · the owners of three non-goals are the owing pattern and the deployment's operator, neither a page, so the form's link to the owner has no target → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-02-a · refining · List Owed; Operation 35; Check 3.1 · the atom answers no read of a discharged owed record or of one owed record by its owing pattern and owed id, so a discharged record is reached only by an auditor's read of the database, and a single record only through the pagination of its status → the atom offers a read by id and lists discharged as a status a read can filter on (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-02-b · refining · Operation 8; Term due-by window · a due-by window has no upper bound, so a window past the instant range the due-by deadline can hold (or one that makes the obligation never fall due in practice) has no rule, and Execution Contract Input 2 asks a bounded input for a cap → a field an attacker or operator controls gets an explicit cap and a refusal (decided 2026-11-19, group 8 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 <details markdown="block">

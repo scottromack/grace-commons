@@ -23,6 +23,17 @@ CONSTANTS
 \* NONE: the value of a string field not yet written.
 NONE == "none"
 
+\* BLANK: a blank or whitespace-only owing pattern or owed id a [Read Owed] may
+\* name (String 5); no record carries one (Operation 7).
+BLANK == "blank"
+
+\* ListedStatuses: the statuses [List Owed] takes (Term listed status).
+ListedStatuses == {"open", "flagged", "discharged"}
+
+\* NotAListedStatus: a status a [List Owed] call may name that the page lists
+\* not (the atom has no such status).
+NotAListedStatus == "removed"
+
 \* Slots: the places an owed record can occupy, in the order they are recorded.
 Slots == 1..MaxRecs
 
@@ -32,8 +43,8 @@ Statuses == {"open", "flagged", "discharged"}
 
 \* NoCall: the record of the last call before any call is made, and the shape
 \* of every such record: the action, the pair and slot it named, and what it
-\* answered.
-NoCall == [op |-> "none", pat |-> NONE, oid |-> NONE, slot |-> 0, ans |-> "none"]
+\* answered, and the listed status a [List Owed] named.
+NoCall == [op |-> "none", pat |-> NONE, oid |-> NONE, slot |-> 0, ans |-> "none", ls |-> NONE]
 
 \* ---------------------------------------------------------------------------
 \* State
@@ -128,14 +139,14 @@ RecordAdmitted(p, o, c, w) ==
     /\ due' = [due EXCEPT ![n] = now + w]
     /\ status' = [status EXCEPT ![n] = "open"]
     /\ n' = n + 1
-    /\ last' = [op |-> "record", pat |-> p, oid |-> o, slot |-> n, ans |-> "recorded"]
+    /\ last' = [op |-> "record", pat |-> p, oid |-> o, slot |-> n, ans |-> "recorded", ls |-> NONE]
     /\ UNCHANGED <<now, ful, disAt, flagAt, actor, dcount>>
 
 \* RecordDuplicate: [Record Owed] for a pair an owed record already names
 \* answers duplicate and writes nothing (Operation 6).
 RecordDuplicate(p, o) ==
     /\ Exists(p, o)
-    /\ last' = [op |-> "record", pat |-> p, oid |-> o, slot |-> 0, ans |-> "duplicate"]
+    /\ last' = [op |-> "record", pat |-> p, oid |-> o, slot |-> 0, ans |-> "duplicate", ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
 
 \* Discharge: [Discharge] of an open or a flagged record (Operation 15) stands
@@ -149,7 +160,7 @@ Discharge(s, f) ==
     /\ ful' = [ful EXCEPT ![s] = f]
     /\ disAt' = [disAt EXCEPT ![s] = now]
     /\ dcount' = [dcount EXCEPT ![s] = dcount[s] + 1]
-    /\ last' = [op |-> "discharge", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "discharged"]
+    /\ last' = [op |-> "discharge", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "discharged", ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, flagAt, actor>>
 
 \* DischargeAlready: [Discharge] of a discharged record answers
@@ -158,7 +169,8 @@ DischargeAlready(s) ==
     /\ Recorded(s)
     /\ status[s] \in {"flagged", "discharged"}
     /\ last' = [op |-> "discharge", pat |-> pat[s], oid |-> oid[s], slot |-> s,
-                ans |-> IF status[s] = "flagged" THEN "already-flagged" ELSE "already-discharged"]
+                ans |-> IF status[s] = "flagged" THEN "already-flagged" ELSE "already-discharged",
+                ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
 
 \* Flag: [Flag] of an open record whose due-by instant has come (Operation 24)
@@ -172,7 +184,7 @@ Flag(s, a) ==
     /\ status' = [status EXCEPT ![s] = "flagged"]
     /\ flagAt' = [flagAt EXCEPT ![s] = now]
     /\ actor' = [actor EXCEPT ![s] = a]
-    /\ last' = [op |-> "flag", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "flagged"]
+    /\ last' = [op |-> "flag", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "flagged", ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, ful, disAt, dcount>>
 
 \* FlagNotDue: [Flag] of an open record whose due-by instant is still ahead
@@ -181,7 +193,7 @@ FlagNotDue(s) ==
     /\ Recorded(s)
     /\ status[s] = "open"
     /\ now < due[s]
-    /\ last' = [op |-> "flag", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "not-due"]
+    /\ last' = [op |-> "flag", pat |-> pat[s], oid |-> oid[s], slot |-> s, ans |-> "not-due", ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
 
 \* FlagAlready: [Flag] of a flagged or a discharged record answers
@@ -190,18 +202,38 @@ FlagAlready(s) ==
     /\ Recorded(s)
     /\ status[s] \in {"flagged", "discharged"}
     /\ last' = [op |-> "flag", pat |-> pat[s], oid |-> oid[s], slot |-> s,
-                ans |-> IF status[s] = "flagged" THEN "already-flagged" ELSE "already-discharged"]
+                ans |-> IF status[s] = "flagged" THEN "already-flagged" ELSE "already-discharged",
+                ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
 
-\* ListOwed: [List Owed] of one owing pattern in open or flagged answers the
-\* matching records and writes nothing (Operation 31, 36).
+\* ListOwed: [List Owed] of one owing pattern in open, flagged or discharged
+\* answers the matching records (Operation 31), in any other status answers
+\* invalid-request (Operation 35), and writes nothing (Operation 36).
 ListOwed(p, ls) ==
-    /\ ls \in {"open", "flagged"}
-    /\ last' = [op |-> "list", pat |-> p, oid |-> NONE, slot |-> 0, ans |-> ls]
+    /\ last' = [op |-> "list", pat |-> p, oid |-> NONE, slot |-> 0,
+                ans |-> IF ls \in ListedStatuses THEN "listed" ELSE "invalid-request",
+                ls |-> ls]
+    /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
+
+\* Slot: the slot of the owed record naming the owing pattern and the owed id
+\* (0 where none does).
+Slot(p, o) == IF Exists(p, o) THEN CHOOSE s \in Slots : Recorded(s) /\ pat[s] = p /\ oid[s] = o
+              ELSE 0
+
+\* ReadOwed: [Read Owed] of a blank owing pattern or owed id answers
+\* invalid-request (Operation 45); of a pair an owed record names answers that
+\* record, whatever its status (Operation 44); of a pair naming nothing answers
+\* not-known (Operation 46); and writes nothing (Operation 47).
+ReadOwed(p, o) ==
+    /\ last' = [op |-> "read", pat |-> p, oid |-> o,
+                slot |-> IF p = BLANK \/ o = BLANK THEN 0 ELSE Slot(p, o),
+                ans |-> IF p = BLANK \/ o = BLANK THEN "invalid-request"
+                        ELSE IF Exists(p, o) THEN "owed-record" ELSE "not-known",
+                ls |-> NONE]
     /\ UNCHANGED <<now, n, pat, oid, cause, recAt, due, status, ful, disAt, flagAt, actor, dcount>>
 
 \* Next: the clock moving, or any call: an admitted or a refused [Record Owed],
-\* [Discharge] or [Flag], or a [List Owed].
+\* [Discharge] or [Flag], a [List Owed] or a [Read Owed].
 Next ==
     \/ Tick
     \/ \E p \in Patterns, o \in Ids, c \in Causes, w \in Windows : RecordAdmitted(p, o, c, w)
@@ -211,7 +243,8 @@ Next ==
     \/ \E s \in Slots, a \in Actors : Flag(s, a)
     \/ \E s \in Slots : FlagNotDue(s)
     \/ \E s \in Slots : FlagAlready(s)
-    \/ \E p \in Patterns, ls \in {"open", "flagged"} : ListOwed(p, ls)
+    \/ \E p \in Patterns, ls \in ListedStatuses \cup {NotAListedStatus} : ListOwed(p, ls)
+    \/ \E p \in Patterns \cup {BLANK}, o \in Ids \cup {BLANK} : ReadOwed(p, o)
 
 \* Spec: every behaviour from Init by Next steps.
 Spec == Init /\ [][Next]_vars
@@ -287,5 +320,35 @@ Op24_NotDueOnlyBeforeDue ==
 \* (Operation 36).
 Op36_ListWritesNothing ==
     [][last'.op = "list" => UNCHANGED records]_vars
+
+\* Op35_ListedStatuses: a [List Owed] answers invalid-request exactly where
+\* its listed status is none of open, flagged and discharged, so a discharged
+\* record is listed through the atom (Operation 35, Term listed status).
+Op35_ListedStatuses ==
+    [][last'.op = "list" =>
+          ((last'.ans = "invalid-request") <=> (last'.ls \notin {"open", "flagged", "discharged"}))]_vars
+
+\* Op44_46_ReadAnswersTheNamedRecord: a [Read Owed] of a pair that is not
+\* blank answers the owed record that names the pair, whatever its status, and
+\* not-known only where no owed record names it (Operation 44, 46).
+Op44_46_ReadAnswersTheNamedRecord ==
+    [][(last'.op = "read" /\ last'.pat # BLANK /\ last'.oid # BLANK) =>
+          /\ last'.ans = IF Exists(last'.pat, last'.oid) THEN "owed-record" ELSE "not-known"
+          /\ (last'.ans = "owed-record" =>
+                 /\ last'.slot \in Slots
+                 /\ Recorded(last'.slot)
+                 /\ pat[last'.slot] = last'.pat
+                 /\ oid[last'.slot] = last'.oid)]_vars
+
+\* Op45_BlankReadRefused: a [Read Owed] naming a blank owing pattern or a
+\* blank owed id answers invalid-request (Operation 45).
+Op45_BlankReadRefused ==
+    [][(last'.op = "read" /\ (last'.pat = BLANK \/ last'.oid = BLANK))
+           => last'.ans = "invalid-request"]_vars
+
+\* Op47_ReadWritesNothing: a [Read Owed] step changes no owed record
+\* (Operation 47).
+Op47_ReadWritesNothing ==
+    [][last'.op = "read" => UNCHANGED records]_vars
 
 ====

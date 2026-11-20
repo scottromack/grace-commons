@@ -1,6 +1,7 @@
 -- owed-record.als
 -- Alloy structural model for the Owed Record atom (Grace Commons atoms/owed-record.md)
--- Grounded on Final Critique 2, 2026-11-03 at aeea14e — Alloy layer authored 2026-11-11.
+-- Grounded on Final Critique 2, 2026-11-03 at aeea14e — Alloy layer authored 2026-11-11;
+-- re-derived 2026-11-20 after the page's cures (the window cap, Operation 48).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -32,6 +33,8 @@
 --   Operation 7    — no record carries a blank owing pattern, owed id or cause id.
 --   Operation 8    — the due-by window is above zero, so every due-by instant falls after
 --                    its recording instant.
+--   Operation 48   — the due-by window is within the window cap, so no due-by instant falls
+--                    further from its recording instant than the cap.
 --   Operation 9    — no record carries an owing pattern over the pattern name cap.
 --   Operation 10   — no record carries an owed id or a cause id over the id cap.
 --   Operation 14   — no record carries a blank fulfilment id or one over the id cap.
@@ -64,14 +67,16 @@
 --     refused call writes nothing (Execution Contract Read 4), so the model needs only
 --     whether a call is admitted. What each answers is the TLA+ model's.
 --   - Storage failure (Operation 11, 20, 30): a write that did not commit leaves nothing.
---   - [List Owed] (Operation 31 to 40): a read writes nothing (Operation 36), so it adds no
---     record; its page, its order and its matching are not a property of one record.
+--   - [List Owed] (Operation 31 to 40) and [Read Owed] (Operation 44 to 47): a read writes
+--     nothing (Operation 36, 47), so it adds no record; what each answers is not a property
+--     of one record, and is the TLA+ model's.
 --   - A malformed due-by window or continuation key (Operation 40, 41): the model's numbers
 --     are whole (Execution Contract Input 1 holds an input to its type).
---   - A window past the instant range (open 2026-11-02-b): the page caps no window, so the
---     model keeps the clock readings and the windows small enough that their sum is an
---     instant the model can hold (the facts below). That is the model's bound, not a rule
---     of the page.
+--   - The window cap's own size (Term window cap, 31,536,000 seconds unless the deployment
+--     overrides it, Capability requirement 7): the model holds the cap, the clock readings
+--     and the windows to a small span (the facts below), so a due-by deadline is an instant
+--     the model can hold and a window past the cap is still passed. The span is the
+--     model's; the cap and the refusal of a window past it (Operation 48) are the page's.
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
@@ -100,6 +105,13 @@ one sig Strings {
     blank          : set Str,
     overIdCap      : set Str,
     overPatternCap : set Str
+}
+
+-- Deployment: the bound the deployment sets for the atom that this model reads: the window
+-- cap (Term window cap), the longest due-by window [Record Owed] accepts, 31,536,000 seconds
+-- unless the deployment overrides it (Capability requirement 7).
+one sig Deployment {
+    windowCap : one Int
 }
 
 -- Status: the owed record's status (Term status): open, flagged or discharged.
@@ -168,10 +180,17 @@ fact ClockReadsTheModelsSpan {
 }
 
 -- The composing pattern owns the due-by window (Composition note 4) and passes any whole
--- number of seconds, zero or below included, from -7 to 7 here. The page puts no upper
--- bound on it (open 2026-11-02-b); this bound is the model's, so a deadline stays in range.
+-- number of seconds, zero or below included and past the window cap included, from -7 to 7
+-- here. This bound is the model's, so a deadline stays an instant the model can hold.
 fact WindowWithinTheModelsSpan {
     all c : RecordCall | c.windowIn >= -7 and c.windowIn <= 7
+}
+
+-- The deployment's window cap exceeds zero (Capability requirement 6: an override exceeds
+-- zero; the default, 31,536,000 seconds, does too), from 1 to 6 seconds here, so a window the
+-- composing pattern passes can exceed it (the span above reaches 7). The span is the model's.
+fact WindowCapFromTheDeployment {
+    Deployment.windowCap > 0 and Deployment.windowCap <= 6
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -217,7 +236,8 @@ pred keepsWhatWasOwed[pre, post : Rec] {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- recordWrites: the owed record an admitted [Record Owed] records, and the guards it
--- passes first: no id blank (Operation 7), a window above zero (Operation 8), the owing
+-- passes first: no id blank (Operation 7), a window above zero (Operation 8) and within the
+-- window cap (Operation 48), the owing
 -- pattern within the pattern name cap (Operation 9), the owed id and the cause id within
 -- the id cap (Operation 10), and no owed record committed before it for the owing pattern
 -- and the owed id (Operation 6, Invariant 2.2: the database refuses that write). The record
@@ -229,6 +249,7 @@ pred recordWrites[c : RecordCall, r : Rec] {
     usable[c.idIn, Strings.overIdCap]                                 -- Operation 7, 10
     usable[c.causeIn, Strings.overIdCap]                              -- Operation 7, 10
     c.windowIn > 0                                                    -- Operation 8
+    c.windowIn <= Deployment.windowCap                                -- Operation 48
     no v : Rec | C/lt[v.writtenBy, c] and names[c, v]                 -- Operation 6, Invariant 2.2
     r.pattern    = c.patIn                                            -- Operation 1
     r.owedId     = c.idIn                                             -- Operation 1
@@ -418,6 +439,15 @@ assert A_Operation_8 {
 }
 check A_Operation_8 for 4 but 5 Int
 
+-- A_Operation_48: no record falls due further from the instant it was recorded than the
+-- deployment's window cap, since a window past the cap answers invalid-request and records
+-- nothing (Operation 48, Term window cap): Operation 8's companion, from above.
+assert A_Operation_48 {
+    all r : Rec | recorded[r] implies
+        (all d : r.dueBy, t : r.recordedAt | minus[d, t] <= Deployment.windowCap)
+}
+check A_Operation_48 for 4 but 5 Int
+
 -- A_Operation_9: no record carries an owing pattern longer than the pattern name cap
 -- (Operation 9).
 assert A_Operation_9 {
@@ -474,6 +504,13 @@ run ShowOpen {
 run ShowDischargedOnTime {
     some r : Rec | recorded[r] and r.status = Discharged and no r.flaggedAt
         and (all t : r.dischargedAt, d : r.dueBy | t < d)
+} for 4 but 5 Int
+
+-- ShowWindowAtTheCap: an obligation recorded with a due-by window of the window cap exactly,
+-- which the page admits: invalid-request answers only a window that exceeds the cap
+-- (Operation 48).
+run ShowWindowAtTheCap {
+    some r : Rec | recorded[r] and minus[r.dueBy, r.recordedAt] = Deployment.windowCap
 } for 4 but 5 Int
 
 -- ShowFlagged: an obligation flagged by a sweep once due and left for a person.
