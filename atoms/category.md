@@ -137,10 +137,10 @@ tree()
 ```
 
 ```
-Operation 1: IF the category name EQUALS blank OR the category name EXCEEDS the string cap THEN a naming action MUST answer invalid-category-name.
-Operation 2: IF a sibling of the named category carries the category name THEN a naming action MUST answer name-taken.
+Operation 1: IF the category name of the call EQUALS blank OR the category name of the call EXCEEDS the string cap THEN a naming action MUST answer invalid-category-name.
+Operation 2: IF a sibling of the named category carries the category name of the call THEN a naming action MUST answer name-taken.
 Operation 3: IF the category id EQUALS blank OR the category id is malformed OR no category carries the category id THEN a category action MUST answer unknown-category (Execution Contract Input 3).
-Operation 4: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a filing action MUST answer invalid-item-reference.
+Operation 4: IF the item reference of the call EQUALS blank OR the item reference of the call EXCEEDS the string cap THEN a filing action MUST answer invalid-item-reference.
 Operation 5: IF the position EQUALS blank OR the position DOES NOT EXCEED zero THEN [Reorder] MUST answer invalid-position.
 Operation 6: [Create] MUST record EXACTLY ONE top-level category carrying the category name of the call.
 Operation 7: [Create Under] MUST record EXACTLY ONE category carrying the category name of the call AND the category id of the call as parent category.
@@ -162,9 +162,9 @@ Operation 22: [Look Up] MUST answer an empty list for an item reference no home 
 Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in codepoint order.
 Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in codepoint order of category name.
 Operation 25: A reading action MUST NOT write.
-Operation 26: IF the category name is malformed THEN a naming action MUST answer invalid-category-name (Execution Contract Input 1).
-Operation 27: IF the item reference is malformed THEN a filing action MUST answer invalid-item-reference (Execution Contract Input 1).
-Operation 28: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
+Operation 26: IF the category name of the call is malformed THEN a naming action MUST answer invalid-category-name (Execution Contract Input 1).
+Operation 27: IF the item reference of the call is malformed THEN a filing action MUST answer invalid-item-reference (Execution Contract Input 1).
+Operation 28: IF the item reference of the call is malformed OR the item reference of the call EQUALS blank OR the item reference of the call EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
 Operation 29: IF no category carries the category id THEN [List Items] MUST answer an empty list.
 Operation 30: IF the position is malformed THEN [Reorder] MUST answer invalid-position (Execution Contract Input 1).
 Operation 31: IF the category's status EQUALS listed THEN [Show] MUST NOT write.
@@ -172,7 +172,7 @@ Operation 32: IF the category id EQUALS blank OR the category id is malformed TH
 Operation 33: IF the category carries the position of the call THEN [Reorder] MUST NOT write.
 Operation 34: IF the category carries the category name of the call THEN [Rename] MUST NOT write.
 Operation 35: IF the item reference's home carries the category id of the call THEN [Place] MUST NOT write.
-NOTE: Operation 11, 12, 16 and 17 take the changed-value condition, so each is disjoint from the no-write rule beside it, Operation 34, 33 and 35, as Operation 13 and 15, and Operation 14 and 31, are.
+NOTE: Operation 11, 12, 16 and 17 take the changed-value condition, so each is disjoint from the no-write rule of its action, Operation 34, 33 and 35, as Operation 13 and 15, and Operation 14 and 31, are.
 ```
 
 Term naming action: [Create] | [Create Under] | [Rename] — the actions that set a category name.
@@ -343,7 +343,7 @@ Term record verbs: identify, assign, normalize, compare, carry, stand, remove, s
 
 Term value sets: naming action, creating action, category action, filing action, changing action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — listed | hidden; action rejection — invalid-category-name | name-taken | unknown-category | invalid-position | invalid-item-reference | storage-failure.
 
-Term bounds: string cap (the one bound on an item reference's length and on a category name's length in Unicode code points, 1,024 where a deployment declares none, one value for both).
+Term bounds: string cap (declared once at Term string cap, cited here under GRACE-lang Closed vocabulary 15).
 
 Term cadences: empty.
 
@@ -495,7 +495,7 @@ Projection: hidden
 
 #### Invalid Category Name
 
-The refusal of a blank [Category Name], one over the string cap, or one that is not a string (Operation 1, Operation 26).
+The refusal of a blank [Category Name], one over the string cap, or one that is not a string, on [Create], [Create Under] or [Rename] (Operation 1, Operation 26).
 
 Kind:       Member
 Member of:  the action rejection
@@ -591,14 +591,14 @@ Category is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 53102bba — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational, 4 refining and 1 rhetorical: the foundational is the open line 2026-11-19-a re-found (Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35), placed refining Kind B by both triages, since a build that writes a new identical version breaks Operation 33 through 35 and an implementation that writes nothing obeys every rule, so two conforming builds do not differ; the line's premise that the grammar has no form for a value the record does not already carry was false (Moderation's Operation 15 and 16 say the move changes the standing and leaves it as it was, and Operation 33 through 35 use the predicate carries, not EQUALS, which Hard invariant 14 governs), so the line is closed: cured, Operation 11, 12, 16 and 17 take the condition that the call changes the category's name, position or the item's home, and the three case-table rows of the replacing rules say so; the four refining items refuted (the answer ok has its owner in Operation 20, Identity 6 and 7 and Capability requirement 4 bar normalizing a name, no rule clamps a position, Invariant 2.2 and Database 2 settle two concurrent places), the rhetorical declined; 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 4, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 0 foundational, 7 refining and 3 rhetorical, placed by both triages: R2 (no row for a call that changes nothing, row 211 is it), R3 (a rename to the own name, Term siblings), H1 and H2 (the declared value sets and the defined term) refuted; the two refining items cured, Operation 1, 2, 4, 26, 27 and 28 name the call's own input as 'of the call' (R1) and Term bounds cites Term string cap and no longer restates it (R5); the Invalid Category Name entry names its actions and the NOTE beneath Operation 35 says 'the no-write rule of its action' (R4, R6, declined as rhetorical by the blind second triage and cured for one form); Operation 28's overlapping arms (R7) and 'declares none' (H3, the siblings' one form) left as they stand; 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 53102bba — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational, 4 refining and 1 rhetorical: the foundational is the open line 2026-11-19-a re-found (Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35), placed refining Kind B by both triages, since a build that writes a new identical version breaks Operation 33 through 35 and an implementation that writes nothing obeys every rule, so two conforming builds do not differ; the line's premise that the grammar has no form for a value the record does not already carry was false (Moderation's Operation 15 and 16 say the move changes the standing and leaves it as it was, and Operation 33 through 35 use the predicate carries, not EQUALS, which Hard invariant 14 governs), so the line is closed: cured, Operation 11, 12, 16 and 17 take the condition that the call changes the category's name, position or the item's home, and the three case-table rows of the replacing rules say so; the four refining items refuted (the answer ok has its owner in Operation 20, Identity 6 and 7 and Capability requirement 4 bar normalizing a name, no rule clamps a position, Invariant 2.2 and Database 2 settle two concurrent places), the rhetorical declined; 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
 
 open: none
 ```
