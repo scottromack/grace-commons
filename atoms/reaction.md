@@ -55,7 +55,7 @@ Term person reference: the string naming the person a reaction belongs to, in th
 
 Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it; malformed where it is no string.
 
-Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture; malformed where it is no string.
+Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture; the atom reads no glyph or script in it; malformed where it is no string.
 
 Term reaction set: the reaction names a deployment offers; the single name like where a deployment declares none.
 
@@ -95,7 +95,7 @@ Capability requirement 6: The deployment MUST NOT normalize a reaction name at t
 Capability requirement 7: The deployment MAY declare the reaction set PER Execution Contract Logic confinement 17.
 Capability requirement 8: The deployment MAY declare the holding rule PER Execution Contract Logic confinement 17.
 Capability requirement 9: IF a member of the reaction set EQUALS blank OR a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the reaction set.
-Capability requirement 10: IF a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the string cap.
+Capability requirement 10: IF a member of the reaction set EXCEEDS the string cap THEN the deployment MUST NOT declare the string cap (Execution Contract Input 2).
 ```
 
 ### Operations
@@ -159,8 +159,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the reactions |
 |---|---|---|---|
-| [React] | all three valid, the name in the reaction set, no reaction for the triple, database accepts | ok | one reaction lands, held, its first reacted instant now (Operation 5 through 7, Invariant 1.1) |
-| [React] | all three valid, the name in the reaction set, the reaction stands withdrawn | ok | the reaction stands held; its first reacted instant, person reference, item reference and reaction name stand (Operation 8, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
+| [React] | all three valid, the name in the reaction set, no reaction for the triple, database accepts | ok | one reaction lands, held, its first reacted instant now; under one-per-item every rival stands withdrawn (Operation 5 through 7, Operation 10, Invariant 1.1) |
+| [React] | all three valid, the name in the reaction set, the reaction stands withdrawn | ok | the reaction stands held; its first reacted instant, person reference, item reference and reaction name stand; under one-per-item every rival stands withdrawn (Operation 8, Operation 10, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4) |
 | [React] | all three valid, the name in the reaction set, the reaction stands held | ok | the reaction is left as it is (Operation 9); under one-per-item any rival still held stands withdrawn (Operation 10) |
 | [React] | the holding rule is one-per-item and the person holds another reaction on the item | ok | every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1) |
 | [React] | the holding rule is one-of-each and the person holds another reaction on the item | ok | the rivals are left as they are (Operation 11) |
@@ -491,14 +491,14 @@ Reaction is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — reaction.als + 8 twins (the static data model: State 1 and 2, Identity 3, 5 and 7, Operation 4 through 7, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2, 4 and 6 by the Operation 5 check); reaction.tla + 30 twins (across steps, under either holding rule and a reaction set the deployment may change between calls: State 3, Invariant 2.1 through 2.4, Operation 1 through 5 and 8 through 30, the other half of Operation 17 and 20 read from the terms Look Up and Count); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-15
-last gate: 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus claude-haiku-5-5), frozen at 907afb19 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refuted (F1, the holding rule moved to one-per-item over two held reactions, which the page's Edge cases section owns, with Operation 10 and Execution Contract Database 4) and refining B (F2, the reaction name's "never a picture", which Operation 4 and Capability requirement 9 leave to the deployment) by both triages; 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
