@@ -14,7 +14,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 33
+   "twins": 36
   },
   "regulated_by": [
    "attributed-permissions-admin",

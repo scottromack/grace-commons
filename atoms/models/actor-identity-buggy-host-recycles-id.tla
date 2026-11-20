@@ -34,6 +34,13 @@ Outcomes == {"verified", "not-known", "proof-invalid", "actor-unknown-in-registr
 \* NoProof: the proof field of a slot holding no attestation.
 NoProof == [a |-> NONE, u |-> NONE, k |-> NONE]
 
+\* NotRevoked: the revocation status of a key no status names revoked.
+NotRevoked == -1
+
+\* NoInstant: the revocation status of a key a status names revoked with no
+\* effective instant supplied (Revocation status 5 broken by the mechanism).
+NoInstant == -2
+
 \* ---------------------------------------------------------------------------
 \* State
 \* ---------------------------------------------------------------------------
@@ -42,7 +49,7 @@ VARIABLES
     regAns,     \* the registry's answer for the actor
     cur,        \* the current material the registry holds for the actor
     kept,       \* the historical material the registry keeps for the actor
-    revoked,    \* the keys whose credential a revocation status names revoked
+    revAt,      \* key -> its revocation's effective instant, NotRevoked or NoInstant
     now,        \* the host's clock reading, injected at the seam
     n,          \* the next slot an attestation takes
     aid,        \* slot -> attestation id
@@ -53,7 +60,7 @@ VARIABLES
     st          \* slot -> the attestation's state ("none": no attestation)
 
 \* vars: every variable; a step that changes none of them is a stutter.
-vars == <<regAns, cur, kept, revoked, now, n, aid, act, actr, pf, at, st>>
+vars == <<regAns, cur, kept, revAt, now, n, aid, act, actr, pf, at, st>>
 
 \* records: every variable that holds an attestation's fields: what the
 \* database holds.
@@ -61,7 +68,7 @@ records == <<n, aid, act, actr, pf, at, st>>
 
 \* world: what lies outside the atom: the registry, the revocation statuses
 \* and the clock.
-world == <<regAns, cur, kept, revoked, now>>
+world == <<regAns, cur, kept, revAt, now>>
 
 \* Recorded: the slot holds an attestation.
 Recorded(s) == st[s] # NONE
@@ -86,16 +93,23 @@ View == <<regAns, cur, kept>>
 \* the answer is not material (Term public material).
 PublicMaterial == IF regAns = "material" THEN {cur} \cup kept ELSE {}
 
+\* RevokedAsOf: a revocation status names the credential under key k revoked as
+\* of instant t: its effective instant is no later than t (Term revocation
+\* status).
+RevokedAsOf(k, t) == revAt[k] >= 0 /\ revAt[k] <= t
+
 \* MechCheck: the proof check the mechanism computes at the seam for the
 \* attestation in slot s (Term proof check): failed where the proof verifies
 \* under no material the public material holds for the recorded action and
-\* actor, or a revocation status names its credential revoked; unavailable
-\* where the mechanism supplies no check (up = FALSE); held otherwise.
+\* actor, or a revocation status names its credential revoked as of
+\* attestation instant (Operation 42); unavailable where the mechanism
+\* supplies no check (up = FALSE) or a status names the credential revoked
+\* with no effective instant (Revocation status 5); held otherwise.
 MechCheck(s, up) ==
     IF \/ ~(pf[s].a = act[s] /\ pf[s].u = actr[s] /\ pf[s].k \in PublicMaterial)
-       \/ pf[s].k \in revoked
+       \/ RevokedAsOf(pf[s].k, at[s])
     THEN "failed"
-    ELSE IF ~up THEN "unavailable" ELSE "held"
+    ELSE IF ~up \/ revAt[pf[s].k] = NoInstant THEN "unavailable" ELSE "held"
 
 \* VerifyAnswers: what [Verify] answers for an id, each of the page's rules
 \* adding the answer its condition calls for: not-known where the id names no
@@ -120,8 +134,8 @@ VerifyAnswers(i, up) ==
 Fields(s) == <<aid[s], act[s], actr[s], pf[s], at[s]>>
 
 \* RevOf: the revocation status of the slot's credential: whether a status
-\* names it revoked.
-RevOf(s) == pf[s].k \in revoked
+\* names it revoked and, where it does, the effective instant or none.
+RevOf(s) == revAt[pf[s].k]
 
 \* TypeOK: each variable holds a value of its kind (the model's typing, not a
 \* rule of the page). The state may hold a value other than attested, so a
@@ -130,7 +144,7 @@ TypeOK ==
     /\ regAns \in RegAnswers
     /\ cur \in Keys
     /\ kept \subseteq Keys
-    /\ revoked \subseteq Keys
+    /\ revAt \in [Keys -> {NotRevoked, NoInstant} \cup 0..MaxTime]
     /\ now \in 0..MaxTime
     /\ n \in 1..(MaxAtt + 1)
     /\ aid \in [Slots -> Ids \cup {NONE}]
@@ -145,7 +159,7 @@ Init ==
     /\ regAns = "material"
     /\ cur = CHOOSE k \in Keys : TRUE
     /\ kept = {}
-    /\ revoked = {}
+    /\ revAt = [k \in Keys |-> NotRevoked]
     /\ now = 0
     /\ n = 1
     /\ aid = [s \in Slots |-> NONE]
@@ -163,7 +177,7 @@ Init ==
 Tick ==
     /\ now < MaxTime
     /\ now' = now + 1
-    /\ UNCHANGED <<regAns, cur, kept, revoked>>
+    /\ UNCHANGED <<regAns, cur, kept, revAt>>
     /\ UNCHANGED records
 
 \* RegistryAnswers: the registry's answer for the actor changes: an outage
@@ -171,7 +185,7 @@ Tick ==
 RegistryAnswers(a) ==
     /\ a # regAns
     /\ regAns' = a
-    /\ UNCHANGED <<cur, kept, revoked, now>>
+    /\ UNCHANGED <<cur, kept, revAt, now>>
     /\ UNCHANGED records
 
 \* Rotate: the registry rotates the actor's material to a new key, keeping the
@@ -180,14 +194,16 @@ Rotate(k, keep) ==
     /\ k # cur
     /\ cur' = k
     /\ kept' = IF keep THEN (kept \cup {cur}) \ {k} ELSE kept \ {k}
-    /\ UNCHANGED <<regAns, revoked, now>>
+    /\ UNCHANGED <<regAns, revAt, now>>
     /\ UNCHANGED records
 
 \* RevocationArrives: a revocation status comes to name the credential under
-\* key k revoked (Term revocation status).
-RevocationArrives(k) ==
-    /\ k \notin revoked
-    /\ revoked' = revoked \cup {k}
+\* key k revoked, with the effective instant e the credential mechanism
+\* supplies (any instant of the clock's), or NoInstant where it supplies none
+\* (Term revocation status, Revocation status 5).
+RevocationArrives(k, e) ==
+    /\ revAt[k] = NotRevoked
+    /\ revAt' = [revAt EXCEPT ![k] = e]
     /\ UNCHANGED <<regAns, cur, kept, now>>
     /\ UNCHANGED records
 
@@ -196,8 +212,8 @@ RevocationArrives(k) ==
 \* ---------------------------------------------------------------------------
 
 \* Attest: an admitted [Attest] (the registry answers material, the credential
-\* is under the current material and no revocation status names it revoked:
-\* Operation 9, 31, 33, 36, 40) records one attestation in the next slot,
+\* is under the current material and no revocation status names it revoked as
+\* of now, nor with no effective instant: Operation 9, 31, 33, 36, 40) records one attestation in the next slot,
 \* carrying the id the host allocated, one no attestation has carried
 \* (Identity 2, Capability requirement 6), the call's action and actor
 \* references (Operation 38, 39), the proof the mechanism computed over them
@@ -206,7 +222,8 @@ RevocationArrives(k) ==
 Attest(i, a, u) ==
     /\ n <= MaxAtt
     /\ regAns = "material"   \* BUG: no freshness on the host's id
-    /\ cur \notin revoked
+    /\ ~RevokedAsOf(cur, now)
+    /\ revAt[cur] # NoInstant
     /\ aid' = [aid EXCEPT ![n] = i]
     /\ act' = [act EXCEPT ![n] = a]
     /\ actr' = [actr EXCEPT ![n] = u]
@@ -240,7 +257,7 @@ Next ==
     \/ Tick
     \/ \E a \in RegAnswers : RegistryAnswers(a)
     \/ \E k \in Keys, keep \in BOOLEAN : Rotate(k, keep)
-    \/ \E k \in Keys : RevocationArrives(k)
+    \/ \E k \in Keys, e \in {NoInstant} \cup 0..MaxTime : RevocationArrives(k, e)
     \/ \E i \in Ids, a \in Actions, u \in Actors : Attest(i, a, u)
     \/ \E i \in Ids, up \in BOOLEAN : Verify(i, up)
     \/ Read
@@ -256,20 +273,31 @@ Spec == Init /\ [][Next]_vars
 \* Names: the slot holds an attestation carrying the id.
 Names(i, s) == Recorded(s) /\ aid[s] = i
 
-\* ProofCheck: the proof check as Term proof check defines it, spelled for the
-\* checks: failed where the recorded proof verifies under no material the
-\* public material holds for the recorded action and actor reference, the
-\* current and the historical alike, or a revocation status names the
-\* credential revoked; else unavailable where the mechanism supplies none;
-\* else held.
-ProofCheck(s, up) ==
+\* ProofVerifies: the recorded proof verifies under a material the public
+\* material holds for the recorded action and actor reference, the current
+\* and the historical alike, the revocation status aside.
+ProofVerifies(s) ==
     LET pm == IF regAns = "material" THEN {cur} \cup kept ELSE {} IN
-    IF \/ pf[s].a # act[s]
-       \/ pf[s].u # actr[s]
-       \/ pf[s].k \notin pm
-       \/ pf[s].k \in revoked
+    /\ pf[s].a = act[s]
+    /\ pf[s].u = actr[s]
+    /\ pf[s].k \in pm
+
+\* RevokedAtInstant: a revocation status names the slot's credential revoked
+\* as of its attestation instant: an effective instant is supplied and is no
+\* later than attestation instant (Term revocation status, Operation 42).
+RevokedAtInstant(s) ==
+    /\ revAt[pf[s].k] \notin {NotRevoked, NoInstant}
+    /\ ~(revAt[pf[s].k] > at[s])
+
+\* ProofCheck: the proof check as Term proof check defines it, spelled for the
+\* checks: failed where the recorded proof does not verify, or a revocation
+\* status names the credential revoked as of attestation instant; else
+\* unavailable where the mechanism supplies none, or a status names the
+\* credential revoked with no effective instant; else held.
+ProofCheck(s, up) ==
+    IF ~ProofVerifies(s) \/ RevokedAtInstant(s)
     THEN "failed"
-    ELSE IF up THEN "held" ELSE "unavailable"
+    ELSE IF up /\ revAt[pf[s].k] # NoInstant THEN "held" ELSE "unavailable"
 
 \* AttestShaped: the step records one new attestation in the next slot and
 \* touches no other slot: the only write an [Attest] makes (Operation 1, 2).
@@ -315,6 +343,20 @@ Inv7_1_ConsistentUnderOneView ==
            /\ "mechanism-unavailable" \notin VerifyAnswers(aid[s], u1)
            /\ "mechanism-unavailable" \notin VerifyAnswers(aid[s], u2)')
           => VerifyAnswers(aid[s], u2)' = VerifyAnswers(aid[s], u1)]_vars
+
+\* Inv8_2_NoLaterReinterpretation: across any step on which a revocation
+\* status comes to name an attestation's credential revoked with an effective
+\* instant after that attestation's instant (a later compromise), its fields
+\* and the registry view kept, a [Verify] of it (the mechanism up or down)
+\* answers the same before and after: the atom does not reinterpret it
+\* (Invariant 8.2, Non-goal 9).
+Inv8_2_NoLaterReinterpretation ==
+    [][\A s \in Slots, up \in BOOLEAN :
+          (/\ Recorded(s) /\ Fields(s)' = Fields(s) /\ View' = View
+           /\ revAt[pf[s].k] = NotRevoked
+           /\ revAt'[pf[s].k] \notin {NotRevoked, NoInstant}
+           /\ revAt'[pf[s].k] > at[s])
+          => VerifyAnswers(aid[s], up)' = VerifyAnswers(aid[s], up)]_vars
 
 \* Inv9_1_NoDeletion: no step takes an attestation away: every id the records
 \* carry, they carry after (Invariant 9.1, State 6).
@@ -390,18 +432,30 @@ Op19_Verified ==
 
 \* Op41_MechanismUnavailable: a [Verify] of an attestation with material in
 \* hand and the proof check unavailable answers mechanism-unavailable
-\* (Operation 41, Check 4.2).
+\* (Operation 41, Check 4.2; no cached verification result exists here).
 Op41_MechanismUnavailable ==
     \A i \in Ids, up \in BOOLEAN :
         (\E s \in Slots : Names(i, s) /\ regAns = "material" /\ ProofCheck(s, up) = "unavailable")
             => VerifyAnswers(i, up) = {"mechanism-unavailable"}
 
 \* Op32_VerifiedOnlyIfHeld: a [Verify] answers verified only where the proof
-\* check held (Operation 32).
+\* check held (Operation 32; no cached verification result exists here, so its
+\* condition holds).
 Op32_VerifiedOnlyIfHeld ==
     \A i \in Ids, up \in BOOLEAN :
         "verified" \in VerifyAnswers(i, up)
             => \E s \in Slots : Names(i, s) /\ ProofCheck(s, up) = "held"
+
+\* Op42_RevocationAsOfAttestationInstant: a [Verify] of an attestation whose
+\* proof verifies, with material in hand and the mechanism up or down, answers
+\* proof-invalid exactly where a revocation status names its credential
+\* revoked as of attestation instant: one effective no later than it, never
+\* one effective after it (Operation 42, Term proof check).
+Op42_RevocationAsOfAttestationInstant ==
+    \A i \in Ids, up \in BOOLEAN :
+        \A s \in Slots :
+            (Names(i, s) /\ regAns = "material" /\ ProofVerifies(s))
+                => (("proof-invalid" \in VerifyAnswers(i, up)) <=> RevokedAtInstant(s))
 
 \* Op27_ReadAnswersEvery: a [Read] answers every attestation the records hold
 \* (Operation 27).

@@ -1,15 +1,15 @@
 {
  "alloy_commands": 25724,
  "atoms": 48,
- "commits": 2073,
+ "commits": 2075,
  "compositions": 26,
  "grounded": 28,
  "grounded_atoms": 27,
  "grounded_compositions": 1,
  "models": 151,
  "patterns": 74,
- "states_millions": "30.7",
- "states_models": 27334494,
- "states_twins": 3400230,
- "twins": 1957
+ "states_millions": "30.8",
+ "states_models": 27351198,
+ "states_twins": 3401760,
+ "twins": 1960
 }
