@@ -88,6 +88,7 @@ Deleted: Operation 17. Execution Contract Refusal 1 owns it.
 Deleted: Operation 21. Execution Contract Logic confinement 12 owns it.
 Deleted: Operation 33. Execution Contract Database 3 owns it.
 Deleted: Operation 38. Execution Contract Logic confinement 12 owns it.
+Deleted: Operation 46. Term evaluation instant owns it: the evaluation instant is the resolved at time in [Check].
 Deleted: Operation 53. Execution Contract Query 4 and Operation 47 own it.
 Deleted: Operation 54. Instance 2, Operation 47 and Execution Contract Query 3 own it.
 Deleted: Operation 60. Execution Contract Query 3 owns it.

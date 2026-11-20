@@ -186,7 +186,6 @@ Operation 42: IF the candidate record is elapsed AND the candidate record is not
 Operation 43: [Check] MUST answer expired ONLY IF the candidate record is not withdrawn.
 Operation 44: IF a candidate record EXISTS AND the candidate record is not withdrawn AND the candidate record is not elapsed THEN [Check] MUST answer granted.
 Operation 45: [Check] MUST evaluate the candidate record alone.
-Operation 46: IF at time DOES NOT EQUAL blank THEN [Check] MUST NOT evaluate a consent record against now.
 Operation 47: [Read] MUST answer EVERY consent record the query matches.
 Operation 48: [Read] MUST order the answer by grant instant ascending.
 Operation 49: [Read] MUST NOT write.
@@ -211,7 +210,7 @@ NOTE: watch condition negation — invalid-request occupies two rows of [Revoke]
 
 NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or whose answer is lost (Execution Contract Error model 1), and whose retry finds the consent record elapsed answers already-expired (Operation 19) and is recorded on no consent record: [Check] still answers granted for an at time between the attempt and the expiry instant. A first [Revoke] that finds the consent record elapsed answers already-expired as well, whatever revocation instant the call carries, so a withdrawal made after the expiry instant and backdated before it is recorded on no consent record either: [Check] answers granted for an at time between that revocation instant and the expiry instant. What the caller does with either withdrawal is the composing pattern's, as is the suppression of a processing act (Composition note 3).
 
-Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
+Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it; Operation 8, Operation 9 and Operation 24 compare an instant the caller states with now as the call carries it, and Operation 25 compares one with a grant instant the atom stamped from now, so the atom spends no clock allowance (Execution Contract Logic confinement 18).
 
 Term business caller: the party whose action the call carries, as Execution Contract Logic confinement 14 declares it; never the source of an injected value.
 
@@ -799,14 +798,14 @@ Projection: invalid-query
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — consent.als + 21 twins (the static data model: State 3, 4, 5, 6, 9 and 16, Expiry 5, Stored state 3, Invariant 2.1, 2.2, 4.1 through 4.3, 5.1, 6.2, 7.1, 7.2, 10.1 and 10.2, Instance 2, Operation 2 and 26 checked on every record admitted calls leave, at every instant it can be read against; Expiry 1 through 4 caught by the Invariant 2.1 check and Identity 3, 4 and 6 by the Instance 2 check); consent.tla + 9 twins (across steps, as the clock moves: Invariant 1.1, 1.2, 3.1, 3.2, 8.1, 9.1 and 10.3, Operation 1, 18, 36 and 49); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 5; Operation 47, 48, 50 through 59, 64, 65 and 76 ([Read]'s query); Operation 66 through 75 and 77 (malformed and over-cap inputs), 2026-11-11
-last gate: 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 22, a delta round, frozen at 15e8c30 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (claude-haiku-5-5) claimed one foundational, that Operation 24 and 25 and the [Grant] expiry row compare a caller-stated instant with now and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks Operation 8, 9, 24 and 25 as written and the corpus words a caller-stated instant compared with now as spending none (Selective Disclosure's Term now), a wording the settle added to Term now; of four refining, one cured (Operation 46 restated Term evaluation instant, deleted) and three refuted (Operation 39 and Term candidate record own the malformed at time's answer with Operation 40, Check 1.1's Invariant 8.1 stands on the page); four rhetorical NOTE wordings left; 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 
 open: none
 ```
