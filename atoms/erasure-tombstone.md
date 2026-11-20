@@ -148,7 +148,7 @@ NOTE: watch the untyped input (Operation 27, Operation 28, Term window start, Te
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term destruction instant: the clock reading the erasure tombstone was stamped from, the instant the destroying pattern states for the destruction (Non-goal 1) — a [Destruction Instant].
+Term destruction instant: the injected now of the [Record Destruction] call that recorded the erasure tombstone (Operation 2, Clock dependence 2) — a [Destruction Instant].
 
 Term recognized kinds: retention-purge, erasure-request, and EVERY deployment kind the deployment declared.
 
@@ -162,9 +162,9 @@ Term window end: the instant the [List Destroyed] window closes — a [Window En
 
 Term listing key: an erasure tombstone's destruction instant paired with its destroyed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10) — the order [List Destroyed] answers in.
 
-Term continuation key: the listing key of the last erasure tombstone a previous [List Destroyed] call answered — a [Continuation Key], malformed where it is not an instant paired with a destroyed id, the pair carried as one structured input and not as a delimited string; what a caller passes to read the next page.
+Term continuation key: the listing key of the last erasure tombstone a previous [List Destroyed] call answered — a [Continuation Key], malformed where it is not an instant paired with a destroyed id that is not blank and does not EXCEED the reference cap, the pair carried as one structured input and not as a delimited string; what a caller passes to read the next page.
 
-Term matching erasure tombstone: an erasure tombstone of the destroyed pattern whose destruction instant falls in the window, only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. Where none match the answer is empty.
+Term matching erasure tombstone: an erasure tombstone of the destroyed pattern whose destruction instant falls in the window, only where the listing key EXCEEDS the continuation key in Term listing key's order where continuation key DOES NOT EQUAL blank. Where none match the answer is empty.
 
 Term none: the answer [Read Tombstone] gives where no erasure tombstone names the destroyed pattern and the destroyed id — never destroyed through this atom, which is not the same as never existing.
 
@@ -409,7 +409,7 @@ Projection: destroyed_pattern
 
 #### Destruction Instant
 
-The instant [Record Destruction] was called, stamped from the injected [Now]: the instant the destroying pattern states for the destruction, which the atom does not confirm against the removal (Non-goal 1). Never changed.
+The instant [Record Destruction] was called, stamped from the injected [Now]; the atom does not confirm that the destroyed record left its database at that instant (Non-goal 1). Never changed.
 
 Kind:       Field
 Field of:   Erasure Tombstone
@@ -556,7 +556,7 @@ Inherited from:
 ```
 status: doing
 formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
-last gate: 2026-11-20 — Final Critique 3, a full round, frozen at 9db4fbc — foundational count 3, all cured, not clean, no sample; 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 4, a delta round, frozen at 03f5c83 — foundational count 1 after the blind second triage (the first triage placed it refining), cured in the round, not clean, one sample (Linus's one report claimed two foundational, both refuted by both triages: Term destruction instant's appositive against Operation 2 and Clock dependence 2, since a build taking the destroying pattern's instant breaks them, its wording and the Destruction Instant entry's cured with it; a removal with no tombstone after a lost answer, since Composition note 1 and Database 1 commit the removal and the tombstone together; the blind second triage placed one refining report foundational, Kind A, the continuation key's blank or over-cap destroyed id, cured by Term continuation key naming it malformed; refining: the listing key's comparison cured in Term matching erasure tombstone, the page size floor and the pair's serialization refuted by Capability requirement 9 and by Database 2 with Concurrency 1, and the missing more-pages signal left, since the answer's shape and Operation 15 fix it; rhetorical NOTE wordings left); 2026-11-20 — Final Critique 3, a full round, frozen at 9db4fbc — foundational count 3, all cured, not clean, no sample; 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open: none
 ```
