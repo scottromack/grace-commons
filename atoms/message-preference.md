@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format. It is strictly about the envelope: whether the principal wants the information at all is a subscription question, whether the system may contact them at all is a legal-permission question, and both live elsewhere, so this atom answers only *given that we are going to deliver, how should the delivery look?* At most one record per principal is in force at a time: updating means a new record, with the prior one retired in the same operation; suspending pauses delivery without touching the stored values, so resuming is a fresh set that replays them; and deleting retires the record outright. Nothing is ever removed through this atom's own surface, so the record of how a principal's preferences changed stays in the database, and a separate retention pattern may still dispose of it on its own declared schedule. Each record also carries the list of channels the deployment allowed when the record was created, which keeps a historical record verifiable after the deployment's channel list moves on. The atom stores preference values without interpreting them: what a frequency cap or a quiet-hours window means is the delivery system's call.
+Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format. It is strictly about the envelope: whether the principal wants the information at all is a subscription question, whether the system may contact them at all is a legal-permission question, and both live elsewhere, so this atom answers only *given that we are going to deliver, how should the delivery look?* At most one record per principal is in force at a time: updating means a new record, with the prior one retired in the same operation; suspending pauses delivery without touching the stored values, so resuming is a fresh set that replays them; and deleting retires the record outright. Nothing is ever removed through this atom's own surface, so the record of how a principal's preferences changed stays in the database, and [History For] answers it, every record the principal's preferences have held in the order they were set, and a separate retention pattern may still dispose of it on its own declared schedule. Each record also carries the list of channels the deployment allowed when the record was created, which keeps a historical record verifiable after the deployment's channel list moves on. The atom stores preference values without interpreting them: what a frequency cap or a quiet-hours window means is the delivery system's call.
 
 ---
 
@@ -113,7 +113,7 @@ Term deletion instant: the instant the preference record was retired — a [Dele
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
-Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 5, Execution Contract Read 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 7: The deployment MUST disclose the fanout-on-no-record policy.
 Capability requirement 8: The deployment MUST supply the declared channel set at the seam.
 Capability requirement 9: The deployment MUST supply at the seam a preference id no preference record in the database instance has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
@@ -143,6 +143,9 @@ current_for(principal_ref)
 
 read(preference_id)
   answers preference_record | not-known
+
+history_for(principal_ref)
+  answers preference_records
 ```
 
 
@@ -186,6 +189,13 @@ Operation 46: IF a preference id is malformed THEN [Suspend] MUST answer not-kno
 Operation 47: IF a preference id is malformed THEN [Delete] MUST answer not-known (Execution Contract Input 1).
 Operation 48: IF an opaque input EXCEEDS the opaque input cap AND the injected declared channel set DOES NOT EQUAL degenerate THEN [Set] MUST answer invalid-request (Execution Contract Input 2).
 Operation 49: IF no preference record EXISTS for the preference id OR a preference id is malformed THEN [Read] MUST answer not-known (Execution Contract Input 1).
+Operation 50: [History For] MUST answer EVERY preference record that carries the principal reference, whatever the preference record's status.
+Operation 51: [History For] MUST answer a preference record ONLY IF the preference record carries the principal reference.
+Operation 52: [History For] MUST answer the preference records by set instant, earliest first, then by preference id ascending PER Execution Contract Read 5.
+Operation 53: [History For] MUST answer EVERY preference record whole (Operation 34).
+Operation 54: IF no preference record EXISTS for the principal reference THEN [History For] MUST answer an empty list.
+Operation 55: [History For] MUST NOT refuse a blank input.
+Operation 56: [History For] MUST NOT write.
 ```
 
 NOTE: watch the untyped input (Operation 44, Operation 45, Operation 46, Operation 47, Term preference id, Term principal reference, Term channel preferences).
@@ -223,6 +233,8 @@ The case space, and the rule that owns each case:
 | [Current For] | nothing in effect, blank argument included | [None] | none (Operation 32, Operation 33) |
 | [Read] | id names a record in any state | that record, in full | none — [Deleted] included; a change to the deployment's declared channel set leaves its declared channels as recorded (Operation 34, Operation 35, Invariant 5.3) |
 | [Read] | id names nothing, blank argument included | [Not Known] | none (Operation 36, Operation 49) |
+| [History For] | a principal reference some record carries | every record of the principal, [Deleted] included, whole, by set instant and then preference id (Operation 50, Operation 51, Operation 52, Operation 53) | none — the call reads (Operation 56) |
+| [History For] | no record carries the principal reference, blank argument included | an empty list | none (Operation 54, Operation 55) |
 
 ### Invariants
 
@@ -340,7 +352,7 @@ On return, the settings page reads the suspended record's values and offers them
 
 A user closes their account, and the closure flow calls `delete(pref_141)` → ok. The record moves to [Deleted]; `current_for(user_u)` answers none. The fanout, finding nothing in effect, follows the fanout-on-no-record policy its composing pattern owns and the deployment discloses (Composition note 5, Capability requirement 7).
 
-`pref_001`, `pref_088` and `pref_141` all remain in the database. A later access request for `user_u`'s preference history filters the database on `principal_ref = user_u` and returns the full chain, ordered by set instant, two records stamped from one clock reading standing unordered; each record's content is what `read(preference_id)` answers for it — [Preference Id], [Principal Reference], the stated preference fields, [Declared Channels], [Set Instant], [Status] and the applicable lifecycle timestamps.
+`pref_001`, `pref_088` and `pref_141` all remain in the database. A later access request for `user_u`'s preference history calls `history_for(user_u)` and returns the full chain, `pref_001`, `pref_088`, `pref_141`, by set instant and then preference id (Operation 52); each record is whole, as `read(preference_id)` answers it (Operation 53) — [Preference Id], [Principal Reference], the stated preference fields, [Declared Channels], [Set Instant], [Status] and the applicable lifecycle timestamps.
 
 ### Rejection paths
 
@@ -542,6 +554,12 @@ Kind: Operation
 #### Read
 
 The read-only query returning the full record for a [Preference Id] in any state ([Active], [Suspended] or [Deleted]), or [Not Known] if no record has that id. Deletion is a state, not a removal; never transitions; refuses nothing.
+
+Kind: Operation
+
+#### History For
+
+The read-only query returning every record a [Principal Reference] has carried, in any state ([Active], [Suspended] or [Deleted]), each whole, by [Set Instant] earliest first and then by [Preference Id] ascending, or an empty list if none carries it. Answers the whole match, which a deployment may deliver in pages (Execution Contract Read 6); never transitions; refuses nothing.
 
 Kind: Operation
 
@@ -755,6 +773,7 @@ Projection: ok
 [Delete]: #delete
 [Current For]: #current-for
 [Read]: #read
+[History For]: #history-for
 [Preference Id]: #preference-id
 [Principal Reference]: #principal-reference
 [Channel Preferences]: #channel-preferences
@@ -804,11 +823,10 @@ Projection: ok
 
 ```
 status: doing
-formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11; Operation 48, 2026-11-20
+formal: verified — message-preference.tla + 1 twin (2026-06-03); message-preference.als + 22 twins (the static data model, 2026-11-11: State 1, 4, 6, 8 and 21, Invariant 2.3, 2.4, 2.5, 5.1, 7.1, 7.2, 7.3, 9.3, 10.1 and 10.2, Temporal property 1, 2 and 3, Operation 4 and 5 and Instance 2 and 14 checked on every record an admitted [Set], [Suspend] or [Delete] leaves and on every answer [Current For] and [Read] give over such records, Invariant 2.3 through 2.5 read off one record through its suspension and deletion instants, Invariant 7.1 and 7.3 where the records hold one record in effect for the principal (Invariant 3.1, the TLA+ model's), Temporal property 1 through 3 resting on a clock that never goes backward (Execution Contract Logic confinement 7) and Instance 2 on the host supplying each id to one call (Execution Contract Logic confinement 16); nothing testable in Alloy for Invariant 1, 5.3, 6, 9.1 and 10.4: 1, 5.3 and 6 compare a record with a later version of it, which a single state cannot show, 9.1 names the surface the atom offers and a removed record leaves nothing to read, and 10.4 names what the atom holds, not a field, so 1, 5.3, 6 and 9.1 are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 5.3, 6 and 9.1 (across steps); owed rows: Invariant 1; Invariant 5.3; Invariant 6; Invariant 9.1, 2026-11-11; Operation 48, 2026-11-20; Operation 50 through 56, 2026-11-20
 last gate: 2026-11-20 — Final Critique 13, a delta round, frozen at 15e8c30f — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed three foundational, all three placed refuted by both triages: Concurrency 5 against Execution Contract Database 2's first sentence, which keeps a write from committing against a state its guards did not see; Operation 48's degenerate arm against Instance 14 through 16, which forbid [Set] to write; "currently in effect" against Term currently in effect; the degenerate row's list, Check 3.1's Database 8 citation and Check 1.1's declared channels cured as refining); 2026-11-20 — Final Critique 12, frozen at afcc3ab3 — foundational count 4 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, one sample (Linus's two reports, GRID's one and EOS's four: the opaque input cap's unit and scope, the clock's guarantees cited, the timestamps' tie, two [Set] calls for one principal serialized; refining and rhetorical cured with them, one question to Scott); 2026-11-04 — Final Critique 11, a delta round, frozen at cef41e2 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10 — foundational count 3, not clean, no sample
 
-open:
-- 2026-11-20-a · refining · Summary; the Account-closure example; the calls · the Summary and the example promise the per-principal history of preference changes is queryable, and no call declares that read, which the Execution Contract's atom interface contract requires of a composing pattern's access → declare history_for(principal_ref), answering every record of the principal in set-instant order, paged PER Execution Contract Read 6, so the promise has its call (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-20 09:53Z)
+open: none
 ```
 
 <details markdown="block">
