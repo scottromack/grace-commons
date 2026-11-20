@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
 Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Error model 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MUST supply at the seam, for each [Assign] call and each [Reassign] call, an assignment id no assignment has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 ```
@@ -165,7 +165,7 @@ The case space, and the rule that owns each case:
 | [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's; its assignment id, task reference, assignee reference and assignment instant stand (Operation 11, Operation 12, Invariant 2.1) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
 | [Recall] | database refuses the write | [Storage Failure] | none — the assignment stays [Active] (Operation 13) |
-| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and a new [Active] one carrying the new assignee reference (Operation 18, Operation 19, Operation 21, Operation 38, Invariant 2.1) |
+| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and its transfer instant stamped from the injected now; and a new [Active] one carrying the same task reference, the new assignee reference and an assignment instant stamped from the injected now (Operation 18, Operation 19, Operation 21, Operation 30b, Operation 38, State 7, Invariant 2.1, Invariant 8.3) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22) |
@@ -193,8 +193,8 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
 - **Invariant 4 — Terminal states are absorbing.**
   ```
-  Invariant 4.1: A recalled assignment MUST NOT take a further transition.
-  Invariant 4.2: A transferred assignment MUST NOT take a further transition.
+  Invariant 4.1: A recalled assignment's status MUST NOT change.
+  Invariant 4.2: A transferred assignment's status MUST NOT change.
   ```
 - **Invariant 5 — Id stability.**
   ```
@@ -579,7 +579,7 @@ It inherits from:
 ```
 status: doing
 formal: verified — assignment.tla + 1 twin (2026-06-03); assignment.als + 11 twins (the static data model, 2026-11-11: State 1 through 4 and Invariant 5.1, 6.1, 7.2, 8.1, 8.2, 9.1 and 9.2 checked on every record an admitted [Assign], [Recall] or [Reassign] leaves, Invariant 7.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 2.1, 3.2, 4.1, 4.2, 8.3 and 10.1: whether two active assignments co-exist depends on the order of the calls that wrote them, and the others each compare a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 2, 3, 4, 8.3 and 10 (across steps); owed rows: Invariant 2; Invariant 3; Invariant 4; Invariant 8.3; Invariant 10, 2026-11-11
-last gate: 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 8, a delta round, one reader (Linus glm-5.3-flash), frozen at 670bdcb2 — foundational count 1 after the blind second triage, not clean, no sample (the clock's monotonicity, which Invariant 8.1, Invariant 8.2 and Check 4.1 rely on, was never cited; Capability requirement 1 now cites Execution Contract Logic confinement 7); 2026-10-26 — Final Critique 7, frozen at 207f9b2 — foundational count 0, clean, one sample
 
 open: none
 ```
