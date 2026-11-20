@@ -70,7 +70,6 @@ Term transition: the atom's evaluation of one call against the invitation record
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-NOTE: open 2026-11-03-a — where an admitted read takes its one clock reading against its database read is not stated (Invariant 12.2); the Execution Contract's Q names no clock step.
 
 NOTE: watch the seam citation (Term seam, Term transition).
 
@@ -274,7 +273,7 @@ Term filter: the selection a [Read] call scopes the answer by — a [Filter] nam
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: The atom MUST NOT write a field when an invitation lapses.
-  Invariant 12.2: An admitted read MUST compute the effective status from the invitation's expiry instant and now.
+  Invariant 12.2: An admitted read MUST compute the effective status from the invitation's expiry instant and now (Execution Contract Logic confinement 20).
   ```
 
 ---
@@ -431,9 +430,9 @@ Composition note 6: A composing Actor Identity MUST attest the actor behind an a
 Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
 Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the database holds.
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
+Composition note 10: A composing Actor Identity MUST attest the actor behind an admitted revoke.
 ```
 
-NOTE: open 2026-10-22-c — whether a composing Actor Identity attests the actor behind an admitted revoke is not stated; Composition note 6 and Composition note 7 attest the actors behind an admitted accept and an admitted initiate.
 
 NOTE: composing patterns — [External Onboarding](../compositions/external-onboarding.md).
 
@@ -799,9 +798,7 @@ status: doing
 formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11
 last gate: 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
-open:
-- 2026-11-03-a · refining · Term now; Invariant 12.2 · where an admitted read takes its one clock reading against its database read is stated by no rule: the Execution Contract's Q names no clock step, and Logic confinement 3 and 11 place the reading at the top of Step 2 for a transition only; any build's answer follows the reading it takes, and the placement is owed by the contract to every read that answers against now, not by this page (escalated to the maintainer 2026-11-03) → the Execution Contract states it once: a read that answers against now takes its one clock reading before its database read, as Logic confinement 3 places a transition's at the top of Step 2. Every page that carried the line cites it (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
-- 2026-10-22-c · refining · Composition note 6; Composition note 7 · a composing Actor Identity attests the actor behind an admitted accept and behind an admitted initiate, and no note says whether it attests the actor behind an admitted revoke, which records a revoked by reference as an accept records an accepting identity reference → wire the revoke's attestation, or name the deployment as its owner
+open: none
 ```
 
 <details markdown="block">
