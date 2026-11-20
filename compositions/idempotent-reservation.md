@@ -91,7 +91,7 @@ NOTE: Contract classification, per the section titled Composition state in `exec
 
 ```
 Capability requirement 1: A deployment MUST set the idempotency window.
-Capability requirement 2: A deployment MUST set the token max length.
+Capability requirement 2: A deployment MAY declare the token max length PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 3: A deployment MUST set the digest function.
 Capability requirement 4: A deployment MUST set the digest function alike for EVERY call of one instance.
 Capability requirement 16: A deployment MUST resolve Duplicate Prevention's check fail-closed.
@@ -104,9 +104,7 @@ Term pending instant: the entry's stamp, the now its writing invocation read at 
 
 Term window end: (pending instant + idempotency window) — the instant an entry's idempotency window elapses at; the window has elapsed for the entry at its window end and after it (Execution Contract Logic confinement 9).
 
-Term token max length: the byte cap on an idempotency token, set by the deployment with no default.
-
-NOTE: open 2026-11-05-a — the token max length states no default cap (Capability requirement 2, Primitive policy 2).
+Term token max length: the bound on an idempotency token's length in Unicode code points; 1,024 code points where a deployment declares none, the corpus's default for text — a default cap a deployment may override as Execution Contract Input 2 allows (Capability requirement 2).
 
 Term digest function: the collision-resistant hash function and serialization convention computing the parameters digest at the seam, set by the deployment with no default.
 
@@ -383,7 +381,7 @@ Term records: token results entry — one idempotency token's recorded outcome, 
 
 Term value sets: action type, recovery mark and resolving action, each declared where the section that owns it declares it.
 
-Term bounds: idempotency window (idempotency_window), token max length (token_max_length).
+Term bounds: idempotency window (idempotency_window), token max length (token_max_length; 1,024 code points where a deployment declares none).
 
 Term cadences: empty.
 
@@ -516,8 +514,7 @@ status: doing
 formal: verified — idempotent-reservation.tla + 13 twins, re-derived 2026-11-08 (it was verified 2026-06-03 over one effect counter and an unguarded early eviction): the token's entry with its action type, parameters digest and recovery mark; Duplicate Prevention's guard on its own clock and its outage, read fail-closed; the eviction leg as the second process beside the calls, and the five arms a call takes (token-collision, replay, fresh request, outcome-unknown, re-entry); Invariants 1.1, 2.1 to 2.3, 3.1, 4.1, 4.2, 7.1, 7.2 and 8.2 checked, with Check 4.1 and 4.2, Composes 7, Wiring decision 2 and Indeterminate outcome 3, 4, 7, 8, 10 and 13; one token and a place_hold and a release stand for the action types, the boundary predicate and Invariant 8.1 are not modelled; closes 2026-08-30-a; idempotent-reservation.als + 14 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 4.1, 4.2 and 7.1, Composes 7, Composition state 6, Wiring decision 1, 3 and 4, Indeterminate outcome 4 and 8 and Action wiring 27 checked on every state the calls and the eviction leg can leave and every answer a call gives against what it read, over two tokens and all four action types, a cross-check with the TLA+ model but for Composition state 6 and Wiring decision 3; nothing testable in Alloy for Invariant 8.1 (a deployment condition no record holds); Invariant 2.3, 7.2 and 8.2 left to the TLA+ model (a re-run's effect, the arm a call takes and a count across the window are sequences); the model found that Invariant 2.1 as written does not hold where a confirm and a release of one commitment carry one token, since the commitment id is their only parameter and so their digest is one and Action wiring 7 answers the second token-collision where the first answered ok, so it is checked under one action type; and that the page reads Duplicate Prevention's check as able to answer state-unavailable while the call's own writes commit (Indeterminate outcome 8, 13; Action wiring 25), where its Decision of 2026-10-20 makes the map, the commitment and the recorded set one store); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12, 2026-11-08
 last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at 63c13eb — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
 
-open:
-- 2026-11-05-a · refining · Capability requirement 2, Primitive policy 2, Term token max length · the token max length is a byte cap with no default, where Execution Contract Input 2 states a bound as a cap with a default a deployment may override → state a default (a value no rule of the corpus decides) and make Capability requirement 2 a MAY, or record the token as an input the deployment bounds by its own rule
+open: none
 ```
 
 <details markdown="block">
