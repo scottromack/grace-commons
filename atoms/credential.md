@@ -74,13 +74,11 @@ Term reference: credential id, principal reference, revoked by reference OR succ
 
 Term database instance: one named database a call is routed to.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here (Execution Contract Logic confinement 3, 8).
+Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading, the id material, the entropy and the derivation registry here, and runs the registry's derivation and check functions here, injecting each result (Execution Contract Logic confinement 3, 8).
 
-Term transition: the atom's evaluation of one call against the credential records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the credential records, as Execution Contract Logic confinement 14 declares it.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
-
-NOTE: open 2026-10-21-b — Term seam, Term transition and Term cited cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -118,17 +116,17 @@ Capability requirement 14: The deployment MAY declare the length bound PER Execu
 Capability requirement 18: The deployment MUST declare a check function PER credential type the deployment serves.
 Capability requirement 19: The deployment MUST NOT change the derivation function declared for a credential type a credential carries.
 Capability requirement 20: The deployment MUST NOT change the check function declared for a credential type a credential carries.
-Capability requirement 24: The deployment MUST supply at the seam the entropy a derivation function consumes.
+Capability requirement 24: The deployment MUST supply at the seam the entropy a derivation function consumes (Execution Contract Logic confinement 8).
 Capability requirement 25: The host MUST run a derivation function at the seam (Execution Contract Logic confinement 8).
 Capability requirement 26: The host MUST run a check function at the seam against the verifier of the credential a proceeding verify checks against (Execution Contract Logic confinement 8).
-Capability requirement 27: The deployment MUST declare a material bound and the bound's measure PER credential type.
+Capability requirement 27: The deployment MAY declare a material bound and the bound's measure PER credential type PER Execution Contract Input 2.
 Capability requirement 28: The derivation function MUST own credential material's normalization.
 Capability requirement 29: The deployment MUST declare a check function that matches the material the credential type's derivation function derived the verifier from.
-Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material.
+Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material of the same kind, and MUST own the normalization of presented material of no such kind.
 Capability requirement 31: IF material EXCEEDS the material bound THEN the derivation function MUST refuse the material.
 Capability requirement 32: IF presented material EXCEEDS the material bound THEN the check function MUST refuse the presented material.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
-Capability requirement 35: The deployment MUST NOT supply the same id material to two calls.
+Capability requirement 35: The deployment MUST NOT supply the same id material to two calls (Execution Contract Logic confinement 16).
 Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 38: The deployment MUST NOT supply blank id material.
 Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
@@ -138,10 +136,6 @@ Capability requirement 42: The deployment MUST supply id material in the spellin
 ```
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 35).
-
-NOTE: open 2026-10-21-c — the host runs the derivation function and the check function at the seam and injects each result (Capability requirement 25, Capability requirement 26, Operation 21, Operation 66, Operation 67), and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision.
-
-NOTE: open 2026-11-02-a — the material bound has no default, while Execution Contract Input 2 gives a bound a stated default and says a deployment never has to supply one; the value waits on a decision no rule makes, since the bound is declared PER credential type in a measure the deployment chooses.
 
 
 ### Operations
@@ -427,6 +421,7 @@ External check 12: A deployment needing [Read] confirmed to an authorized caller
 External check 13: A deployment needing a check function confirmed to match the credential type's derivation function MUST check material against the verifier derived from the material (Capability requirement 29, 30).
 External check 14: A deployment needing a verifier salted and costly to guess confirmed MUST read the derivation registry (Non-goal 39).
 External check 15: A deployment needing one effective-active credential per principal confirmed across spellings MUST read the deployment's own reference canonicalization and credential type declarations (Capability requirement 6, Capability requirement 13).
+External check 16: A deployment needing each id material confirmed supplied to one call MUST read the deployment's own id allocation (Capability requirement 35).
 ```
 
 ---
@@ -512,7 +507,7 @@ Term string input: a reference, credential type OR reason — every caller-suppl
 
 Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
 
-Term material bound: the maximum size the deployment declares for one credential type's material, in the measure the deployment declares with the bound (Capability requirement 27).
+Term material bound: the maximum size of one credential type's material, in the measure the deployment declares with the bound; 4,096 code points of the material as the call carries it where a deployment declares none for the type (Capability requirement 27).
 
 Term empty material: material that is absent OR carries no character — the material [Register] and [Rotate] refuse as missing (Operation 2, Operation 31); material of whitespace alone is not empty material, since the derivation function owns material's normalization (Capability requirement 28).
 
@@ -540,7 +535,7 @@ Composition note 17: A deployment refusing reused secret material MUST call [Rot
 Composition note 18: A composing Retention Window MUST purge a pair's rotation chain whole.
 ```
 
-Term authorized caller: a caller authenticated as the principal the call names — for [Rotate] and [Revoke], which name a credential id, the principal that credential carries; for a principal holding no effective-active credential, a caller authenticated by a composing enrollment pattern's own proof, as External Onboarding's invitation; OR a caller authenticated as an actor a composing Permissions decision authorizes over that principal, with the decision's subject bound to that authenticated actor (Permissions Composition note 3).
+Term authorized caller: a caller authenticated as the principal the call names — for [Rotate] and [Revoke], which name a credential id, the principal that credential carries; for a principal holding no effective-active credential, a lapsed credential's principal among them, a caller authenticated by a composing enrollment pattern's own proof, as External Onboarding's invitation; OR a caller authenticated as an actor a composing Permissions decision authorizes over that principal, with the decision's subject bound to that authenticated actor (Permissions Composition note 3).
 
 Term credential write: [Register] | [Rotate] | [Revoke].
 
@@ -570,7 +565,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material, committed version.
 
-Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term cited: Execution Contract Logic confinement 14 — the seam and the transition.
 
 Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md); Compromise Disclosure *(forthcoming)*, Trusted Timestamping *(forthcoming)*, a challenge pattern *(forthcoming)*, [Retention Window](./retention-window.md).
 
@@ -759,7 +754,7 @@ Projection:   reason
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed by the window reading, by a write's stamps, and by [Read]'s [Effective Status] projection.
+The wall-time reading the host takes at the seam and hands to the transition, as Execution Contract Logic confinement 11 declares it — never read inside the transition and never supplied by the business caller. Consumed by the window reading, by a write's stamps, and by [Read]'s [Effective Status] projection.
 
 Kind:         Parameter
 Parameter of: Register, Verify, Rotate, Revoke and Read
@@ -940,12 +935,7 @@ status: doing
 formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
 last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
 
-open:
-- 2026-11-02-a · refining · Capability requirement 27, 31, 32; Term material bound · the material bound is a cap the deployment MUST declare per credential type and states no default, where Execution Contract Input 2 (the host obligations sweep, 690b048) gives every bound a stated default a deployment may override → state a default and its measure per credential type (the sweep's 4,096 for key material is the nearest precedent), or rule that a per-type material bound is outside Input 2; found by Final Critique 22 (Linus, delta round)
-- 2026-10-21-b · refining · Term seam, transition; Term cited · each cites the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them → cite what declares each, as Event Log's 2026-10-20-c and Permissions' 2026-10-21-f ask of the same three sentences
-- 2026-10-21-c · refining · Capability requirement 24, 25, 26; Operation 21, 66, 67 · the host runs the derivation function (on [Register], and on [Rotate] for the type its read finds) and the check function (on [Verify], against the credential Operation 70 selects) at the seam and injects each result, as the contract's section titled Logic Confinement Principle says, and the pipeline in `execution-contract.md` gives that injection no step between the read and the decision, nor its query member a step for a query's check or its clock reading, nor the entropy a derivation consumes (Capability requirement 24) a draw before the guards that decide on the derivation's answer (Operation 66, 67), where Logic confinement 3 draws entropy at the top of Step 3 → draw the injection on the contract
-- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; a public key's check normalizes nothing the page names; a lapse reopens a principal reference to any enrollment proof, unstated → one refining pass
-- 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 35; the NIST line's verifier-storage claim beside Non-goal 39; Operation 69's tie order unexplained; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
+open: none
 ```
 
 <details markdown="block">
