@@ -76,6 +76,8 @@ The caller the seam authenticates is the business caller (Logic confinement 14),
 
 **Logic confinement 20: A read takes its one clock reading before its database read, and a retry reads again.** A read that answers against `now` takes its one clock reading (Logic confinement 11) before its database read, as Logic confinement 3 places a transition's at the top of Step 2. A conflict retry under Database 2 reads the clock again as it reads the database again, so the retried call decides on a reading no earlier than the state it reads. A specification that relies on this cites Logic confinement 20; it does not restate it.
 
+**Logic confinement 21: A record carries a digest of a token, never the live token.** A record, an event and an intent carry a digest of a token or a secret, never the live value, the digest computed at the seam (Logic confinement 8); where a rule keys by the token, the digest is the key. A specification that relies on this cites Logic confinement 21; it does not restate it.
+
 ---
 
 ## The three primitives
