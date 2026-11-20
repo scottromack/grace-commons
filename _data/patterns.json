@@ -1297,7 +1297,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1310,7 +1310,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-19",
   "title": "Personal Todo"
  },
  "post": {

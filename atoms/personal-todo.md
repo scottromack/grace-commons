@@ -37,7 +37,7 @@ One person, a list of things to do, and nothing else. The atom exists because ev
 
 ```
 Identity 1: The atom MUST identify a unit by the id.
-Identity 2: The host MUST allocate an id at the atom's seam.
+Identity 2: The host MUST allocate an id for [Add] at the atom's seam.
 Identity 4: [Add] MUST NOT take an id from the business caller.
 Identity 5: The atom MUST NOT reuse an id.
 Identity 6: The atom MUST NOT identify a unit by the description.
@@ -48,9 +48,9 @@ NOTE: watch the allocation ban (Identity 3).
 
 Term unit: one thing to do — the record this atom holds; recorded, revised or finished, until it is deleted.
 
-Term id: the opaque string naming one unit — an [Id]; malformed where it is no string; stable across sessions, unique for the system's life.
+Term id: the opaque string naming one unit — an [Id]; malformed where it is no string; stable across sessions, unique for the instance's life.
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the id here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and, for [Add], the unit's id here.
 
 Term transition: the atom's evaluation of one call against the list.
 
@@ -125,7 +125,7 @@ Operation 5: IF the database refuses the write THEN [Add] MUST answer storage-fa
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
-Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
+Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description AND the new description the call carries DOES NOT EXCEED the description cap THEN [Edit] MUST answer ok.
 Operation 12: IF the normalized new description EQUALS the unit's description THEN [Edit] MUST NOT stamp last edit instant.
 Operation 13: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST replace the unit's description with the normalized new description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
@@ -143,7 +143,7 @@ Operation 29: [Read] MUST answer a unit's id, description, state, addition insta
 Operation 30: [Read] MUST NOT write.
 Operation 31: [Read] MUST NOT refuse a call (Execution Contract Read 1 answers a failed read).
 Operation 32: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description EQUALS blank THEN [Edit] MUST answer invalid-description.
-Operation 33: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the new description the call carries EXCEEDS the description cap THEN [Edit] MUST answer invalid-description (Execution Contract Input 2).
+Operation 33: IF the unit state EQUALS pending AND the new description the call carries EXCEEDS the description cap THEN [Edit] MUST answer invalid-description (Execution Contract Input 2).
 Operation 34: IF the unit state EQUALS pending AND the new description is malformed THEN [Edit] MUST answer invalid-description (Execution Contract Input 1).
 Operation 35: IF the id is malformed THEN [Edit] MUST answer not-known (Execution Contract Input 1).
 Operation 36: IF the id is malformed THEN [Complete] MUST answer not-known (Execution Contract Input 1).
@@ -152,7 +152,7 @@ Operation 37: IF the id is malformed THEN [Delete] MUST answer not-known (Execut
 
 NOTE: watch the untyped input (Operation 35, Operation 36, Operation 37, Term id).
 
-NOTE: an admitted [Edit], [Complete] or [Delete] answers ok, the one answer its signature block gives (Closed vocabulary 21, Closed vocabulary 22, Closed vocabulary 25), so no operation restates it.
+NOTE: an admitted [Edit], [Complete] or [Delete] answers ok, the one answer its signature block gives (Closed vocabulary 21, Closed vocabulary 22, Closed vocabulary 25), so no operation restates it but Operation 10, which says an unchanged description within the cap answers ok.
 
 Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
@@ -163,11 +163,11 @@ The case space, and the rule that owns each case:
 | [Add] | description valid, no active match, database accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description blank, over the cap or malformed | [Invalid Description] | none (Description 4, Description 5, Description 9) |
 | [Add] | description matches a unit in the active set | [Duplicate Active] | none (Operation 4) |
-| [Edit] | valid, different, no active match, database accepts | ok | description and last edit instant change, no other field and not the id (Operation 13, State 6, Invariant 5.2, Invariant 8.2, Invariant 8.3) |
-| [Edit] | same normalized text | ok | no field changes (Operation 10, Operation 12) |
-| [Edit] | new description malformed, or blank or over the cap and different | [Invalid Description] | none (Operation 32, Operation 33, Operation 34) |
-| [Edit] | new description matches another unit in the active set | [Duplicate Active] | none (Operation 9) |
-| [Edit] | unit is done | [Not Editable] | none (Operation 8) |
+| [Edit] | unit is pending, new description valid, different, no active match, database accepts | ok | description and last edit instant change, no other field and not the id (Operation 13, State 6, Invariant 5.2, Invariant 8.2, Invariant 8.3) |
+| [Edit] | unit is pending, same normalized text, within the cap | ok | no field changes (Operation 10, Operation 12) |
+| [Edit] | unit is pending, new description malformed, blank and different, or over the cap | [Invalid Description] | none (Operation 32, Operation 33, Operation 34) |
+| [Edit] | unit is pending, new description matches another unit in the active set | [Duplicate Active] | none (Operation 9) |
+| [Edit] | unit is done, whatever the new description | [Not Editable] | none (Operation 8) |
 | [Complete] | unit is pending | ok | [Pending] → [Done], completion instant stamped; its id stands (Operation 17, State 7, Invariant 8.2) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; its id is not reused (Operation 19, Operation 20, Identity 5) |
@@ -225,6 +225,8 @@ Description 8: The atom MUST show the normalized form.
 Description 9: IF the description is malformed THEN [Add] MUST answer invalid-description (Execution Contract Input 1).
 ```
 
+NOTE: the whitespace Description 1 trims is the code points with the Unicode White_Space property, as GRACE-lang Term blank gives it.
+
 Term description: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
 
 Term description cap: the bound on a description's length as the call carries it, before it is normalized (Execution Contract Input 2); 1024 codepoints where a deployment declares none.
@@ -267,7 +269,7 @@ This sequence covers four of the six rejection reasons ([Invalid Description], [
 
 ## Generation acceptance
 
-An implementation is acceptable when the checks below are provable to an external auditor given the list, with its committed versions (Execution Contract Generation acceptance 1), and the atom's own surface. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is one line long because almost nothing here needs evidence the list does not carry.
+An implementation is acceptable when the checks below are provable to an external auditor given the list, with its committed versions (Execution Contract Generation acceptance 1), and the atom's own surface. Check 1.1 through 1.3, Check 3.1 and Check 4.1 through 4.3 are checks of one state (Execution Contract Database 8). This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is one line long because almost nothing here needs evidence the list does not carry.
 
 ### Conformance checks
 
@@ -327,6 +329,8 @@ Where the atom breaks down: any system with more than one actor; a system where 
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
 ```
 
+Where two calls do overlap, each reads the active set inside the transaction that writes (Execution Contract Database 2): the later meets the earlier's unit and answers duplicate-active.
+
 ### Re-adding a deleted description
 
 ```
@@ -341,6 +345,7 @@ Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with Duplicate Prevention.
 Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a Duplicate Prevention check.
 Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
+Composition note 6: A composing pattern needing a recency guard MUST NOT call [Delete] BEFORE a Duplicate Prevention record of the unit's description.
 ```
 
 NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision.
@@ -375,7 +380,7 @@ Kind: Operation
 
 #### Edit
 
-The behavior that revises a [Pending] unit's [Description]. Where the normalized [New Description] differs from the description, it replaces the value and stamps [Last Edit Instant]; where it does not, the edit answers ok and changes no field. The unit's state and [Id] are unchanged.
+The behavior that revises a [Pending] unit's [Description]. Where the normalized [New Description] differs from the description, it replaces the value and stamps [Last Edit Instant]; where it does not and the call is within the cap, the edit answers ok and changes no field. The unit's state and [Id] are unchanged.
 
 Kind: Operation
 
@@ -577,14 +582,14 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: verified — personal-todo.als + 18 twins (the static data model: State 1, 2 and 4 through 7, Identity 5, Invariant 6.1 and 7.1 through 7.3, Description 1, 2, 4 and 5 checked on every state a sequence of admitted calls leaves, Identity 4 and 6 caught by the Identity 5 check, Operation 9 and Description 7 by the Invariant 6.1 check, Operation 8 by the Invariant 7.3 check, Operation 32 and 33 by the Description 4 and 5 checks); personal-todo.tla + 11 twins (across steps, as the clock moves: Invariant 2.1, 3.1, 4.1, 5.2, 8.2 and 8.3, State 9, Operation 4 (Description 6, Re-adding 1), 12 and 30); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28 and 29, Description 3, 2026-11-11
-last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
+last gate: 2026-11-19 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refining by both triages: F1 (an [Edit] whose carried text is over the cap and whose normalized text equals the unit's) because Execution Contract Input 2 makes the call malformed and Operation 34 refuses it, so a build answering ok breaks both, cured by Operation 33 conditioned on the call alone, Operation 10 holding within the cap and a Decisions entry that reverses the 2026-10-22 guard (its premise, a cap lowered below stored text, Input 2 now bars); F2 (two calls reading the whole active set) because Database 2's first sentence and Concurrency 1 decide it, cured by one Concurrency sentence; the seven other refining items cured (the NOTE's own exception, Composition note 2 before [Delete], the [Edit] closure rows' pending qualifier, whitespace by GRACE-lang Term blank, Database 8, the id injected for [Add] only, the id unique for the instance), one refuted (the clock's monotonicity is External check 1's), the three rhetorical declined or refuted; 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
 open: none
 ```
