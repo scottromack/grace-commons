@@ -33,7 +33,7 @@ This three-tier discipline reflects the library's core bridge principle: the sam
 
 ## Purpose and scope
 
-The Grace Commons library expresses every pattern as structured natural language with a fixed set of named sections in a fixed order. Section names are load-bearing — they signal to humans and AI readers what kind of content lives where, and they let the pressure-testing methodology (GRID structural completeness, EOS conceptual independence, Linus adversarial scrutiny) operate against predictable structure. Deviations from the canonical shape are review findings, not stylistic choices.
+The Grace Commons library expresses every pattern in GRACE, a small domain-specific language in controlled English, with a fixed set of named sections in a fixed order. Section names are load-bearing — they signal to humans and AI readers what kind of content lives where, and they let the pressure-testing methodology (GRID structural completeness, EOS conceptual independence, Linus adversarial scrutiny) operate against predictable structure. Deviations from the canonical shape are review findings, not stylistic choices.
 
 This document does not duplicate the methodology — see [`pressure-testing.md`](./pressure-testing.md) for what each pass checks. It enumerates the *containers*; the methodology checks the *contents*.
 

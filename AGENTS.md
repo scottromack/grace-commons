@@ -8,7 +8,7 @@
 
 ## What Grace Commons is
 
-A public library of **atoms** and **compositions** expressed as structured natural language: the spec is canonical, code is a derived build artifact. The thesis, philosophy, and inheritance are in [`the-spec-layer.md`](./the-spec-layer.md); the architecture overview is in [`why.md`](./why.md) (the vision page; `readme.md` is the site's Start Here landing/tour). Named for Grace Hopper, who first argued that business logic should be readable by the people who understand the business.
+A public library of **atoms** and **compositions** written in [GRACE](./GRACE-lang.md), a small domain-specific language in controlled English: the spec is canonical, code is a derived build artifact. The thesis, philosophy, and inheritance are in [`the-spec-layer.md`](./the-spec-layer.md); the architecture overview is in [`why.md`](./why.md) (the vision page; `readme.md` is the site's Start Here landing/tour). Named for Grace Hopper, who first argued that business logic should be readable by the people who understand the business.
 
 ---
 

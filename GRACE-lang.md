@@ -6,7 +6,7 @@ parent: The Library
 
 # GRACE lang v0.75 — Minimal Earned Grammar
 
-Grace lang is a controlled semantic metalanguage for domain specifications.
+GRACE is a small domain-specific language for specifying software behaviour, written as a controlled subset of English: a person reads it as plain English, and a machine parses it.
 
 Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
