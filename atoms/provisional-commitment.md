@@ -108,6 +108,7 @@ Capability requirement 3: The registry MUST run the availability read and the ho
 Capability requirement 4: The registry MUST release the critical section on the caller's return.
 Capability requirement 18: The registry MUST bound the critical section's availability read by the critical section bound the registry declares.
 Capability requirement 19: IF a hold write in flight EXISTS for the resource THEN the registry MUST NOT release the critical section.
+Capability requirement 28: The registry MUST NOT release the critical section before the caller's return.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the expire cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the expire cadence falls inside.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
@@ -127,9 +128,7 @@ Capability requirement 26: A deployment firing [Expire] on a cadence MUST declar
 
 Term hold write: the database write by which a [Place Hold] records a commitment.
 
-Term hold write in flight: a hold write the database has neither committed nor refused.
-
-NOTE: open 2026-11-05-a — a hold write the database never resolves keeps the critical section held, and no rule names who ends it (Capability requirement 19).
+Term hold write in flight: a hold write the database has neither committed nor refused. The database's commit or refusal ends it, and nothing else does (Execution Contract Database 3, Execution Contract Error model 1).
 
 Term critical section bound: the span the registry declares as the availability read span of a critical section at which [Place Hold] answers registry-unavailable (Capability requirement 18, Operation 42).
 
@@ -634,7 +633,7 @@ Projection: invalid-request
 
 #### Registry Unavailable
 
-The refusal [Place Hold] returns when the critical section bound DOES NOT EXCEED the availability read span (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the condition is transient, and the place hold may be retried. No commitment is recorded.
+The refusal [Place Hold] returns when the critical section bound DOES NOT EXCEED the availability read span (Operation 42). Distinct from [Resource Unavailable], which the registry gives once read: the place hold may be retried, and the condition lasts only while another call holds the resource's critical section. The registry ends that hold on the holding caller's return (Capability requirement 4), never before it (Capability requirement 28) and never while a hold write in flight stands (Capability requirement 19), so a hold write the database never resolves, or a caller that never returns, leaves every later [Place Hold] on the resource answering registry-unavailable until the database resolves the write or the caller returns. Nothing in this atom ends the section sooner: a registry cannot tell a dead caller from a paused one, and a hold write it gave up on could still commit (Execution Contract Database 3). No commitment is recorded.
 
 Kind:       Member
 Member of:  the Place Hold rejection
@@ -762,8 +761,7 @@ status: doing
 formal: verified — provisional-commitment.tla + 4 twins (2026-06-04); provisional-commitment.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 2.2, 6.1, 7.1 through 7.3, 8.1 and 8.2, State 1 through 5 and Identity 5 checked on every commitment record an admitted [Place Hold], [Confirm], [Release] or [Expire] leaves, built from the version its call found; Invariant 7.1, 8.1 and 8.2 a cross-check with the TLA+ model; Invariant 8.1 and 8.2 resting on the deployment's clock never going backward (Execution Contract Logic confinement 7), Invariant 6.1 on Capability requirement 27 and Execution Contract Logic confinement 9, Identity 5 on fresh id material (Capability requirement 23); nothing testable in Alloy for Invariant 2.1, 3.1, 5.1 or 10.1: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 5.1, Invariant 10.1 and Identity 4 (across steps); owed rows: Invariant 5; Invariant 10; Identity 4; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-11-11
 last gate: 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
-open:
-- 2026-11-05-a · refining · Capability requirement 4; Capability requirement 19; Term hold write in flight; Registry Unavailable · a hold write the database never resolves, or a caller that never returns, keeps the resource's critical section held with no owner for its recovery, while the Registry Unavailable entry's "transient" assumes one → name who ends a section held by a hold write that never resolves, without releasing it while that write could still commit (Capability requirement 19)
+open: none
 ```
 
 <details markdown="block">
