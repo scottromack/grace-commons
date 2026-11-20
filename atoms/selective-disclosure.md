@@ -223,8 +223,6 @@ Term record sequence: the run of disclosure records an admitted read answers, in
   Invariant 6.1: The atom MUST NOT remove a disclosure record from the database.
   ```
 
-NOTE: open 2026-11-06-a — Invariant 4.1 is kept at the write by Operation 7 and cleared by no check over the records, since no record keeps the now its creation read (State 1, State 10); the owner that would clear it, External check 3's receipt-instant read or a Non-goal, is undecided (Ledger open 2026-11-06-a).
-
 ---
 
 ## Examples
@@ -295,7 +293,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
-External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
+External check 3: A deployment needing a backdated disclosure instant detected, and Invariant 4.1 cleared, MUST read the composing Event Log's receipt instant beside the disclosure record's disclosure instant (State 10; Invariant 4.1).
 External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
 ```
 
@@ -422,7 +420,9 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
 Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
 
-NOTE: open 2026-11-06-b — the vocabulary carries no composing patterns line and no cited line, and the page has no title-and-summary blockquote; whether that absence is intended is undecided (Ledger open 2026-11-06-b).
+Term cited: now, resolved disclosure instant, reference, string cap, committed version, admitted record — `execution-contract.md` Logic confinement 11, 12 and 13, Input 2, Generation acceptance 1 and Read 4.
+
+Term composing pattern: [Consent](./consent.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Duplicate Prevention](./duplicate-prevention.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md); Trusted Timestamping *(forthcoming)*.
 
 #### Record
 
@@ -578,9 +578,7 @@ status: doing
 formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12
 last gate: 2026-11-06 — Final Critique 19, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 
-open:
-- 2026-11-06-a · refining · Invariant 4.1; State 10; External check 3 · Invariant 4.1 binds the now a record's creation read, no field of a record keeps that now, so no conformance check over the records clears it and no external check names it → External check 3's receipt-instant read stands for Invariant 4.1, and the page says so (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-06-b · refining · Term actors; Term terms; the page head · Non-goals and Composition notes name composing patterns and the Terms cite the Execution Contract, yet the vocabulary carries no composing patterns line and no cited line (Closed vocabulary 2, Closed vocabulary 3), and the page has no title-and-summary blockquote (Atom shape 2) → the corpus's practice stands, and spec-format's atom shape is amended once to match it. The `## Summary` section already is the one-paragraph summary, so a title-and-summary blockquote would say it twice ("make all things mean one thing"); `nav_order` is not required (the site lists patterns by its own index). The category lines GRACE-lang's Closed vocabulary 2 and 3 require (a composing-patterns line where a page names composing patterns, a cited line where it cites the Execution Contract) are the grammar, so they are added wherever owed, as one sweep with a check. One unit: `method: the atom head is the corpus's practice; the vocabulary's category lines added where owed` (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
+open: none
 ```
 
 <details markdown="block">
