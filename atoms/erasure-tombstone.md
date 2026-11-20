@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Erasure Tombstone keeps the permanent record that one record was lawfully destroyed. When a pattern purges a record at the end of its retention, or erases it on a person's request, it records an erasure tombstone in the same transaction: which record (its id and the pattern it belonged to), when it was destroyed, under what authority (the kind — a retention purge or an erasure request — and a reference to the deciding record) and who carried it out. The erasure tombstone keeps none of the destroyed record's content, so it can be kept forever. Anything that still names the destroyed id — an index entry, a seal, a composing pattern's own records — finds, by [Read Tombstone], *destroyed at this instant under this authority* instead of *not found*. The atom does not delete anything itself, does not decide whether a destruction is lawful and does not weigh an erasure request against a retention obligation; those belong to the patterns that compose it.
+Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority. When a pattern purges a record at the end of its retention, or erases it on a person's request, it records an erasure tombstone in the same transaction: which record (its id and the pattern it belonged to), when it was destroyed, under what authority (the kind — a retention purge or an erasure request — and a reference to the deciding record) and who carried it out. The erasure tombstone keeps none of the destroyed record's content, so it can be kept forever. Anything that still names the destroyed id — an index entry, a seal (Tamper Evidence's permanent record of a record set's fingerprint), a composing pattern's own records — finds, by [Read Tombstone], *destroyed at this instant under this authority* instead of *not found*. The atom does not delete anything itself, does not decide whether a destruction is lawful and does not weigh an erasure request against a retention obligation; those belong to the patterns that compose it.
 
 ---
 
@@ -31,7 +31,7 @@ Every pattern in the library that keeps records also, sooner or later, lets one 
 
 The compositions found this first. Nine of them carry facts they cannot derive from their constituents once a record is purged, and each classifies those facts as *extraction-pending against Erasure Tombstone* (the section titled Composition state in `execution-contract.md`): the debt was named before the atom existed. This atom is that extraction. It holds one record per destruction and nothing else, so a composition's purged half rests on a constituent instead of on records of its own.
 
-Two disciplines carry the rest. The erasure tombstone holds no content of the destroyed record — only its id, its pattern, the instant, the authority and the actor — which is what lets the erasure tombstone outlive every retention that governed the record it names. And the atom never destroys anything: the destroying pattern deletes the record and calls [Record Destruction] in one transaction (Execution Contract Database 1), so a record is never gone without its erasure tombstone, and an erasure tombstone never stands for a record still kept.
+Two disciplines carry the rest. The erasure tombstone holds no content of the destroyed record — only its id, its pattern, the instant, the authority and the actor — which is what lets the erasure tombstone outlive every retention that governed the record it names. And the atom never destroys anything: the destroying pattern deletes the record and calls [Record Destruction] in one transaction (Execution Contract Database 1), so, where a composing pattern follows Composition note 1 and Composition note 6, a record is never gone without its erasure tombstone, and an erasure tombstone never stands for a record still kept.
 
 </details>
 
@@ -46,7 +46,7 @@ Identity 3: The atom MUST NOT interpret an authority reference.
 Identity 4: The atom MUST NOT interpret an actor reference.
 ```
 
-Term erasure tombstone: the record that one record was destroyed — the record this atom holds.
+Term erasure tombstone: the record that one record was destroyed — the record this atom holds, an [Erasure Tombstone].
 
 Term destroyed id: the opaque id the destroyed record carried in the destroyed pattern — a [Destroyed Id].
 
@@ -56,7 +56,7 @@ Term authority reference: the opaque reference naming the record that authorized
 
 Term actor reference: the opaque reference naming the actor or system identity that carried out the destruction — an [Actor Reference].
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading here.
+Term seam: the atom's I/O (input and output) boundary, as Execution Contract Logic confinement 14 declares it; the host injects the clock reading here.
 
 ### State
 
@@ -64,18 +64,18 @@ Term seam: the atom's I/O (input and output) boundary; the host injects the cloc
 State 1: EVERY erasure tombstone MUST carry destroyed pattern, destroyed id, destruction instant, authority kind, authority reference and actor reference.
 State 2: The atom MUST NOT offer a transition on an erasure tombstone.
 State 3: The atom MUST NOT remove an erasure tombstone from the database.
-State 4: An erasure tombstone MUST NOT carry a field of the destroyed record beside destroyed pattern and destroyed id.
+State 4: An erasure tombstone MUST NOT carry a field beside destroyed pattern, destroyed id, destruction instant, authority kind, authority reference and actor reference.
 ```
 
 Term authority kind: retention-purge | erasure-request | a deployment kind — the ground on which the record was destroyed; an [Authority Kind].
 
-Term deployment kind: an authority kind the deployment declares beside retention-purge and erasure-request, such as a court order.
+Term deployment kind: an authority kind the deployment declares beside retention-purge and erasure-request, such as a court order; a deployment that declares none leaves the recognized kinds at those two (Execution Contract Logic confinement 15).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the erasure tombstone records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1, Execution Contract Query 3, Execution Contract Query 4 and Execution Contract Input 1.
+Capability requirement 2: The deployment MUST supply the erasure tombstone records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1, Execution Contract Query 3, Execution Contract Query 4, Execution Contract Query 5, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MAY declare a deployment kind.
 Capability requirement 4: The deployment MUST NOT remove retention-purge from the authority kinds.
 Capability requirement 5: The deployment MUST NOT remove erasure-request from the authority kinds.
@@ -124,11 +124,11 @@ Operation 10: IF the database refuses the write THEN [Record Destruction] MUST a
 Operation 11: [Record Destruction] MUST NOT read a record of the destroyed pattern.
 Operation 12: [Read Tombstone] MUST answer the erasure tombstone the destroyed pattern and the destroyed id identify.
 Operation 13: IF no erasure tombstone EXISTS for the destroyed pattern and the destroyed id THEN [Read Tombstone] MUST answer none.
-Operation 14: IF destroyed pattern EQUALS blank OR destroyed id EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap OR destroyed id EXCEEDS the reference cap THEN [Read Tombstone] MUST answer invalid-request.
+Operation 14: IF destroyed pattern EQUALS blank OR destroyed id EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap OR destroyed id EXCEEDS the reference cap OR a string input of the call is malformed THEN [Read Tombstone] MUST answer invalid-request (Execution Contract Query 1, Execution Contract Query 5).
 Operation 15: [List Destroyed] MUST answer the matching erasure tombstones with the earliest listing keys, up to the page size.
 Operation 16: [List Destroyed] MUST order the answer by destruction instant, then by destroyed id.
 Operation 18: IF window end PRECEDES window start THEN [List Destroyed] MUST answer invalid-request.
-Operation 19: IF destroyed pattern EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap THEN [List Destroyed] MUST answer invalid-request.
+Operation 19: IF destroyed pattern EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap OR a string input of the call is malformed THEN [List Destroyed] MUST answer invalid-request (Execution Contract Query 1, Execution Contract Query 5).
 Operation 20: [Read Tombstone] MUST NOT write.
 Operation 21: [List Destroyed] MUST NOT write.
 Operation 22: The atom MUST NOT offer a change action.
@@ -136,7 +136,7 @@ Operation 23: The atom MUST NOT offer a removal action.
 Operation 24: [List Destroyed] MUST NOT answer an erasure tombstone that is not a matching erasure tombstone.
 Operation 25: IF window start EQUALS blank OR window end EQUALS blank THEN [List Destroyed] MUST answer invalid-request.
 Operation 26: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Destroyed] MUST answer invalid-request.
-Operation 27: IF window start is malformed OR window end is malformed THEN [List Destroyed] MUST answer invalid-request (Execution Contract Input 1).
+Operation 27: IF window start is malformed OR window end is malformed THEN [List Destroyed] MUST answer invalid-request (Execution Contract Query 1).
 Operation 28: IF a string input of the call is malformed THEN [Record Destruction] MUST answer invalid-request (Execution Contract Input 1).
 ```
 
@@ -152,7 +152,7 @@ Term destruction instant: the clock reading the erasure tombstone was stamped fr
 
 Term recognized kinds: retention-purge, erasure-request, and EVERY deployment kind the deployment declared.
 
-Term string input: a destroyed pattern, a destroyed id, an authority reference OR an actor reference — every caller-supplied string [Record Destruction] accepts, malformed where it is not a string; the authority kind is the value of its declared set (Term authority kind), and a value outside the set answers by Operation 7.
+Term string input: a destroyed pattern, a destroyed id, an authority reference OR an actor reference — every caller-supplied string [Record Destruction], [Read Tombstone] and [List Destroyed] accept, malformed where it is not a string; the authority kind is the value of its declared set (Term authority kind), and a value outside the set answers by Operation 7.
 
 Term window: the half-open span from window start to window end, window start included and window end excluded, in place of Execution Contract Query 2's closed range.
 
@@ -162,7 +162,7 @@ Term window end: the instant the [List Destroyed] window closes — a [Window En
 
 Term listing key: an erasure tombstone's destruction instant paired with its destroyed id, compared first by instant, then by id in code point order (Execution Contract Logic confinement 10) — the order [List Destroyed] answers in.
 
-Term continuation key: the listing key of the last erasure tombstone a previous [List Destroyed] call answered — a [Continuation Key], malformed where it is not an instant paired with a destroyed id; what a caller passes to read the next page.
+Term continuation key: the listing key of the last erasure tombstone a previous [List Destroyed] call answered — a [Continuation Key], malformed where it is not an instant paired with a destroyed id, the pair carried as one structured input and not as a delimited string; what a caller passes to read the next page.
 
 Term matching erasure tombstone: an erasure tombstone of the destroyed pattern whose destruction instant falls in the window, only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. Where none match the answer is empty.
 
@@ -174,13 +174,13 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Record Destruction] | every field present, within its cap, a recognized kind, no erasure tombstone for the pair, database accepts | recorded | one erasure tombstone lands, destruction instant stamped from now, and no field of it changes afterward (Operation 1, Operation 2, Operation 3, Invariant 1.1) |
 | [Record Destruction] | an erasure tombstone already names the pair | [Duplicate] | none (Operation 4) |
-| [Record Destruction] | a blank field, a field over its cap, a string input that is not a string, or a kind not recognized | [Invalid Request] | none (Operation 5 through 9, Operation 28), and the caller's delete is not made (Composition note 6) |
+| [Record Destruction] | a blank field, a field over its cap, a string input that is not a string, or a kind not recognized, for a pair no erasure tombstone names (where one does, [Duplicate] answers first, Execution Contract Refusal 1) | [Invalid Request] | none (Operation 5 through 9, Operation 28), and the caller's delete is not made (Composition note 6) |
 | [Record Destruction] | database refuses the write | [Storage Failure] | none, and the caller's delete in the same transaction rolls back with it (Operation 10, Execution Contract Constituent failure 1) |
 | [Read Tombstone] | an erasure tombstone names the pair | the erasure tombstone | none (Operation 12) |
 | [Read Tombstone] | no erasure tombstone names the pair | none | none (Operation 13) |
-| [Read Tombstone] | a blank pattern or id, or a pattern or id over its cap | [Invalid Request] | none (Operation 14) |
+| [Read Tombstone] | a blank pattern or id, a pattern or id over its cap, or a pattern or id that is not a string | [Invalid Request] | none (Operation 14) |
 | [List Destroyed] | a pattern, a window, an optional continuation key | the matching erasure tombstones with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 15, Operation 16, Operation 24) |
-| [List Destroyed] | a window that ends before the window starts, a blank or malformed window start or window end, a malformed continuation key, or a blank or over-long pattern | [Invalid Request] | none (Operation 18, Operation 19, Operation 25, Operation 26, Operation 27) |
+| [List Destroyed] | a window that ends before the window starts, a blank or malformed window start or window end, a malformed continuation key, or a blank, over-long or non-string pattern | [Invalid Request] | none (Operation 18, Operation 19, Operation 25, Operation 26, Operation 27) |
 
 ### Invariants
 
@@ -192,7 +192,7 @@ The case space, and the rule that owns each case:
 - **Invariant 2 — One erasure tombstone per destroyed record.**
   ```
   Invariant 2.1: Two erasure tombstones MUST NOT share a destroyed pattern and a destroyed id.
-  Invariant 2.2: The database MUST refuse a write recording a second erasure tombstone for one destroyed pattern and one destroyed id.
+  Invariant 2.2: The database MUST NOT commit a write recording a second erasure tombstone for one destroyed pattern and one destroyed id.
   ```
 - **Invariant 3 — No content of the destroyed record.**
   ```
@@ -210,7 +210,7 @@ The case space, and the rule that owns each case:
   Invariant 5.1: Two [List Destroyed] calls with one destroyed pattern, one window and one continuation key MUST answer one sequence of erasure tombstones over one database state.
   ```
 
-Invariants 1 and 2 give *permanence*: an erasure tombstone, once recorded, reads the same forever, and a destroyed record has at most one. Invariant 3 gives *lawful permanence*: the erasure tombstone holds nothing of what was destroyed, which is why the erasure tombstone may outlive the retention of the record the erasure tombstone names. Invariant 4 gives *authority*: every destruction answers under what and by whom. Invariant 5 gives *rebuildability*: a seal or an index that lists the destroyed members of a range gets the same members in the same order every time.
+Invariants 1 and 2 give *permanence*: an erasure tombstone, once recorded, reads the same forever, and a destroyed record has at most one. Invariant 3 gives *lawful permanence*: the erasure tombstone holds nothing of what was destroyed, which is why the erasure tombstone may outlive the retention of the record the erasure tombstone names. Invariant 4 gives *authority*: every destruction answers under what and by whom. Invariant 5 gives *rebuildability*: a seal or an index that lists the destroyed members of a range gets, over one database state, the same members in the same order every time.
 
 ---
 
@@ -238,13 +238,17 @@ The retention service retries the purge of `inv_8c21` after a timeout it misread
 
 `list_destroyed(destroyed_pattern: "event-log", window_start: 2033-04-01T00:00:00Z, window_end: 2033-03-01T00:00:00Z)` → invalid-request: the window ends before it starts (Operation 18).
 
+### A listing across pages
+
+A deployment overrides the page size to 2 (Capability requirement 8), and three erasure tombstones of `event-log` fall in a window, with listing keys `(2033-03-02T04:00:00Z, inv_8c21)`, `(2033-03-02T04:00:00Z, inv_9d02)` and `(2033-03-03T01:00:00Z, inv_a410)`. `list_destroyed(destroyed_pattern: "event-log", window_start: 2033-03-01T00:00:00Z, window_end: 2033-04-01T00:00:00Z)` → the first two, in that order (Operation 15, Operation 16). The caller passes the second one's listing key as `continuation_key: (2033-03-02T04:00:00Z, inv_9d02)` → the third alone (Term matching erasure tombstone); a call with the third's key → an empty answer.
+
 ### Regulated adversarial scenarios
 
 - **Regulator audit — was this record destroyed or lost?** A regulator finds an index entry naming a transaction the database no longer holds. [Read Tombstone] answers the destruction instant, the retention that authorized it and the service that carried it out. An answer of none means the record left by no destruction this atom recorded, and that is itself the finding to investigate (Operation 13).
-- **Rebuilding a seal's coverage.** An auditor rebuilding the coverage of a day's seal lists the destroyed members of that day with [List Destroyed], page by page, and gets the same members in the same order on every run, so two auditors reach one coverage (Invariant 5.1).
+- **Rebuilding a seal's coverage.** An auditor rebuilding the coverage of a day's seal lists the destroyed members of that day with [List Destroyed], page by page, and two auditors running over one database state get the same members in the same order, so two auditors reach one coverage (Invariant 5.1).
 - **A person asks whether their record was erased.** A data subject disputes that their preference record went. [Read Tombstone] for the pair answers the destruction instant, the authority kind (an erasure-request) and the request that authorized it; an answer of none is no proof the record was never erased by another route (Operation 12, Operation 13, Non-goal 1).
-- **A breach investigation.** After a breach, investigators ask which records left lawfully before it. [List Destroyed] over the breach window lists the matching erasure tombstones, earliest first, page by page, so a record gone with no erasure tombstone stands out from one destroyed with its authority recorded (Operation 15, Invariant 5.1).
-- **An erasure that came back.** A backup is restored and a deleted record reappears. Its erasure tombstone still stands, naming when and why it was destroyed, so the restore's reconciliation finds the record that should not be there (Invariant 1.1).
+- **A breach investigation.** After a breach, investigators ask which records left lawfully before it. [List Destroyed] over the breach window lists the matching erasure tombstones, earliest first, page by page, each page one database state's answer, so a record gone with no erasure tombstone stands out from one destroyed with its authority recorded; a tombstone stamped after a page was read stands on a later listing, the clock's order being the deployment's (Execution Contract Logic confinement 7; Operation 15, Invariant 5.1).
+- **An erasure that came back.** A backup is restored and a deleted record reappears. Its erasure tombstone still stands, naming when and why it was destroyed, so the restore's reconciliation finds the record that should not be there (Invariant 1.1). A second destruction of the restored record answers duplicate and the erasure tombstone keeps the first destruction's instant and authority (Operation 4).
 
 ---
 
@@ -278,7 +282,7 @@ External check 2: An auditor MUST read whether the destroyed record left the dat
 ## Non-goals
 
 ```
-Non-goal 1: The atom MUST NOT confirm a destroyed record left the database.
+Non-goal 1: The atom MUST NOT confirm a destroyed record left the destroyed pattern's database.
 Non-goal 2: A deployment destroying a record MUST compose Defensible Retention.
 Non-goal 3: The atom MUST NOT judge whether a destruction is lawful.
 Non-goal 4: A deployment needing a lawful destruction MUST compose Defensible Retention.
@@ -291,9 +295,11 @@ Non-goal 10: A deployment needing an attested actor MUST compose Actor Identity.
 Non-goal 11: The atom MUST NOT seal an erasure tombstone against modification.
 Non-goal 12: A deployment needing court-admissible erasure tombstones MUST compose Tamper Evidence.
 Non-goal 13: The atom MUST NOT purge an erasure tombstone.
+Non-goal 14: The atom MUST NOT gate a read of an erasure tombstone.
+Non-goal 15: A deployment needing a gated read of erasure tombstones MUST compose Permissions.
 ```
 
-NOTE: the owners — [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 1 through 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); Shred *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 9, Non-goal 10); [Tamper Evidence](./tamper-evidence.md) (Non-goal 11, Non-goal 12); the atom's own permanence, Invariant 1.2 (Non-goal 13).
+NOTE: the owners — [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 1 through 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); Shred *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 9, Non-goal 10); [Tamper Evidence](./tamper-evidence.md) (Non-goal 11, Non-goal 12); the atom's own permanence, Invariant 1.2 (Non-goal 13); [Permissions](./permissions.md) (Non-goal 14, Non-goal 15).
 
 ## Edge cases
 
@@ -307,8 +313,8 @@ Clock dependence 2: [Record Destruction] MUST NOT accept a caller-supplied destr
 ### Concurrency
 
 ```
-Concurrency 1: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id THEN EXACTLY ONE call MUST answer recorded.
-Concurrency 2: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id THEN the other call MUST answer duplicate.
+Concurrency 1: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id AND one call answers recorded THEN the other call MUST NOT answer recorded.
+Concurrency 2: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id AND one call answers recorded AND the other call reads after that call's write commits THEN the other call MUST answer duplicate.
 ```
 
 ### String policy
@@ -318,22 +324,24 @@ String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a whitespace-only string input as blank (the grammar's Term blank).
 ```
 
 ## Composition notes
 
 ```
 Composition note 1: A composing pattern MUST call [Record Destruction] in the transaction that removes the destroyed record (Execution Contract Database 1).
-Composition note 2: A composing pattern MUST supply an opaque destroyed id.
+Composition note 2: A composing pattern MUST supply an opaque destroyed id that names one record of the destroyed pattern.
 Composition note 3: A composing pattern MUST NOT supply a destroyed id derived from a person's data.
 Composition note 4: A composing pattern MUST own the authority reference's meaning.
 Composition note 5: A composing pattern MUST call [Read Tombstone] for a destroyed id the destroyed pattern's database holds no record for.
-Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable THEN a composing pattern MUST NOT remove the destroyed record.
+Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable (Execution Contract Read 1) THEN a composing pattern MUST NOT remove the destroyed record.
 Composition note 7: A composing pattern MUST own whether a duplicate answer permits removing the destroyed record.
 Composition note 8: A composing pattern MUST NOT supply an authority reference derived from a person's data.
 Composition note 9: A composing pattern MUST NOT supply an actor reference derived from a person's data, such as the account name of the person whose record was destroyed.
 ```
+
+Term derived from a person's data: computed from a value that identifies or describes a person by any function, a hash, an encoding or a truncation of it included, since the erasure tombstone is kept forever and holds nothing of what it names (Invariant 3.1).
 
 NOTE: composing patterns — the nine compositions whose Composition state names an extraction-pending fact against this atom: [Audit Trail](../compositions/audit-trail.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Reserve from Pool](../compositions/reserve-from-pool.md), [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), [Chain of Custody](../compositions/chain-of-custody.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md), [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Multi-Party Approval](../compositions/multi-party-approval.md).
 
@@ -347,7 +355,7 @@ Term actors: the atom; the host; the deployment; a composing pattern; a caller; 
 
 Term records: erasure tombstone — the record that one record was destroyed, carrying destroyed pattern, destroyed id, destruction instant, authority kind, authority reference and actor reference.
 
-Term record verbs: identify, share, interpret, carry, offer, remove, supply, declare, override, record, stamp, answer, read, write, order, fall, change, refuse, accept, stand, call, own, confirm, judge, compose, weigh, delete, attest, seal, purge, compare, trim, normalize, case-fold, find.
+Term record verbs: name, commit, gate, identify, share, interpret, carry, offer, remove, supply, declare, override, record, stamp, answer, read, write, order, fall, change, refuse, accept, stand, call, own, confirm, judge, compose, weigh, delete, attest, seal, purge, compare, trim, normalize, case-fold, find.
 
 Term value sets: authority kind = retention-purge | erasure-request | a deployment kind.
 
@@ -357,7 +365,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-01) through the Grace connector.
 
-Term terms: erasure tombstone, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, string input, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
+Term terms: erasure tombstone, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, string input, derived from a person's data, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
 
 #### Record Destruction
 
@@ -376,6 +384,12 @@ Kind: Operation
 The behavior an auditor or a rebuilding composition invokes to list the matching erasure tombstones of one [Destroyed Pattern] whose [Destruction Instant] falls in a window, the earliest listing keys first, at most a page at a time, continuing past a [Continuation Key]. It only reads.
 
 Kind: Operation
+
+#### Erasure Tombstone
+
+The record this atom defines: one erasure tombstone, written by one [Record Destruction] call for one destroyed record. Carries [Destroyed Pattern], [Destroyed Id], [Destruction Instant], [Authority Kind], [Authority Reference] and [Actor Reference], and nothing of the destroyed record's content. Never changed, never removed.
+
+Kind: Type
 
 #### Destroyed Id
 
@@ -505,6 +519,7 @@ Projection: storage-failure
 [Record Destruction]: #record-destruction
 [Read Tombstone]: #read-tombstone
 [List Destroyed]: #list-destroyed
+[Erasure Tombstone]: #erasure-tombstone
 [Destroyed Id]: #destroyed-id
 [Destroyed Pattern]: #destroyed-pattern
 [Destruction Instant]: #destruction-instant
@@ -541,7 +556,7 @@ Inherited from:
 ```
 status: doing
 formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
-last gate: 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 3, a full round, frozen at 9db4fbc — foundational count 3, all cured, not clean, no sample; 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
 
 open: none
 ```
