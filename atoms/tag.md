@@ -147,7 +147,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Create] | name valid and unused | the tag id | one tag lands (Operation 5, Operation 6) |
 | a naming action | another tag carries the name | [Name Taken] | none (Operation 2) |
-| [Rename] | the tag exists, name valid, no other tag carries it, and the tag carries another name | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7, Execution Contract Database 5) |
+| [Rename] | the tag exists, name valid, no other tag carries it, and the tag carries a name other than the name of the call | ok | the name replaced; every tagging stands; the earlier name stays in the tag's history (Operation 7, Execution Contract Database 5) |
 | [Rename] | the tag already carries the name of the call | ok | none, no write (Operation 21) |
 | [Apply] | the tag exists, the item does not carry the tag | ok | one tagging lands (Operation 8) |
 | [Apply] | the item already carries the tag | ok | none, no write (Operation 9) |
@@ -195,7 +195,7 @@ This covers every refusal but [Storage Failure], which answers when the database
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5); each check of one state, Check 1.1 through 2.3, holds at every commit, not at head alone (Execution Contract Database 8). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the tags and taggings the database holds, with their earlier versions (Execution Contract Database 5); Check 1.1 through 2.3 are checks of one state (Execution Contract Database 8). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -434,14 +434,14 @@ Tag is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at a69c19d0 — foundational count 0 after the blind second triage, clean, one sample; Linus's four refining and two rhetorical findings placed one refining (Generation acceptance restated Execution Contract Database 8's bound, now only the checks' range and the label), one rhetorical (the Rename row's "another name", now "a name other than the name of the call") and the rest refuted or left as wording (Generation acceptance 1 binds no check on this page, Identity 6 and 7 settle how a tag name compares, "tag name" is the declared term); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
 
 open: none
 ```
