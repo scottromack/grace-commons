@@ -112,7 +112,7 @@ Capability requirement 3: The deployment MUST supply token material drawn from a
 Capability requirement 4: The deployment MUST declare the default ttl inside the ttl bounds.
 Capability requirement 5: The deployment MUST declare the ttl bounds.
 Capability requirement 6: The database MUST refuse a write carrying a token digest the database holds.
-Capability requirement 9: The deployment MUST deliver the invitation token to the invitee.
+Capability requirement 9: The deployment MUST deliver the invitation token to the invitee (Non-goal 4, Non-goal 30).
 Capability requirement 12: The deployment MUST supply the invitation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Read 5 and Execution Contract Refusal 1.
 Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 14: The deployment MUST supply the token digests at the seam (Execution Contract Logic confinement 8).
@@ -352,8 +352,8 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: A deployment needing an already-resolved answer's payload confirmed MUST read the caller's record of the answer (Non-goal 22).
 External check 2: A deployment needing an accepting identity reference matched to the invitee MUST read the composing pattern's own rule (Identity 13, Non-goal 10).
-External check 3: A deployment needing the inviter's authority confirmed MUST read the composing policy layer (Non-goal 6).
-External check 4: A deployment needing the token's delivery to the invitee confirmed MUST read the delivery channel (Non-goal 4).
+External check 3: A deployment needing the inviter's authority confirmed MUST read the Permissions instance the deployment composes (Non-goal 6, Non-goal 27, Non-goal 29).
+External check 4: A deployment needing the token's delivery to the invitee confirmed MUST read the Notification instance the deployment composes (Non-goal 4, Non-goal 30).
 External check 5: A deployment needing a declining actor identified MUST read the composing pattern's own record (Operation 27, Non-goal 12).
 External check 6: A deployment needing the database confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 20).
 External check 7: A deployment needing the accepting party's real-world identity confirmed MUST read the composing Party Identity proofing (Non-goal 18).
@@ -392,9 +392,13 @@ Non-goal 25: The atom MUST NOT bound two readers' effective status agreement.
 Non-goal 26: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 Non-goal 27: The atom MUST NOT decide who may call an action.
 Non-goal 28: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 29: A deployment needing the authority to invite and the authority to call an action decided MUST compose Permissions.
+Non-goal 30: A deployment needing the invitation token delivered MUST compose Notification.
+Non-goal 31: A deployment needing a credential registered for an accepting party MUST compose Credential.
+Non-goal 32: A deployment needing a session issued to an accepting party MUST compose Session.
 ```
 
-NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); the composing pattern (Non-goal 7, Non-goal 12, External check 5); the caller's own record (Non-goal 22, External check 1); a matching rule *(forthcoming)* (Non-goal 10); the deployment's clock guarantees, Execution Contract Logic confinement 7 (Non-goal 25); the inviter and the invitee, who alone resolve an invitation (Non-goal 24).
+NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); [Permissions](./permissions.md) (Non-goal 6, Non-goal 27, Non-goal 29, External check 3); [Notification](./notification.md) (Non-goal 4, Non-goal 30, Capability requirement 9, External check 4); [Credential](./credential.md) (Non-goal 3, Non-goal 31); [Session](./session.md) (Non-goal 5, Non-goal 32), none of which the atom depends on; the composing pattern (Non-goal 7, Non-goal 12, External check 5); the caller's own record (Non-goal 22, External check 1); a matching rule *(forthcoming)* (Non-goal 10); the deployment's clock guarantees, Execution Contract Logic confinement 7 (Non-goal 25); the inviter and the invitee, who alone resolve an invitation (Non-goal 24).
 
 ---
 
@@ -469,7 +473,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: invitation, invitation token, token material, token digest, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, window length, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank, string cap.
 
-Term composing pattern: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [Retention Window](./retention-window.md), [External Onboarding](../compositions/external-onboarding.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Notification](./notification.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [Retention Window](./retention-window.md), [External Onboarding](../compositions/external-onboarding.md).
 
 Term resolution instant: acceptance instant | declination instant | revocation instant.
 
@@ -807,8 +811,7 @@ status: doing
 formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11
 last gate: 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
-open:
-- 2026-11-20-a · refining · Non-goal 4, 6 and 27; Capability requirement 9; External check 3 and 4; the owners NOTE · the page defers who may invite and who may call to the composing policy layer, the token's delivery to the delivery channel, and the credential and the session to no one, naming none of the patterns that own those jobs → name Permissions, Notification, Credential and Session as the owners in those Non-goals, the owners NOTE and the External checks, with no dependence (decided 2026-11-20 by Scott's session, rounds/escalations.md 12:42Z, answering 2026-11-20 09:44Z)
+open: none
 ```
 
 <details markdown="block">
