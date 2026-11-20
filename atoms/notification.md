@@ -89,6 +89,8 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 Term notification set: the notifications the database holds.
 
+Term high-assurance deployment: a deployment that declares itself so (Capability requirement 10); the class and the receiver of its alert are the deployment's own, never the atom's (Capability requirement 11).
+
 ### Capability requirement
 
 ```
@@ -99,6 +101,8 @@ Capability requirement 6: The deployment MUST NOT change the string cap for the 
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
 Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy.
 Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3.
+Capability requirement 10: The deployment MAY declare the deployment high-assurance.
+Capability requirement 11: A high-assurance deployment MUST declare the receiver of the alert Deliver persistence 4 raises.
 ```
 
 NOTE: watch the deployment's composition note (Capability requirement 7).
@@ -129,7 +133,9 @@ pending_for(recipient_ref)
   answers notification_ids
 ```
 
-NOTE: open 2026-10-21-f — the success arm ok and the answer arm notification_ids resolve to no declaration on the page.
+Term ok: the answer [Deliver], [Fail] and [Expire] give once the call is admitted; it carries nothing.
+
+Term notification ids: the [Notification Id] values of every pending notification addressed to a recipient reference — the answer [Pending For] gives, in the order Execution Contract Read 5 states.
 
 ```
 Operation 1: [Create] MUST record EXACTLY ONE notification per successful call.
@@ -247,11 +253,12 @@ The same atom, three domains, identical mechanic.
 
 A Notification Fanout pattern creates a notification when a task is assigned: `create(dev_d, {type: "task:assigned", task_id: t1, assigned_by: manager_m}) → notif_77`. The WebSocket layer pushes the payload to dev_d's active session and calls `deliver(notif_77)` → [Delivered]. `status_of(notif_77)` returns `status = delivered`, [Delivery Instant] set. `pending_for(dev_d)` returns `[]`.
 
+The three outcomes of `notif_77` are alternatives, one of them recorded and never two (Invariant 2.3): the walkthrough below shows each as the one a different delivery attempt ends in, not three steps in one sequence.
+
 If dev_d is offline, the push attempt produces a connection error: `fail(notif_77)` → [Failed]. The composing system may create a retry notification: `create(dev_d, {same payload}) → notif_78` — a new [Pending] record, distinct id, independent outcome.
 
 If neither delivery nor failure is recorded within the expiry window: `expire(notif_77)` → [Expired]. `status_of(notif_77)` returns [Lapse Instant].
 
-NOTE: open 2026-10-21-b — the three outcomes of notif_77 above are alternatives, which only each paragraph's condition says.
 
 ### Support queue — escalation alert
 
@@ -356,12 +363,11 @@ NOTE: watch the cap's floor (Term string cap).
 ### Bulk expiry
 
 ```
-Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifications.
-Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
+Bulk expiry 1: A composing pattern expiring in bulk MUST enumerate a recipient's pending notifications.
+Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns.
 Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 ```
 
-NOTE: open 2026-11-05-a — Bulk expiry 1 and Bulk expiry 2 carry no condition, so as written they bind every composing pattern, not the one that expires in bulk.
 
 ### Deliver persistence failure
 
@@ -369,10 +375,8 @@ NOTE: open 2026-11-05-a — Bulk expiry 1 and Bulk expiry 2 carry no condition, 
 Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending.
 Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
-Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver].
+Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
 ```
-
-NOTE: open 2026-10-21-g — a high-assurance deployment (Deliver persistence 4) is declared nowhere, and the alert names no receiver.
 
 ### Payload retention
 
@@ -654,11 +658,7 @@ status: doing
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: none, 2026-11-11
 last gate: 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
-open:
-- 2026-10-21-b · refining · Examples (Shared Todo) · the three outcomes of notif_77 (delivered, failed, expired) share one notification, and only each paragraph's condition says they are alternatives, so a sequence test compiled from the walkthrough can read them as one sequence that breaks Invariant 2.3 → name each outcome an alternative, or give each its own notification
-- 2026-10-21-f · refining · Operations (signature block) · the success arm ok and the answer arm notification_ids resolve to no declaration (GRACE-lang Closed vocabulary 4, 27), the corpus's form on sixteen and seven specifications → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-10-21-g · refining · Deliver persistence 4 · a high-assurance deployment is declared nowhere, and the alert names no receiver → declare the class and the receiver, or say whose they are
-- 2026-11-05-a · refining · Bulk expiry 1, Bulk expiry 2 · the two rules bind every composing pattern as written, where Non-goal 4 and Payload retention 4 carry the conditioned form (IF a composing pattern expires in bulk THEN …) → a bulk expiry is a composing pattern's obligation, so both rules take the conditioned form Non-goal 4 already uses (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+open: none
 ```
 
 <details markdown="block">
