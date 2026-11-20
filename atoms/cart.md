@@ -151,7 +151,7 @@ Operation 16: [Remove] MUST remove the line.
 Operation 17: [Remove] MUST answer ok.
 Operation 18: [Clear] MUST remove EVERY line of the cart.
 Operation 19: [Clear] MUST answer ok.
-Operation 21: [Read] MUST answer the cart's currency, EVERY line of the cart AND the cart's total.
+Operation 21: [Read] MUST answer the cart id, the cart's currency, EVERY line of the cart AND the cart's total.
 Operation 22: [Read] MUST answer a line's line id, item reference, quantity AND unit price.
 Operation 23: [Read] MUST NOT write.
 ```
@@ -159,8 +159,6 @@ Operation 23: [Read] MUST NOT write.
 Term line cap: the most lines a cart holds; 500 lines where a deployment declares none.
 
 Term line count: the number of lines a cart holds.
-
-NOTE: open 2026-10-24-b — whether the read answer carries the cart id: State 1 and Term records give every cart one, while Operation 21 lists the answer without it.
 
 Term new quantity: the quantity a [Change Quantity] call sets — a [New Quantity]; a positive count.
 
@@ -187,7 +185,7 @@ The case space, and the rule that owns each case:
 | [Clear] | the cart exists | ok | every line leaves the cart and its line id is retired; the cart stays, its currency standing (Operation 18, Identity 4, State 3, Invariant 4.1) |
 | a cart action or a line action | the id names nothing | [Not Known] | none (Operation 4, Operation 11) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
-| [Read] | the cart exists | the cart's currency, its lines and its total | none (Operation 21 through 23) |
+| [Read] | the cart exists | the cart id, the cart's currency, its lines and its total | none (Operation 21 through 23) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
@@ -388,7 +386,7 @@ Kind: Operation
 
 #### Read
 
-Answers a cart and changes nothing: its [Currency], every [Line] it carries with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
+Answers a cart and changes nothing: its [Cart Id], its [Currency], every [Line] it carries with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
 
 Kind: Operation
 
@@ -594,8 +592,7 @@ status: doing
 formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21 and 22, 2026-11-11
 last gate: 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
-open:
-- 2026-10-24-b · refining · Operation 21; Term cart; Term records · [Read] answers cart, which State 1 and Term records give a cart id and Term cart, Operation 21 and the Read entry do not, so a build echoes the caller's cart id or not by the reading it picks, as readers in each of the last three rounds asked → name the cart id in Operation 21, or say the answer leaves the caller's own id out
+open: none
 ```
 
 <details markdown="block">
