@@ -60,7 +60,7 @@ Identity 4: The atom MUST NOT change an observation id.
 Identity 5: Two observations in one database instance MUST NOT share an observation id.
 Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
-Identity 9: A subject reference MUST carry one meaning across EVERY database instance (Execution Contract Logic confinement 13; Composition note 9).
+Identity 9: A subject reference MUST carry one meaning across EVERY database instance (Execution Contract Logic confinement 13; Composition note 9; Composition note 11).
 Identity 10: An observation id MUST carry one meaning within one database instance.
 Identity 11: The atom MUST compare a reference byte-exactly.
 Identity 12: The atom MUST NOT normalize a reference.
@@ -408,7 +408,7 @@ Non-goal 22: The atom MUST NOT route a call across two database instances.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11, External check 3); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13, External check 2); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (Non-goal 14 through 16; State 4; Execution Contract Database 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 17, Non-goal 18); a composing pattern (Non-goal 21, Composition note 8; Non-goal 22, Composition note 9).
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11, External check 3); [Permissions](./permissions.md) (Non-goal 12, Non-goal 13, External check 2); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (Non-goal 14 through 16; State 4; Execution Contract Database 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 17, Non-goal 18); a composing pattern (Non-goal 21, Composition note 8; Non-goal 22, Composition note 9; Identity 9, Composition note 11).
 
 ---
 
@@ -451,6 +451,7 @@ Composition note 6: A composing pattern MUST own the retention of the observatio
 Composition note 7: A composing pattern MUST own at-most-once recording.
 Composition note 8: A composing pattern MUST own a trend across two observations.
 Composition note 9: A composing pattern MUST own the routing across two database instances.
+Composition note 11: A composing pattern MUST own the meaning of a subject reference across database instances.
 ```
 
 ---
@@ -789,14 +790,14 @@ Projection: invalid-query
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — observation.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2 through 6 in one state, 2026-06-03; coverage 2026-11-10, unit formal: more coverage for the yes votes); observation.tla + 14 twins (across steps, 2026-11-11, the retraction instant 2026-11-20: one observation's amendment chain under [Record], [Amend] and [Retract], refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.1, 7.1, 8.1, 8.2, 9.1 and 10.1, Invariant 3.1, 3.2, 4.1 and 5.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 7, 8, 9 and 10: each compares an observation with a later version of it, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/observation.md formal layer`): no owed rows, 2026-11-11
-last gate: 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
+last gate: 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 1e8567a9 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were refuted by both triages, since Operation 7's future bound refuses the future recording instant it named and no two conforming deployments differ on Identity 9, whose meaning across instances a deployment that gives one reference two meanings breaks; the blind second triage placed the second finding refining, Kind C: Identity 9 named no owner for the meaning of a subject reference across instances, cured by Composition note 11); 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open: none
 ```
