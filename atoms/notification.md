@@ -97,10 +97,10 @@ Term high-assurance deployment: a deployment that declares itself so (Capability
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
+Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance, a restart included (Execution Contract Logic confinement 17); this rule stands in place of the change Execution Contract Input 2 lets a cap take at a later start.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy.
-Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3.
+Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the outcomes a composing pattern calls [Fail] for and the outcomes a composing pattern calls [Expire] for.
+Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 10: The deployment MAY declare the deployment high-assurance.
 Capability requirement 11: A high-assurance deployment MUST declare the receiver of the alert Deliver persistence 4 raises.
 ```
@@ -165,11 +165,12 @@ Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 Operation 31: IF a recipient reference is malformed THEN [Create] MUST answer invalid-request (Execution Contract Input 1).
 Operation 32: IF a notification id is malformed THEN a terminal transition MUST answer not-known (Execution Contract Input 1).
+Operation 33: IF a recipient reference is malformed THEN [Pending For] MUST answer an empty list (Execution Contract Query 1).
 ```
 
 NOTE: watch the required input no rule records (Operation 30).
 
-NOTE: watch the untyped input (Operation 31, Operation 32, Term notification id, Term recipient reference).
+NOTE: watch the untyped input (Operation 31, Operation 32, Operation 33, Term notification id, Term recipient reference).
 
 NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 5 states; no rule of this atom names another (Operation 19).
 
@@ -196,7 +197,7 @@ The case space, and the rule that owns each case:
 | [Status Of] | id names nothing, or is malformed | not-known | none (Operation 18, Operation 18b) |
 | [Pending For] | recipient has pending notifications | their ids, in Execution Contract Read 5's order | none (Operation 19, Execution Contract Read 5) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
-| [Pending For] | over-length or blank recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
+| [Pending For] | malformed, over-length or blank recipient | empty list | none — a read with a bad argument has a correct answer (Operation 33, String 8, String 9) |
 
 ### Invariants
 
@@ -232,9 +233,9 @@ The case space, and the rule that owns each case:
 - **Invariant 7 — Pending query excludes terminals.**
 - **Invariant 8 — Timestamp ordering.**
   ```
-  Invariant 8.1: IF delivery instant DOES NOT EQUAL blank THEN delivery instant MUST NOT PRECEDE creation instant.
-  Invariant 8.2: IF failure instant DOES NOT EQUAL blank THEN failure instant MUST NOT PRECEDE creation instant.
-  Invariant 8.3: IF lapse instant DOES NOT EQUAL blank THEN lapse instant MUST NOT PRECEDE creation instant.
+  Invariant 8.1: IF delivery instant DOES NOT EQUAL blank THEN delivery instant MUST NOT PRECEDE creation instant (Execution Contract Logic confinement 7).
+  Invariant 8.2: IF failure instant DOES NOT EQUAL blank THEN failure instant MUST NOT PRECEDE creation instant (Execution Contract Logic confinement 7).
+  Invariant 8.3: IF lapse instant DOES NOT EQUAL blank THEN lapse instant MUST NOT PRECEDE creation instant (Execution Contract Logic confinement 7).
   ```
 - **Invariant 9 — Notification durability.**
   ```
@@ -294,7 +295,7 @@ This atom's acceptance is provable: an external auditor clears it from the notif
 Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the database (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at an instant from creation instant and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.1, Invariant 1.2).
-Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Execution Contract Logic confinement 7).
+Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1 through 8.3, Execution Contract Logic confinement 7).
 Check 3.1: An auditor MUST find EVERY notification whose status DOES NOT EQUAL pending carrying EXACTLY ONE terminal stamp (Invariant 3.1).
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (State 6).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
@@ -354,9 +355,7 @@ String 8: [Pending For] MUST read an over-length recipient reference as matching
 String 9: [Pending For] MUST read a blank recipient reference as matching nothing.
 ```
 
-Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Create], which is the degenerate configuration a deployment owns rather than a state the atom admits.
-
-NOTE: watch the cap's floor (Term string cap).
+Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none.
 
 ### Atomicity of a terminal transition
 
@@ -373,7 +372,7 @@ Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 
 ```
 Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending.
-Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure.
+Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure, and the caller owns the retry's count and interval.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
 ```
@@ -402,6 +401,7 @@ Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
 Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with Duplicate Prevention.
 Composition note 6: A composing pattern MUST own a payload's retention.
+Composition note 8: A composing pattern MUST call [Fail] for each outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each outcome the declared policy names for expiring (Operation 14, Capability requirement 8).
 ```
 
 NOTE: composing patterns — [Notification Fanout](../compositions/notification-fanout.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md).
@@ -454,7 +454,7 @@ Kind: Operation
 
 #### Status Of
 
-The read-only query returning the full record for a [Notification Id] in any state, or [Not Known] if no notification has that id. Never transitions.
+The read-only query returning the full record for a [Notification Id] in any state, or [Not Known] if no notification has that id or the id is malformed (Operation 18, Operation 18b). Never transitions.
 
 Kind: Operation
 
@@ -490,7 +490,7 @@ Projection: payload
 
 #### Creation Instant
 
-The wall-time the notification was created, stamped from the injected clock at [Create]. Immutable (Invariant 1). The lower bound for any terminal timestamp (Invariant 8).
+The wall-time the notification was created, stamped from the injected clock at [Create]. Immutable (Invariant 1). The lower bound for any terminal timestamp (Invariant 8, Execution Contract Logic confinement 7).
 
 Kind:       Field
 Field of:   the notification record
@@ -655,8 +655,8 @@ Projection: storage-failure
 
 ```
 status: doing
-formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: none, 2026-11-11
-last gate: 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
+last gate: 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open: none
 ```
