@@ -58,6 +58,7 @@
   }
  ],
  "kind": "atom",
+ "links": [],
  "name": "Tag",
  "non_goals": [],
  "projectable": [
@@ -96,6 +97,7 @@
    "rule": "Operation 3"
   }
  ],
+ "ranges": [],
  "reader_gaps": [
   {
    "kind": "no-input-type",
@@ -104,7 +106,22 @@
    "what": "the reader read no type for the input `label` of stick: it found no Term of that name carrying a definition, so no value is made for it"
   }
  ],
- "records": [],
+ "records": [
+  {
+   "carries": [
+    "tag_id"
+   ],
+   "form": "type",
+   "inverse_of": null,
+   "key": [
+    "tag_id"
+   ],
+   "key_rule": "Identity 1",
+   "line": 31,
+   "name": "tag",
+   "rule": null
+  }
+ ],
  "rules": [
   {
    "family": "Identity",

@@ -65,6 +65,20 @@ def section_lines(lines: list[str], name: str) -> range:
     return range(start + 1, end)
 
 
+def block_lines(lines: list[str], name: str) -> range:
+    """Line indexes of the section titled `name`, read by its name and not its level: the `##` section where the page
+    carries one, or else the `###` block of that name, as a pattern in the tree order carries `### Composes` under
+    `## What it is` (spec-format.md, *The tree order*)."""
+    got = section_lines(lines, name)
+    if got:
+        return got
+    start = next((i for i, ln in enumerate(lines) if ln.rstrip() == "### " + name), None)
+    if start is None:
+        return range(0)
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r"^#{2,3} ", lines[i]) or check.h2_name(lines[i]) is not None), len(lines))
+    return range(start + 1, end)
+
+
 def outline(lines: list[str]) -> list[tuple[tuple[str, ...], str]]:
     """For each line, the headings it sits under (`##` in either form, `###`,
     `####`) and the bold bullet lead since the last of them — the title line of
@@ -212,7 +226,36 @@ def walk_terms(spec: cites.Spec, lines: list[str], where) -> tuple[list[dict], d
     vocabulary lines (`Term actors:` and the other categories) and the terms;
     and the term entries under `## Terms`. A declaration owns its definition,
     and the term entry its marker lands on (`— a [Cart]`) carries the reader's
-    copy and the Kind (spec-format.md, *The term entry*)."""
+    copy and the Kind (spec-format.md, *The term entry*).
+
+    An entry is read by its form, not its position (spec-format.md, *The tree
+    order*: "should the parser be that brittle?", Scott 2026-11-18): under
+    `## Terms` every `####` is an entry, as it always was; anywhere else a `###`
+    or `####` heading is an entry where a `Kind:` line follows its prose, as on
+    a pattern in the tree order, whose entries stand where each name is first
+    used (an action's entry is its `###` branch)."""
+    entries = term_entries(lines)
+    by_name = {e["name"]: e for e in entries}
+
+    vocabulary: dict[str, str] = {}
+    terms: list[dict] = []
+    for name, (line, definition) in sorted(spec.terms.items(), key=lambda t: t[1][0]):
+        if name in cites.CATEGORY_NAMES:
+            vocabulary[name] = definition
+            continue
+        marker = ENTRY_OF.search(definition)
+        landed = by_name.get(marker.group(1)) if marker else None
+        terms.append({"name": name, "definition": definition, "line": line,
+                      "section": list(where[line - 1][0]),
+                      "entry": landed["name"] if landed else None,
+                      "kind": dict(landed["kind"]) if landed else None})
+    return terms, vocabulary, entries
+
+
+def term_entries(lines: list[str]) -> list[dict]:
+    """Every term entry on the page, in page order: each `####` under `## Terms`, and each entry outside it read by its
+    form (`entries_by_form`). Each is `name`, `text` (the prose before the fields), `kind` (the fields, `Kind` first)
+    and `line`."""
     entries: list[dict] = []
     terms_at = section_lines(lines, "Terms")
     entry = None
@@ -233,21 +276,43 @@ def walk_terms(spec: cites.Spec, lines: list[str], where) -> tuple[list[dict], d
             entry["kind"][kl.group(1)] = kl.group(2)
         elif ln.strip() and not entry["kind"]:
             entry["text"] = (entry["text"] + "\n" + ln.strip()).strip()
-    by_name = {e["name"]: e for e in entries}
+    entries += entries_by_form(lines, set(terms_at))
+    entries.sort(key=lambda e: e["line"])
+    return entries
 
-    vocabulary: dict[str, str] = {}
-    terms: list[dict] = []
-    for name, (line, definition) in sorted(spec.terms.items(), key=lambda t: t[1][0]):
-        if name in cites.CATEGORY_NAMES:
-            vocabulary[name] = definition
+
+def entries_by_form(lines: list[str], skip: set[int] = frozenset()) -> list[dict]:
+    """The term entries outside `## Terms` (the indexes in `skip`): a `###` or
+    `####` heading, outside a fence, whose prose is followed by a `Kind:` line;
+    the fields run to the first line that is not one. A heading followed by no
+    `Kind:` line before the next heading, fence or `Term` line is no entry."""
+    out: list[dict] = []
+    entry, fence, fields_done = None, False, False
+    for k, ln in enumerate(lines):
+        if check.FENCE.match(ln):
+            fence = not fence
+            entry = None
             continue
-        marker = ENTRY_OF.search(definition)
-        landed = by_name.get(marker.group(1)) if marker else None
-        terms.append({"name": name, "definition": definition, "line": line,
-                      "section": list(where[line - 1][0]),
-                      "entry": landed["name"] if landed else None,
-                      "kind": dict(landed["kind"]) if landed else None})
-    return terms, vocabulary, entries
+        if fence or k in skip:
+            entry = None if k in skip else entry
+            continue
+        h = H34.match(ln)
+        if h or ln.startswith("#") or LINK_DEF.match(ln) or ln.lstrip().startswith("<!--") or cites.TERM_DECL.match(ln):
+            entry = {"name": h.group(2), "text": "", "kind": {}, "line": k + 1} if h else None
+            fields_done = False
+            if h:
+                out.append(entry)
+            continue
+        if entry is None or fields_done:
+            continue
+        kl = KIND_LINE.match(ln)
+        if kl and (entry["kind"] or kl.group(1) == "Kind"):
+            entry["kind"][kl.group(1)] = kl.group(2)
+        elif entry["kind"]:
+            fields_done = True      # the fields are one run of lines; a blank line or prose ends them
+        elif ln.strip():
+            entry["text"] = (entry["text"] + "\n" + ln.strip()).strip()
+    return [e for e in out if e["kind"]]
 
 
 def walk_tables(lines: list[str], where, spec: cites.Spec) -> list[dict]:
@@ -340,7 +405,10 @@ def walk_non_goals(rel: str, lines: list[str], rules: list[dict], spec: cites.Sp
     landed). Each owner says whether it is forthcoming, so a part that names a
     forthcoming owner beside others gives each its own entry (owner_parts)."""
     owned: dict[str, list[dict]] = {}
-    for k in section_lines(lines, "Non-goals"):
+    # by form, not position: the owners line under `## Non-goals`, or, on a page with no such section (the tree order's
+    # `## Left to others`), the owners line wherever it stands
+    at = section_lines(lines, "Non-goals") or range(len(lines))
+    for k in at:
         if not lines[k].startswith(OWNERS):
             continue
         for group in top_level_split(lines[k][len(OWNERS):].strip().rstrip(".")):
@@ -419,7 +487,7 @@ def walk_composes(rel: str, lines: list[str]) -> list[dict]:
     composition shape's Composes section)."""
     out, seen = [], set()
     base = posixpath.dirname(rel)
-    for k in section_lines(lines, "Composes"):
+    for k in block_lines(lines, "Composes"):
         ln = lines[k]
         if ln.lstrip()[:3] in ("```", "~~~"):
             break

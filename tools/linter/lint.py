@@ -121,6 +121,19 @@ the three-pass review otherwise has to catch by eye —
                               pronoun standing for a noun (R24, Z-pronoun), and a
                               length, size, width or amount Term that names no
                               unit (R6, Z-unit).
+  Y. Standard sentences     — a data claim said another way than its one
+                              sentence in GRACE-lang (the section titled
+                              *Standard sentences*): a key (Y-key-sentence), a
+                              key within an owner (Y-owner-key-sentence), a link
+                              (Y-link-sentence), a range (Y-range-sentence), and
+                              a Field entry whose `Field of` names no declared
+                              Type (Y-record-type). Advisory until the
+                              reorganisation sweep is done; the forms are read
+                              by tools/grace/ir_data.py, the IR's own reader.
+  H. The tree order         — H-heading reads a pattern whose first `##` is
+                              `What it is` against the tree rows of the heading
+                              table (spec-format.md, *The tree order*), and
+                              every other pattern against the section rows.
 
 Design notes (this tool is meant to be maintained by a small/cheap model):
   - Standard library only. No deps. Runs anywhere `python3` does.
@@ -180,6 +193,27 @@ def h2_name(line: str) -> str | None:
         return line[3:].rstrip()
     m = H2_FOLDED.match(line)
     return m.group(1) if m else None
+
+
+TREE_FIRST = "What it is"
+
+
+def is_tree(text: str) -> bool:
+    """A pattern in the tree order: its first `##` heading outside a fence is `What it is` (spec-format.md, the section
+    titled *The tree order*). Its term entries stand where each name is first used, an action's at `###`, and its
+    Generation acceptance and Vocabulary at `###` under `## Proof`."""
+    fence = False
+    for line in text.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        elif not fence and h2_name(line) is not None:
+            return h2_name(line).strip() == TREE_FIRST
+    return False
+
+
+def entry_heading(tree: bool) -> str:
+    """The heading a term entry takes: `####` on a pattern in the section shape, `###` or `####` in the tree order."""
+    return r"#{3,4}" if tree else r"####"
 
 
 INVARIANT_HEADER = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]", re.M)
@@ -281,7 +315,11 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # patterns, 16 on 15, and 1 on Audit Trail. They are not swept: each site is a
 # finding for its page's next round, and a code leaves this set in the change
 # that cures its last site.
-ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind", "Y-pattern-not-page"})
+ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind", "Y-pattern-not-page",
+                                            # the standard sentences: advisory until the reorganisation sweep is done, then a gate
+                                            # (unit `method: the forms of the tree reorganisation and the standard sentences`)
+                                            "Y-key-sentence", "Y-owner-key-sentence", "Y-link-sentence", "Y-range-sentence",
+                                            "Y-record-type"})
 
 
 @dataclass
@@ -1458,6 +1496,8 @@ def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
             continue  # the unmigrated corpus is not held to this
         section = re.search(r"^(?:## Generation acceptance|[ \t]*<h2\b[^>]*>[ \t]*Generation acceptance[ \t]*</h2>)\s*$",
                             p.text, re.M)
+        if section is None and is_tree(p.text):     # the tree order keeps it at `###` under `## Proof`
+            section = re.search(r"^### Generation acceptance\s*$", p.text, re.M)
         if section:
             if re.search(r"^\s*(?:Check|External check) \d", p.text, re.M):
                 continue
@@ -1593,7 +1633,7 @@ def check_term_coverage(patterns: dict[Path, Pattern]) -> list[Finding]:
     # subsection titles, and reading those as term entries is the same error
     # that made the `>=` census wrong twice (council read 34).
     def entry_names(text: str) -> list[str]:
-        parts = re.split(r"^#### ([^\n]+)$", text, flags=re.M)
+        parts = re.split(r"^" + entry_heading(is_tree(text)) + r" ([^\n]+)$", text, flags=re.M)
         return [n.strip() for n, body in zip(parts[1::2], parts[2::2])
                 if re.search(r"^Kind:", body, re.M)]
 
@@ -1604,8 +1644,9 @@ def check_term_coverage(patterns: dict[Path, Pattern]) -> list[Finding]:
         linked = {m.group(1) for m in LINKNAME.finditer(p.text)}
         for h in heads:
             if h not in linked:
+                at = re.search(r"^" + entry_heading(is_tree(p.text)) + " " + re.escape(h) + r"\s*$", p.text, re.M)
                 findings.append(Finding(
-                    p.path, line_of(p.text, p.text.find(f"#### {h}")),
+                    p.path, line_of(p.text, at.start() if at else 0),
                     "O-term-unreachable",
                     f"the term entry `{h}` has no registry link line, so no "
                     f"`[{h}]` marker can resolve to it"))
@@ -1666,15 +1707,24 @@ def check_term_kind(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue
+        tree = is_tree(p.text)
         head = re.search(r"^## Terms\s*$", p.text, re.M)
-        if not head:
+        if not head and not tree:
             continue
-        tail = re.search(r"^## ", p.text[head.end():], re.M)
-        body = p.text[head.end(): head.end() + tail.start()] if tail else p.text[head.end():]
-        parts = re.split(r"^#### (.+?)\s*$", body, flags=re.M)
-        for name, text in zip(parts[1::2], parts[2::2]):
+        found: list[tuple[str, int, str]] = []      # (name, line, the text the entry's fields are read from)
+        if head:
+            tail = re.search(r"^## ", p.text[head.end():], re.M)
+            body = p.text[head.end(): head.end() + tail.start()] if tail else p.text[head.end():]
+            parts = re.split(r"^#### (.+?)\s*$", body, flags=re.M)
+            found = [(name, line_of(p.text, p.text.find(f"#### {name}\n")), text) for name, text in zip(parts[1::2], parts[2::2])]
+        else:   # the tree order: an entry is a `###` or `####` heading a `Kind:` line follows, wherever it stands
+            heads = list(re.finditer(r"^#{3,4} (.+?)\s*$", p.text, re.M))
+            for k, m in enumerate(heads):
+                text = p.text[m.end(): heads[k + 1].start() if k + 1 < len(heads) else len(p.text)].split("```")[0]
+                if re.search(r"^Kind:", text, re.M):
+                    found.append((m.group(1), line_of(p.text, m.start()), text))
+        for name, at, text in found:
             have = {m.group(1): m.group(2) for m in field_re.finditer(text)}
-            at = line_of(p.text, p.text.find(f"#### {name}\n"))
             kind = have.get("Kind")
             if kind is None:
                 out.append(Finding(p.path, at, "O-term-kind", f"the term entry `{name}` has no `Kind` line"))
@@ -1722,7 +1772,7 @@ def check_dead_anchors(patterns: dict[Path, Pattern]) -> list[Finding]:
         return re.sub(r"[^a-z0-9]+", "-", s.strip().lower()).strip("-")
 
     for p in patterns.values():
-        heads = {slug(h) for h in HEADING.findall(p.text)}
+        heads = {slug(h) for h in (re.findall(r"^#{3,4} (.+)$", p.text, re.M) if is_tree(p.text) else HEADING.findall(p.text))}
         if not heads:
             continue  # a spec with no term entries has no registry to check
         for m in LINKLINE.finditer(p.text):
@@ -2288,8 +2338,8 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
     Terms section are skipped, so unconverted patterns stay clean."""
     findings: list[Finding] = []
     for p in patterns.values():
-        if not TERMS_SECTION.search(p.text):
-            continue  # opt-in: only converted pages carry a Terms registry
+        if not TERMS_SECTION.search(p.text) and not is_tree(p.text):
+            continue  # opt-in: only converted pages carry a Terms registry (the tree order keeps it under `### Vocabulary`)
         # definitions: the registry's `[Term]: …` lines (anywhere on the page)
         defs = {m.group(1) for m in TERM_DEF.finditer(p.text)}
         # markers: scrub HTML comments (possibly multi-line) and code spans, then
@@ -2692,7 +2742,9 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
         if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue
         shape = "composition" if "/compositions/" in p.path.as_posix() else "atom"
-        rows = tables[shape]
+        if is_tree(p.text):
+            shape += " tree"    # spec-format.md, the section titled *The tree order*: the tree rows of the heading table
+        rows = tables.get(shape, [])
         top = [r for r in rows if r["level"] == 2]
         top_index = {r["name"]: k for k, r in enumerate(top)}
         kids = {r["name"]: [c for c in rows if c["level"] == 3 and c["inside"] == r["name"]] for r in top}
@@ -3749,7 +3801,7 @@ _PAGE_STAYS = re.compile(
     r"|no page to the Jekyll build|link its page on GitHub|generate the page|X-page-citation|Y-pattern-not-page"
     r"|page shows|is the page's|preferences page|settings page|\{pages?\b[^}]*\}|\"page\"", re.I)
 _PAGE_DATED = re.compile(r"^(NOTE: open \d{4}-|Status:|\*\*Status)")
-_PAGE_SKIP_SECTIONS = {"Ledger", "Decisions", "Deleted rules", "Examples"}
+_PAGE_SKIP_SECTIONS = {"Ledger", "Decisions", "Deleted rules", "Examples", "Example"}
 _PAGE_METHOD = ("execution-contract.md", "GRACE-lang.md", "pressure-testing.md", "spec-format.md")
 _PAGE_TOOLS = ("tools/grace/check.py", "tools/grace/ir.py", "tools/grace/cites.py",
                "tools/linter/lint.py", "tools/harness/coverage.py")
@@ -3804,6 +3856,39 @@ def check_pattern_not_page(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
                 continue  # a docstring is not a message
             if _PAGE_WORD.search(_PAGE_STAYS.sub("", t.string)):
                 out.append(_page_message(path, t.start[0], t.string))
+    return out
+
+
+# Y-key-sentence, Y-owner-key-sentence, Y-link-sentence, Y-range-sentence, Y-record-type (advisory): a data claim said in
+# another way than its standard sentence (GRACE-lang, the section titled *Standard sentences*; unit `method: the forms of the
+# tree reorganisation and the standard sentences`, Scott 2026-11-19 9:39 and 9:42 PM Central). The reading is the IR's
+# (tools/grace/ir_data.py), so the linter holds no second copy of the forms. Advisory while the reorganisation sweep cures
+# them pattern by pattern; a gate once the sweep is done.
+STANDARD_SENTENCE_CODES = {"key": "Y-key-sentence", "owner key": "Y-owner-key-sentence", "link": "Y-link-sentence",
+                           "range": "Y-range-sentence", "record": "Y-record-type"}
+STANDARD_SENTENCE_FORMS = {
+    "key": "`Two <Type>s MUST NOT share a <field>.` (Standard sentence 1)",
+    "owner key": "`Two <Type>s one <Owner> carries MUST NOT share a <field>.` (Standard sentence 2)",
+    "link": "`EVERY <Type>'s <field> MUST name a <Type>.` (Standard sentence 3)",
+    "range": "`EVERY <Type> MUST carry a positive|whole <Term> as the <Type>'s <field>.` (Standard sentence 4)",
+    "record": "a Type entry, and each of its fields a Field entry whose `Field of:` names that Type (Standard sentence 5)",
+}
+
+
+def check_standard_sentences(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """Y-*-sentence and Y-record-type (advisory): each data claim a pattern says another way than the GRACE-lang form for
+    its kind, with what departs from the form; and each Field entry whose `Field of` names no Type the pattern declares."""
+    cites, ir = _parser()
+    out: list[Finding] = []
+    for path, p in sorted(patterns.items()):
+        lines = p.text.split("\n")
+        rules, _ = ir.walk_rules(lines, ir.outline(lines))
+        terms = {m.group(1).strip().lower() for ln in lines if (m := cites.TERM_DECL.match(ln))}
+        for kind, what, line, why in ir.standard(rules, ir.term_entries(lines), terms)["departures"]:
+            said = "a record type" if kind == "record" else f"a {kind}"
+            out.append(Finding(path, line, STANDARD_SENTENCE_CODES[kind],
+                               f"{what}: {said} said another way ({why}); the standard sentence is "
+                               f"{STANDARD_SENTENCE_FORMS[kind]} in GRACE-lang"))
     return out
 
 
@@ -3873,6 +3958,7 @@ def main(argv: list[str]) -> int:
     findings += check_term_kind(root, patterns)
     findings += check_requirement_text(patterns)
     findings += check_pattern_not_page(root, patterns)
+    findings += check_standard_sentences(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

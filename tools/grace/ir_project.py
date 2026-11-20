@@ -22,7 +22,9 @@ def projectable_of(doc: dict, gaps: list[dict]) -> list[dict]:
     gap_at: dict[str, list[int]] = {}
     for i, g in enumerate(gaps):
         gap_at.setdefault(g["rule"], []).append(i)
-    keyed = {k["rule"] for k in doc["keys"]} | {k["source"]["rule"] for k in doc["keys"] if k.get("source")}
+    # an Identity key; a key a standard sentence says (`form`) stays what its family makes it, so this table is the same as before
+    # the standard sentences were read (unit `method: the forms of the tree reorganisation and the standard sentences`)
+    keyed = {k["rule"] for k in doc["keys"] if not k.get("form")} | {k["source"]["rule"] for k in doc["keys"] if k.get("source")}
     stepped = {t[part]["rule"] for t in doc["transitions"] for part in ("stands", "from", "absent", "stamp") if t.get(part)}
     guards = {g["rule"]: g for g in doc["guards"]}
     wired = {c["rule"] for c in doc["calls"]} | {t["rule"] for t in doc["answer_tests"]}

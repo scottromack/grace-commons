@@ -4,7 +4,7 @@ nav_order: 2
 parent: The Library
 ---
 
-# GRACE lang v0.74 — Minimal Earned Grammar
+# GRACE lang v0.75 — Minimal Earned Grammar
 
 Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -165,7 +165,9 @@ Term statement shape: subject modal verb object | subject modal verb object tail
 
 Term object: a declared identifier, or an enumeration introduced by EXACTLY ONE OF naming the outcomes among which exactly one holds.
 
-Term label: the name of the heading the rule sits under, in the heading's own words, singular, three words at most, then the rule's number under that name — `Principle 1`, `Non-goal 4`, retention_policy 2; under a heading that carries its own number, that number, a dot and the rule's number — `Invariant 2.3`, `record_action step 3.2`; a WHEN child adds a lower-case letter — `Take 2a`; unique within a spec.
+Term label: the rule's label family, three words at most, then the rule's number under that name — `Principle 1`, `Non-goal 4`, retention_policy 2; under a heading that carries its own number, that number, a dot and the rule's number — `Invariant 2.3`, `record_action step 3.2`; a WHEN child adds a lower-case letter — `Take 2a`; unique within a spec.
+
+Term label family: the name of the heading a rule sits under, in the heading's own words, singular; on a specification in the tree order (the section titled The tree order in `spec-format.md`), a family the table titled Rule families in `spec-format.md` lists is the family of a rule wherever the rule stands, and any other family is still the heading the rule sits under.
 
 Term rule form: `LABEL: statement` on one line, or `LABEL: WHEN condition:` followed by indented child rules each in rule form.
 
@@ -178,14 +180,14 @@ Rule shape 3: A normative sentence MUST carry exactly one obligation.
 Rule shape 4: A writer MUST write a copula enumeration as a value-set declaration.
 Rule shape 5: A writer MUST NOT write a copula enumeration as a rule.
 Rule shape 6: EVERY rule MUST match the rule form.
-Rule shape 7: A label MUST name the heading the label sits under.
+Rule shape 7: A label MUST name the label's family.
 Rule shape 8: A label MUST NOT carry an abbreviation.
 ```
 
 NOTE: a copula enumeration is *X is one of a, b, c*.
 
 WHY:
-A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (the entry *Never mint an acronym* in `spec-format.md`).
+A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (the entry *Never mint an acronym* in `spec-format.md`). In the section shape a rule's family is the heading it sits under, so Rule shape 7 reads as it read through v0.74; in the tree order a rule stands where its subject is first used, an Identity rule after the term entry of the field it rules over, and its standard family names it there (v0.75, the maintainer's approval of the tree order on 2026-11-18 and his question the same day, "should the parser be that brittle?").
 
 #### Standard label families
 
@@ -234,6 +236,40 @@ Casing 6: The parser MUST read a token's tier from the token's case.
 
 WHY:
 The tiers were already in force and declared nowhere, which is why the cheap tier checks work at all: lower case is the tell. Casing 3 is the load-bearing one — a lower-case `and` is English and carries no operator, so prose stays legal and the drift becomes visible without a new prohibition. A family's casing is not this section's to set (Rule shape 7 owns it) but the tier set must contain sentence case, or Casing 6 has no tier for the corpus's commonest family casing; families named as compound identifiers are Casing 5 winning, not exceptions. Casing 6 is what the tiers buy: a parser classifies by shape before lookup. The census that admitted this and the drift numbers are `cites.py --drift`'s.
+
+#### Standard sentences
+
+Term data claim: a rule that says what a specification's records hold whatever any call does — a key, a key within an owner, a link or a range.
+
+Term key: two records of one record type never carrying one value of one field.
+
+Term key within an owner: two records of one record type that one record of another record type carries never carrying one value of one field.
+
+Term link: a field of every record of one record type naming a record of a record type.
+
+Term range: a field of every record of one record type holding a whole number of one or more, `positive`, or of zero or more, `whole`, the bound named by a term the specification declares.
+
+Term record type: a record a specification keeps, declared in a term entry of Kind Type, each of the record's fields a term entry of Kind Field whose `Field of` line names the record type (the section titled The term entry in `spec-format.md`).
+
+Term standard sentence: the one sentence form of a data claim, Standard sentence 1 through 4; in a form, `<Type>` and `<Owner>` are record types the specification declares, `<Type>s` the record type's regular English plural (lines, categories, boxes), `<field>` a field of the record type the sentence names (in a link, of the record type either side names, since a record carrying another record's id carries that record's field), and `<Term>` a term the specification declares whose name opens with the bound's word, as positive count and whole amount do.
+
+```
+Standard sentence 1: A writer MUST write a key as `Two <Type>s MUST NOT share a <field>`.
+Standard sentence 2: A writer MUST write a key within an owner as `Two <Type>s one <Owner> carries MUST NOT share a <field>`.
+Standard sentence 3: A writer MUST write a link as `EVERY <Type>'s <field> MUST name a <Type>`.
+Standard sentence 4: A writer MUST write a range as `EVERY <Type> MUST carry a positive|whole <Term> as the <Type>'s <field>`.
+Standard sentence 5: A specification MUST declare EVERY record the specification keeps as a record type.
+Standard sentence 6: A writer MUST name a record type in the `Field of` line of EVERY term entry of Kind Field.
+Standard sentence 7: A writer MUST NOT write a data claim in a sentence other than the data claim's standard sentence.
+Standard sentence 8: The parser MUST read EVERY standard sentence as the data claim the sentence's form names.
+```
+
+NOTE: the forms in use, from Cart: `Two lines one cart carries MUST NOT share an item reference.`, `EVERY line's cart id MUST name a cart.`, `EVERY line MUST carry a positive count as the line's quantity.` The variants they replace, found by the trial that generated the data half of a pattern from the IR (2026-11-19): fields declared `Field of: Permissions`, where Permissions is the pattern's own name and no record type; and one key said four ways, `Two lines one cart carries`, `Two grants`, `Two distinct landed events`, `Two events in the log`.
+
+NOTE: a key over several fields, a key over some of a record type's records (`Two active subscriptions`) and a link to a constituent's record from a composition have no standard sentence yet; `tools/linter/lint.py` reports each as said another way, and the maintainer decides its form.
+
+WHY:
+One claim, one sentence: a reader, the IR and a generator of the data half read a key, a link or a range in one form, so the generator needs no code for any one pattern. The form is admitted under Principle 2: the concept recurs across the specifications and is contested, read two ways by the generator that met the variants, and the maintainer decided on 2026-11-19 at 9:39 PM Central (Principle 8). Standard sentence 7 opens a retirement (Term retirement) of every other way of saying a data claim, which the reorganisation sweep closes one pattern at a time; `lint.py`'s `Y-key-sentence`, `Y-owner-key-sentence`, `Y-link-sentence`, `Y-range-sentence` and `Y-record-type` report each one left and stay advisory until the sweep is done, and `tools/grace/ir.py` reads each standard sentence into the IR's keys, links, ranges and records (Standard sentence 8). A link's field may be the linked record type's, since one term entry names one field, and the record that carries another record's id carries that record's term entry.
 
 ---
 
@@ -687,7 +723,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; the tombstone, in the spec or in the spec's history file; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their family, never abbreviated; the standard sentences of a key, a key within an owner, a link and a range, and every record a record type; the tombstone, in the spec or in the spec's history file; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.

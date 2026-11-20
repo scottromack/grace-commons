@@ -821,6 +821,32 @@ def contract_labels() -> dict[str, set[str]]:
     return _CONTRACT_LABELS
 
 
+_STANDARD_FAMILIES: set[str] | None = None
+
+
+def standard_families() -> set[str]:
+    """The standard label families, as lint.py reads them from the table titled *Rule families* in spec-format.md."""
+    global _STANDARD_FAMILIES
+    if _STANDARD_FAMILIES is None:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "linter"))
+        from lint import standard_label_families
+        sf = Path(__file__).resolve().parents[2] / "spec-format.md"
+        _STANDARD_FAMILIES = standard_label_families(sf.read_text(encoding="utf-8")) if sf.exists() else set()
+    return _STANDARD_FAMILIES
+
+
+def tree_order(lines: list[str]) -> bool:
+    """A pattern in the tree order: its first `##` heading outside a fence is `What it is` (spec-format.md, the section
+    titled *The tree order*)."""
+    fence = False
+    for ln in lines:
+        if ln.lstrip().startswith("```"):
+            fence = not fence
+        elif not fence and h2_name(ln) is not None:
+            return h2_name(ln).strip() == "What it is"
+    return False
+
+
 def scan(path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
     blank_guarded = set(BLANK_GUARD.findall(text))
@@ -962,6 +988,7 @@ def scan(path: Path) -> list[Finding]:
                     f"quotes literal text, so write the name bare (Surface 30)")
 
     ctx = {"h2": "", "h3": "", "h4": "", "bullet": "", "italic": "", "inv": None, "step": None}
+    tree = tree_order(lines)
 
     def track(ln: str) -> None:
         hm = re.match(r"^(#{2,4}) (.*)$", ln)
@@ -1082,6 +1109,10 @@ def scan(path: Path) -> list[Finding]:
                     heading = " ".join(str(ctx[k] or "") for k in ("h2", "h3", "h4", "bullet", "italic"))
                     hw = _words(heading)
                     missing = [w for w in _words(name) if not _matches(w, hw)]
+                    # in the tree order a rule stands where its subject is first used, and its label names its
+                    # standard family wherever it stands (GRACE-lang Rule shape 7, Term label family)
+                    if missing and tree and name in standard_families():
+                        missing = []
                     if missing:
                         add(k, "R-label-heading", f"{lab}: the label's name is not the heading it sits under ({', '.join(missing)}) (Rule shape 7)")
                     if any(re.fullmatch(r"[A-Z]{2,3}", w) and w != "WHEN" for w in name.split()):

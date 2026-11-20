@@ -190,6 +190,115 @@ class Guards(unittest.TestCase):
         self.assertTrue(got["why"])
 
 
+def kinded(name: str, line: int, **kind: str) -> dict:
+    return {"name": name, "text": "", "kind": dict(kind), "line": line}
+
+
+def rule(label: str, text: str, line: int = 1) -> dict:
+    return {"label": label, "family": label.rsplit(" ", 1)[0], "text": text, "line": line}
+
+
+class StandardSentences(unittest.TestCase):
+    """ir_data.standard: each standard sentence read into the IR's keys, links, ranges and records, and each claim of the
+    same kind said another way read as no claim and named as a departure (GRACE-lang, the section titled Standard sentences)."""
+    ENTRIES = [kinded("Box", 1, Kind="Type"), kinded("Box Id", 2, Kind="Field", **{"Field of": "Box", "Projection": "box_id"}),
+               kinded("Label", 3, Kind="Field", **{"Field of": "Box", "Projection": "label"}),
+               kinded("Item", 4, Kind="Type"), kinded("Item Id", 5, Kind="Field", **{"Field of": "Item", "Projection": "item_id"}),
+               kinded("Item Reference", 6, Kind="Field", **{"Field of": "Item", "Projection": "item_reference"}),
+               kinded("Count", 7, Kind="Field", **{"Field of": "Item", "Projection": "count"}),
+               kinded("Colour", 8, Kind="Field", **{"Field of": "Boxes", "Projection": "colour"})]
+    TERMS = {"positive count", "whole amount"}
+
+    def read(self, *rules: dict) -> dict:
+        return ir.standard(list(rules), self.ENTRIES, self.TERMS)
+
+    def test_a_key_in_its_sentence_is_a_key_of_the_record_type(self):
+        got = self.read(rule("Invariant 1.1", "Two boxes MUST NOT share a label."))
+        self.assertEqual([(k["form"], k["thing"], k["fields"]) for k in got["keys"]], [("key", "box", ["label"])])
+
+    def test_a_key_within_an_owner_names_the_owner(self):
+        got = self.read(rule("Invariant 1.2", "Two items one box carries MUST NOT share an item reference."))
+        self.assertEqual([(k["form"], k["thing"], k["owner"], k["fields"]) for k in got["keys"]],
+                         [("key within an owner", "item", "box", ["item_reference"])])
+
+    def test_a_link_takes_its_field_from_the_record_type_or_the_linked_one(self):
+        got = self.read(rule("Invariant 2.1", "EVERY item's box id MUST name a box."))
+        self.assertEqual([(x["thing"], x["fields"], x["field_of"], x["target"]) for x in got["links"]], [("item", ["box_id"], "box", "box")])
+
+    def test_a_range_names_its_bound_and_the_term(self):
+        got = self.read(rule("Invariant 3.1", "EVERY item MUST carry a positive count as the item's count."))
+        self.assertEqual([(x["thing"], x["fields"], x["bound"], x["term"]) for x in got["ranges"]], [("item", ["count"], "positive", "positive count")])
+
+    def test_every_declared_type_with_fields_is_a_record_and_takes_its_key(self):
+        got = self.read(rule("Invariant 1.1", "Two boxes MUST NOT share a label."))
+        self.assertEqual([(r["name"], r["form"], r["carries"], r["key"]) for r in got["records"]],
+                         [("box", "type", ["box_id", "label"], ["label"]), ("item", "type", ["item_id", "item_reference", "count"], None)])
+
+    def test_each_variant_is_no_claim_and_a_departure_of_its_kind(self):
+        got = self.read(rule("Invariant 4.1", "Two distinct boxes MUST NOT share a label."),
+                        rule("Invariant 4.2", "Two items in one box MUST NOT share an item reference."),
+                        rule("Invariant 4.3", "Two boxes MUST NOT share a label AND a box id."),
+                        rule("Invariant 4.4", "EVERY item MUST name EXACTLY ONE box."),
+                        rule("Invariant 4.5", "EVERY item's count MUST stand as a positive count."),
+                        rule("Operation 9", "Two boxes MUST NOT share a label."))
+        self.assertEqual((got["keys"], got["links"], got["ranges"]), ([], [], []))
+        self.assertEqual(sorted((d[0], d[1]) for d in got["departures"]),
+                         [("key", "Invariant 4.1"), ("key", "Invariant 4.3"), ("link", "Invariant 4.4"), ("owner key", "Invariant 4.2"),
+                          ("range", "Invariant 4.5"), ("record", "Colour")])
+
+    def test_the_plural_is_the_regular_english_plural(self):
+        self.assertEqual([ir.plural(n) for n in ("line", "category", "box", "consent record", "day")], ["lines", "categories", "boxes", "consent records", "days"])
+
+
+class TreeOrder(unittest.TestCase):
+    """spec-format.md, the section titled The tree order: the reader reads a pattern in the tree order by form, to the same rules, terms, term
+    entries, signatures, checks, Non-goals with their owners, case rows, Summary, keys, guards and settings as the pattern in the section shape, with
+    only their order and their line numbers changed. The pair is Tenure, as it stood when the forms unit landed, and the maintainer's approved trial
+    of it (working-ideas/tenure-tree.md, 2026-11-18), each a fixed copy in testdata."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.docs = {}
+        for name in ("tenure.md", "tenure.tree.md"):
+            tmp, root = root_with("")
+            with tmp:
+                (root / "atoms" / "tenure.md").write_text((HERE / "testdata" / name).read_text(encoding="utf-8"), encoding="utf-8")
+                cls.docs[name] = ir.parse(root / "atoms" / "tenure.md", root)
+
+    @staticmethod
+    def bare(x):
+        if isinstance(x, dict):
+            return {k: TreeOrder.bare(v) for k, v in x.items() if k not in ("line", "section", "caption", "gaps")}
+        if isinstance(x, list):
+            return sorted((TreeOrder.bare(v) for v in x), key=lambda v: json.dumps(v, sort_keys=True))
+        return x
+
+    def test_the_tree_order_reads_the_same_as_the_section_shape(self):
+        a, b = self.docs["tenure.md"], self.docs["tenure.tree.md"]
+        self.assertGreater(len(a["term_entries"]), 0)
+        for k in ("rules", "terms", "term_entries", "signatures", "checks", "non_goals", "summary", "keys", "links", "ranges", "records",
+                  "guards", "settings", "transitions", "projectable"):
+            self.assertEqual(self.bare(a[k]), self.bare(b[k]), k)
+        self.assertEqual(self.bare([r for t in a["case_tables"] for r in t["rows"]]), self.bare([r for t in b["case_tables"] for r in t["rows"]]))
+
+    def test_same_reads_no_difference_between_the_shapes_and_names_a_changed_rule(self):
+        tmp, root = root_with("")
+        with tmp:
+            old, new = root / "atoms" / "tenure.md", root / "atoms" / "tenure-tree.md"
+            old.write_text((HERE / "testdata" / "tenure.md").read_text(encoding="utf-8"), encoding="utf-8")
+            tree = (HERE / "testdata" / "tenure.tree.md").read_text(encoding="utf-8")
+            new.write_text(tree, encoding="utf-8")
+            self.assertEqual(ir.same(ir.parse(old, root), ir.parse(new, root)), [])
+            new.write_text(tree.replace("The start date of EVERY tenure carrying", "The start date of a tenure carrying", 1), encoding="utf-8")
+            got = ir.same(ir.parse(old, root), ir.parse(new, root))
+            self.assertEqual([g.split(":", 1)[0] for g in got], ["rules", "rules"])
+            self.assertTrue(all("Invariant 1.1" in g for g in got))
+
+    def test_the_tree_order_keeps_an_action_entry_at_its_branch(self):
+        begin = next(e for e in self.docs["tenure.tree.md"]["term_entries"] if e["name"] == "Begin")
+        self.assertEqual(begin["kind"], {"Kind": "Operation"})
+
+
 class Corpus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

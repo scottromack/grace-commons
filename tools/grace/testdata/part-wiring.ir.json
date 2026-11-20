@@ -61,6 +61,7 @@
  "ir": 1,
  "keys": [],
  "kind": "composition",
+ "links": [],
  "name": "Room",
  "non_goals": [],
  "projectable": [
@@ -125,6 +126,7 @@
    "why": "rules of the Composition state family hold of the records and the answers, and name no step"
   }
  ],
+ "ranges": [],
  "reader_gaps": [
   {
    "kind": "no-binding",

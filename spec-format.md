@@ -264,7 +264,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 
 ### Heading tables
 
-One table, one row a heading, the shape that carries it first. A heading a row names for both shapes is two rows, one a shape.
+One table, one row a heading, the shape that carries it first. A heading a row names for both shapes is two rows, one a shape. The rows whose shape is `atom tree` or `composition tree` are the tree order's (the section titled *The tree order* below); a pattern whose first `##` heading is `What it is` is read against them, and every other pattern against the rows of its section shape.
 
 | Shape | Heading | Level | Inside | Required | Unplaced children |
 |---|---|---|---|---|---|
@@ -332,6 +332,66 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | composition | Status | 2 | | yes | no |
 | composition | Ledger | 2 | | yes | no |
 | composition | Decisions | 2 | | yes | no |
+| atom tree | What it is | 2 | | yes | no |
+| atom tree | What it keeps | 2 | | yes | any order |
+| atom tree | What people do | 2 | | yes | any order |
+| atom tree | Every action | 3 | What people do | no | no |
+| atom tree | Always true | 2 | | yes | any order |
+| atom tree | When something happens | 2 | | no | any order |
+| atom tree | Atomic writes | 3 | When something happens | no | no |
+| atom tree | Concurrency | 3 | When something happens | no | no |
+| atom tree | Indeterminate outcome | 3 | When something happens | no | no |
+| atom tree | While something is so | 2 | | no | any order |
+| atom tree | Clock dependence | 3 | While something is so | no | no |
+| atom tree | Clock semantics | 3 | While something is so | no | no |
+| atom tree | Retention asymmetry | 3 | While something is so | no | no |
+| atom tree | String policy | 3 | While something is so | no | no |
+| atom tree | Optional | 2 | | no | any order |
+| atom tree | Never | 2 | | no | any order |
+| atom tree | Left to others | 2 | | yes | any order |
+| atom tree | Example | 2 | | yes | any order |
+| atom tree | Source | 2 | | yes | no |
+| atom tree | Proof | 2 | | yes | no |
+| atom tree | Generation acceptance | 3 | Proof | yes | no |
+| atom tree | Vocabulary | 3 | Proof | yes | no |
+| atom tree | Status | 2 | | yes | no |
+| atom tree | Ledger | 2 | | yes | no |
+| atom tree | Decisions | 2 | | yes | no |
+| composition tree | What it is | 2 | | yes | no |
+| composition tree | Composes | 3 | What it is | yes | no |
+| composition tree | Wiring decision | 3 | What it is | yes | no |
+| composition tree | What it keeps | 2 | | yes | any order |
+| composition tree | Composition state | 3 | What it keeps | yes | no |
+| composition tree | Identity | 3 | What it keeps | no | no |
+| composition tree | What people do | 2 | | yes | any order |
+| composition tree | Every action | 3 | What people do | yes | no |
+| composition tree | Scope vocabulary | 3 | What people do | no | no |
+| composition tree | Verdict | 3 | What people do | no | no |
+| composition tree | Always true | 2 | | yes | any order |
+| composition tree | When something happens | 2 | | no | any order |
+| composition tree | Audit arm | 3 | When something happens | no | no |
+| composition tree | Reconciliation | 3 | When something happens | no | no |
+| composition tree | Housekeeping | 3 | When something happens | no | no |
+| composition tree | Atomic writes | 3 | When something happens | no | no |
+| composition tree | Concurrency | 3 | When something happens | no | no |
+| composition tree | Indeterminate outcome | 3 | When something happens | no | no |
+| composition tree | While something is so | 2 | | no | any order |
+| composition tree | Primitive policy | 3 | While something is so | no | no |
+| composition tree | Clock dependence | 3 | While something is so | no | no |
+| composition tree | Clock semantics | 3 | While something is so | no | no |
+| composition tree | Retention asymmetry | 3 | While something is so | no | no |
+| composition tree | String policy | 3 | While something is so | no | no |
+| composition tree | Optional | 2 | | no | any order |
+| composition tree | Never | 2 | | no | any order |
+| composition tree | Left to others | 2 | | yes | any order |
+| composition tree | Example | 2 | | yes | any order |
+| composition tree | Source | 2 | | yes | no |
+| composition tree | Proof | 2 | | yes | no |
+| composition tree | Generation acceptance | 3 | Proof | yes | no |
+| composition tree | Vocabulary | 3 | Proof | yes | no |
+| composition tree | Status | 2 | | yes | no |
+| composition tree | Ledger | 2 | | yes | no |
+| composition tree | Decisions | 2 | | yes | no |
 
 The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `Retention asymmetry`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name. Which of them are standard label families, and what each of those means, is the table titled *Rule families* below; the rest are promotion candidates (`GRACE-lang.md` Standard label 4), and each carries the meaning of its heading (Standard label 3).
 
@@ -384,6 +444,53 @@ A name below is the row's name under an older spelling or an older shape. A migr
 | String input policy | String policy |
 | Indeterminate outcomes | Indeterminate outcome |
 | Standards | Standards references |
+
+---
+
+## The tree order
+
+Every pattern moves, one at a time, from the section shape above to the tree order: the rough draft's headings ([`rough-draft.md`](./rough-draft.md)) filled out, one branch for each action, and each name declared where it is first used. The maintainer approved the shape on 2026-11-18 on a trial layout of Tenure ("Yes this is WAY better"; "mirror the rough draft we started with just filled out"), and `working-ideas/tenure-tree.md` in the repository, which the site does not publish, is the model. The order of the headings, both shapes:
+
+**What it is**, **What it keeps**, **What people do** (an `### Every action` branch, then one `###` branch for each action), **Always true**, **When something happens**, **While something is so**, **Optional**, **Never**, **Left to others**, **Example**, **Source**, **Proof**, then **Status**, **Ledger** and **Decisions** as the section shape keeps them.
+
+The rows of the table titled *Heading tables* whose shape is `atom tree` or `composition tree` own each heading's level, parent, order and requirement. A pattern is in the tree order when its first `##` heading is `What it is`; until its reorganisation it keeps the section shape, and both shapes are canonical while the sweep runs. A pattern changes shape only by the unit that reorganises it, and that unit changes the order and the sentences of the standard forms ([`GRACE-lang.md`](./GRACE-lang.md), the section titled *Standard sentences*) and nothing of the meaning: every label, every rule's obligation, every term entry, every signature and every case stays.
+
+### Where each section goes
+
+Nothing is dropped: every line of a pattern in the section shape lands in one row below.
+
+| In the section shape | In the tree order | How |
+|---|---|---|
+| Frontmatter, Title | the same | unchanged |
+| Summary | What it is | the opening prose, the same Tier 1 rule |
+| Intent | What it is | after the Summary, in a folded block whose summary line is WHY |
+| Composes (composition) | What it is, `### Composes` | the list and the Composes block |
+| Wiring decision (composition) | What it is, `### Wiring decision` | the rules and the four-part defence |
+| Identity model; Identity (composition) | What it keeps; a composition's `### Identity` | each Identity rule after the term entry of the field the rule rules over, or of the record where the rule rules over the record |
+| State | What it keeps | each record's Type entry, then the record's Field entries, then the State rules |
+| Composition state (composition) | What it keeps, `### Composition state` | each element as the section shape gives it |
+| A `Term` line and its term entry | where the name is first used | a record's and a field's under What it keeps, an action's and its answers' in the action's branch, a setting's under Optional, any other where its first rule stands |
+| Operations | What people do | one `###` branch for each action, in the order of the signature blocks: the action's term entry (`Kind: Operation`) under the branch's heading, then its signature, its Operation rules, its rows of the decision table and its answers' term entries at `####`, then the action's own examples; the rules and rows that cover several actions go under `### Every action` |
+| Action wiring (composition) | What people do | the closure table and the rules over several actions under `### Every action`, then one branch for each action, as Operations go |
+| Scope vocabulary; Verdict (composition) | What people do, `### Scope vocabulary` and `### Verdict` | unchanged |
+| Invariants; Composition-level invariants | Always true, or Never | an invariant that says what the records hold in every reachable state goes under Always true; one that forbids an act (`MUST NOT change`, `MUST NOT remove`, `MUST NOT reuse`) under Never; numbers unchanged |
+| Edge cases | When something happens, While something is so, or Optional | a case an event sets off (Atomic writes, Concurrency, Indeterminate outcome, a handover) under When something happens; a case of a standing condition (Clock dependence, Clock semantics, Retention asymmetry, String policy) under While something is so; a case of a setting under Optional; each keeps its heading at `###` |
+| Audit arm, Reconciliation, Housekeeping (composition) | When something happens | at `###`, unchanged |
+| Primitive policy (composition) | While something is so | at `###`, unchanged |
+| Capability requirement | Optional | the rules, then the settings' Terms and their NOTE lines |
+| Non-goals | Left to others | the block, then its owners' NOTE line |
+| Composition notes | Left to others | after the Non-goals |
+| Examples | Example | the scenes in the author's order; an action's rejection paths go to that action's branch; *Regulated adversarial scenarios* stays a `###` here |
+| Standards references | Source | with what the pattern inherits from |
+| Generation acceptance, Conformance checks, External checks | Proof, `### Generation acceptance`, then `#### Conformance checks` and `#### External checks` | unchanged |
+| Terms: the category lines (`Term actors:` and the rest) and the registry's link lines | Proof, `### Vocabulary` | unchanged |
+| Status, Ledger, Decisions | the same, last | unchanged |
+
+A family the table titled *Rule families* does not list (a policy family such as Personal Todo's *Description policy*, or a step block) keeps its own heading at `###` under the tree heading its rules answer to: a policy on a stored string under While something is so, a policy on an input under the action's branch.
+
+### The parser reads by form
+
+The parser reads each entry by its form, not its position (the maintainer, 2026-11-18: "should the parser be that brittle?"; `GRACE-lang.md` Timing 13 and Hard invariant 15 already forbid reading meaning from order). A rule is read by its label and its fence, a term entry by its heading and its `Kind:` line wherever the entry stands, a signature by its form, a Check by its label, a Non-goal's owners by the line `NOTE: the owners —`, a case by its table row, and the Summary by the opening prose of What it is. A label names its family ([`GRACE-lang.md`](./GRACE-lang.md), Term label family): on a pattern in the section shape that family is the heading the rule sits under, and on a pattern in the tree order a family the table titled *Rule families* lists names the rule wherever the rule stands, so an Identity rule after a field's term entry is still `Identity 3`. `tools/grace/ir.py` reads a pattern in either shape to the same rules, terms, term entries, signatures, checks, Non-goals with their owners, and case rows, with only their order and their line numbers changed; that equality is the receipt of every reorganisation.
 
 ---
 

@@ -168,6 +168,7 @@
   }
  ],
  "kind": "atom",
+ "links": [],
  "name": "Tag",
  "non_goals": [],
  "projectable": [
@@ -246,6 +247,7 @@
    "tests": 1
   }
  ],
+ "ranges": [],
  "reader_gaps": [
   {
    "kind": "no-input-type",

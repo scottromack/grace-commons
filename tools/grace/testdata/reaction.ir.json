@@ -507,6 +507,7 @@
   }
  ],
  "kind": "atom",
+ "links": [],
  "name": "Reaction",
  "non_goals": [
   {
@@ -1158,8 +1159,30 @@
    "why": "rules of the Composition note family hold of the records and the answers, and name no step"
   }
  ],
+ "ranges": [],
  "reader_gaps": [],
- "records": [],
+ "records": [
+  {
+   "carries": [
+    "person_reference",
+    "item_reference",
+    "reaction_name",
+    "first_reacted_instant",
+    "status"
+   ],
+   "form": "type",
+   "inverse_of": null,
+   "key": [
+    "person_reference",
+    "item_reference",
+    "reaction_name"
+   ],
+   "key_rule": "Identity 1",
+   "line": 340,
+   "name": "reaction",
+   "rule": null
+  }
+ ],
  "rules": [
   {
    "family": "Identity",

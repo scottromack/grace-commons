@@ -36,6 +36,7 @@ cannot read is a finding, never an exception.
     python3 tools/grace/ir.py --gaps           # the reader's gaps: spec by kind by count
     python3 tools/grace/ir.py --misses         # what each family of expression matched and what it passed over, over the library
     python3 tools/grace/ir.py atoms/cart.md    # one spec's document, printed
+    python3 tools/grace/ir.py --same OLD NEW   # a reorganisation's receipt: what the reader reads differently in NEW than in OLD
 
 One-spec mode reads a draft outside the repo too, the Grace connector's: its
 `spec` is the path as given, it is a composition when it has a Composes
@@ -56,6 +57,9 @@ THE PARTS (unit `tooling: the Reader in parts, the same IR to the byte`, 2026-11
     ir_wiring.py    a composition's calls and bindings, the records it writes and the transactions that hold them
     ir_project.py   what a consumer may take a rule as (`projectable`) and the type of an input
     ir_misses.py    what the parts passed over in silence, counted over the library (`--misses`) and said as a `not-read` gap where it is a miss
+    ir_data.py      the data claims said in the standard sentences (a key, a key within an owner, a link, a range, the record types), and
+                    those said another way, which lint.py's Y-key-sentence, Y-owner-key-sentence, Y-link-sentence, Y-range-sentence and
+                    Y-record-type report as advisories
 
 The order `carry` keeps: the cited meaning and completed-by of each rule, the keys and the answer shapes, the settings (before the guards: a guard test reads a setting's
 set), the guards, the orders of reads, the term sets, the calls and answer tests, the records and transactions, the transitions, the type of each input, what the parts
@@ -104,11 +108,13 @@ from ir_keys import IDENTIFY, actions_of, bracketed_head, cited_meaning, cited_t
 from ir_shapes import answer_shape, guards_of, member_answers, names_an_arm, read_orders, settings_of, shape_context, term_sets_of  # noqa: E402
 from ir_wiring import CONTRACT_ARMS, records_of, wiring_of  # noqa: E402
 from ir_project import PROJECTABLE, input_types_of, projectable_of  # noqa: E402
+from ir_data import standard  # noqa: E402
 from ir_walk import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
 from ir_keys import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
 from ir_shapes import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
 from ir_wiring import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
 from ir_project import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
+from ir_data import *  # noqa: E402,F401,F403  (the parts' names stay importable from `ir`)
 
 
 # the shape of a document; a change a reader of the IR must know about moves it,
@@ -123,7 +129,7 @@ def parse(path: Path, root: Path) -> dict:
     lines = text.split("\n")
     rel = repo_path(path, root)
     if rel is None:
-        composes = any((check.h2_name(ln) or "").strip() == "Composes" for ln in lines)
+        composes = any((check.h2_name(ln) or "").strip() == "Composes" or ln.rstrip() == "### Composes" for ln in lines)
         kind = "composition" if composes else "atom"
         home = f"{kind}s/{path.name}"
     else:
@@ -135,7 +141,7 @@ def parse(path: Path, root: Path) -> dict:
     # a tombstone stands on the page or in the history file: each says which
     tombstones = [dict(t, file=rel or path.as_posix()) for t in tombstones] + history_tombstones(path, root)
     terms, vocabulary, entries = walk_terms(spec, lines, where)
-    summary = "\n".join(lines[k].strip() for k in section_lines(lines, "Summary") if lines[k].strip() != "---")
+    summary = "\n".join(lines[k].strip() for k in summary_lines(lines) if lines[k].strip() != "---")
     doc = {
         "ir": IR_VERSION,
         "source_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
@@ -159,6 +165,17 @@ def parse(path: Path, root: Path) -> dict:
     doc["normalized"] = normalize.lower_doc(doc)
     carry(doc, root)
     return doc
+
+
+def summary_lines(lines: list[str]) -> range:
+    """The Summary: the `## Summary` section, or on a pattern in the tree order the prose that opens `## What it is`, up to
+    its first folded block or `###` (spec-format.md, *The tree order*)."""
+    got = section_lines(lines, "Summary")
+    if got:
+        return got
+    at = section_lines(lines, "What it is")
+    end = next((k for k in at if lines[k].lstrip().startswith(("<details", "###"))), at.stop)
+    return range(at.start, end)
 
 
 def carry(doc: dict, root: Path) -> None:
@@ -214,7 +231,11 @@ def carry(doc: dict, root: Path) -> None:
                 keys.append(key)
             else:
                 gaps.append(gap("no-key", r["label"], r["line"], 'no key read: {why}', why=why))
-    doc["keys"] = keys
+    # the standard sentences (GRACE-lang, *Standard sentences*; ir_data.py): a key and a key within an owner join the keys,
+    # after the Identity keys, each with its `form`; links and ranges are their own lists; the record types join `records`
+    std = standard(doc["rules"], doc["term_entries"], {t["name"].lower() for t in doc["terms"]}, keys)
+    doc["keys"] = keys + std["keys"]
+    doc["links"], doc["ranges"] = std["links"], std["ranges"]
     for r in doc["rules"]:      # a shape takes the page's first record type (`cx["type"]`): where the rule's words name another, the shape is not read
         sh = r.get("answer_shape")
         named = [t for t in cx["types"][1:] if sh and sh.get("thing") == cx["type"] and re.search(rf"\b{re.escape(t)}s?\b", r["text"].lower())]
@@ -230,6 +251,7 @@ def carry(doc: dict, root: Path) -> None:
     doc["calls"], doc["answer_tests"], more = wiring_of(doc, root)
     gaps += more
     doc["records"], doc["transactions"], more = records_of(doc)
+    doc["records"] += std["records"]
     gaps += more
     doc["transitions"], more = transitions_of(doc, cx)
     gaps += more
@@ -364,6 +386,38 @@ def gap_table(docs: list[dict]) -> str:
     return "\n".join(lines)
 
 
+SAME_FIELDS = ("summary", "rules", "tombstones", "terms", "term_entries", "signatures", "case_rows", "checks", "non_goals", "composes")
+
+
+def _bare(x):
+    """A reading without where it stands: line numbers, sections, captions and gap indexes dropped, lists as sets."""
+    if isinstance(x, dict):
+        return {k: _bare(v) for k, v in x.items() if k not in ("line", "section", "caption", "gaps", "file")}
+    if isinstance(x, list):
+        return sorted((_bare(v) for v in x), key=lambda v: json.dumps(v, sort_keys=True, ensure_ascii=False))
+    return x
+
+
+def same(old: dict, new: dict) -> list[str]:
+    """What the reader reads differently in `new` than in `old`, order and line numbers aside: the receipt of a
+    reorganisation (spec-format.md, *The tree order*), whose only differences are the data claims it rewrote into their
+    standard sentences and the record types it declared. One line per difference, naming the rule or entry."""
+    out = []
+    for f in SAME_FIELDS:
+        a = [r for t in old["case_tables"] for r in t["rows"]] if f == "case_rows" else old[f]
+        b = [r for t in new["case_tables"] for r in t["rows"]] if f == "case_rows" else new[f]
+        if _bare(a) == _bare(b):
+            continue
+        if isinstance(a, list):
+            ka = {json.dumps(_bare(x), sort_keys=True, ensure_ascii=False) for x in a}
+            kb = {json.dumps(_bare(x), sort_keys=True, ensure_ascii=False) for x in b}
+            out += [f"{f}: only in the old: {x[:200]}" for x in sorted(ka - kb)]
+            out += [f"{f}: only in the new: {x[:200]}" for x in sorted(kb - ka)]
+        else:
+            out.append(f"{f}: differs")
+    return out
+
+
 def emit(findings) -> None:
     for path, line, code, msg in findings:
         print(f"{path}:{line}: [{code}] {msg}")
@@ -372,6 +426,13 @@ def emit(findings) -> None:
 def main(argv: list[str]) -> int:
     root = HERE.parents[1]
     args = [a for a in argv[1:] if not a.startswith("--")]
+    if "--same" in argv:
+        if len(args) != 2:
+            print("usage: ir.py --same OLD NEW", file=sys.stderr)
+            return 2
+        diff = same(parse(Path(args[0]), root), parse(Path(args[1]), root))
+        print("\n".join(diff) if diff else "same: " + ", ".join(SAME_FIELDS))
+        return 1 if diff else 0
     if args:
         for a in args:
             print(json.dumps(parse(Path(a), root), indent=2, ensure_ascii=False))

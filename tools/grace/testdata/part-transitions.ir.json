@@ -68,6 +68,7 @@
   }
  ],
  "kind": "atom",
+ "links": [],
  "name": "Tag",
  "non_goals": [],
  "projectable": [
@@ -137,6 +138,7 @@
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   }
  ],
+ "ranges": [],
  "reader_gaps": [
   {
    "kind": "no-input-type",

@@ -42,6 +42,10 @@ from lint import (  # noqa: E402
     check_audit_claim,
     check_term_kind,
     check_pattern_not_page,
+    check_standard_sentences,
+    check_term_registry,
+    check_term_coverage,
+    check_dead_anchors,
     load_patterns,
     check_unserved_links,
     heading_standard,
@@ -755,6 +759,110 @@ def check_pattern_not_page_synthetic(problems: list[str]) -> int:
         got = run(text, "atoms/a.hist.md" if label.startswith("a history") else "atoms/a.md")
         if got != want:
             problems.append(f"Y-pattern-not-page: {label}: {got} finding(s), want {want}")
+    return len(cases)
+
+
+# ── The standard sentences, pinned synthetically ──────────────────────────── #
+# Unit `method: the forms of the tree reorganisation and the standard sentences` (Scott 2026-11-19): a key, a key within an
+# owner, a link and a range each have one sentence in GRACE-lang, and every record is a declared Type. Each advisory is
+# pinned from both sides: the standard sentence is silent, and the variant the CQL trial found (or one of its kind) fires
+# its own code once and no other.
+STD_HEAD = """Term qualifiers: `migrated` — rewritten in GRACE lang v0.75 (2026-11-20).
+
+Term positive count: a whole number, one or more.
+
+#### Cart
+
+Kind:       Type
+
+#### Line
+
+Kind:       Type
+
+#### Cart Id
+
+Kind:       Field
+Field of:   Cart
+Projection: cart_id
+
+#### Item Reference
+
+Kind:       Field
+Field of:   Line
+Projection: item_reference
+
+#### Quantity
+
+Kind:       Field
+Field of:   Line
+Projection: quantity
+
+"""
+
+STD_CASES = (
+    # (what, the rule or entry, the code it fires, or None where the standard form is silent)
+    ("a key in its sentence", "Invariant 1.1: Two carts MUST NOT share a cart id.", None),
+    ("a key with a qualifier", "Invariant 1.1: Two distinct landed carts MUST NOT share a cart id.", "Y-key-sentence"),
+    ("a key within an owner in its sentence", "Invariant 1.1: Two lines one cart carries MUST NOT share an item reference.", None),
+    ("a key within an owner said with `in one`", "Invariant 1.1: Two lines in one cart MUST NOT share an item reference.", "Y-owner-key-sentence"),
+    ("a link in its sentence", "Invariant 1.1: EVERY line's cart id MUST name a cart.", None),
+    ("a link said with EXACTLY ONE", "Invariant 1.1: EVERY line MUST name EXACTLY ONE cart.", "Y-link-sentence"),
+    ("a range in its sentence", "Invariant 1.1: EVERY line MUST carry a positive count as the line's quantity.", None),
+    ("a range said with `stand as`", "Invariant 1.1: EVERY line's quantity MUST stand as a positive count.", "Y-range-sentence"),
+    ("a field of a declared Type", "", None),
+    ("a field of the pattern's own name", "#### Grant Id\n\nKind:       Field\nField of:   Permissions\nProjection: grant_id\n", "Y-record-type"),
+)
+
+
+def check_standard_sentences_synthetic(problems: list[str]) -> int:
+    for what, line, want in STD_CASES:
+        text = STD_HEAD + (line if line.startswith("#") else ("```\n" + line + "\n```\n" if line else ""))
+        path = Path("synthetic/atoms/cart.md")
+        got = sorted(f.code for f in check_standard_sentences({path: Pattern(path=path, text=text, invariant_count=1, done=False)}))
+        if got != ([want] if want else []):
+            problems.append(f"standard sentences: {what}: fired {got}, want {[want] if want else []}")
+    return len(STD_CASES)
+
+
+# ── The tree order, pinned on Tenure and its approved trial ──────────────── #
+# spec-format.md, the section titled *The tree order*: a pattern whose first `##` is `What it is` is read against the tree
+# rows of the heading table, its labels name their standard family wherever they stand (GRACE-lang Rule shape 7, Term label
+# family), and its term entries are read by form. The fixed pair in tools/grace/testdata (Tenure as it stood, and the
+# maintainer's trial of it in the tree order) passes the gate's label check and the linter's heading, registry and
+# acceptance checks in both shapes; a tree with its order broken, or a non-standard family away from its heading, fires.
+def check_tree_order_synthetic(problems: list[str]) -> int:
+    import shutil
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    repo = Path(__file__).resolve().parents[2]
+    data = repo / "tools" / "grace" / "testdata"
+    tree = (data / "tenure.tree.md").read_text(encoding="utf-8")
+    cases = (
+        ("Tenure in the section shape", (data / "tenure.md").read_text(encoding="utf-8"), set()),
+        ("Tenure in the tree order", tree, set()),
+        ("the tree with Never before Always true",
+         tree.replace("## Always true\n", "## Never placeholder\n", 1).replace("## Never\n", "## Always true\n", 1).replace("## Never placeholder\n", "## Never\n", 1),
+         {"H-heading"}),
+        ("the tree with a section heading left in it", tree.replace("## Source\n", "## Standards references\n", 1), {"H-heading"}),
+        ("the tree with a non-standard family away from its heading",
+         tree.replace("Identity 1: The atom MUST identify", "Tenure policy 1: The atom MUST identify", 1), {"R-label-heading"}),
+    )
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        for sub in ("atoms", "compositions"):
+            (root / sub).mkdir()
+        shutil.copy(repo / "spec-format.md", root / "spec-format.md")
+        for what, text, want in cases:
+            f = root / "atoms" / "tenure.md"
+            f.write_text(text, encoding="utf-8")
+            pats = load_patterns(root)
+            got = {x.code for x in scan(f) if not x.code.startswith("W-")}
+            for fn in (lambda: check_heading_standard(root, pats), lambda: check_term_registry(pats), lambda: check_term_coverage(pats),
+                       lambda: check_dead_anchors(pats), lambda: check_acceptance_surface(pats), lambda: check_term_kind(root, pats)):
+                got |= {x.code for x in fn()}
+            if got != want:
+                problems.append(f"tree order: {what}: fired {sorted(got)}, want {sorted(want)}")
     return len(cases)
 
 
@@ -4604,6 +4712,23 @@ def main(argv: list[str]) -> int:
         print(f"Y-pattern-not-page: {n_page} synthetic fixtures hold (a pattern, a rule and this pattern said to be a "
               "page each fire; GitHub Pages, a page size, a screen in an example, the Ledger, Decisions, "
               "a dated open note and a history file stay silent) \u2713")
+
+    std_problems: list[str] = []
+    n_std = check_standard_sentences_synthetic(std_problems)
+    failures.extend(std_problems)
+    if not std_problems:
+        print(f"Y-key-sentence / Y-owner-key-sentence / Y-link-sentence / Y-range-sentence / Y-record-type: {n_std} synthetic "
+              "fixtures hold (each standard sentence and a field of a declared Type silent; a qualified key, an owner said "
+              "with `in one`, a link with EXACTLY ONE, a range with `stand as` and `Field of` naming the pattern each fire "
+              "its own code once) \u2713")
+
+    tree_problems: list[str] = []
+    n_tree = check_tree_order_synthetic(tree_problems)
+    failures.extend(tree_problems)
+    if not tree_problems:
+        print(f"tree order: {n_tree} fixtures hold (Tenure in the section shape and in the tree order pass the gate's labels "
+              "and the linter's headings, registry and acceptance; a tree out of order, a section heading left in a tree, and "
+              "a non-standard family away from its heading fire) \u2713")
 
     req_problems: list[str] = []
     n_req = check_requirement_text_synthetic(req_problems, patterns)

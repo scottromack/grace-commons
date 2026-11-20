@@ -27,6 +27,7 @@
   }
  ],
  "kind": "atom",
+ "links": [],
  "name": "Gift",
  "non_goals": [],
  "projectable": [
@@ -113,6 +114,7 @@
    "rule": "Operation 9"
   }
  ],
+ "ranges": [],
  "reader_gaps": [
   {
    "kind": "no-input-type",
