@@ -152,6 +152,12 @@ Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Deleted: Concurrency 3. Execution Contract Database 1 owns it.
 ```
 
+### Edge cases › Re-creation after deletion
+
+```
+Deleted: Re-creation 3. Identity 4 and Instance 2 own it.
+```
+
 ### Edge cases › Supersession atomicity
 
 ```

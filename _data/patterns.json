@@ -1038,7 +1038,7 @@
   ],
   "domain": null,
   "grounded": false,
-  "invariants": 10,
+  "invariants": 8,
   "kind": "atom",
   "models": {
    "als": true,
