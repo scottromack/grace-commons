@@ -65,7 +65,7 @@ sig Store {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- The containing pattern's window duration exceeds zero (Term window duration; the
--- containing pattern supplies it, Operation 11). This is where Invariant 2.3 comes from: a
+-- containing pattern supplies it, Operation 11). This is where Operation 1 comes from: a
 -- guard stamped from now holds at now only because the window is longer than nothing.
 fact WindowExceedsZero {
     Instance.window > 0
@@ -136,7 +136,7 @@ pred recordLeaves[pre, post : Store, c : RecordCall] {
     -- Invariant 2.1, 2.2)
     (landed[c] and underGuard[pre, c.id, c.now]) implies post.entries = pre.entries
     -- an identity not under guard: placed under guard, its recording instant stamped from
-    -- the injected now, replacing any elapsed one (Operation 1, 2, State 1)
+    -- the injected now, replacing any elapsed one (Operation 1, Clock semantics 1, State 1)
     (landed[c] and not underGuard[pre, c.id, c.now])
         implies post.entries = pre.entries + (c.id -> c.now) -- BUG: added, not replaced
 }

@@ -59,8 +59,6 @@ State 3: The atom MUST NOT hold state beyond the recorded set.
 
 Term recorded set: every identity a [Record] has placed under guard, each held with the identity's recording instant, whether or not the identity is still under guard — the [Recorded Set].
 
-NOTE: open 2026-10-21-d — no action erases an entry whose guard has elapsed, so the recorded set keeps every identity ever placed under guard, and a pattern that needs the space back has nothing to call.
-
 Term recording instant: the instant an identity was placed under guard, stamped from the injected now — a [Recording Instant].
 
 Term window duration: the length a containing pattern chooses for a guard, which EXCEEDS zero — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
@@ -91,14 +89,12 @@ check(identity)
 
 ```
 Operation 1: A landed record MUST place an identity that is not under guard under guard.
-Operation 2: A landed record MUST stamp the recording instant of an identity that is not under guard from the injected now.
 Operation 3: A landed record MUST answer ok.
 Operation 4: [Record] MUST NOT refuse an identity under guard.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
 Operation 11: The containing pattern MUST supply EXACTLY ONE window duration per instance of the atom.
-Operation 12: The containing pattern MUST own the response to an answer.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
 ```
 
@@ -108,7 +104,7 @@ The case space, and the rule that owns each case:
 
 | Call | Identity under guard? | Answer | Effect on the recorded set |
 |---|---|---|---|
-| [Record] | no | ok | enters under guard, recording instant from the injected now (Operation 1, Operation 2) |
+| [Record] | no | ok | enters under guard, recording instant from the injected now (Operation 1, Clock semantics 1) |
 | [Record] | yes | ok | unchanged — the original recording instant stands (Invariant 2.1, Invariant 2.2) |
 | [Record] | either, and the database refuses the write | [Storage Failure] | unchanged — for an identity that was not under guard, the guard is missed (Operation 14, Record failure 2) |
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
@@ -116,13 +112,11 @@ The case space, and the rule that owns each case:
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term transition: the atom's evaluation of one call against the recorded set, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the recorded set, as Execution Contract Logic confinement 14 declares it.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading here.
+Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading here.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
-
-NOTE: open 2026-10-28-a — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+Term business caller: the party whose action the call carries, as Execution Contract Logic confinement 14 declares it; never the source of an injected value.
 
 ### Invariants
 
@@ -130,15 +124,12 @@ NOTE: open 2026-10-28-a — Term seam, Term transition and Term business caller 
   ```
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recording instant of an identity under guard.
-  Invariant 2.3: A landed record MUST open a fresh guard for an identity that is not under guard.
   ```
 - **Invariant 3 — Idempotency of check.**
   ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
   ```
 - **Invariant 4 — Eventual expiry.**
-
-NOTE: open 2026-10-21-c — three propositions are each owned twice: a fresh guard for an identity that is not under guard (Invariant 2.3, Operation 1), the response to an answer left to the containing pattern (Non-goal 1, Operation 12), and a guard anchored to the opening record's now (Clock semantics 1, Operation 2, Invariant 2.2).
 
 ## Examples
 
@@ -204,9 +195,10 @@ Non-goal 10: The atom MUST NOT read a calendar.
 Non-goal 11: A pattern needing day-boundary semantics MUST compose a calendar-day pattern.
 Non-goal 12: The atom MUST NOT correct clock skew.
 Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
+Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Retention Window.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13).
+NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Retention Window](./retention-window.md) (Non-goal 14).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -389,13 +381,10 @@ It inherits from:
 
 ```
 status: doing
-formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2, 2.3 and 3.1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
+formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2 and 3.1 and Operation 1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
 last gate: 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
 
-open:
-- 2026-10-21-c · refining · Invariant 2.3; Operation 1; Non-goal 1; Operation 12; Clock semantics 1; Operation 2; Invariant 2.2 · three propositions each owned twice: a fresh guard for an identity not under guard, the response left to the containing pattern, and a guard anchored to the opening record's now → one owner each (GRACE-lang Authority 3)
-- 2026-10-21-d · refining · Term recorded set; Execution Contract Database 4 · no action erases an entry whose guard has elapsed, so the recorded set keeps every identity ever placed under guard and a pattern that needs the space back has nothing to call → a declared erasure the atom owns, or a Non-goal naming the composing pattern that purges
-- 2026-10-28-a · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
+open: none
 ```
 
 <details markdown="block">

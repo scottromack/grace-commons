@@ -24,6 +24,8 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 - **2026-10-22 — An admitted call and a ban's ground are the Execution Contract's.** *Chose:* Term landed record citing Execution Contract Read 4 for what [Record] admits, in place of the commit clause this page's fifth Final Critique wrote, so Operation 1 through 3 and Invariant 2.3 hold for the calls [Record] admits, a write the database refuses answering storage-failure and changing nothing; Operation 4's ground clause retired, the rule written as *[Record] MUST NOT refuse an identity under guard*, which Execution Contract Refusal 1's second sentence reads as naming the ground, so a refused write still answers storage-failure; Read 4 and Refusal 1 cited on Capability requirement 2; the rule count stays at 50. *Over:* the page stating for itself which calls its effect rules reach, and Operation 4 carrying the ground clause its fifth Final Critique wrote. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the admitted effect and the refusal ban among them; this page's fifth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
+- **2026-11-20 — Each proposition is owned once, the erasure of an elapsed entry is another pattern's, and the seam terms cite their declaration.** *Chose:* Invariant 2.3 deleted to Operation 1, Operation 12 to Non-goal 1 and Operation 2 to Clock semantics 1, each pair having stated one proposition twice (a fresh guard for an identity not under guard, the response to an answer left to the containing pattern, and a guard anchored to the opening record's now) and Check 1.4, External check 5 and Check unavailability 1 to 3 keeping their owners through the tombstones; Non-goal 14 naming [Retention Window](./retention-window.md) for a pattern that needs an elapsed entry erased, Execution Contract Database 4 letting erasure happen only as the specification that owns it says; Term seam, Term transition and Term business caller citing Execution Contract Logic confinement 14, which declares the three. *Over:* the stated twice (Authority 3), a declared erasure the atom would own and so a second action beside [Record] and [Check] (State 3 holds the atom to the recorded set alone), and a section title the Execution Contract declares none of the three under. *Because:* the corpus decides each (the open lines 2026-10-21-c, -d and 2026-10-28-a, each carrying its arrow): Authority 3 pays a proposition once, Observation's entry of 2026-10-22 has a composed retention purge what the atom never removes, and Event Log and Selective Disclosure cite Logic confinement 14 for the seam, the transition and the business caller. What each action answers on every call is unchanged.
+
 ## Migration notes
 
 - **2026-09-14 — Invariant 4.1 routed through under guard, and Invariant 4.2 deleted.** Both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares under guard as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
@@ -38,9 +40,11 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 ### Structure › Operations
 
 ```
+Deleted: Operation 2. Clock semantics 1 owns it.
 Deleted: Operation 8. Capability requirement 1 owns it.
 Deleted: Operation 9. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 10. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 12. Non-goal 1 owns it: the atom does not decide the response, so the containing pattern owns it.
 Deleted: Operation 13. Execution Contract Read 1 owns it.
 ```
 
@@ -48,6 +52,7 @@ Deleted: Operation 13. Execution Contract Read 1 owns it.
 
 ```
   Deleted: Invariant 1. Operation 6 and Operation 7 own it.
+  Deleted: Invariant 2.3. Operation 1 owns it.
 ```
 
 ### Structure › Invariants › Invariant 3 — Idempotency of check

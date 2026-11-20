@@ -2548,3 +2548,14 @@
 2026-11-20	atoms/models/capability-buggy-stored-expired.als	twin	als	-	-	31	19	10	2	0	CAUGHT	alloy
 2026-11-20	atoms/models/capability.als	model	als	-	-	31	21	10	0	0	HOLDS	alloy
 2026-11-20	atoms/models/capability.tla	model	tla	94330	0	-	-	-	-	-	HOLDS	tlc
+2026-11-20	atoms/models/duplicate-prevention-buggy.tla	twin	tla	11	0	-	-	-	-	-	CAUGHT	tlc
+2026-11-20	atoms/models/duplicate-prevention.tla	model	tla	14	0	-	-	-	-	-	HOLDS	tlc
+2026-11-20	atoms/models/duplicate-prevention-buggy-check-slides.als	twin	als	-	-	17	5	9	3	0	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-guard-extended.als	twin	als	-	-	17	6	8	2	1	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-elapse-ignored.als	twin	als	-	-	17	6	9	2	0	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-second-instant.als	twin	als	-	-	17	5	9	3	0	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention.als	model	als	-	-	17	8	9	0	0	HOLDS	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-both-answers.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-zero-elapsed-missed.als	twin	als	-	-	17	7	7	1	2	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-boundary-seen.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy
+2026-11-20	atoms/models/duplicate-prevention-buggy-check-purges.als	twin	als	-	-	17	7	8	1	1	CAUGHT	alloy

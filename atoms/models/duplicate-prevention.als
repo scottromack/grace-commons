@@ -20,7 +20,7 @@
 --   Invariant 2.2 — [Record] preserves the recording instant of an identity under guard: every
 --                   held identity's recording instant is the now of the record that opened
 --                   its guard.
---   Invariant 2.3 — a landed record opens a fresh guard for an identity not under guard.
+--   Operation 1 — a landed record opens a fresh guard for an identity not under guard.
 --   Invariant 3.1 — [Check] does not alter the recorded set: the set holds what the landed
 --                   records placed, and nothing else, and nothing they placed has left it.
 -- The page's Conformance checks test State 1 (Check 1.1) and Operation 5, 6 and 7 (Check
@@ -48,7 +48,7 @@
 --   - [Record]'s answers (Operation 3, 4, 14): the conformance table owns them; a record
 --     whose write the database refuses is modeled by what it leaves (nothing, Execution
 --     Contract Database 3), which the run ShowGuardMissed shows (Record failure 2).
---   - The containing pattern's response to an answer (Operation 12, Non-goal 1) and its
+--   - The containing pattern's response to an answer (Non-goal 1) and its
 --     choice of window and matching rule (Operation 11, Identity 5): the model takes one
 --     window for the instance and identities already reduced.
 --   - Whether two checks and records on one identity interleave (Composition notes): that is
@@ -117,7 +117,7 @@ sig Store {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- The containing pattern's window duration exceeds zero (Term window duration; the
--- containing pattern supplies it, Operation 11). This is where Invariant 2.3 comes from: a
+-- containing pattern supplies it, Operation 11). This is where Operation 1 comes from: a
 -- guard stamped from now holds at now only because the window is longer than nothing.
 fact WindowExceedsZero {
     Instance.window > 0
@@ -188,7 +188,7 @@ pred recordLeaves[pre, post : Store, c : RecordCall] {
     -- Invariant 2.1, 2.2)
     (landed[c] and underGuard[pre, c.id, c.now]) implies post.entries = pre.entries
     -- an identity not under guard: placed under guard, its recording instant stamped from
-    -- the injected now, replacing any elapsed one (Operation 1, 2, State 1)
+    -- the injected now, replacing any elapsed one (Operation 1, Clock semantics 1, State 1)
     (landed[c] and not underGuard[pre, c.id, c.now])
         implies post.entries = pre.entries - (c.id -> Int) + (c.id -> c.now)
 }
