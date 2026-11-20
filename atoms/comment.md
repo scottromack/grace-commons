@@ -138,16 +138,16 @@ Operation 15: [Edit] MUST answer ok.
 Operation 16: IF the comment's status EQUALS shown THEN [Retract] MUST stand the comment in retracted.
 Operation 17: IF the comment's status EQUALS retracted THEN [Retract] MUST NOT write.
 Operation 18: [Retract] MUST answer ok.
-Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, oldest first, then in codepoint order of comment id.
-Operation 20: [List] MUST answer blank text for EVERY retracted comment.
+Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, oldest first, then in codepoint order of comment id (Execution Contract Logic confinement 10).
+Operation 20: [List] MUST answer blank text for EVERY retracted comment carrying the target reference.
 Operation 21: [List] MUST answer an empty list for a target reference no comment carries.
 Operation 22: [List] MUST NOT write.
 Operation 23: IF the target reference is malformed THEN [Add] MUST answer invalid-target-reference (Execution Contract Input 1).
 Operation 24: IF the author reference is malformed THEN a writing action MUST answer invalid-author-reference (Execution Contract Input 1).
 Operation 25: IF the text is malformed THEN a wording action MUST answer invalid-text (Execution Contract Input 1).
 Operation 26: IF the target reference is malformed OR the target reference EQUALS blank OR the target reference EXCEEDS the string cap THEN [List] MUST answer an empty list (Execution Contract Query 5).
-Operation 27: [List] MUST answer the comment id of the parent for EVERY reply.
-Operation 28: [List] MUST answer a blank parent comment id for EVERY comment that is not a reply.
+Operation 27: [List] MUST answer the comment id of the parent for EVERY reply carrying the target reference.
+Operation 28: [List] MUST answer a blank parent comment id for EVERY comment carrying the target reference that is not a reply.
 ```
 
 Term writing action: [Add] | [Reply] | [Edit] | [Retract] — the actions that change a comment.
@@ -175,7 +175,7 @@ The case space, and the rule that owns each case:
 | [Add] | target reference blank, over the string cap, or not a string | [Invalid Target Reference] | none (Operation 1, Operation 23) |
 | a writing action | author reference blank, over the string cap, or not a string | [Invalid Author Reference] | none (Operation 2, Operation 24) |
 | a wording action | text blank, over the text cap, or not a string | [Invalid Text] | none (Operation 3, Operation 25) |
-| [List] | the item has comments | every comment, oldest first, each with the parent's comment id where the comment is a reply and a blank parent comment id where it is not, retracted ones with blank text | none (Operation 19, Operation 20, Operation 22, Operation 27, Operation 28) |
+| [List] | the item has comments | every comment, in Operation 19's order, each with the parent's comment id where the comment is a reply and a blank parent comment id where it is not, retracted ones with blank text | none (Operation 19, Operation 20, Operation 22, Operation 27, Operation 28) |
 | [List] | the item has none, or the target reference is blank, over the string cap, or not a string | an empty list | none (Operation 21, Operation 26) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
@@ -338,7 +338,7 @@ Kind: Operation
 
 #### List
 
-Answers every comment on one item, oldest first, each with its parent's comment id where the comment is a reply and a blank parent comment id where it is not, and a [Retracted] comment with blank text; changes nothing.
+Answers every comment on one item, in Operation 19's order, each with its parent's comment id where the comment is a reply and a blank parent comment id where it is not, and a [Retracted] comment with blank text; changes nothing.
 
 Kind: Operation
 
@@ -522,14 +522,14 @@ Comment is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one counted reader (Linus claude-sonnet-5-5; the first pass read the round's freeze record and lapsed, its report triaged and not counted, and the seat ran the pass again on the same text), frozen at e3af1687 — foundational count 0 after the blind second triage, clean, one sample; the two reports claimed no foundational and the blind second triage placed none (refuted: Operation 19 fixes the tie of the list's order, Operation 20 and Operation 16 the retracted text Non-goal 8 keeps in every version, Logic confinement 16 the comment id a call carries onward, Term comment action the actions Operation 4 names, and Term blank the spellings of a blank); the settle's own refining cure: Operation 27 carried two obligations joined by AND, so Operation 27 answers the parent's comment id for every reply and Operation 28 the blank parent comment id for every comment that is not a reply (GRACE-lang Rule shape 3); the round read the reach of Final Critique 1's cures (7 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 3, a delta round, one counted reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; the report claimed no foundational and the blind second triage placed none (refuted: Execution Contract Read 6's "Read 5's order" is the specification's own order where one is named, and an added instant is the creation instant on this page, Operation 8; Term comment id is a string); the settle's own refining cures: Operation 19 cites Execution Contract Logic confinement 10 for its tiebreak, Operation 20, Operation 27 and Operation 28 each range over the comments carrying the target reference, as Operation 19 does, and the case-table row and the Term list point at Operation 19's order instead of restating it short; the round read the reach of Final Critique 2's cures (3 labels and the Parent term) by their diff; 2026-11-19 — Final Critique 2, a delta round, frozen at e3af1687 — foundational count 0, clean, one sample; Operation 27 split in two; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
 open: none
 ```
