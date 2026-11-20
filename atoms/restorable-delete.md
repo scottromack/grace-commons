@@ -132,6 +132,7 @@ Operation 21: IF the item reference is malformed THEN a writing action MUST answ
 Operation 22: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer present (Execution Contract Query 5).
 Operation 23: IF the deletion's status EQUALS deleted THEN [Look Up] MUST answer the restore deadline of the deletion.
 Operation 24: IF the item stands present OR the deletion's status EQUALS purged THEN [Look Up] MUST answer a blank restore deadline.
+Operation 25: The atom MUST declare [Purge] an irreversible action (Execution Contract Undo 1, Execution Contract Undo 2).
 ```
 
 Term writing action: [Delete] | [Restore] | [Purge] — the actions that change where an item stands.
@@ -250,9 +251,7 @@ A deployment that changes the restore window changes the deadline of items delet
 
 ### What undoes a write
 
-[Restore] undoes [Delete] inside the restore window, and [Delete] undoes [Restore]. A [Purge] is never undone: that is the point of the act, and the item's history in the database stays until Shred *(forthcoming)* destroys it (Execution Contract Undo 4).
-
-NOTE: open 2026-11-18-a — nothing says whether [Purge] is an irreversible action in the sense of Execution Contract Undo 1, which would owe Undo 2's naming in its own rules, or a state made final that erases no record (State 4, Undo 4).
+[Restore] undoes [Delete] inside the restore window, and [Delete] undoes [Restore]. A [Purge] is irreversible (Operation 25) and is never undone: that is the point of the act, and the item's history in the database stays until Shred *(forthcoming)* destroys it.
 
 ## Composition notes
 
@@ -474,12 +473,13 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at bcecf938 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim and two refining remarks placed none held by both triages (the foundational refuted: Operation 9 lands restore-window-closed, which [Restore] lists on its refuses line, and Operation 10 says what the action writes, which Execution Contract Read 4 holds only for a call the action admits, so a refused call writes nothing and no build reads the two as competing; the cure would restate Read 4; refining: the NOTE under State 4 is the open line 2026-11-18-a, and the restore window's default read at start is Execution Contract Logic confinement 17, which Capability requirement 4 cites); the round read the reach of Final Critique 1's cures (46 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
 
-open:
-- 2026-11-18-a · refining · Operation 13 · nothing says whether Purge is irreversible in the sense of Execution Contract Undo 1 or a state made final that erases nothing → Purge is irreversible in the sense of Execution Contract Undo 1: it erases the item, and nothing restores it. By Scott's undo rule (2026-11-14: undoability is declared in one sentence naming the undo, or the final-state rule that makes undo inappropriate), the page names Purge its irreversible action in one sentence in its own rules (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
+open: none
 ```
 
 ## Decisions
 
 - **2026-11-18 — Taken in from MIT's Trashing concept, drafted through the Grace connector mirroring Reaction.** *Chose:* present, deleted and purged, a restore window fixed at delete, purge refused on an item not first deleted. *Over:* MIT's three states, whose spec names the normal one kept and whose actions say active, and a restore with no window. *Because:* Scott's forum sketch: "tombstone with a restore window"; one name for one state.
+
+- **2026-11-19 — Purge is the atom's irreversible action, named in its own rules (Operation 25).** *Chose:* [Purge] is irreversible in the sense of Execution Contract Undo 1, stated in one sentence as Operation 25 under Undo 2; the page's undo sentence cites Operation 25 in place of Undo 4's final-state arm. *Over:* a state made final that erases no record, under Undo 4. *Because:* Scott's undo rule (2026-11-14: undoability is declared in one sentence naming the undo, or the final-state rule that makes undo inappropriate), applied to this page by his direction of 2026-11-19 3:47 PM Central (rounds/open-line-choices-directions-3.md, item 137): purge erases the item for a reader, and nothing restores it. Overrulable by a new direction.
 
 NOTE: End of Restorable Delete.
