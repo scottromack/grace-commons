@@ -470,6 +470,8 @@ Term tombstone: a line inside a normative block in the form `Deleted: Label. The
 
 Term range citation: a run of labels of one family written as the first label, the word through and the last number — `Operation 3 through 7`, `Invariant 2.1 through 2.4`, `reconcile step 5.2 through 5.4`; a cross-spec range names the spec first (Hard invariant 28); the family is written once and singular, the last number carries the first number's shape, and both ends are included.
 
+Term run of labels: the labels of one family from a first number through a last number, cited as one span; a list of labels each written whole and separated by commas, as `Invariant 3.2, Invariant 4.1, Invariant 4.2`, is a list of cross-rule references, each resolved by label (Hard invariant 12), and no run of labels.
+
 WHY:
 Section 11 is the parser's contract; the writer-facing rules that mirror it oblige a different actor, and the two are kept as two norms on purpose. A cross-reference survives a version because labels never move and never collide across specs. A range citation says one thing four spellings used to say; *through* includes both ends in plain English, so the range reads the way it resolves, and `tools/grace/cites.py` counts it.
 
