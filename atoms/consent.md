@@ -62,8 +62,6 @@ Identity 11: The atom MUST NOT confirm that a subject reference names a known da
 
 NOTE: watch the id's length against the cap (Identity 2).
 
-NOTE: open 2026-10-30-a — the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 5).
-
 Term consent id: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
 
 Term subject reference: the opaque reference naming the data subject whose agreement the record holds — a [Subject Reference], as Execution Contract Logic confinement 13 canonicalizes it.
@@ -116,6 +114,7 @@ Stored state 3: The implementation MUST NOT answer a granted result for an elaps
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 7: The deployment MUST supply EVERY consent id PER Execution Contract Logic confinement 16.
 ```
 
 ### Operations
@@ -136,8 +135,6 @@ read(query)
   answers consent_records
   refuses invalid-query
 ```
-
-NOTE: open 2026-10-29-c — the read signature's answers arm, consent_records, is no declared name; Term consent record and Term records declare the record in words.
 
 ```
 Operation 1: [Grant] MUST record EXACTLY ONE consent record per successful call.
@@ -203,7 +200,7 @@ Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer 
 Operation 59: IF a time range's end PRECEDES the time range's start THEN [Read] MUST answer invalid-query.
 Operation 64: [Read] MUST evaluate a state filter against the consent record's state.
 Operation 65: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1).
-Operation 76: IF a reference filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
+Operation 76: IF a reference filter's value EXCEEDS the string cap THEN [Read] MUST answer invalid-query (Execution Contract Query 5).
 ```
 
 NOTE: watch the state a refusal leaves (Operation 32).
@@ -216,9 +213,7 @@ NOTE: a withdrawal whose [Revoke] write the database refuses (Operation 31), or 
 
 Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
-
-NOTE: open 2026-10-29-b — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
+Term business caller: the party whose action the call carries, as Execution Contract Logic confinement 14 declares it; never the source of an injected value.
 
 Term at time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, as Execution Contract Logic confinement 12 resolves it.
 
@@ -346,9 +341,9 @@ Term database instance: one named database a call is routed to; consent id uniqu
 
 Term database name: the identifier naming one database instance — a [Database Name]; deployment routing, never an input and never a stored field.
 
-Term seam: the atom's I/O (input and output) boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the consent id here.
+Term seam: the atom's I/O (input and output) boundary, as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the consent id here.
 
-Term transition: the atom's evaluation of one call against the consent records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the consent records, as Execution Contract Logic confinement 14 declares it.
 
 ---
 
@@ -462,15 +457,13 @@ NOTE: a revocation instant earlier than now ends the agreement from that instant
 Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
-Term string cap: the bound on the length in Unicode code points of a string input, of a reference filter's value and of the consent id the host allocates, counted PER Execution Contract Input 2 on the value a call carries and on the consent id as the host allocates it; 1,024 code points where a deployment declares none.
+Term string cap: the bound on the length in Unicode code points of a string input, of a reference filter's value and of the consent id the host allocates, counted PER Execution Contract Input 2 on a write input and on the consent id as the host allocates it, and PER Execution Contract Query 5 on a reference filter's value; 1,024 code points where a deployment declares none.
 
 Term granted record input fault: a [Revoking Actor] OR [Reason] that EXCEEDS the string cap, a [Revoking Actor] OR [Reason] that is malformed, OR a supplied [Revocation Instant] that is malformed — the faults Operation 67, Operation 68, Operation 69, Operation 74 and Operation 75 refuse on a record in [Granted].
 
 Term string input: a [Subject Reference], [Purpose], [Granting Actor], [Consent Id], [Revoking Actor] OR [Reason] — every caller-supplied string a writing action of this atom accepts; a reference filter's value is the string a read carries, held to the string cap by Operation 76, and is no string input.
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
-
-NOTE: open 2026-11-04-a — the cap is counted before canonicalization (Execution Contract Input 2) while the consent record holds the canonical form (Execution Contract Logic confinement 13), so a canonical form longer than the value a call carried writes a record whose own reference no reference filter can carry (Operation 76).
 
 NOTE: watch the cap's refusal (Operation 68, Operation 69, Operation 70, Operation 71, Operation 72, Operation 73).
 
@@ -503,13 +496,13 @@ Term record verbs: share, name, accept, carry, identify, allocate, reuse, change
 
 Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: string cap (the bound on the length in Unicode code points of a string input, of a reference filter's value and of the allocated consent id, counted PER Execution Contract Input 2 on the value a call carries and on the consent id as the host allocates it, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on the length in Unicode code points of a string input, of a reference filter's value and of the allocated consent id, counted PER Execution Contract Input 2 on a write input and on the consent id as the host allocates it, and PER Execution Contract Query 5 on a reference filter's value, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field, string cap, string input, granted record input fault.
+Term terms: consent record, database instance, database name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state filter, state, grant field, string cap, string input, granted record input fault, consent records.
 
 #### Grant
 
@@ -531,7 +524,7 @@ Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the consent records matching a [Query], ordered by [Grant Instant] ascending then [Consent Id] ascending. It changes nothing. Each record it returns carries its [State] derived at [Now], and a [State] filter is evaluated against that derived state (Invariant 2.2, Operation 64). Filters by [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [State], or time range are combinable; a malformed one is rejected [Invalid Query].
+The read-only behavior that returns the [Consent Records] matching a [Query], ordered by [Grant Instant] ascending then [Consent Id] ascending. It changes nothing. Each record it returns carries its [State] derived at [Now], and a [State] filter is evaluated against that derived state (Invariant 2.2, Operation 64). Filters by [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [State], or time range are combinable; a malformed one is rejected [Invalid Query].
 
 Kind: Operation
 
@@ -663,6 +656,15 @@ Kind:         Parameter
 Parameter of: Read
 Projection:   query
 
+#### Consent Records
+
+The answer [Read] returns for a well-formed query: every consent record the query matches, each carrying its [State] derived at [Now], ordered by [Grant Instant] ascending then [Consent Id] ascending (Operation 47, Operation 48, Operation 50); an empty sequence where none matches (Operation 51).
+
+Kind:       Member
+Member of:  the Read answer
+Role:       Outcome
+Projection: consent_records
+
 #### Granted
 
 The state of a consent in effect for its [Purpose]. A record enters [Granted] on [Grant]; it may be revoked or evaluated, and its semantic state becomes [Expired] passively when [Expiry Instant] elapses.
@@ -751,6 +753,7 @@ Projection: invalid-query
 [Check]: #check
 [Read]: #read
 [Consent Id]: #consent-id
+[Consent Records]: #consent-records
 [Subject Reference]: #subject-reference
 [Purpose]: #purpose
 [Granting Actor]: #granting-actor
@@ -805,11 +808,7 @@ status: doing
 formal: verified — consent.als + 21 twins (the static data model: State 3, 4, 5, 6, 9 and 16, Expiry 5, Stored state 3, Invariant 2.1, 2.2, 4.1 through 4.3, 5.1, 6.2, 7.1, 7.2, 10.1 and 10.2, Instance 2, Operation 2 and 26 checked on every record admitted calls leave, at every instant it can be read against; Expiry 1 through 4 caught by the Invariant 2.1 check and Identity 3, 4 and 6 by the Instance 2 check); consent.tla + 9 twins (across steps, as the clock moves: Invariant 1.1, 1.2, 3.1, 3.2, 8.1, 9.1 and 10.3, Operation 1, 18, 36 and 49); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 5; Operation 47, 48, 50 through 59, 64, 65 and 76 ([Read]'s query); Operation 66 through 75 and 77 (malformed and over-cap inputs), 2026-11-11
 last gate: 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 
-open:
-- 2026-10-29-b · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
-- 2026-10-29-c · refining · the read signature · its answers arm, consent_records, is no declared name (GRACE-lang Term signature form: an arm is a declared name), as Message Preference's preference_record, Provenance's entry_sequence and Event Log's events reach their declared names by word form alone → one form for a read's answer arm, declared as the page's other arms are
-- 2026-10-30-a · refining · Identity 2, 4; Capability requirement 1, 5 · the consent id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement, and the id's non-reuse binds the atom (Identity 4) though the host alone allocates one (Identity 2, Identity 3); Notification (its 2026-10-29-a), Approval Step, Assignment and Permissions (each its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, a fresh id on every allocation, in the one form the corpus settles for its host-allocation atoms
-- 2026-11-04-a · refining · Term string cap; Operation 76 · the cap is counted on the value a call carries (Execution Contract Input 2) and the record holds its canonical form (Execution Contract Logic confinement 13), so a canonical form longer than the carried value writes a record whose own reference exceeds the cap and no reference filter can carry it, and no rule owns that → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 <details markdown="block">

@@ -70,7 +70,7 @@ The Alloy model builds every record an admitted [Grant] can write, and what an a
 | Operation 41 through 44 — what [Check] answers from the candidate record | no | `checked` covered (Alloy, through Invariant 6.2 and 10.1) | `A_Invariant_6_2` (`consent-buggy-check-expiry-first.als`) and `A_Invariant_10_1`. |
 | Operation 49 — [Read] writes nothing | no | `checked` covered (TLA+) | `Op49_ReadWritesNothing`. Broken by `consent-buggy-read-caches.tla`. |
 | Operation 47, 48, 50 through 59, 64, 65, 76 — what [Read] answers to a query, and its order | no | `owed` (Alloy) | The models' [Read] answers every record; its filters, its refusals and its order (grant instant, then consent id) are not modeled. |
-| Operation 66 through 75, 77 — malformed and over-cap inputs | no | `owed` (Alloy) | The models' inputs carry values of their types, and the cap is counted on the value a call carries while the record holds its canonical form (the page's open line 2026-11-04-a). |
+| Operation 66 through 75, 77 — malformed and over-cap inputs | no | `owed` (Alloy) | The models' inputs carry values of their types, and the cap is counted on a write input in both forms (Execution Contract Input 2) and on a filter value once (Query 5), which no model reads. |
 | Operation 13, 31 and 32 — a refused write | no | `unstatable` | A write that did not commit leaves nothing (Execution Contract Database 1, 3): a refused write is no step in either model. |
 
 ## Step 3 — bound saturation
