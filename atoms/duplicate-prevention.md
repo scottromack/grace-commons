@@ -198,7 +198,7 @@ Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical
 Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Defensible Retention.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 14).
+NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); [Audit Trail](../compositions/audit-trail.md) (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 14).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -382,7 +382,7 @@ It inherits from:
 ```
 status: done — 2026-11-20
 formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2 and 3.1 and Operation 1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
-last gate: 2026-11-20 — Final Critique 8, a delta round, frozen at 6f568bb1 — foundational count 0, clean, no sample; 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 894be4e7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that the owners NOTE names four forthcoming patterns that do not exist, was refuted by both triages: spec-format.md's Non-goals section prescribes the forthcoming marker, the NOTE changes no rule, and Non-goal 5 binds a deployment needing one guard across every instance to compose a coordination pattern whether or not it has landed; its refining and rhetorical reports were refuted too; the blind second triage placed one unreported defect refining, Kind C: the owners NOTE named an audit pattern without its link though Audit Trail has landed, cured); 2026-11-20 — Final Critique 8, a delta round, frozen at 6f568bb1 — foundational count 0, clean, no sample; 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
 
 open: none
 ```
