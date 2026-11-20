@@ -45,8 +45,6 @@ Identity 7: A subject reference MUST NOT hold two active grants over one action 
 Identity 8: [Revoke] MUST reach EXACTLY ONE grant.
 ```
 
-NOTE: open 2026-10-26-a — the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies (Capability requirement 1, Capability requirement 4 through 6).
-
 Term grant record: one recorded binding of a subject to a scope; [Grant] the marker names the operation that writes one, and the two are not the same concept (council read 15).
 
 Term grant id: the opaque value naming one grant — a [Grant Id]; the handle revocation takes.
@@ -55,17 +53,13 @@ Term subject reference: the opaque reference naming who holds the grant — a [S
 
 Term action scope: the opaque reference naming what the grant covers — an [Action Scope]; matched exactly, and a composing pattern owns the vocabulary.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the grant id here.
+Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the grant id here.
 
-Term transition: the atom's evaluation of one call against the grant records, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term transition: the atom's evaluation of one call against the grant records, as Execution Contract Logic confinement 14 declares it.
 
-Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as Execution Contract Logic confinement 14 declares it.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
-
-NOTE: open 2026-11-02-a — Term now glosses the clock reading beside its citation of Execution Contract Logic confinement 11, which says a relying specification cites it and does not restate it; the gloss is the form some thirty atoms carry.
-
-NOTE: open 2026-10-21-f — Term seam, Term transition and Term business caller cite the section titled Logic Confinement Principle in `execution-contract.md`, which declares none of them.
 
 ### State
 
@@ -85,11 +79,16 @@ Term revocation instant: the instant the grant was withdrawn — a [Revocation I
 
 ### Capability requirement
 
+Term high-assurance deployment: a deployment that declares itself so (Capability requirement 8); the class and the receiver of its alert are the deployment's own, never the atom's (Capability requirement 9).
+
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the grant records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance.
+Capability requirement 7: The deployment MUST supply at the seam, for each [Grant] call, a grant id no grant has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 8: The deployment MAY declare the deployment high-assurance.
+Capability requirement 9: A high-assurance deployment MUST declare the receiver of the alert Revoke persistence 4 raises.
 ```
 
 ### Operations
@@ -109,8 +108,6 @@ permitted(subject_ref, action_scope)
 read()
   answers every grant
 ```
-
-NOTE: open 2026-10-26-b — the rules name the action [Check] and the signature block declares the action as permitted; only the Check entry, which carries no obligation, says the one is the other.
 
 ```
 Operation 1: IF no active grant matches the pair THEN [Grant] MUST record EXACTLY ONE grant per successful call.
@@ -135,6 +132,7 @@ Operation 22: [Check] MUST match an action scope exactly.
 Operation 26: [Read] MUST answer EVERY grant, active AND revoked.
 Operation 27: [Read] MUST answer a grant's grant id, subject reference, action scope, grant instant, status AND revocation instant.
 Operation 28: [Read] MUST NOT write.
+Operation 35: A call of permitted MUST call [Check].
 ```
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
@@ -357,12 +355,10 @@ Grant concurrency 1: IF no active grant matches the pair THEN the admitted concu
 ### Revoke persistence failure
 
 ```
-Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure.
+Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure, and the caller owns the retry's count and interval.
 Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
-Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke].
+Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke] to the receiver the deployment declares.
 ```
-
-NOTE: open 2026-10-21-c — the caller's retry of a refused revoke names no terminus (Revoke persistence 2), and a high-assurance deployment (Revoke persistence 4) is declared only as an alias of the deployment, so whether the qualifier narrows the rule is unstated.
 
 ## Composition notes
 
@@ -396,7 +392,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: grant record, live at an instant, grant id, subject reference, action scope, seam, transition, business caller, now, string cap, status, grant instant, revocation instant, pair, grant set, active grant set.
+Term terms: grant record, live at an instant, grant id, subject reference, action scope, seam, transition, business caller, now, string cap, status, grant instant, revocation instant, pair, grant set, active grant set, high-assurance deployment.
 
 #### Grant
 
@@ -412,7 +408,7 @@ Kind: Operation
 
 #### Check
 
-The read-only behavior a composing pattern invokes before an action to evaluate whether a (subject, scope) pair holds an [Active] grant. It returns [Permitted] if any [Active] grant matches the queried [Subject Reference] and [Action Scope], otherwise [Denied]. It changes nothing, and both answers are first-class results. (Its projected contract lowers the verb to permitted, which is also the name of one of its two answers — `permitted(alice, read) → denied` is well-formed and reads oddly; the lowering is recorded here because the rules speak [Check] and the wire speaks permitted.)
+The read-only behavior a composing pattern invokes before an action to evaluate whether a (subject, scope) pair holds an [Active] grant. It returns [Permitted] if any [Active] grant matches the queried [Subject Reference] and [Action Scope], otherwise [Denied]. It changes nothing, and both answers are first-class results. (The signature block names the action permitted, which is also the name of one of its two answers — `permitted(alice, read) → denied` is well-formed and reads oddly; Operation 35 ties the rules' [Check] to the wire's permitted.)
 
 Kind: Operation
 
@@ -610,12 +606,7 @@ status: doing
 formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 3, 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19
 last gate: 2026-11-19 — Final Critique 13, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
 
-open:
-- 2026-10-21-c · refining · Revoke persistence 2, 4 · the caller's retry of a refused revoke names no terminus (Pass 1: every retry loop names its terminus), and the deployment that raises the alert is declared only as an alias of the deployment → name the bound at which the caller stops and what it raises there; say which deployments alert
-- 2026-10-21-f · refining · Term seam; Term transition; Term business caller · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the three → declare the three there, the corpus's one seam wording, or point each at its declaration
-- 2026-10-26-a · refining · Identity 2; Capability requirement 1, 4 through 6 · the grant id's source is named as the host's allocation (Identity 2) and not among what the deployment supplies, where the atom shape in `spec-format.md` lists an id source under Capability requirement; Approval Step (its 2026-10-26-a), Assignment (its 2026-10-26-a), Event Log (its 2026-10-22-b) and Tamper Evidence (its 2026-10-22-a) route the same form → name the source among the Capability requirements, in the one form the corpus settles for its twenty host-allocation atoms
-- 2026-10-26-b · refining · Operation 16 through 22; the signature block · the rules name the action [Check] and the signature block declares it as permitted, and only the Check entry, a term entry, which carries no obligation (GRACE-lang Surface 25 and 27), says the one is the other; permitted is also one of [Check]'s two answers → name the action alike in the rules and on the wire, whose permitted every composing page calls, or tie the two names on the normative surface in the form the corpus settles for the wire layer (the Watch list's the wire layer)
-- 2026-11-02-a · refining · Term now · the entry restates Execution Contract Logic confinement 11's definition beside its citation, where that rule says a relying specification cites it and does not restate it; the same gloss stands on some thirty atoms → one corpus sweep settles the form for every atom, or Logic confinement 11 admits the gloss
+open: none
 ```
 
 <details markdown="block">
