@@ -59,15 +59,13 @@ Term action content: what the action an action reference names says or carries; 
 
 Term actor reference: the opaque reference naming who attested — an [Actor Reference]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the attestation id on [Attest], the cryptographic material and the registry answer here.
+Term seam: the atom's I/O (input and output) boundary, as Execution Contract Logic confinement 14 declares it; the host injects the clock reading, the attestation id on [Attest], the cryptographic material and the registry answer here.
 
-Term transition: the atom's evaluation of one call against the attestation records.
+Term transition: the atom's evaluation of one call against the attestation records, as Execution Contract Logic confinement 14 declares it.
 
-Term business caller: the party whose action the call carries; never the source of an injected value.
+Term business caller: the party whose action the call carries, as Execution Contract Logic confinement 14 declares it.
 
-Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
-
-NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; the atom spends no clock allowance where it compares now or attestation instant with an era, since the registry answer states its eras on the deployment's clock (Execution Contract Logic confinement 7 and Execution Contract Logic confinement 18).
 
 ### State
 
@@ -91,11 +89,11 @@ Term credential: the private material the actor uses to produce the proof — a 
 
 Term public material: what the actor registry holds for an actor reference and a verifier reads — the current material, and any historical material the registry keeps (Registry view 2), each carried with its era.
 
-Term era: the span of instants one public material was in force for an actor reference, which the registry answer carries with the material (Capability requirement 3).
+Term era: the span of instants one public material was in force for an actor reference, holding its first instant and not its last, which the registry answer carries with the material (Capability requirement 3).
 
 Term current material at attestation instant: the public material whose era holds attestation instant — the current material for an attestation recorded since the actor's last rotation, historical material otherwise, and none where the registry keeps no historical material (Registry view 2).
 
-Term current material: the public material in force for an actor reference now, historical material excluded — what the credential check runs a credential against.
+Term current material: the public material whose era holds now for an actor reference — what the credential check runs a credential against.
 
 Term revocation status: what the credential mechanism reads about the credential's revocation — carried inside the proof (Revocation status 1) or read from a live revocation service (Revocation status 3) — saying whether the credential is revoked as of an instant and, where it is, the revocation's effective instant, which the credential mechanism supplies (Revocation status 5); a revocation status names the credential revoked as of an instant where the revocation's effective instant is no later than that instant, and [Attest] reads it as of now (Operation 36) while [Verify] reads it as of attestation instant (Operation 42).
 
@@ -106,7 +104,7 @@ Term attestation field: attestation id | action reference | actor reference | pr
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the attestation records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 6, Execution Contract Read 1 through 3, Execution Contract Read 5, Execution Contract Read 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
-Capability requirement 3: The deployment MUST supply the registry answer at the seam, with an era for every public material the registry answer carries.
+Capability requirement 3: The deployment MUST supply the registry answer at the seam, with an era for every public material the registry answer carries, no two eras of one actor reference holding one instant.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST supply at the seam on [Attest] an attestation id no attestation has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
@@ -171,24 +169,20 @@ Deleted: Operation 34. Execution Contract Read 1 owns it.
 Deleted: Operation 35. Execution Contract Refusal 1 owns it.
 Operation 36: IF a revocation status names the credential revoked THEN [Attest] MUST answer invalid-credential.
 Operation 37: IF a string input EXCEEDS the string cap THEN [Attest] MUST answer invalid-request.
-Operation 38: [Attest] MUST record the action reference the call carries.
-Operation 39: [Attest] MUST record the actor reference the call carries.
+Operation 38: [Attest] MUST record the action reference the call carries PER Execution Contract Input 4.
+Operation 39: [Attest] MUST record the actor reference the call carries PER Execution Contract Input 4.
 Operation 40: IF registry answer EQUALS material AND credential check EQUALS unavailable THEN [Attest] MUST answer mechanism-unavailable.
 Operation 41: IF an attestation EXISTS for the attestation id AND registry answer EQUALS material AND proof check EQUALS unavailable AND no cached verification result EXISTS for the attestation id and the registry view THEN [Verify] MUST answer mechanism-unavailable.
 Operation 42: [Verify] MUST read a revocation status as of attestation instant.
 ```
 
-NOTE: watch the required input no rule records (Operation 38, Operation 39).
-
 NOTE: watch the unreadable registry (Operation 33).
 
 NOTE: watch the cap's refusal (Operation 37).
 
-Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 4,096 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted as Execution Contract Input 2 counts it; 4,096 code points where a deployment declares none.
 
 Term string input: action reference, actor reference OR credential — every caller-supplied string [Attest] accepts; the attestation id [Verify] accepts is looked up and not bounded, an id no attestation carries answering not-known (Operation 15).
-
-NOTE: watch the cap's measure (Term string cap, Term bounds).
 
 NOTE: watch the cap's floor (Capability requirement 5).
 
@@ -235,12 +229,12 @@ Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s re
   ```
 - **Invariant 2 — Action binding.**
   ```
-  Invariant 2.1: A recorded proof MUST verify against the recorded action reference under the current material at attestation instant.
+  Invariant 2.1: IF the current material at attestation instant IS IN the public material THEN a recorded proof MUST verify against the recorded action reference under the current material at attestation instant.
   Invariant 2.2: A proof produced for another action MUST NOT verify against the attestation.
   ```
 - **Invariant 3 — Actor binding.**
   ```
-  Invariant 3.1: A recorded proof MUST verify against the recorded actor reference under the current material at attestation instant.
+  Invariant 3.1: IF the current material at attestation instant IS IN the public material THEN a recorded proof MUST verify against the recorded actor reference under the current material at attestation instant.
   Invariant 3.2: A proof produced by another actor MUST NOT verify against the attestation.
   ```
 - **Invariant 4 — Id stability.**
@@ -264,7 +258,7 @@ Where two [Attest] cases hold at once, the refusal listed first on [Attest]'s re
   ```
 - **Invariant 8 — Non-repudiation contract.**
   ```
-  Invariant 8.1: A verified attestation MUST bind the actor reference to the action reference at attestation instant ONLY IF the credential was uncompromised at attestation instant.
+  Invariant 8.1: IF the credential was uncompromised at attestation instant THEN a verified attestation MUST bind the actor reference to the action reference at attestation instant.
   Invariant 8.2: The atom MUST NOT reinterpret an attestation under a later compromise.
   ```
 - **Invariant 9 — Attestation durability.**
@@ -290,7 +284,7 @@ A teller initiates a $50,000 wire. Bank policy requires supervisor approval for 
 
 ### Healthcare — electronic prescription for a controlled substance
 
-A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administration) Electronic Prescriptions for Controlled Substances (EPCS) regulations require two-factor cryptographic attestation. The physician's EHR (Electronic Health Record — the digital patient chart system) computes `attest(rx_r37, dr_park, dr_park_credential)` using the physician's smart-card-bound credential and a second factor. The prescription transmits to the pharmacy with `attestation_a91`. The pharmacy calls `verify(a91)` before dispensing; verified → fill. Two years later, during a DEA audit, the same verification proves Dr. Park authorized that specific prescription on that specific date.
+A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administration) Electronic Prescriptions for Controlled Substances (EPCS) regulations require two-factor cryptographic attestation. The physician's EHR (Electronic Health Record — the digital patient chart system) computes `attest(rx_r37, dr_park, dr_park_credential)` using the physician's smart-card-bound credential and a second factor. The prescription transmits to the pharmacy with `attestation_a91`. The pharmacy calls `verify(a91)` before dispensing; verified → fill. Two years later, during a DEA audit, the same verification proves Dr. Park authorized that specific prescription, recorded on that specific date.
 
 ### Payments — chip-and-PIN transaction
 
@@ -326,14 +320,14 @@ Three scenarios the atom must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the attestation records and the actor registry's public material, and, where the credential mechanism rests on a live revocation service, that service's revocation status.
+This atom's acceptance is provable: an external auditor clears it from the attestation records and the actor registry's public material, and, where the credential mechanism rests on a live revocation service, that service's revocation status, save the confirmation Check 3.3 sends outside them.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
-Check 1.2: IF the credential mechanism rests on no live revocation service THEN an auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.3).
-Check 1.3: IF the credential mechanism rests on a live revocation service THEN an auditor MUST NOT need state beyond those fields, the registry's public material and the revocation status that service answers (Invariant 6.3, Revocation status 3).
+Check 1.2: IF the credential mechanism rests on no live revocation service THEN an auditor MUST NOT need state beyond those fields and the registry's public material to verify an attestation (Invariant 6.3).
+Check 1.3: IF the credential mechanism rests on a live revocation service THEN an auditor MUST NOT need state beyond those fields, the registry's public material and the revocation status that service answers to verify an attestation (Invariant 6.3, Revocation status 3).
 Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Operation 21).
 Check 3.1: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded action reference under the current material at attestation instant and against no other action (Invariant 2.1, Invariant 2.2).
 Check 3.2: IF the current material at attestation instant IS IN the public material THEN an auditor MUST confirm that the proof holds against the recorded actor reference under the current material at attestation instant and against no other actor (Invariant 3.1, Invariant 3.2).
@@ -452,7 +446,7 @@ Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed | unavailable. credential check = held | failed | unavailable. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
-Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, 4,096 where a deployment declares none).
+Term bounds: string cap (declared once at Term string cap, cited here under GRACE-lang Closed vocabulary 15).
 
 Term cadences: empty.
 
@@ -518,7 +512,7 @@ Projection: proof
 
 #### Attestation Instant
 
-The wall-time the [Attestation] was recorded, stamped from the host-injected clock on [Attest]. Immutable thereafter. The non-repudiation contract binds the actor to the action *at* this time.
+The wall-time the [Attestation] was recorded, stamped from the host-injected clock on [Attest]. Immutable thereafter. The non-repudiation contract binds the actor to the action *at* this time, as the host's clock stamped it, a clock the atom does not vouch for (Non-goal 12).
 
 Kind:       Field
 Field of:   Attestation
@@ -692,7 +686,7 @@ It inherits from:
 ```
 status: doing
 formal: verified — actor-identity.als + 16 twins (the static data model: State 1, 3, 4 and 7, Identity 2, Invariant 2.1, 3.1 and 5.1, Operation 1, 3, 6 through 9, 31, 33 and 36 through 40 checked on every attestation an admitted [Attest] records, with Operation 5 and 26 checked through them); actor-identity.tla + 20 twins (across steps, while the registry's view moves and revocation statuses arrive, each with the effective instant the mechanism supplies or none: Invariant 1.1, 6.3, 7.1, 8.2 and 9.1, State 5, Capability requirement 6, Operation 2, 14 through 20, 27, 29, 32, 41 and 42, with Identity 6, 7 and 8, State 6, Operation 21 and Non-goal 9 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 3.2 (the credential mechanism's unforgeability, computed at the seam), Invariant 8.1 (its condition is no fact the records carry), Operation 13 and Check 3.3 (an auditor's act outside the atom) cannot be stated; 2026-11-12, re-derived 2026-11-20 after the cures of open lines 2026-11-05-a and 2026-11-04-b (a revocation read as of attestation instant, a cached verification: the TLA+ model only, Invariant 8.2 and Operation 42 checked, Operation 32 and 41 checked where no cached verification result exists, as the model caches none, 3 twins added); owed rows: Identity 1; Operation 4, 10 and 28; Verification caching 1 through 5, 2026-11-20
-last gate: 2026-11-17 — Final Critique 19, a delta round, frozen at 5a146b1 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed two foundational, both on Read 6 as the window's 5f3918f5 writes it: that its trigger and its proviso oblige opposite answers once a purged record's page is delivered, and that the trigger's evidence has no owner; both refuted on the contract's text, since the answer turns on whether the purge committed before a page's delivery and a deployment that answers 99 of 100 breaks Read 6 itself; refining 1, rhetorical 1, both refuted again as in Final Critique 18); 2026-11-17 — Final Critique 18, a delta round, frozen at 60bd95e — foundational count 2, cured by a held cure, not clean, no sample; 2026-11-17 — Final Critique 17, a delta round, frozen at 84a84cc — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-06 — Final Critique 16, a delta round, frozen at ad732c0 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 15, a delta round, frozen at cd7c4bb — foundational count 3, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at a3eeb6a — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 — foundational count 6, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
+last gate: 2026-11-20 — Final Critique 20, a full round, frozen at c29ac3e — foundational count 2 after the first triage (no blind second triage, the count is not zero; Opus 5.5 decided the hard calls), cured in the round, not clean, three counted passes (GRID's one foundational report refuted by Execution Contract Read 2; EOS's five placed one foundational, Invariant 2.1 and 3.1 holding under no material after a rotation with no kept history, which Linus found too, and one refining report placed foundational, Term era's boundary instant, cured one way with three confirmations asked of Scott; the other findings refuted or cured as refining); 2026-11-17 — Final Critique 19, a delta round, frozen at 5a146b1 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed two foundational, both on Read 6 as the window's 5f3918f5 writes it: that its trigger and its proviso oblige opposite answers once a purged record's page is delivered, and that the trigger's evidence has no owner; both refuted on the contract's text, since the answer turns on whether the purge committed before a page's delivery and a deployment that answers 99 of 100 breaks Read 6 itself; refining 1, rhetorical 1, both refuted again as in Final Critique 18); 2026-11-17 — Final Critique 18, a delta round, frozen at 60bd95e — foundational count 2, cured by a held cure, not clean, no sample; 2026-11-17 — Final Critique 17, a delta round, frozen at 84a84cc — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-06 — Final Critique 16, a delta round, frozen at ad732c0 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 15, a delta round, frozen at cd7c4bb — foundational count 3, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at a3eeb6a — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a full round, frozen at abc0293 — foundational count 6, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at f85ef8d — foundational count 1, cured, not clean, no sample; 2026-10-23 — Final Critique 10, the council's sixth round on the page and the first on its text since Final Critique 9's settle (7e1da1a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS Beam, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at fbbe23b); the round rests on three counted passes — foundational count 0, held by the blind second triage (2026-10-23, one cold reader given the round's 29 reports, the method's test and the placement rule, and neither the threshold nor what the count decides, which placed none of them foundational); 14 foundational reports, none standing as the two triages settled them (12 sent down, eight of them onto the page's four flagged open lines; 2 rejected); 13 refining reports, 2 rhetorical reports; clean; every refining finding cured, routed or answered, State 2 deleted to State 1, open line 2026-10-22-a narrowed to the seam terms and open line 2026-10-23-a added; one sample; 2026-10-23 — Final Critique 9, the council's fifth round on the page — foundational count 1 after the blind second triage, cured, not clean; 2026-10-22 — Final Critique 8, the council's fourth round on the page — foundational count 1, cured, not clean; 2026-10-22 — Final Critique 7, the council's third round on the page — foundational count 2, both cured, not clean; 2026-10-22 — Final Critique 6, the council's second round on the page — foundational count 3, all cured, not clean; 2026-10-20 — Final Critique 5, the council's first round on the page — foundational count 7, all cured, not clean
 
 open: none
 ```
