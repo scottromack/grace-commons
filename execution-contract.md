@@ -593,6 +593,10 @@ A runtime implementation of a Grace Commons atom is conforming when all of the f
 
 Any runtime that satisfies Conformance 1 through 7 against the Grace Commons atom specs is conforming, regardless of language, database, or UI technology.
 
+### What a render assumes of its language
+
+A pattern may be rendered in any language, and conformance (above) does not depend on the choice. The contract does assume three things of the language, and strongly advises one that enforces them rather than one where they hold by discipline alone: static types, a functional core and explicit effects. Static types means every input, output and record is typed, as the signatures of the [atom compilation rules](#atom-compilation-rules) already are. A functional core means the [Pure Function](#pure-function-pf) as written above: no IO, no mutation, the same input giving the same output, with values not changed in place. Explicit effects means every [Direct Effect](#direct-effect-de) is visible at its call, never hidden inside a pure function. The default path is generated through [Hydra](https://github.com/CategoricalData/hydra), whose targets (TypeScript today) meet all three.
+
 ---
 
 ---
