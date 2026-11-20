@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total. A cart is opened in one currency, and every price on it and its total are whole numbers of that currency's smallest unit, such as cents for the euro, so adding them up never rounds. A line keeps the price it was added at even if the shop's price changes later, so the total moves only when a line is added, its quantity is changed, or it is taken out; to charge a new price, the line is taken out and the item added again. The cart decides nothing about what an item costs, whether it is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order: each of those belongs to another pattern, which is why one cart can serve an online store, a café's open tab, a wholesale order and a booking alike.
+Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total. A cart is opened in one currency, and every price on it and its total are whole numbers of that currency's smallest unit, such as cents for the euro, so adding them up never rounds. A line keeps the price it was added at even if the shop's price changes later, so the total moves only when a line is added, its quantity is changed, it is taken out, or the cart is cleared; to charge a new price, the line is taken out and the item added again. The cart decides nothing about what an item costs, whether it is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order: each of those belongs to another pattern, which is why one cart can serve an online store, a café's open tab, a wholesale order and a booking alike.
 
 ---
 
@@ -27,7 +27,7 @@ Cart is a shopping cart: it holds what a person means to buy, one line per item,
 <details markdown="block">
 <summary>WHY</summary>
 
-A shop lets a person gather what they mean to buy before they buy it, and the shape recurs wherever goods or services are sold: an online store's basket, a café's open tab, a wholesale order assembled line by line, a booking that collects tickets and extras before payment. The shape is constant — lines, each naming an item, how many of it, and the price it was offered at when it went in, and a total the lines add up to — and this atom is that and nothing more. It does not decide what an item costs, whether one is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order; each of those belongs to a composing pattern, and declining them is what lets one cart serve an online store, a till and a booking system alike. Two decisions carry the weight. A line keeps the unit price taken when it was added, and nothing in the atom changes it afterwards, so the total moves only when a line is added, re-counted or taken out, never because a price moved underneath it. And a cart holds at most one line per item, so how many of an item a cart holds is one quantity on one line.
+A shop lets a person gather what they mean to buy before they buy it, and the shape recurs wherever goods or services are sold: an online store's basket, a café's open tab, a wholesale order assembled line by line, a booking that collects tickets and extras before payment. The shape is constant — lines, each naming an item, how many of it, and the price it was offered at when it went in, and a total the lines add up to — and this atom is that and nothing more. It does not decide what an item costs, whether one is in stock, what tax or delivery applies, whose cart it is, or how the purchase is paid for and becomes an order; each of those belongs to a composing pattern, and declining them is what lets one cart serve an online store, a till and a booking system alike. Two decisions carry the weight. A line keeps the unit price taken when it was added, and nothing in the atom changes it afterwards, so the total moves only when a line is added, counted again, taken out or cleared, never because a price moved underneath it. And a cart holds at most one line per item, so how many of an item a cart holds is one quantity on one line.
 
 </details>
 
@@ -47,23 +47,23 @@ Identity 8: The atom MUST NOT normalize a currency.
 Identity 9: The atom MUST compare two currencies codepoint for codepoint.
 ```
 
-Term string cap: the bound on an item reference's length in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on an item reference's, a cart id's and a line id's length in Unicode code points; 1,024 code points where a deployment declares none.
 
-Term cart: a set of lines gathered toward one purchase, with the currency their prices are counted in — a [Cart].
+Term cart: a set of lines gathered toward one purchase, named by its cart id, with the currency their prices are counted in — a [Cart].
 
-NOTE: the lines a [Read] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, and any other order is the composing pattern's that shows the cart (Non-goal 14).
+NOTE: watch the order an atom forbids — [Read]'s answer comes in the order Operation 25 states, which stands in place of Execution Contract Read 5's default order, and any other order a cart is shown in is the composing pattern's (Non-goal 14).
 
-Term line: one item on a cart, with how many of the item and the unit price taken when the line was added — a [Line].
+Term line: one item on a cart, named by its line id, with how many of the item and the unit price taken when the line was added — a [Line].
 
-Term cart id: the opaque value naming one cart — a [Cart Id]; unique for the system's life.
+Term cart id: the opaque string naming one cart, held to the string cap — a [Cart Id]; unique for the system's life.
 
-Term line id: the opaque value naming one line — a [Line Id]; unique for the system's life, so an item added again after its line was taken out gets a new line id.
+Term line id: the opaque string naming one line, held to the string cap — a [Line Id]; unique for the system's life, so an item added again after its line was taken out gets a new line id.
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
-NOTE: the atom declares no value a reference, so Execution Contract Logic confinement 13 canonicalizes neither the item reference nor the currency, and each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9).
+NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9).
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each cart id and line id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the cart id an [Open] records and the line id an [Add] records here (Capability requirement 1, Capability requirement 2).
 
 ### State
 
@@ -85,19 +85,21 @@ Term whole amount: a whole number of the cart currency's minor unit, zero or mor
 
 Term positive count: a whole number, one or more.
 
-Term total: the sum, over every line the cart carries, of (quantity * unit price) — a [Total]; zero for a cart carrying no line, counted in the cart currency's minor unit, computed at each [Read] and never stored.
+Term total: the sum, over every line the cart carries, of (quantity * unit price) — a [Total]; zero for a cart carrying no line, counted in the cart currency's minor unit, computed at each [Read] and never stored, exactly and without loss (Execution Contract Logic confinement 9).
 
 NOTE: watch a term entry's kind — the total is computed at each read and never stored, yet its term entry takes `Kind: Field`, as a stored field's does.
 
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a cart id no cart has carried PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply at the seam, for each [Add] call, a line id no line has carried PER Execution Contract Logic confinement 3.
-Capability requirement 3: The deployment MUST supply the accepted currencies.
-Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a cart id no cart has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 2: The deployment MUST supply at the seam, for each [Add] call, a line id no line has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 3: The deployment MUST supply the accepted currencies PER Execution Contract Logic confinement 15 and Execution Contract Logic confinement 17.
+Capability requirement 5: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Order 1, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 7: The deployment MAY declare the line cap PER Execution Contract Input 2.
+Capability requirement 8: The deployment MUST NOT normalize an item reference at the seam.
+Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
 ```
 
 Term accepted currencies: the currencies the deployment sells in — the set [Open] checks a currency against.
@@ -131,10 +133,10 @@ read(cart_id)
 ```
 
 ```
-Operation 1: IF the currency IS NOT IN the accepted currencies THEN [Open] MUST answer invalid-currency.
+Operation 1: IF the currency EQUALS blank OR the currency IS NOT IN the accepted currencies THEN [Open] MUST answer invalid-currency.
 Operation 2: [Open] MUST record EXACTLY ONE cart carrying the currency of the call.
 Operation 3: [Open] MUST answer the cart id.
-Operation 4: IF no cart EXISTS for the cart id THEN a cart action MUST answer not-known.
+Operation 4: IF the cart id EQUALS blank OR the cart id EXCEEDS the string cap OR no cart EXISTS for the cart id THEN a cart action MUST answer not-known.
 Operation 5: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Add] MUST answer invalid-item-reference.
 Operation 6: IF the quantity IS NOT IN the positive counts THEN [Add] MUST answer invalid-quantity.
 Operation 7: IF the unit price IS NOT IN the whole amounts THEN [Add] MUST answer invalid-price.
@@ -142,7 +144,7 @@ Operation 8: IF a line of the cart EXISTS for the item reference THEN [Add] MUST
 Operation 24: IF the line cap DOES NOT EXCEED the line count THEN [Add] MUST answer cart-full.
 Operation 9: [Add] MUST record EXACTLY ONE line carrying the line id the seam supplies and the cart id, the item reference, the quantity and the unit price of the call.
 Operation 10: [Add] MUST answer the line id.
-Operation 11: IF no line EXISTS for the line id THEN a line action MUST answer not-known.
+Operation 11: IF the line id EQUALS blank OR the line id EXCEEDS the string cap OR no line EXISTS for the line id THEN a line action MUST answer not-known.
 Operation 12: IF the new quantity IS NOT IN the positive counts THEN [Change Quantity] MUST answer invalid-quantity.
 Operation 13: IF the new quantity DOES NOT EQUAL the line's quantity THEN [Change Quantity] MUST set quantity to the new quantity.
 Operation 14: IF the new quantity EQUALS the line's quantity THEN [Change Quantity] MUST NOT write.
@@ -154,11 +156,14 @@ Operation 19: [Clear] MUST answer ok.
 Operation 21: [Read] MUST answer the cart id, the cart's currency, EVERY line of the cart AND the cart's total.
 Operation 22: [Read] MUST answer a line's line id, item reference, quantity AND unit price.
 Operation 23: [Read] MUST NOT write.
+Operation 25: [Read] MUST answer the cart's lines in the order of each line's recording commit, earliest first (Execution Contract Order 1).
 ```
 
 Term line cap: the most lines a cart holds; 500 lines where a deployment declares none.
 
 Term line count: the number of lines a cart holds.
+
+Term recording commit: the commit of the [Add] call that recorded a line, one position in the single order Execution Contract Order 1 gives every commit.
 
 Term new quantity: the quantity a [Change Quantity] call sets — a [New Quantity]; a positive count.
 
@@ -171,7 +176,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the carts |
 |---|---|---|---|
 | [Open] | currency accepted, database accepts | the cart id | one cart lands, carrying the currency and no line (Operation 2) |
-| [Open] | currency not accepted | [Invalid Currency] | none (Operation 1) |
+| [Open] | currency blank or not accepted | [Invalid Currency] | none (Operation 1) |
 | [Add] | inputs valid, no line for the item, database accepts | the line id | one line lands, carrying the line id and the call's cart id, item reference, quantity and unit price; the cart's currency stands (Operation 9, Invariant 4.1) |
 | [Add] | item reference blank or over the string cap | [Invalid Item Reference] | none (Operation 5) |
 | [Add] | quantity not a positive count | [Invalid Quantity] | none (Operation 6) |
@@ -183,9 +188,9 @@ The case space, and the rule that owns each case:
 | [Change Quantity] | new quantity not a positive count | [Invalid Quantity] | none (Operation 12) |
 | [Remove] | the line is on a cart | ok | the line leaves the cart; its line id is retired (Operation 16, Identity 4) |
 | [Clear] | the cart exists | ok | every line leaves the cart and its line id is retired; the cart stays, its currency standing (Operation 18, Identity 4, State 3, Invariant 4.1) |
-| a cart action or a line action | the id names nothing | [Not Known] | none (Operation 4, Operation 11) |
+| a cart action or a line action | the id is blank, over the string cap or names nothing | [Not Known] | none (Operation 4, Operation 11) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
-| [Read] | the cart exists | the cart id, the cart's currency, its lines and its total | none (Operation 21 through 23) |
+| [Read] | the cart exists | the cart id, the cart's currency, its lines in the order they were added, and its total | none (Operation 21 through 23, Operation 25) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
@@ -247,13 +252,16 @@ A deployment that accepts `"EUR"` and `"USD"`, exercising the rejection surface 
 - `add(c9, "Pen", 1, 500)` — accepted as a different item, line `l8`: two item references are compared codepoint for codepoint.
 - `change_quantity(l7, 0)` — rejected as [Invalid Quantity]; a line leaves a cart by [Remove].
 - `remove(l7)` — ok. Then `change_quantity(l7, 2)` — rejected as [Not Known]: the line id is retired.
-- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known].
+- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, or one over the string cap.
+- an [Add] to `c9` of an item reference 1,025 code points long, with quantity 1 and unit price 500 — rejected as [Invalid Item Reference]: the reference is over the string cap, 1,024 code points where the deployment declares none.
+
+On a deployment that declares a line cap of 2, a cart `c10` carrying lines for `"pen"` and `"ink"`: `add(c10, "cap", 1, 100)` is rejected as [Cart Full] (Operation 24); [Remove] of either line, and the same call is then accepted.
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the carts and lines the database holds, with their earlier versions (Execution Contract Database 5). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the carts and lines the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -270,9 +278,10 @@ Check 3.3: An auditor MUST find EVERY version of a line carrying the item refere
 Check 3.4: An auditor MUST find EVERY version of a cart carrying the currency of the cart's first version (Invariant 4.1).
 Check 4.1: An auditor MUST find EVERY line carrying a positive count as the line's quantity (Invariant 6.1).
 Check 4.2: An auditor MUST find EVERY line carrying a whole amount as the line's unit price (Invariant 6.2).
+Check 4.3: An auditor MUST find EVERY [Read] answer's total EQUALS the sum, over the cart's lines, of quantity times unit price (Operation 21).
 ```
 
-Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
+Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
 
 NOTE: EVERY check names the rule the check tests.
 
@@ -299,7 +308,7 @@ Non-goal 10: The atom MUST NOT check an item reference against a catalog.
 Non-goal 11: The atom MUST NOT convert a currency.
 Non-goal 12: The atom MUST NOT expire a cart.
 Non-goal 13: The atom MUST NOT merge two carts.
-Non-goal 14: The atom MUST NOT order lines.
+Non-goal 14: The atom MUST NOT order lines for display.
 Non-goal 15: The atom MUST NOT limit a quantity.
 Non-goal 16: The atom MUST NOT read an item reference's options.
 Non-goal 17: The atom MUST NOT apply a delivery charge.
@@ -313,7 +322,7 @@ Where the atom breaks down: a purchase whose lines are priced in more than one c
 
 ### Concurrency
 
-Two calls adding one item to one cart are serialized (Execution Contract Database 2): the later reads the line the earlier recorded and answers [Already In Cart], so the cart never carries two lines for one item (Invariant 1.1).
+Two calls writing to one cart are serialized (Execution Contract Database 2): the later reads what the earlier committed. Two calls adding one item answer [Already In Cart] for the later, so the cart never carries two lines for one item (Invariant 1.1); two calls adding different items to a cart one line short of the line cap answer [Cart Full] for the later, so the cart never carries more lines than the line cap allows (Operation 24); and a [Clear] removes every line the cart carries at the commit that writes it, so a line landing after that commit is a line added to a cleared cart (Operation 18).
 
 ### Indeterminate outcome
 
@@ -322,6 +331,10 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 ### A price that moves after the add
 
 The line keeps the unit price taken at [Add] (Invariant 2.1). To charge an item's current price, a composing pattern removes the line and adds the item again: a new line, with a new [Line Id], at the new price. The earlier line's versions stay readable as they stood (Execution Contract Database 5).
+
+### What undoes a write
+
+No action of the atom erases a record: [Remove] and [Clear] take a line off its cart and Execution Contract Database 5 keeps every earlier version of it readable, so none is irreversible (Execution Contract Undo 1, Execution Contract Undo 2). [Remove] undoes [Add], and so does [Clear], which takes every line off; [Add] of the same item undoes [Remove], recording a new line with a new line id (Operation 9, Identity 4); [Change Quantity] undoes [Change Quantity], by a call carrying the quantity the line's earlier version holds (Execution Contract Database 5). [Add] of the lines [Clear] took off undoes [Clear], a line at a time, and no undo is owed for [Open], since State 3 keeps the cart and a cart carrying no line adds nothing to any total (Execution Contract Undo 4).
 
 ## Composition notes
 
@@ -344,15 +357,15 @@ Term records: cart — a set of lines gathered toward one purchase, carrying car
 
 Term record verbs: identify, reuse, normalize, compare, carry, remove, supply, compute, record, answer, set, write, take, share, change, name, find, read, price, apply, hold, compose, turn, close, check, convert, expire, merge, order, limit, own, refuse, declare.
 
-Term value sets: cart action and line action are declared above and cited here (GRACE-lang Closed vocabulary 15).
+Term value sets: cart action and line action are declared above and cited here (GRACE-lang Closed vocabulary 15); action rejection — invalid-currency | not-known | invalid-item-reference | invalid-quantity | invalid-price | already-in-cart | cart-full | storage-failure.
 
-Term bounds: positive count (one, the floor of a quantity); whole amount (zero, the floor of a unit price); string cap (the bound on an item reference's length in Unicode code points, 1,024 where a deployment declares none); line cap (the most lines a cart holds, 500 where a deployment declares none).
+Term bounds: positive count (one, the floor of a quantity); whole amount (zero, the floor of a unit price); string cap (the bound on an item reference's, a cart id's and a line id's length in Unicode code points, 1,024 where a deployment declares none); line cap (the most lines a cart holds, 500 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.66 (2026-10-23).
 
-Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version, string cap, line cap, line count.
+Term terms: cart, line, cart id, line id, item reference, seam, quantity, new quantity, unit price, currency, minor unit, whole amount, positive count, total, accepted currencies, cart action, line action, version, string cap, line cap, line count, recording commit.
 
 #### Open
 
@@ -386,25 +399,25 @@ Kind: Operation
 
 #### Read
 
-Answers a cart and changes nothing: its [Cart Id], its [Currency], every [Line] it carries with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
+Answers a cart and changes nothing: its [Cart Id], its [Currency], every [Line] it carries, in the order the lines were added, with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
 
 Kind: Operation
 
 #### Cart
 
-A set of lines gathered toward one purchase, with the [Currency] their prices are counted in; opened by [Open], changed by [Add], [Change Quantity], [Remove] and [Clear], never closed or removed by the atom.
+A set of lines gathered toward one purchase, named by its [Cart Id], with the [Currency] their prices are counted in; opened by [Open], changed by [Add], [Change Quantity], [Remove] and [Clear], never closed or removed by the atom.
 
 Kind: Type
 
 #### Line
 
-One item on a cart: its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
+One item on a cart, named by its [Line Id]: its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
 
 Kind: Type
 
 #### Cart Id
 
-The opaque, immutable identity of a cart, allocated by the host at the seam on [Open], never reused.
+The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused.
 
 Kind:       Field
 Field of:   Cart
@@ -412,7 +425,7 @@ Projection: cart_id
 
 #### Line Id
 
-The opaque, immutable identity of a line, allocated by the host at the seam on [Add], never reused; an item removed and added again is a new line.
+The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused; an item removed and added again is a new line.
 
 Kind:       Field
 Field of:   Line
@@ -468,7 +481,7 @@ Projection: total
 
 #### Invalid Currency
 
-[Open]'s refusal of a [Currency] the deployment does not accept.
+[Open]'s refusal of a blank [Currency], or of a [Currency] the deployment does not accept.
 
 Kind:       Member
 Member of:  the action rejection
@@ -477,7 +490,7 @@ Projection: invalid-currency
 
 #### Not Known
 
-The refusal of a [Cart Id] naming no cart, on [Add], [Clear] or [Read], or of a [Line Id] naming no line, on [Change Quantity] or [Remove].
+The refusal of a [Cart Id] naming no cart, on [Add], [Clear] or [Read], or of a [Line Id] naming no line, on [Change Quantity] or [Remove]; a blank id, or one over the string cap, names nothing (Operation 4, Operation 11).
 
 Kind:       Member
 Member of:  the action rejection
@@ -589,8 +602,8 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ```
 status: doing
-formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21 and 22, 2026-11-11
-last gate: 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11
+last gate: 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open: none
 ```
