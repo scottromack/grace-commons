@@ -61,9 +61,7 @@ Term home: the record filing one item in one category — a [Home].
 
 Term item reference: the string naming an item, such as a post or a product, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
 
-Term string cap: the bound on an item reference's length and on a category name's length in Unicode code points; 1,024 code points where a deployment declares none.
-
-NOTE: open 2026-11-18-a — one string cap bounds both an item reference and a category name; whether a deployment may declare a cap for each is no rule's decision yet.
+Term string cap: the one bound on an item reference's length and on a category name's length in Unicode code points; 1,024 code points where a deployment declares none, and a deployment declares one value for both.
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -345,7 +343,7 @@ Term record verbs: identify, assign, normalize, compare, carry, stand, remove, s
 
 Term value sets: naming action, creating action, category action, filing action, changing action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — listed | hidden; action rejection — invalid-category-name | name-taken | unknown-category | invalid-position | invalid-item-reference | storage-failure.
 
-Term bounds: string cap (the bound on an item reference's length and on a category name's length in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the one bound on an item reference's length and on a category name's length in Unicode code points, 1,024 where a deployment declares none, one value for both).
 
 Term cadences: empty.
 
@@ -602,12 +600,13 @@ status: doing
 formal: pending — no model yet
 last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 53102bba — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational, 4 refining and 1 rhetorical: the foundational is the open line 2026-11-19-a re-found (Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35), placed refining Kind B by both triages, since a build that writes a new identical version breaks Operation 33 through 35 and an implementation that writes nothing obeys every rule, so two conforming builds do not differ; the line's premise that the grammar has no form for a value the record does not already carry was false (Moderation's Operation 15 and 16 say the move changes the standing and leaves it as it was, and Operation 33 through 35 use the predicate carries, not EQUALS, which Hard invariant 14 governs), so the line is closed: cured, Operation 11, 12, 16 and 17 take the condition that the call changes the category's name, position or the item's home, and the three case-table rows of the replacing rules say so; the four refining items refuted (the answer ok has its owner in Operation 20, Identity 6 and 7 and Capability requirement 4 bar normalizing a name, no rule clamps a position, Invariant 2.2 and Database 2 settle two concurrent places), the rhetorical declined; 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
 
-open:
-- 2026-11-18-a · refining · Term string cap · one string cap bounds both an item reference and a category name, and a deployment may want a different cap for each → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 ## Decisions
 
 - **2026-11-18 — Drafted through the Grace connector mirroring Reaction, from Scott's forum sketch.** *Chose:* a tree that is also the menu, one home per item, hide in place of remove, no move. *Over:* MIT's Labeling, several names per item in one flat scope. *Because:* Scott 2026-11-18: a forum gets both categories and tags, and a busy tag is graduated into a category; one home per item is the category, several names is the tag, and the graduation is Tag Promotion *(forthcoming)*. Moving a category is left to Category Move *(forthcoming)*, so the atom stays as simple as possible without losing fidelity.
+
+- **2026-11-19 — One string cap bounds an item reference and a category name.** *Chose:* the atom states one cap for both, as Tag and Reaction do, and a deployment declares one value (Execution Contract Input 2: a deployment overrides the cap the page states, and the page states one). *Over:* a cap for each, as Erasure Tombstone and Condition Register declare. *Because:* a deployment that wants a different bound for a name declares it by a new direction on this page, not by a gap in this one; "as simple as possible without losing fidelity" keeps Category the same shape as Tag, its sibling with the same two inputs.
 
 NOTE: End of Category.
