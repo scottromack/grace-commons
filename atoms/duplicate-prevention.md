@@ -195,10 +195,10 @@ Non-goal 10: The atom MUST NOT read a calendar.
 Non-goal 11: A pattern needing day-boundary semantics MUST compose a calendar-day pattern.
 Non-goal 12: The atom MUST NOT correct clock skew.
 Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
-Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Retention Window.
+Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Defensible Retention.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Retention Window](./retention-window.md) (Non-goal 14).
+NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 14).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 

@@ -465,7 +465,7 @@ Non-goal 28: A deployment needing a verifiable time anchor MUST compose a forthc
 Non-goal 29: The atom MUST NOT issue a challenge.
 Non-goal 30: A deployment needing a challenge-response check MUST bind the challenge into the presented material at a forthcoming challenge pattern.
 Non-goal 31: The atom MUST NOT confirm that a verified signed challenge is fresh.
-Non-goal 32: A deployment needing a credential lawfully erased MUST compose Retention Window.
+Non-goal 32: A deployment needing a credential lawfully erased MUST compose Defensible Retention.
 Non-goal 33: The atom MUST NOT bound the size of a read's answer.
 Non-goal 34: The atom MUST NOT confirm that a registering caller holds a public key's private key.
 Non-goal 35: A deployment needing proof of possession MUST confirm the proof at the composing enrollment pattern.
@@ -475,7 +475,7 @@ Non-goal 38: The atom MUST NOT define an answer to a fault in a function the der
 Non-goal 39: The atom MUST NOT bound the cost of guessing a verifier.
 ```
 
-NOTE: the owners — Compromise Disclosure *(forthcoming)* (Non-goal 19, Composition note 11); Execution Contract Logic confinement 7 (Non-goal 27); the deployment (Non-goal 11, Non-goal 14, Non-goal 17, Non-goal 23, Non-goal 26, Non-goal 37, Composition note 17); the host (Non-goal 38); the derivation function (Non-goal 18, Non-goal 39, External check 14); a composing Event Log (Non-goal 24, Non-goal 25); a composing Retention Window (Non-goal 22); a challenge pattern *(forthcoming)* (Non-goal 31, Non-goal 36); the composing pattern that exposes [Read] (Non-goal 33, Composition note 16).
+NOTE: the owners — Compromise Disclosure *(forthcoming)* (Non-goal 19, Composition note 11); Execution Contract Logic confinement 7 (Non-goal 27); the deployment (Non-goal 11, Non-goal 14, Non-goal 17, Non-goal 23, Non-goal 26, Non-goal 37, Composition note 17); the host (Non-goal 38); the derivation function (Non-goal 18, Non-goal 39, External check 14); a composing Event Log (Non-goal 24, Non-goal 25); a composing Retention Window (Non-goal 22); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 32); a challenge pattern *(forthcoming)* (Non-goal 31, Non-goal 36); the composing pattern that exposes [Read] (Non-goal 33, Composition note 16).
 
 ---
 

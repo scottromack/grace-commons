@@ -426,7 +426,7 @@ Non-goal 23: The atom MUST NOT gate an action beyond the identifier the action a
 Non-goal 24: A deployment needing richer authorization MUST compose Permissions.
 Non-goal 25: The atom MUST NOT expire a preference record.
 Non-goal 26: The atom MUST NOT redact a preference record.
-Non-goal 27: A deployment needing lawful disposal MUST compose Retention Window.
+Non-goal 27: A deployment needing lawful disposal MUST compose Defensible Retention.
 Non-goal 28: The atom MUST NOT seal a preference record against modification.
 Non-goal 29: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 30: The atom MUST NOT guarantee a preference id unique across database instances.
@@ -434,7 +434,7 @@ Non-goal 31: The atom MUST NOT push an update into queued work.
 Non-goal 32: The atom MUST NOT change a caller's captured copy of a preference record.
 ```
 
-NOTE: the owners — the composing pattern (Non-goal 1 through 5; Non-goal 11, Composition note 8); [Consent](./consent.md) (Non-goal 6, Non-goal 7, Composition note 6; State 20); [Subscription](./subscription.md) (Non-goal 8, Non-goal 9, Composition note 7; State 19); [Audit Trail](../compositions/audit-trail.md) and [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14; Non-goal 17, Non-goal 18); [Actor Identity](./actor-identity.md) (Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 25, Non-goal 26, Non-goal 27); [Tamper Evidence](./tamper-evidence.md) (Non-goal 28, Non-goal 29); [Notification](./notification.md) (State 18).
+NOTE: the owners — the composing pattern (Non-goal 1 through 5; Non-goal 11, Composition note 8); [Consent](./consent.md) (Non-goal 6, Non-goal 7, Composition note 6; State 20); [Subscription](./subscription.md) (Non-goal 8, Non-goal 9, Composition note 7; State 19); [Audit Trail](../compositions/audit-trail.md) and [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14; Non-goal 17, Non-goal 18); [Actor Identity](./actor-identity.md) (Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 25, Non-goal 26); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 27); [Tamper Evidence](./tamper-evidence.md) (Non-goal 28, Non-goal 29); [Notification](./notification.md) (State 18).
 
 ## Edge cases
 
