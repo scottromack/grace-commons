@@ -259,7 +259,7 @@ Term custodian-guarded action: [Transform] | [Disclose] | [Archive] — the thre
 
 Term appending action: [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive] — every action but [Read].
 
-Term chain-state rejection: the archived answer a writer gives against a closed chain, and the already-archived answer [Archive] gives.
+Term chain-state rejection: the archived answer [Transfer], [Transform] and [Disclose] give against a closed chain, and the already-archived answer [Archive] gives.
 
 Term admitted originate: an [Originate] call the action admits (Execution Contract Read 4).
 
@@ -290,7 +290,7 @@ The case space, and the rule that owns each case:
 | [Transform] | open chain, refs present, custodian current | the entry id | transformed entry; custody unchanged; every recorded entry's fields and sequence number stand (Operation 28, Operation 33, Operation 64, Operation 69, Operation 70, Invariant 1.1, Invariant 2.2) |
 | [Disclose] | open chain, refs present, custodian current | the entry id | disclosed entry; custody unchanged; every recorded entry's fields and sequence number stand (Operation 29, Operation 34, Operation 65, Operation 71, Operation 72, Invariant 1.1, Invariant 2.2) |
 | [Archive] | open chain, custodian current | the entry id | archived entry; chain closes; custody unchanged; every recorded entry's fields and sequence number stand (Operation 30 through 32, Operation 73, Operation 74, Invariant 1.1, Invariant 2.2) |
-| any writer | chain is archived | [Archived] | none (Operation 12 through 14) |
+| [Transfer], [Transform] or [Disclose] | chain is archived | [Archived] | none (Operation 12 through 14) |
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
 | custodian-guarded | custodian reference present and not the current custodian | [Not Current Custodian] | none (Operation 26) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 10) |
@@ -303,7 +303,7 @@ The case space, and the rule that owns each case:
 | [Transform] | a transformation descriptor over the maximum length | [Invalid Descriptor] | none (String 8) |
 | [Originate] | metadata over the maximum length | [Invalid Reference] | none (String 9) |
 | any action | the database cannot be read | state-unavailable | none (Execution Contract Read 1) |
-| [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
+| [Read] | a well-formed query, any chain state | the matching entries, in sequence number order | none (Operation 46, Operation 53) |
 | [Read] | an inverted range, a range missing an end, an unknown event type, or a filter keyed by no axis's projection | [Invalid Query] | none (Operation 48, Operation 49, Operation 59, Operation 60) |
 
 ### Invariants
@@ -376,7 +376,7 @@ Weeks later the hospital returns part of the batch for re-inspection, and the re
 
 `originate(artifact_ref: "exhibit-A", custodian_ref: "det-r.james", genesis_type: originated)` → `chain-0107`. The exhibit moves to the evidence room (`e2`), then the lab (`e3`). The lab records its work: `transform("chain-0107", "forensic-lab-12", "fingerprint-lifted; DNA-sample-taken; original-exhibit-intact")` → `e4`. It returns to the evidence room (`e5`). The chain stands open pending trial.
 
-Defense counsel claims an undocumented handler between the detective and the lab. `read("chain-0107")` answers five entries; no entry's from custodian reference names a party who was not the immediately prior to custodian reference, and every entry names a custodian (Invariant 4, Invariant 7). An unrecorded intermediary was never the current custodian, so no entry names an intermediary as the custodian of a transformation or as the sender of a transfer.
+Defense counsel claims an undocumented handler between the detective and the lab. `read("chain-0107")` answers five entries in sequence order; every transferred entry's from custodian reference equals the current custodian the entry found, and every entry names a custodian (Invariant 4, Invariant 7). The records show no intermediary: custody is set only by an admitted originate and an admitted transfer (Operation 75, Operation 21), so an unrecorded party was never the current custodian, and no entry names one as the custodian of a transformation or as the sender of a transfer.
 
 ### Rejection paths
 
@@ -390,7 +390,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `transform("chain-0107", "forensic-lab-12", "   ")` → invalid-descriptor. A whitespace-only descriptor EQUALS blank (Operation 24, String 5).
 
-`archive("chain-0041", "pharm-hosp-9")` against the archived chain → already-archived — a distinct reason from the writer actions' archived, so a retrying archiver learns the work is done rather than refused (Operation 15).
+`archive("chain-0041", "pharm-hosp-9")` against the archived chain → already-archived — a distinct reason from the archived that [Transfer], [Transform] and [Disclose] answer, so a retrying archiver learns the work is done rather than refused (Operation 15).
 
 `read("chain-9999")` → not-known (Operation 10).
 
@@ -469,7 +469,7 @@ Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal 2, Composition note 3); [Permissions](./permissions.md) (Non-goal 3, Non-goal 4); [Selective Disclosure](./selective-disclosure.md) (Non-goal 5 through 7, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); Correction 3 and Correction 4, a correction appended as a transformed entry naming the corrected entry's sequence number (Non-goal 9 through 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12, Non-goal 13, Composition note 4); [Retention Window](./retention-window.md) (Non-goal 14, Non-goal 15, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 19, Non-goal 20); the host (Non-goal 21; Non-goal 22, Concurrency 4).
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal 2, Composition note 3); [Permissions](./permissions.md) (Non-goal 3, Non-goal 4, Composition note 2); [Selective Disclosure](./selective-disclosure.md) (Non-goal 5 through 7, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); Correction 3 and Correction 4, a correction appended as a transformed entry naming the corrected entry's sequence number (Non-goal 9 through 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12, Non-goal 13, Composition note 4); [Retention Window](./retention-window.md) (Non-goal 14, Non-goal 15, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 19, Non-goal 20); the host (Non-goal 18, Non-goal 21; Non-goal 22, Concurrency 4).
 
 ---
 
@@ -888,14 +888,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: verified — provenance.als + 6 twins (the static data model, re-derived 2026-11-12 as the entries and chain record versions an ordered sequence of admitted calls leaves, custody replayed by sequence number as Check 3.1 reads it; the 2026-06-04 fact CustodyContinuity, which its checks restated, and its 2 twins gone: Invariant 4.2, 4.3, 4.4, 5.1, 7.1 and 7.2); provenance.tla + 13 twins (the operation sequences, 2026-11-12, while the clock reads any instant, backwards included: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 3.3, 4.1, 5.2, 5.3, 6.1, 6.2, 8.2, 8.3, 8.4 and 10.1, Operation 42 through 44, with State 11 and 18 checked through them); Invariant 8.1 holds by both models' typing; coverage 2026-11-12 (unit `atoms/provenance.md formal layer`): owed rows: none, 2026-11-12
-last gate: 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
+last gate: 2026-11-19 — Final Critique 14, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (the example leaves [Read]'s order to the Execution Contract) refuted by both triages, since Operation 46 names the order outside the delta set; its seven refining and three rhetorical findings placed two refining cured (the Defense counsel example's reasoning narrowed to what the records show, and the owners NOTE naming Permissions for Composition note 2 and the host for Non-goal 18), the rest refuted (Operation 22, the Terms maximum length, Non-goal 11) or left as wording, and the blind triage's own two refining finds cured (the older "writer" wording of the archived rows against Term writer action, the example's genesis exception); 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
 
 open: none
 ```
