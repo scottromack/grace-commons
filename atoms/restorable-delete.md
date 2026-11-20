@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item. An accidental delete is undone by one restore, and a final delete is always a separate, deliberate act. The atom records where each item stands — present, deleted or purged — and answers which deleted items are past their window, so a nightly job can purge them. Who may delete or restore, hiding a deleted item from readers, destroying the item's stored copies, and a legal hold that forbids destruction each belong to another pattern, which is why one restorable delete serves a forum's posts, a shop's products and a team's files alike.
+Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item. An accidental delete is undone by one restore, and a final delete is always a separate act. Restorable Delete records where each item stands — present, deleted or purged — and answers which deleted items are past their window, so a nightly job can purge them. Who may delete or restore, hiding a deleted item from readers, destroying the item's stored copies, and a legal hold that forbids destruction each belong to another pattern, which is why one restorable delete serves a forum's posts, a shop's products and a team's files alike.
 
 ---
 
@@ -27,7 +27,7 @@ Restorable Delete makes deleting something a two-step act: delete marks an item 
 <details markdown="block">
 <summary>WHY</summary>
 
-People delete by mistake, and businesses need some deletes to be final. This atom holds both. Three decisions carry the weight. Deleting and purging are two acts, and purge is refused on an item not first deleted, so nothing is destroyed in one slip. The restore window is fixed when the item is deleted, so a reader can always tell a person how long they have, and a restore past the window is refused rather than silently honoured. And the atom keeps only where an item stands: the item's own record is another pattern's, the database's history keeps every earlier version of the item, and destroying those versions is a separate pattern's job, with Erasure Tombstone recording that a lawful destruction happened. An item with no deletion record stands present, so nothing is written for the many items never deleted. Taken in from MIT's sync-engine Trashing concept (Daniel Jackson's group). Its spec names the normal state "kept" while its actions say "active"; here the one word is present.
+People delete by mistake, and businesses need some deletes to be final. This atom holds both. Three decisions carry the weight. Deleting and purging are two acts, and purge is refused on an item not first deleted, so nothing is made final in one slip. The restore window is fixed when the item is deleted, so a reader can always tell a person how long they have, and a restore past the window is refused rather than silently honoured. And the atom keeps only where an item stands: the item's own record is another pattern's, the database's history keeps every earlier version of the item, and destroying those versions is a separate pattern's job, with Erasure Tombstone recording that a lawful destruction happened. An item with no deletion record stands present, so nothing is written for the many items never deleted. Taken in from the Massachusetts Institute of Technology's (MIT's) sync-engine Trashing concept (Daniel Jackson's group). Its spec names the normal state "kept" while its actions say "active"; here the one word is present.
 
 </details>
 
@@ -38,7 +38,7 @@ People delete by mistake, and businesses need some deletes to be final. This ato
 ```
 Identity 1: The atom MUST identify a deletion by the deletion's item reference.
 Identity 2: The atom MUST NOT normalize an item reference.
-Identity 3: The atom MUST compare two item references codepoint for codepoint.
+Identity 3: The atom MUST compare two item references codepoint for codepoint (Execution Contract Logic confinement 10).
 ```
 
 Term deletion: the record of where one deleted item stands, kept from the item's first delete — a [Deletion].
@@ -57,7 +57,7 @@ Term seam: the atom's input and output boundary as the section titled Logic Conf
 State 1: EVERY deletion MUST carry item reference and status.
 State 2: EVERY deletion MUST stand in EXACTLY ONE OF present, deleted, purged.
 State 3: EVERY deletion standing in deleted MUST carry a deleted instant AND a restore deadline.
-State 4: The atom MUST NOT remove a deletion.
+State 4: The atom MUST NOT remove a deletion or a version of one (Execution Contract Database 5).
 ```
 
 Term status: where an item stands, present, deleted or purged — the [Status].
@@ -72,15 +72,19 @@ Term deleted instant: the instant of the latest [Delete] call that stood the ite
 
 Term restore deadline: `(deleted_instant + restore_window)` — the [Restore Deadline] (Execution Contract Logic confinement 9).
 
+Term stamp: [Deleted Instant] | [Restore Deadline] — the two fields a [Delete] stamps on a deletion.
+
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
-Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
+Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MAY declare the restore window PER Execution Contract Logic confinement 17.
 Capability requirement 5: The deployment MUST NOT normalize an item reference at the seam.
 ```
+
+NOTE: Identity 2 and Capability requirement 5 are the atom's own rule for the canonical form of an item reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so an item reference is recorded as the call carries it (Execution Contract Input 4; Identity 2 and 3).
 
 ### Operations
 
@@ -125,21 +129,29 @@ Operation 14: IF the deletion's status EQUALS purged THEN [Purge] MUST NOT write
 Operation 15: A writing action MUST answer ok.
 Operation 16: [Look Up] MUST answer the status of the item reference's deletion.
 Operation 17: [Look Up] MUST answer present for an item reference no deletion carries.
-Operation 18: [List Deleted] MUST answer EVERY deletion standing in deleted, in deleted instant order, then in codepoint order of item reference.
-Operation 19: [List Expired] MUST answer EVERY deletion standing in deleted whose restore deadline PRECEDES the injected now, in restore deadline order, then in codepoint order of item reference.
+Operation 18: [List Deleted] MUST answer EVERY deletion standing in deleted, in deleted instant order, oldest deleted first, then in codepoint order of item reference (Execution Contract Logic confinement 10).
+Operation 19: [List Expired] MUST answer EVERY deletion standing in deleted whose restore deadline PRECEDES the injected now, in restore deadline order, the earliest deadline first, then in codepoint order of item reference (Execution Contract Logic confinement 10, Execution Contract Logic confinement 20).
 Operation 20: A reading action MUST NOT write.
 Operation 21: IF the item reference is malformed THEN a writing action MUST answer invalid-item-reference (Execution Contract Input 1).
 Operation 22: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer present (Execution Contract Query 5).
 Operation 23: IF the deletion's status EQUALS deleted THEN [Look Up] MUST answer the restore deadline of the deletion.
 Operation 24: IF the item stands present OR the deletion's status EQUALS purged THEN [Look Up] MUST answer a blank restore deadline.
 Operation 25: The atom MUST declare [Purge] an irreversible action (Execution Contract Undo 1, Execution Contract Undo 2).
+Operation 26: A [Restore] MUST NOT change a stamp of the deletion.
+Operation 27: A [Purge] MUST NOT change a stamp of the deletion.
 ```
+
+NOTE: watch read-order polarity (Operation 18, Operation 19).
 
 Term writing action: [Delete] | [Restore] | [Purge] — the actions that change where an item stands.
 
 Term reading action: [Look Up] | [List Deleted] | [List Expired] — the actions that change nothing.
 
 Term stands present: an item stands present where no deletion carries the item reference, or where the item's deletion's status EQUALS present.
+
+Term stands deleted: an item stands deleted where the item's deletion's status EQUALS deleted.
+
+Term stands purged: an item stands purged where the item's deletion's status EQUALS purged.
 
 The case space, and the rule that owns each case:
 
@@ -148,8 +160,8 @@ The case space, and the rule that owns each case:
 | [Delete] | the item stands present, reference valid | ok | the item stands deleted, its deleted instant now, its restore deadline one restore window on (Operation 4 through 7) |
 | [Delete] | the item stands deleted | ok | none, no write; the restore deadline stands (Operation 8) |
 | [Delete] | the item stands purged | [Item Purged] | none (Operation 2) |
-| [Restore] | the item stands deleted, inside the window | ok | the item stands present (Operation 10) |
-| [Restore] | the item stands deleted, past the window | [Restore Window Closed] | none (Operation 9) |
+| [Restore] | the item stands deleted, at or before its restore deadline | ok | the item stands present (Operation 10) |
+| [Restore] | the item stands deleted, after its restore deadline | [Restore Window Closed] | none (Operation 9) |
 | [Restore] | the item stands present | ok | none, no write (Operation 11) |
 | [Restore] | the item stands purged | [Item Purged] | none (Operation 3) |
 | [Purge] | the item stands deleted, inside or past the window | ok | the item stands purged, for good (Operation 13) |
@@ -184,20 +196,21 @@ A member deletes her own post, `p-7`: `delete("p-7")` answers ok, and `look_up("
 
 ### Shop
 
-A shop sets the restore window to seven days. Each night a job calls `list_expired()` and purges every product it answers; a product deleted six days ago is not in the list and can still be restored.
+A shop sets the restore window to seven days. Each night a job calls `list_expired()` and purges every product it answers; a product deleted six days ago is not in the list and can still be restored. A job that sends the same `delete("p-7")` twice gets ok both times and the second changes nothing.
 
 ### Rejection paths
 
 - `delete("")` — rejected as [Invalid Item Reference]: the reference is blank.
 - `purge("p-8")` on a post never deleted — rejected as [Not Deleted]: purge is refused on an item not first deleted.
 - `restore("p-5")` 31 days after `delete("p-5")` — rejected as [Restore Window Closed]: the item still stands deleted, past its deadline.
+- `delete(...)` with a reference of 1,025 code points — rejected as [Invalid Item Reference]: the reference is over the string cap.
 - `delete("p-9")` once purged — rejected as [Item Purged]: purged is final.
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
 
 ## Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the deletions the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the deletions the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). Check 1.1 through 1.3 and Check 3.1 are checks of one state (Execution Contract Database 8). The atom is not regulated and carries no adversarial scenarios.
 
 ### Conformance checks
 
@@ -205,6 +218,7 @@ Acceptable when the checks below are provable to an external auditor from the de
 Check 1.1: An auditor MUST find EVERY deletion carrying item reference AND status (State 1).
 Check 1.2: An auditor MUST find EVERY deletion standing in EXACTLY ONE OF present, deleted, purged (State 2).
 Check 1.3: An auditor MUST find EVERY deletion standing in deleted carrying a deleted instant AND a restore deadline (State 3).
+Check 1.4: An auditor MUST find an unfiltered read answering EVERY deletion with a committed version (State 4; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find EVERY version of a deletion later than a purged version standing in purged (Invariant 1.1).
 Check 3.1: An auditor MUST find no two deletions sharing an item reference (Invariant 2.1).
 ```
@@ -239,7 +253,7 @@ Where the atom breaks down: a record kept for a set time by law and then destroy
 
 ### Concurrency
 
-A [Restore] and a [Purge] on one deleted item are serialized (Execution Contract Database 2): where the restore lands first, the purge meets a present item and answers [Not Deleted]; where the purge lands first, the restore answers [Item Purged]. Either way the item ends in one status.
+A [Restore] and a [Purge] on one deleted item are serialized (Execution Contract Database 2): where the restore lands first, the purge meets a present item and answers [Not Deleted]; where the purge lands first, the restore answers [Item Purged]. Either way the item ends in one status. A [Restore] past its window lands nothing, so a [Purge] after it purges the item. Two [Delete] calls on one item reference are serialized the same way (Execution Contract Database 2): the later meets the earlier's deletion, writes nothing and answers ok.
 
 ### Indeterminate outcome
 
@@ -247,7 +261,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### A restore window that changes
 
-A deployment that changes the restore window changes the deadline of items deleted from then on; an item already deleted keeps the restore deadline stamped at its delete.
+A restore window a deployment changes takes effect at the instance's next start (Execution Contract Logic confinement 17); an item already deleted keeps the restore deadline stamped at its delete.
 
 ### What undoes a write
 
@@ -271,7 +285,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a deletion; a writing action; a reading action; an auditor.
 
-Term records: deletion — where one deleted item stands, carrying item reference, status and, while deleted, deleted instant and restore deadline.
+Term records: deletion — where one deleted item stands, carrying item reference, status and, while deleted, deleted instant and restore deadline; standing — one item's status with its restore deadline, which [Look Up] answers; item — one deleted item a list answers, with the fields its action names.
 
 Term record verbs: identify, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, change, write, share, find, read, tell, hide, destroy, hold, purge, check, own.
 
@@ -283,7 +297,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from MIT's sync-engine Trashing concept.
 
-Term terms: deletion, deletions, item reference, restore window, string cap, seam, status, present, deleted, purged, deleted instant, restore deadline, writing action, reading action, stands present, version.
+Term terms: deletion, deletions, item reference, restore window, string cap, seam, status, present, deleted, purged, deleted instant, restore deadline, writing action, reading action, stands present, stands deleted, stands purged, stamp, stamps, standing, standings, item, items, version.
 
 #### Delete
 
@@ -293,13 +307,13 @@ Kind: Operation
 
 #### Restore
 
-Stands a deleted item back in [Present] inside its restore window. A present item is left as it is. Answers ok.
+Stands a deleted item back in [Present] inside its restore window, leaving its deleted instant and restore deadline as they were. A present item is left as it is. Answers ok.
 
 Kind: Operation
 
 #### Purge
 
-Stands a deleted item in [Purged], for good. A purged item is left as it is. Answers ok.
+Stands a deleted item in [Purged], for good, leaving its deleted instant and restore deadline as they were. A purged item is left as it is. Answers ok.
 
 Kind: Operation
 
@@ -323,7 +337,7 @@ Kind: Operation
 
 #### Deletion
 
-Where one deleted item stands: recorded by the item's first [Delete], moved by [Restore] and [Purge]; never removed by the atom.
+Where one deleted item stands: recorded by the item's first [Delete], moved by [Restore], [Purge] and a later [Delete]; never removed by the atom.
 
 Kind: Type
 
@@ -464,14 +478,14 @@ Restorable Delete is a primitive with no regulatory anchor. It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-19` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-19
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at bcecf938 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim and two refining remarks placed none held by both triages (the foundational refuted: Operation 9 lands restore-window-closed, which [Restore] lists on its refuses line, and Operation 10 says what the action writes, which Execution Contract Read 4 holds only for a call the action admits, so a refused call writes nothing and no build reads the two as competing; the cure would restate Read 4; refining: the NOTE under State 4 is the open line 2026-11-18-a, and the restore window's default read at start is Execution Contract Logic confinement 17, which Capability requirement 4 cites); the round read the reach of Final Critique 1's cures (46 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
+last gate: 2026-11-19 — Final Critique 3, a full round, three readers (GRID glm-5.3-flash, EOS mimo-v2.6-pro, Linus minimax-m3), frozen at a69c19d0 — foundational count 0 after the blind second triage, clean, one sample; the readers' six foundational reports (Logic confinement 10, 20 and 17 owed as citations, [Purge] beside Database 5's purge, no direction on Operation 18 and 19, two [Delete] calls on a new reference) placed refining by both triages, since in each the build that differs breaks a rule the page states or the contract's rule decides it, and cured in the settle together with the 22 refining and 5 rhetorical items the reports list, each cured or refuted in the triage (Database 8, Logic confinement 7, the in-place canonical form, Check 1.4 for State 4, the stamps [Restore] and [Purge] leave, the answer terms, the restore deadline's boundary); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at bcecf938 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim and two refining remarks placed none held by both triages (the foundational refuted: Operation 9 lands restore-window-closed, which [Restore] lists on its refuses line, and Operation 10 says what the action writes, which Execution Contract Read 4 holds only for a call the action admits, so a refused call writes nothing and no build reads the two as competing; the cure would restate Read 4; refining: the NOTE under State 4 is the open line 2026-11-18-a, and the restore window's default read at start is Execution Contract Logic confinement 17, which Capability requirement 4 cites); the round read the reach of Final Critique 1's cures (46 labels) by their diff, and the blind second triage's press found no foundational; 2026-11-18 — Final Critique 1, frozen at 27b7fd47 — foundational count 3, cured by the settle, not clean, no sample
 
 open: none
 ```
