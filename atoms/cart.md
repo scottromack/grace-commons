@@ -65,7 +65,7 @@ Term line id: the opaque string naming one line, held to the string cap — a [L
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
-NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9); Capability requirement 10 and Capability requirement 11 give the cart id and the line id the same rule, neither being a reference this atom declares (Identity 12, Identity 13).
+NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9); Capability requirement 10 and Capability requirement 11 give the cart id and the line id the same rule, neither being a reference this atom declares, so Execution Contract Logic confinement 13 reaches neither and the seam leaves each as the call carries it (Identity 12, Identity 13).
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the cart id an [Open] records and the line id an [Add] records here (Capability requirement 1, Capability requirement 2).
 
@@ -602,14 +602,14 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 through 13, Capability requirement 10 and 11, Check 2.2 and the cart id Operation 2 records, 2026-11-20
-last gate: 2026-11-20 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a — foundational count 2, not clean, one sample; 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+last gate: 2026-11-20 — Final Critique 10, a delta round, one reader (Linus claude-haiku-5-5), frozen at afcc3ab — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 1 foundational and 1 refining, and the foundational did not hold (refining, Kind B: Execution Contract Logic confinement 13 reaches only the values a specification declares references and Cart declares none for its ids, and Capability requirement 10 makes a build that normalizes a cart id non-conforming, so no two conforming builds differ; the NOTE beneath the Term lines now says Logic confinement 13 reaches neither id); its refining finding on the word normalize was refuted (117 corpus rules use it); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a — foundational count 2, not clean, one sample; 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open: none
 ```

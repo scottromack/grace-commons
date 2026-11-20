@@ -369,7 +369,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -382,7 +382,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-20",
   "title": "Cart"
  },
  "category": {
