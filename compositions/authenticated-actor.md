@@ -109,6 +109,7 @@ Capability requirement 10: The deployment MUST declare the clock offset allowanc
 Capability requirement 12: The deployment MUST supply the database PER Execution Contract Database 1 through 5.
 Capability requirement 13: A deployment MUST authenticate the caller of [Register Authenticated Actor] as Credential's authorized caller (Credential Composition note 12).
 Capability requirement 14: A deployment MUST provision the attest credential distinct from the credential material.
+Capability requirement 16: A deployment MUST hold EVERY binding AND the binding's inverse entry that a success entry names.
 ```
 
 
@@ -401,7 +402,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 ## Generation acceptance
 
-An implementation is acceptable when the checks below are provable to an external auditor given the credential records with their earlier versions (Execution Contract Database 5), the attestation records, the binding maps and the attest log.
+An implementation is acceptable when the checks below are provable to an external auditor given the credential records with their earlier versions (Execution Contract Database 5), the attestation records, the binding maps and the attest log. A purge or scrub another specification declares under Execution Contract Database 4, of an attest log entry or a credential with its versions, is answered by that specification's own records and not by a check here (Execution Contract Database 6's form for a composition): the composition declares no purge (Non-goal 15), each check reads the records that stand, and a purged record stands in no version (Execution Contract Database 5). A binding is the exception: a deployment never purges one that a success entry names (Capability requirement 16), since a purged binding frees its principal reference and its actor reference for another pair and leaves an earlier attestation resolving to the wrong principal.
 
 ### Conformance checks
 
@@ -409,6 +410,7 @@ An implementation is acceptable when the checks below are provable to an externa
 Check 1.1: An auditor MUST find EVERY bound principal reference carrying one actor reference (Invariant 3.1).
 Check 1.2: An auditor MUST find EVERY bound actor reference carrying one principal reference (Invariant 3.2).
 Check 1.3: An auditor MUST find the principal binding AND the inverse map agreeing (Invariant 3.3).
+Check 1.4: An auditor MUST find EVERY success entry's principal reference carrying a binding (Capability requirement 16).
 Check 2.1: An auditor MUST find EVERY success entry carrying the attestation id AND the current credential's credential id (Invariant 4.3).
 Check 2.2: An auditor MUST read a success entry whose credential id names a credential standing in revoked at the entry's commit as an Invariant 1.1 violation (Execution Contract Database 5).
 Check 3.1: An auditor MUST find EVERY [Attest As Actor] call answering an attest answer carrying one attest log entry (Action wiring 45).
@@ -447,7 +449,6 @@ Non-goal 12: The composition MUST NOT record a verification read.
 Non-goal 13: The composition MUST NOT resolve an attestation carrying an actor reference the inverse map does not carry.
 Non-goal 15: The composition MUST NOT set a retention policy.
 NOTE: watch the adopter's policy note (Non-goal 15).
-NOTE: open 2026-11-04-a (Non-goal 15).
 ```
 
 NOTE: the owners — the attestation records themselves, as the tamper-evident external-auditor surface (Non-goal 4); a composed [Retention Window](../atoms/retention-window.md), which a deployment needing a retention bound on an attestation composes (Non-goal 15; Actor Identity Composition note 4, Actor Identity Non-goal 16).
@@ -624,8 +625,7 @@ status: doing
 formal: verified — authenticated-actor.tla + 5 twins + 6 probes (across steps); authenticated-actor.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 3.1 through 3.3, 4.2 and 4.3, Composition state 4, 5, 12 and 13, Action wiring 7, 18, 20, 24 and 34 and Check 2.2 and 3.2 checked on every state of the credential records, the binding maps, the attestations and the attest log the writers can leave, Invariant 1.1, 3.1 through 3.3 and Action wiring 34 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1 and 2.2 (what a call passes is no record), Action wiring 45 (a call is no record), Action wiring 5 and 6 (verify writes nothing) and Composition state 6, 9 and 10 (across steps; an entry names no writer); the model found that Action wiring 46's arm, a bound pair with no credential, is reached by no rule, every binding naming a credential of its pair and only a purge, open line 2026-11-04-a, removing one); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
 last gate: 2026-11-06 — Final Critique 10, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 9, a delta round, frozen at ec26ba5 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8 — foundational count 4, not clean, no sample
 
-open:
-- 2026-11-04-a · refining · Non-goal 15 · a purge a composed Retention Window makes of an attest log entry, a binding or an earlier version of a credential is described by no rule here, so the bijection, Check 3.1 and Check 2.2's version history have no stated answer for what a purge leaves → state what a purge of each record does to the checks, once a Retention Window composed with this pattern is read
+open: none
 ```
 
 <details markdown="block">
