@@ -404,6 +404,8 @@ Every specification keeps records, and every deployment keeps them in a database
 
 **Database 7: Every call goes to the same database instance.** The deployment routes every call of one instance of a specification to the same database instance, so every read answers over all the records the instance's calls wrote. A deployment that runs several instances of one specification gives each its own database instance.
 
+**Database 8: A check of one state holds at every commit.** Where a conformance check tests a property of one state of the records, such as that no two records share a name or an id, or that a record carries a field, it holds at every commit, not at head alone: each commit's state is read from the committed versions Database 5 keeps readable, so a deployment that broke the property at one commit and repaired it later fails the check as one that breaks it now does. A specification that relies on this cites Database 8 by its label; it does not restate it.
+
 ### A particular family: Order
 
 One guarantee only some specifications need, and a specification that does not cite it may not assume it. A specification that rests on it names the label in its Capability requirement section.
