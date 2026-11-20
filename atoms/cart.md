@@ -45,6 +45,8 @@ Identity 6: The atom MUST NOT normalize an item reference.
 Identity 7: The atom MUST compare two item references codepoint for codepoint.
 Identity 8: The atom MUST NOT normalize a currency.
 Identity 9: The atom MUST compare two currencies codepoint for codepoint.
+Identity 10: The atom MUST compare two cart ids codepoint for codepoint.
+Identity 11: The atom MUST compare two line ids codepoint for codepoint.
 ```
 
 Term string cap: the bound on an item reference's, a cart id's and a line id's length in Unicode code points; 1,024 code points where a deployment declares none.
@@ -53,11 +55,11 @@ Term cart: a set of lines gathered toward one purchase, named by its cart id, wi
 
 NOTE: watch the order an atom forbids — [Read]'s answer comes in the order Operation 25 states, which stands in place of Execution Contract Read 5's default order, and any other order a cart is shown in is the composing pattern's (Non-goal 14).
 
-Term line: one item on a cart, named by its line id, with how many of the item and the unit price taken when the line was added — a [Line].
+Term line: one item on a cart, named by its line id, with how many of the item it holds and the unit price taken when the line was added — a [Line].
 
-Term cart id: the opaque string naming one cart, held to the string cap — a [Cart Id]; unique for the system's life.
+Term cart id: the opaque string naming one cart, held to the string cap — a [Cart Id]; unique for the instance's life.
 
-Term line id: the opaque string naming one line, held to the string cap — a [Line Id]; unique for the system's life, so an item added again after its line was taken out gets a new line id.
+Term line id: the opaque string naming one line, held to the string cap — a [Line Id]; unique for the instance's life, so an item added again after its line was taken out gets a new line id.
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
@@ -134,7 +136,7 @@ read(cart_id)
 
 ```
 Operation 1: IF the currency EQUALS blank OR the currency IS NOT IN the accepted currencies THEN [Open] MUST answer invalid-currency.
-Operation 2: [Open] MUST record EXACTLY ONE cart carrying the currency of the call.
+Operation 2: [Open] MUST record EXACTLY ONE cart carrying the cart id the seam supplies and the currency of the call.
 Operation 3: [Open] MUST answer the cart id.
 Operation 4: IF the cart id EQUALS blank OR the cart id EXCEEDS the string cap OR no cart EXISTS for the cart id THEN a cart action MUST answer not-known.
 Operation 5: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Add] MUST answer invalid-item-reference.
@@ -252,7 +254,7 @@ A deployment that accepts `"EUR"` and `"USD"`, exercising the rejection surface 
 - `add(c9, "Pen", 1, 500)` — accepted as a different item, line `l8`: two item references are compared codepoint for codepoint.
 - `change_quantity(l7, 0)` — rejected as [Invalid Quantity]; a line leaves a cart by [Remove].
 - `remove(l7)` — ok. Then `change_quantity(l7, 2)` — rejected as [Not Known]: the line id is retired.
-- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, or one over the string cap.
+- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, or `C9` where only `c9` exists: two cart ids are compared codepoint for codepoint.
 - an [Add] to `c9` of an item reference 1,025 code points long, with quantity 1 and unit price 500 — rejected as [Invalid Item Reference]: the reference is over the string cap, 1,024 code points where the deployment declares none.
 
 On a deployment that declares a line cap of 2, a cart `c10` carrying lines for `"pen"` and `"ink"`: `add(c10, "cap", 1, 100)` is rejected as [Cart Full] (Operation 24); [Remove] of either line, and the same call is then accepted.
@@ -417,7 +419,7 @@ Kind: Type
 
 #### Cart Id
 
-The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused.
+The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused, compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Cart
@@ -425,7 +427,7 @@ Projection: cart_id
 
 #### Line Id
 
-The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused; an item removed and added again is a new line.
+The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused, compared codepoint for codepoint; an item removed and added again is a new line.
 
 Kind:       Field
 Field of:   Line
@@ -602,8 +604,8 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ```
 status: doing
-formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11
-last gate: 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 and 11 and the cart id Operation 2 records, 2026-11-20
+last gate: 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open: none
 ```
