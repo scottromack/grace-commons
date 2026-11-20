@@ -51,11 +51,11 @@ Term triple: the person reference, the item reference and the reaction name a re
 
 Term pair: the person reference and the item reference a reaction carries, or a call names.
 
-Term person reference: the string naming the person a reaction belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it.
+Term person reference: the string naming the person a reaction belongs to, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it; malformed where it is no string.
 
-Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it.
+Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it; malformed where it is no string.
 
-Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture.
+Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture; malformed where it is no string.
 
 Term reaction set: the reaction names a deployment offers; the single name like where a deployment declares none.
 
@@ -116,8 +116,6 @@ count(item_reference)
   answers tallies(reaction_name, tally)
 ```
 
-NOTE: open 2026-11-14-b — the answer arm ok is declared by no Term; 167 atoms write it.
-
 ```
 Operation 1: IF the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN a writing action MUST answer invalid-person-reference.
 Operation 2: IF the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN a writing action MUST answer invalid-item-reference.
@@ -151,9 +149,7 @@ Operation 29: [Look Up] MUST answer reaction names in codepoint order (Execution
 Operation 30: [Count] MUST answer tallies in codepoint order of reaction name (Execution Contract Read 5, Execution Contract Logic confinement 10).
 ```
 
-NOTE: open 2026-11-14-a — Operation 23 through 28 write "is malformed", which Term condition operator does not list; Execution Contract Input 1 and Query 5 own the predicate.
-
-Term writing action: [React] | [Withdraw] — the actions that change a reaction.
+Term writing action: [React] | [Withdraw] — the actions that change a reaction, each answering [Ok] once admitted.
 
 Term rival: a held reaction carrying the pair of the call and a reaction name other than the reaction name of the call.
 
@@ -415,6 +411,15 @@ The number of held reactions carrying one item reference and one reaction name, 
 Kind:       Type
 Projection: tally
 
+#### Ok
+
+The answer [React] and [Withdraw] give once the call is admitted (Operation 12, Operation 16), whether or not the call changed the reaction; it carries nothing.
+
+Kind:       Member
+Member of:  the action answer
+Role:       Outcome
+Projection: ok
+
 #### Invalid Person Reference
 
 The refusal of a blank [Person Reference], one over the string cap, or one that is not a string, on [React] or [Withdraw] (Operation 1, Operation 23).
@@ -468,6 +473,7 @@ Projection: storage-failure
 [Withdrawn]: #withdrawn
 [Holding Rule]: #holding-rule
 [Tally]: #tally
+[Ok]: #ok
 [Invalid Person Reference]: #invalid-person-reference
 [Invalid Item Reference]: #invalid-item-reference
 [Invalid Reaction Name]: #invalid-reaction-name
@@ -494,9 +500,7 @@ status: doing
 formal: verified — reaction.als + 8 twins (the static data model: State 1 and 2, Identity 3, 5 and 7, Operation 4 through 7, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2, 4 and 6 by the Operation 5 check); reaction.tla + 30 twins (across steps, under either holding rule and a reaction set the deployment may change between calls: State 3, Invariant 2.1 through 2.4, Operation 1 through 5 and 8 through 30, the other half of Operation 17 and 20 read from the terms Look Up and Count); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-15
 last gate: 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
 
-open:
-- 2026-11-14-a · refining · Operation 23 through 28 · each writes "the reference is malformed", a predicate Term condition operator (a closed value set) does not list, and the form stands in 23 atoms; Execution Contract Input 1 and Query 5 own the predicate and each line cites it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-14-b · refining · the signature form; Operation 1 through 30 · the answer arm ok resolves to no declaration (Closed vocabulary 4), and 167 atoms write it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 ## Decisions
