@@ -47,6 +47,8 @@ Identity 8: The atom MUST NOT normalize a currency.
 Identity 9: The atom MUST compare two currencies codepoint for codepoint.
 Identity 10: The atom MUST compare two cart ids codepoint for codepoint.
 Identity 11: The atom MUST compare two line ids codepoint for codepoint.
+Identity 12: The atom MUST NOT normalize a cart id.
+Identity 13: The atom MUST NOT normalize a line id.
 ```
 
 Term string cap: the bound on an item reference's, a cart id's and a line id's length in Unicode code points; 1,024 code points where a deployment declares none.
@@ -63,7 +65,7 @@ Term line id: the opaque string naming one line, held to the string cap — a [L
 
 Term item reference: the value naming the item a line is for — a product or a service with the options chosen for it, such as a size, a color, oat milk or a gift wrap, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
 
-NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9).
+NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9); Capability requirement 10 and Capability requirement 11 give the cart id and the line id the same rule, neither being a reference this atom declares (Identity 12, Identity 13).
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the cart id an [Open] records and the line id an [Add] records here (Capability requirement 1, Capability requirement 2).
 
@@ -102,6 +104,8 @@ Capability requirement 6: The deployment MAY declare the string cap PER Executio
 Capability requirement 7: The deployment MAY declare the line cap PER Execution Contract Input 2.
 Capability requirement 8: The deployment MUST NOT normalize an item reference at the seam.
 Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
+Capability requirement 10: The deployment MUST NOT normalize a cart id at the seam.
+Capability requirement 11: The deployment MUST NOT normalize a line id at the seam.
 ```
 
 Term accepted currencies: the currencies the deployment sells in — the set [Open] checks a currency against.
@@ -254,7 +258,7 @@ A deployment that accepts `"EUR"` and `"USD"`, exercising the rejection surface 
 - `add(c9, "Pen", 1, 500)` — accepted as a different item, line `l8`: two item references are compared codepoint for codepoint.
 - `change_quantity(l7, 0)` — rejected as [Invalid Quantity]; a line leaves a cart by [Remove].
 - `remove(l7)` — ok. Then `change_quantity(l7, 2)` — rejected as [Not Known]: the line id is retired.
-- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, or `C9` where only `c9` exists: two cart ids are compared codepoint for codepoint.
+- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, `C9` or `c9 ` where only `c9` exists: two cart ids are compared codepoint for codepoint, and none is normalized.
 - an [Add] to `c9` of an item reference 1,025 code points long, with quantity 1 and unit price 500 — rejected as [Invalid Item Reference]: the reference is over the string cap, 1,024 code points where the deployment declares none.
 
 On a deployment that declares a line cap of 2, a cart `c10` carrying lines for `"pen"` and `"ink"`: `add(c10, "cap", 1, 100)` is rejected as [Cart Full] (Operation 24); [Remove] of either line, and the same call is then accepted.
@@ -271,7 +275,7 @@ Acceptable when the checks below are provable to an external auditor from the ca
 Check 1.1: An auditor MUST find EVERY cart carrying cart id AND currency (State 1).
 Check 1.2: An auditor MUST find EVERY line carrying line id, cart id, item reference, quantity AND unit price (State 2).
 Check 2.1: An auditor MUST find no two carts sharing a cart id (Identity 3).
-Check 2.2: An auditor MUST find no two lines sharing a line id (Identity 4).
+Check 2.2: An auditor MUST find no line id carried by two lines in the committed versions Execution Contract Database 5 keeps readable, a line taken off a cart included (Identity 4).
 Check 2.3: An auditor MUST find no two lines one cart carries sharing an item reference (Invariant 1.1).
 Check 2.4: An auditor MUST find EVERY line's cart id naming a cart (Invariant 5.1).
 Check 3.1: An auditor MUST find EVERY version of a line carrying the unit price of the line's first version (Invariant 2.1).
@@ -419,7 +423,7 @@ Kind: Type
 
 #### Cart Id
 
-The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused, compared codepoint for codepoint.
+The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused, never normalized, compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Cart
@@ -427,7 +431,7 @@ Projection: cart_id
 
 #### Line Id
 
-The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused, compared codepoint for codepoint; an item removed and added again is a new line.
+The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused, never normalized, compared codepoint for codepoint; an item removed and added again is a new line.
 
 Kind:       Field
 Field of:   Line
@@ -604,8 +608,8 @@ Rules on showing and confirming a price before a purchase, such as the Consumer 
 
 ```
 status: doing
-formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 and 11 and the cart id Operation 2 records, 2026-11-20
-last gate: 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 through 13, Capability requirement 10 and 11, Check 2.2 and the cart id Operation 2 records, 2026-11-20
+last gate: 2026-11-20 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a — foundational count 2, not clean, one sample; 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
 
 open: none
 ```
