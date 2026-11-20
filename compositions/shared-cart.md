@@ -51,7 +51,8 @@ Composes 8: The composition MUST discharge Event Log Composition note 1.
 Composes 9: The composition MUST discharge Event Log Composition note 2.
 Composes 10: The composition MUST discharge Event Log Composition note 3.
 Composes 11: The composition MUST NOT answer a constituent's rejection changed.
-Composes 12: A constituent instance MUST NOT serve a pattern other than the composition.
+Composes 12: A Cart instance AND an Event Log instance MUST NOT serve a pattern other than the composition.
+Composes 13: The Permissions instance MUST NOT serve a pattern other than the composition AND Actor Suspension.
 ```
 
 Term composition: this pattern's wiring of [Cart](../atoms/cart.md), [Permissions](../atoms/permissions.md) and [Event Log](../atoms/event-log.md) — the gate, the scope vocabulary, the cart events and the actions below.
@@ -131,7 +132,7 @@ Term reference bound: the most bytes an actor reference carries, set by the depl
 
 ```
 open_cart(actor_ref, currency)
-  answers cart_id
+  answers opened(cart_id, grant_ids)
   refuses invalid-request | invalid-currency | storage-failure
 
 share_cart(actor_ref, cart_id, friend_ref, cart_verb)
@@ -175,7 +176,7 @@ Action wiring 4: A gated action MUST call Permissions' permitted with the call's
 Action wiring 5: IF the actor reference EQUALS blank THEN [Open Cart] MUST answer invalid-request.
 Action wiring 6: [Open Cart] MUST call Cart's open with the currency.
 Action wiring 7: [Open Cart] MUST call Permissions' grant with the actor reference for EVERY verb scope of the new cart.
-Action wiring 8: [Open Cart] MUST answer the cart id Cart's open answers.
+Action wiring 8: [Open Cart] MUST answer the cart id Cart's open answers AND, for EVERY cart verb, the grant id Permissions' grant answers for the new cart's verb scope.
 Action wiring 9: IF the cart verb IS NOT IN the cart verbs THEN [Share Cart] MUST answer invalid-request.
 Action wiring 10: IF the friend reference EQUALS blank THEN [Share Cart] MUST answer invalid-request.
 Action wiring 11: A permitted share MUST call Permissions' grant with the friend reference and the cart's verb scope for the cart verb.
@@ -235,7 +236,7 @@ Every action, every constituent call it makes, and for each call its answer, its
 | Action | Call | Answer | Refusals |
 |---|---|---|---|
 | [Open Cart] | Cart.open | the cart id, answered (Action wiring 8) | invalid-currency: Action wiring 24 |
-| [Open Cart] | Permissions.grant, once per verb scope | kept by Permissions (Action wiring 7) | invalid-request: Action wiring 24 for an actor reference or cart scope over Permissions' string cap (Permissions String 6); unreachable for a blank actor reference, which Action wiring 5 refuses first |
+| [Open Cart] | Permissions.grant, once per verb scope | the grant id of each verb scope, answered (Action wiring 8) | invalid-request: Action wiring 24 for an actor reference or cart scope over Permissions' string cap (Permissions String 6); unreachable for a blank actor reference, which Action wiring 5 refuses first |
 | every changing action | Event Log.append | kept by Event Log (Action wiring 22) | invalid-payload: unreachable under Capability requirement 2 and Capability requirement 3 |
 | every gated action | Permissions.permitted | permitted: the action proceeds (Action wiring 1); denied: Action wiring 2, Action wiring 3, and Action wiring 29 for a cart id no grant names | — |
 | [Share Cart] | Permissions.grant | the grant id, answered (Action wiring 12) | invalid-request: Action wiring 24 for a friend reference or cart scope over Permissions' string cap (Permissions String 6); unreachable otherwise, since Action wiring 9 and 10 refuse the call before it is made, behind permission-denied (Execution Contract Refusal 1) |
@@ -323,11 +324,11 @@ Amounts are whole numbers of the currency's minor unit, so `4999` in US dollars 
 
 ### Birthday gift
 
-Ana opens a cart in US dollars for her brother's birthday: `open_cart(ana, "USD")` answers `c1`, and Ana holds `c1:view`, `c1:add`, `c1:change`, `c1:remove` and `c1:share`. She lets Ben add and view — `share_cart(ana, c1, ben, "add")` answers grant `g6`, `share_cart(ana, c1, ben, "view")` answers `g7` — and lets Cal view only: `share_cart(ana, c1, cal, "view")` answers `g8`. Ben adds headphones at $49.99: `add_line(ben, c1, "headphones-black", 1, 4999)` answers `l1`. Ana adds a card at $4.50: `add_line(ana, c1, "card-birthday", 1, 450)` answers `l2`. Cal tries `add_line(cal, c1, "socks", 2, 900)` — [Permission Denied]; Cal holds no `c1:add`. `view_cart(cal, c1)` answers both lines and a total of 5449, `l1` added by ben and `l2` by ana. Ana takes away Ben's adding — `unshare_cart(ana, c1, g6)` answers ok — and `l1` stays, still added by ben; Ben's next add is refused, and he can still view. Later Ana lets Cal remove — `share_cart(ana, c1, cal, "remove")` answers `g9` — and `clear_cart(cal, c1)` answers ok: the remove scope reaches every line, Ben's `l1` and Ana's `l2` alike, and the cart events still name who added each.
+Ana opens a cart in US dollars for her brother's birthday: `open_cart(ana, "USD")` answers `opened(c1, ...)` with the grant ids `g1` for `c1:view`, `g2` for `c1:add`, `g3` for `c1:change`, `g4` for `c1:remove` and `g5` for `c1:share`, and Ana holds all five scopes. She lets Ben add and view — `share_cart(ana, c1, ben, "add")` answers grant `g6`, `share_cart(ana, c1, ben, "view")` answers `g7` — and lets Cal view only: `share_cart(ana, c1, cal, "view")` answers `g8`. Ben adds headphones at $49.99: `add_line(ben, c1, "headphones-black", 1, 4999)` answers `l1`. Ana adds a card at $4.50: `add_line(ana, c1, "card-birthday", 1, 450)` answers `l2`. Cal tries `add_line(cal, c1, "socks", 2, 900)` — [Permission Denied]; Cal holds no `c1:add`. `view_cart(cal, c1)` answers both lines and a total of 5449, `l1` added by ben and `l2` by ana. Ana takes away Ben's adding — `unshare_cart(ana, c1, g6)` answers ok — and `l1` stays, still added by ben; Ben's next add is refused, and he can still view. Later Ana lets Cal remove — `share_cart(ana, c1, cal, "remove")` answers `g9` — and `clear_cart(cal, c1)` answers ok: the remove scope reaches every line, Ben's `l1` and Ana's `l2` alike, and the cart events still name who added each.
 
 ### Office lunch
 
-An office manager opens a cart in euros — `open_cart(maya, "EUR")` answers `c7` — and gives four colleagues add and change. Each adds a lunch; Tom adds two sandwiches, and Lea, seeing the office is short, changes the quantity to three: `change_quantity(lea, c7, l31, 3)` answers ok. `cart_history(maya, c7)` answers every change in order: Tom's add of `l31`, then Lea's change to 3, each naming who made it.
+An office manager opens a cart in euros — `open_cart(maya, "EUR")` answers `opened(c7, ...)` with the five grant ids — and gives four colleagues add and change. Each adds a lunch; Tom adds two sandwiches, and Lea, seeing the office is short, changes the quantity to three: `change_quantity(lea, c7, l31, 3)` answers ok. `cart_history(maya, c7)` answers every change in order: Tom's add of `l31`, then Lea's change to 3, each naming who made it.
 
 ### Rejection paths
 
@@ -385,7 +386,7 @@ Non-goal 9: The composition MUST NOT revoke a departing actor's grants.
 Non-goal 10: The composition MUST NOT limit the friends a cart is shared with.
 ```
 
-NOTE: the owners — an authenticating pattern such as [Login](./login.md) or [Authenticated Actor](./authenticated-actor.md) (Non-goal 1, External check 4); [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 2); Pricing *(forthcoming)* (Non-goal 3); Checkout *(forthcoming)* (Non-goal 4); [Capability](../atoms/capability.md) (Non-goal 5); [Notification](../atoms/notification.md) (Non-goal 6); [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8); the deployment, through [Unshare Cart] (Non-goal 9, Composition note 3); the deployment (Non-goal 10).
+NOTE: the owners — an authenticating pattern such as [Login](./login.md) or [Authenticated Actor](./authenticated-actor.md) (Non-goal 1, External check 4); [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 2); Pricing *(forthcoming)* (Non-goal 3); Checkout *(forthcoming)* (Non-goal 4); [Capability](../atoms/capability.md) (Non-goal 5); [Notification](../atoms/notification.md) (Non-goal 6); [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8); [Actor Suspension](./actor-suspension.md) (Non-goal 9, Composition note 3, Composes 13); the deployment (Non-goal 10).
 
 ---
 
@@ -405,8 +406,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ```
 Composition note 2: A deployment MUST bind an actor reference to an authenticated caller.
-Composition note 3: A deployment MUST revoke a departing actor's grants through [Unshare Cart].
-NOTE: open 2026-11-04-a — a departing sharer holding a cart's last share scope, or a departing opener, has grants whose ids no action answers to the sweep.
+Composition note 3: A deployment MUST revoke a departing actor's grants through Actor Suspension.
 Composition note 4: A composing pattern MUST supply a unit price in the cart's currency.
 ```
 
@@ -438,7 +438,7 @@ Term cited: Execution Contract Conformance 8 — recursive conformance and the i
 
 #### Open Cart
 
-Starts a shared cart: opens a cart through Cart's `open`, grants the opener every verb scope on it through Permissions' `grant`, appends the cart event, and answers the new cart id. The one action no permission gates.
+Starts a shared cart: opens a cart through Cart's `open`, grants the opener every verb scope on it through Permissions' `grant`, appends the cart event, and answers [Opened], the new cart id and the grant id of each of the five verb scopes. The one action no permission gates.
 
 Kind: Operation
 
@@ -498,6 +498,15 @@ Kind:         Parameter
 Parameter of: Share Cart
 Projection:   cart_verb
 
+#### Opened
+
+The [Open Cart] outcome when the call opens a cart. It carries the cart id and, for each cart verb, the grant id of the opener's grant of that verb scope: five grant ids, so the opener, or the deployment on the opener's behalf, can name every one of them to [Unshare Cart].
+
+Kind:       Member
+Member of:  the open outcome
+Role:       Outcome
+Projection: opened
+
 #### Permission Denied
 
 The composition's own refusal, answered when Permissions' `permitted` answers denied, before any other constituent is called (Invariant 1.1); also the answer for a cart id no grant names (Action wiring 29), so a caller learns nothing about carts not shared with them.
@@ -538,6 +547,7 @@ Projection: invalid-request
 [View Cart]: #view-cart
 [Cart History]: #cart-history
 [Cart Verb]: #cart-verb
+[Opened]: #opened
 [Permission Denied]: #permission-denied
 [Invalid Request]: #invalid-request
 [Not Known]: #not-known
@@ -556,11 +566,10 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 ```
 status: doing
-formal: verified — shared-cart.als + 26 twins (the static data model: Invariant 2.1 and 3.1, Scope vocabulary 2 and 3 through 7, Action wiring 1 through 22, 24 through 27, 29 and 30, Wiring decision 1 and 2 and Non-goal 3 and 10 checked on every call's permitted check, constituent calls, cart event and answer and on the carts, lines, grants and events they leave, with Composes 7 through 11, Composition state 2 and 3 and Scope vocabulary 1 checked through them); shared-cart.tla + 4 twins (across steps, while an opener and a friend share, unshare, add, change, remove, clear, view and read back: Invariant 1.1, 3.2 and 4.1 and Action wiring 28, with Action wiring 23 checked through them); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Action wiring 30 checked as Action wiring 2, 13, 17 and 19 read it (its condition does not exclude the composition's own refusals); owed rows: none, 2026-11-12
+formal: verified — shared-cart.als + 27 twins (the static data model: Invariant 2.1 and 3.1, Scope vocabulary 2 and 3 through 7, Action wiring 1 through 22, 24 through 27, 29 and 30, Wiring decision 1 and 2 and Non-goal 3 and 10 checked on every call's permitted check, constituent calls, cart event and answer and on the carts, lines, grants and events they leave, with Composes 7 through 11, Composition state 2 and 3 and Scope vocabulary 1 checked through them); shared-cart.tla + 4 twins (across steps, while an opener and a friend share, unshare, add, change, remove, clear, view and read back: Invariant 1.1, 3.2 and 4.1 and Action wiring 28, with Action wiring 23 checked through them); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Action wiring 30 checked as Action wiring 2, 13, 17 and 19 read it (its condition does not exclude the composition's own refusals); owed rows: none, 2026-11-12; Action wiring 8 re-derived in Alloy (the cart id and the five grant ids Action wiring 7's grants answered; shared-cart-buggy-open-answers-no-grants.als), 2026-11-20
 last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 
-open:
-- 2026-11-04-a · refining · Composition note 3; Non-goal 9; Unshare Cart · the sweep of a departing actor's grants through [Unshare Cart] needs the caller to hold the cart's share scope and the grant id, and no action answers the grant ids [Open Cart] gives the opener, so a departing sharer holding the cart's last share scope, or a departing opener, leaves grants the sweep cannot name → [Open Cart] answers the opener's grant ids; a departing actor's grants are swept by Actor Suspension, which a Non-goal names. **Scott: yes (3:41 PM).** (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
+open: none
 ```
 
 <details markdown="block">

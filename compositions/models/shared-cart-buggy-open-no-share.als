@@ -111,10 +111,13 @@ one sig Store {
 -- Grant: one grant of Permissions' records; the atom stands for its grant id. Its scope is
 -- held as the cart it names and the verb it carries (see the header); a scope that is not a
 -- cart scope names no cart or carries no cart verb, so a grant written wrong would show.
+-- `suspRev` is the instant Actor Suspension's revoke stood it in revoked, where it did: the
+-- Permissions instance serves Actor Suspension too, which revokes and never grants (Composes 13).
 sig Grant {
     subject : one Ref,       -- subject reference
     scart   : lone CartId,   -- the cart its action scope names
-    sverb   : lone Verb      -- the verb its action scope carries
+    sverb   : lone Verb,     -- the verb its action scope carries
+    suspRev : lone Int       -- Actor Suspension's revocation instant, if any
 }
 
 -- Line: one line Cart's records carry now: its line id, its cart and its item reference.
@@ -152,14 +155,16 @@ abstract sig Call {
 
 -- OpenCart: an [Open Cart] call: the currency, the currency it passed to Cart's open and how
 -- that came back, the cart id Cart's open answered, the grants Permissions' grant recorded for
--- it, and the cart id it answered.
+-- it, and what it answered in [Opened]: the cart id, and beside each cart verb the grant id it
+-- answered for that verb (Action wiring 8).
 sig OpenCart extends Call {
-    currency : one Currency,
-    openCur  : lone Currency,
-    openOut  : lone Answer,
-    opened   : lone CartId,
-    made     : set Grant,
-    ansCart  : lone CartId
+    currency  : one Currency,
+    openCur   : lone Currency,
+    openOut   : lone Answer,
+    opened    : lone CartId,
+    made      : set Grant,
+    ansCart   : lone CartId,
+    ansGrants : Verb -> Grant
 }
 
 -- Gated: a gated action's call (Term gated action): the cart id it names, and the permitted
@@ -272,9 +277,11 @@ fun Changing : set Call {
 -- madeAt: a grant's grant instant: the instant of the call whose grant recorded it.
 fun madeAt[g : Grant] : set Int { (made.g + granted.g).at }
 
--- revokedBefore: a grant some earlier unshare's revoke stood in revoked.
+-- revokedBefore: a grant some earlier unshare's revoke, or Actor Suspension's earlier revoke
+-- (Composes 13), stood in revoked.
 pred revokedBefore[g : Grant, t : Int] {
-    some u : UnshareCart | g in u.revCalled and u.revOut = AOk and u.at < t
+    (some u : UnshareCart | g in u.revCalled and u.revOut = AOk and u.at < t)
+    or (some g.suspRev and g.suspRev < t)
 }
 
 -- activeAt: a grant recorded before instant t and not revoked by then: active at t.
@@ -347,6 +354,7 @@ pred noCall[c : Call] {
 -- noAnswer: the call answered no id, no line and no event.
 pred noAnswer[c : Call] {
     no c.ansCart
+    no c.ansGrants
     no c.ansGrant
     no c.ansLine
     no c.shown
@@ -365,8 +373,10 @@ fact CallsSerialized {
     all disj c, d : Call | c.at != d.at
 }
 
--- The constituent instances serve this composition alone and their own caller surface is
--- replaced (Composes 5, 12, the deployment's wiring): every grant was recorded by one of the
+-- The constituent instances serve this composition alone, but for the Permissions instance,
+-- which Actor Suspension may serve too, and their own caller surface is replaced (Composes 5,
+-- 12 and 13, the deployment's wiring; Actor Suspension only revokes, never grants, so every
+-- grant is still one the composition's calls wrote): every grant was recorded by one of the
 -- composition's grant calls, every event appended by one of its calls, every line recorded by
 -- one of its Cart add calls, and every cart opened by one of its Cart open calls, which Cart
 -- never removes (Cart State 3).
@@ -426,8 +436,12 @@ fact CartAnswers {
 -- grant active at the call's instant matches the subject reference and the action scope
 -- exactly (Operation 16 to 18, 21, 22); read answers every grant recorded so far (Operation
 -- 26); revoke answers not-active for a grant already revoked and otherwise stands it in
--- revoked (Operation 10, 11).
+-- revoked (Operation 10, 11). Actor Suspension's revoke of a grant (Composes 13) runs one at a
+-- time with the composition's calls (Execution Contract Database 2), after the grant was
+-- recorded.
 fact PermissionsAnswers {
+    all g : Grant | some g.suspRev implies
+        (g.suspRev not in Call.at and all m : madeAt[g] | m < g.suspRev)
     all c : Gated {
         some c.askRef iff some c.permit
         some c.askRef iff some c.askCart
@@ -486,9 +500,9 @@ pred denied[c : Gated] {
 
 -- wiredOpen: [Open Cart]. A blank actor reference answers invalid-request before any call
 -- (Action wiring 5). Otherwise Cart's open is called with the currency (Action wiring 6); its
--- refusal is answered (Action wiring 24); its cart id is answered (Action wiring 8) after one
--- grant per verb scope of the new cart to the opener (Action wiring 7) and one open event
--- (Action wiring 22).
+-- refusal is answered (Action wiring 24); after one grant per verb scope of the new cart to
+-- the opener (Action wiring 7) and one open event (Action wiring 22), it answers [Opened]: the
+-- cart id and, for each cart verb, the id of the grant of that verb scope (Action wiring 8).
 pred wiredOpen[o : OpenCart] {
     o.actor in World.blank implies {
         o.ans = InvalidRequest
@@ -505,9 +519,11 @@ pred wiredOpen[o : OpenCart] {
         } else {
             all v : CartVerb - ShareV | one g : o.made | g.sverb = v
             no g : o.made | g.sverb = ShareV   -- BUG: the opener gets no share scope
-            all g : o.made | g.subject = o.actor and g.scart = o.opened and g.sverb in CartVerb
+            all g : o.made | g.subject = o.actor and g.scart = o.opened and one g.sverb
+                and g.sverb in CartVerb
             o.ans = AId
             o.ansCart = o.opened
+            o.ansGrants = { v : CartVerb, g : o.made | g.sverb = v }
             one o.appended
             evt[o.appended, OpenA, o.opened, o.actor, none, none, none, none, none]
         }
@@ -737,7 +753,8 @@ pred carries[e : Event, c : Call] {
 -- is one of the verb scopes of a cart Cart's open answered (Invariant 2.1, Check 1.1).
 assert A_Invariant_2_1 {
     allWired implies
-        (all g : Grant | some g.scart and g.scart in Store.carts and g.sverb in CartVerb)
+        (all g : Grant | some g.scart and g.scart in Store.carts and one g.sverb
+            and g.sverb in CartVerb)
 }
 check A_Invariant_2_1 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 
@@ -752,7 +769,7 @@ check A_Invariant_3_1 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 -- A_Scope_vocabulary_2: every action scope Permissions carries is written as a cart scope:
 -- a cart id and a cart verb (Scope vocabulary 2, Check 3.1).
 assert A_Scope_vocabulary_2 {
-    allWired implies (all g : Grant | some g.scart and g.sverb in CartVerb)
+    allWired implies (all g : Grant | some g.scart and one g.sverb and g.sverb in CartVerb)
 }
 check A_Scope_vocabulary_2 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 
@@ -801,10 +818,21 @@ assert A_Action_wiring_5 {
 check A_Action_wiring_5 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 
 -- A_Action_wiring_6_8: an [Open Cart] past the blank check calls Cart's open with the call's
--- currency, and an answered one answers the cart id Cart's open answered (Action wiring 6, 8).
+-- currency, and an answered one answers the cart id Cart's open answered and, for every cart
+-- verb, exactly one grant id: the id of the grant of the new cart's verb scope for that verb,
+-- the answered ids being exactly the five grants its Permissions' grant calls recorded
+-- (Action wiring 6, 8, reading Action wiring 7's grants).
 assert A_Action_wiring_6_8 {
-    all o : OpenCart | (wired[o] and o.actor not in World.blank) implies
-        (o.openCur = o.currency and (o.ans = AId implies (some o.ansCart and o.ansCart = o.opened)))
+    all o : OpenCart | (wired[o] and o.actor not in World.blank) implies {
+        o.openCur = o.currency
+        o.ans = AId implies {
+            some o.ansCart and o.ansCart = o.opened
+            o.ansGrants.Grant = CartVerb
+            all v : CartVerb | one v.(o.ansGrants) and v.(o.ansGrants).sverb = v
+                and v.(o.ansGrants).scart = o.opened
+            Verb.(o.ansGrants) = o.made
+        }
+    }
 }
 check A_Action_wiring_6_8 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 
@@ -1003,12 +1031,13 @@ check A_Non_goal_10 for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 -- UNSAT means the model forbids a state the page admits.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ShowBirthdayGift: the walkthrough: Ana opens a cart, lets Ben add, Ben adds a line, and
--- Ana's view shows the line with Ben as its adder.
+-- ShowBirthdayGift: the walkthrough: Ana opens a cart and is answered its id and her five
+-- grant ids, lets Ben add, Ben adds a line, and Ana's view shows the line with Ben as its adder.
 run ShowBirthdayGift {
     allWired
     some o : OpenCart, s : ShareCart, a : AddLine, v : ViewCart {
         o.ans = AId and s.ans = AId and a.ans = AId and v.ans = AShared
+        #Verb.(o.ansGrants) = 5
         s.cartIn = o.opened and a.cartIn = o.opened and v.cartIn = o.opened
         s.verbIn = AddV and a.actor = s.friend and s.friend != o.actor and v.actor = o.actor
         a.added in v.shown and a.added.(v.adder) = s.friend
@@ -1048,6 +1077,15 @@ run ShowSecondUnshareNotActive {
     allWired
     some disj u1, u2 : UnshareCart | u1.grantIn = u2.grantIn and u1.ans = AOk
         and u2.ans = NotActive
+} for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
+
+-- ShowSuspendedGrant: Actor Suspension revokes a friend's grant through the shared Permissions
+-- instance (Composes 13), and the friend's next call on that scope is denied.
+run ShowSuspendedGrant {
+    allWired
+    some s : ShareCart, a : AddLine | s.ans = AId and s.verbIn = AddV and some s.granted.suspRev
+        and s.granted.suspRev < a.at and a.actor = s.friend and a.cartIn = s.cartIn
+        and a.ans = PermissionDenied
 } for 3 but 4 Int, 4 Call, 7 Grant, 4 Event
 
 -- ShowSameQuantityChange: Lea changes a line to the quantity it holds: ok, and the change
