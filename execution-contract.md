@@ -74,6 +74,8 @@ The caller the seam authenticates is the business caller (Logic confinement 14),
 
 **Logic confinement 18: The clock allowance is the deployment's.** Where a specification compares a reading taken from one clock with a stamp or an instant minted from another, the deployment supplies the clock allowance at the seam: one setting, the most the two clocks may differ, required at start (Logic confinement 15) and held until the next start (Logic confinement 17). A specification names where the allowance is spent and states no value for it. The name is the owner's: Recoverable Invocation's term is "clock allowance" (decided by Scott's standing rules: one name for one thing, and one word where one serves). A specification that relies on this cites Logic confinement 18 by its label and does not restate it.
 
+**Logic confinement 20: A read takes its one clock reading before its database read, and a retry reads again.** A read that answers against `now` takes its one clock reading (Logic confinement 11) before its database read, as Logic confinement 3 places a transition's at the top of Step 2. A conflict retry under Database 2 reads the clock again as it reads the database again, so the retried call decides on a reading no earlier than the state it reads. A specification that relies on this cites Logic confinement 20; it does not restate it.
+
 ---
 
 ## The three primitives
