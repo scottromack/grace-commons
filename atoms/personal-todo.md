@@ -275,9 +275,10 @@ An implementation is acceptable when the checks below are provable to an externa
 Check 1.1: An auditor MUST find EVERY known unit standing in EXACTLY ONE OF pending, done (State 1).
 Check 1.2: An auditor MUST find EVERY unit carrying id, description AND addition instant (State 2).
 Check 1.3: An auditor MUST find EVERY done unit carrying completion instant (State 4).
-Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invariant 4.1; Execution Contract Generation acceptance 1).
+Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invariant 4.1; Invariant 2.1; Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.2: An auditor MUST find no two units sharing an id across the list's committed versions (Identity 5; Execution Contract Generation acceptance 1).
 Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3; Execution Contract Generation acceptance 1).
+Check 2.4: An auditor MUST find no unit standing in pending in a committed version of the list AFTER standing in done in an earlier committed version (Invariant 2.1; State 9; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
 Check 3.3: An auditor MUST find an edit changing no field beside description AND last edit instant (Invariant 5.2; Execution Contract Generation acceptance 1).
 Check 3.4: An auditor MUST find no last edit instant stamped for an edit answering ok on an unchanged description (Operation 12; Execution Contract Generation acceptance 1).
@@ -287,8 +288,6 @@ Check 4.3: An auditor MUST find no unit whose completion instant PRECEDES the un
 ```
 
 NOTE: EVERY check names the rule the check tests.
-
-NOTE: open 2026-11-03-b — Invariant 2.1 and Invariant 3.1 carry no conformance check.
 
 ### External checks
 
@@ -587,8 +586,7 @@ status: doing
 formal: verified — personal-todo.als + 18 twins (the static data model: State 1, 2 and 4 through 7, Identity 5, Invariant 6.1 and 7.1 through 7.3, Description 1, 2, 4 and 5 checked on every state a sequence of admitted calls leaves, Identity 4 and 6 caught by the Identity 5 check, Operation 9 and Description 7 by the Invariant 6.1 check, Operation 8 by the Invariant 7.3 check, Operation 32 and 33 by the Description 4 and 5 checks); personal-todo.tla + 11 twins (across steps, as the clock moves: Invariant 2.1, 3.1, 4.1, 5.2, 8.2 and 8.3, State 9, Operation 4 (Description 6, Re-adding 1), 12 and 30); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28 and 29, Description 3, 2026-11-11
 last gate: 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
-open:
-- 2026-11-03-b · refining · Invariant 2.1; Invariant 3.1; Check 2.1; Check 3.1 · Invariant 4.1 has Check 2.1 and Invariant 6.1 has Check 3.1, but Invariant 2.1 and Invariant 3.1 have none, so an auditor reading the committed versions has nothing that tests a unit standing in pending after a complete or a delete, or in done after a delete → add a check for each, reading the committed versions (Execution Contract Generation acceptance 1), or delete the two invariants to the rules that already hold them (State 9, State 10)
+open: none
 ```
 
 <details markdown="block">
