@@ -42,7 +42,7 @@ They agree on two shapes. A sighting is about one subject and happens once: the 
 ```
 Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the record id.
-Identity 3: The host MUST allocate a record id at the seam that no standing record carries.
+Identity 3: The host MUST allocate a record id at the seam that no standing record carries PER Execution Contract Logic confinement 16.
 Identity 4: The atom MUST NOT reuse a record id.
 Identity 5: The atom MUST NOT interpret a subject.
 Identity 6: The atom MUST NOT interpret a scope.
@@ -85,7 +85,7 @@ Term status: open | closed — a standing record still seen, or no longer seen. 
 ### Capability requirement
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 20.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 11 and Execution Contract Logic confinement 20.
 Capability requirement 2: The deployment MUST supply the condition records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MUST declare EVERY condition a composing pattern declares, with the condition's shape.
 Capability requirement 4: The deployment MAY override the name cap.
@@ -194,7 +194,7 @@ Term closing instant: the instant the first run that no longer saw the condition
 
 Term span: a standing record's first seen to the standing record's last seen — the condition's start and end as the register records them.
 
-Term window: the half-open span from window start to window end, window start included and window end excluded.
+Term window: the half-open span from window start to window end, window start included and window end excluded, in place of Execution Contract Query 2's closed range.
 
 Term window start: the earliest instant a [List Conditions] call asks for — a [Window Start].
 
@@ -648,14 +648,14 @@ Inherited from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-20
 formal: verified — condition-register.als + 14 twins (the static data model: State 1 through 5 and 8, Invariant 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, Identity 4 and a condition's one shape checked on every database a run of admitted calls leaves); condition-register.tla + 10 twins (across steps: Invariant 1.1 through 1.4, 2.1, 3.1, 4.1 through 4.3 and Operation 22 over every sequence of calls, each call carrying any clock reading); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28, 29 and 31; Concurrency 1 through 3, 2026-11-11
-last gate: 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-20 — Final Critique 5, a delta round, frozen at 9db4fbc8 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
 
 open: none
 ```
