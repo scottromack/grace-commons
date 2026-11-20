@@ -90,7 +90,8 @@
 \*   rule turns on the cap's value, and the proofs hold at every size.
 \* - A fraction in a denominator or a share: it fails the same membership test
 \*   as a zero or a negative one (Operation 13, 19), which the model gives.
-\* - A currency's length (open 2026-11-13-a: the page bounds none).
+\* - A currency's length (Term currency cap, Operation 1: a bound on a string's
+\*   length, which the models' three symbolic currencies leave unread).
 \* - The currency an answer carries, and a field an answer leaves out (State
 \*   1, Invariant 1.1, 1.2): the Alloy model's. A part here is its amount.
 \* - Which currencies exist, a currency's minor unit, conversion (Non-goal 1

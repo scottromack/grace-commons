@@ -43,9 +43,7 @@ Identity 3: The atom MUST NOT normalize a currency.
 
 Term money: an amount in one currency — a [Money]; a value, held by the pattern that needs one. In a rule, the money is the money a call names first.
 
-Term currency: the unit of account an amount is counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; a string of one or more codepoints, held as supplied; a string of spaces is one, since which strings name a currency is Currency's to say (Non-goal 2).
-
-NOTE: open 2026-11-13-a — a currency has no length bound (Term currency, Term well-formed money).
+Term currency: the unit of account an amount is counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; a string of one or more codepoints and no more than the currency cap, held as supplied; a string of spaces is one, since which strings name a currency is Currency's to say (Non-goal 2).
 
 Term amount: how many of the currency's minor unit a money holds — an [Amount]; a whole number, negative, zero or positive.
 
@@ -74,11 +72,16 @@ Capability requirement 2: The deployment MAY declare the part cap PER Execution 
 Capability requirement 3: The deployment MUST NOT declare a number cap that the size of a money, a numerator, a denominator or a share a composing pattern holds EXCEEDS.
 Capability requirement 4: The deployment MAY declare the number cap ONLY IF the number cap EXCEEDS 0.
 Capability requirement 5: The deployment MAY declare the part cap ONLY IF the part cap EXCEEDS 0.
+Capability requirement 6: The deployment MAY declare the currency cap PER Execution Contract Input 2.
+Capability requirement 7: The deployment MUST NOT declare a currency cap that the length of a currency a composing pattern holds EXCEEDS.
+Capability requirement 8: The deployment MAY declare the currency cap ONLY IF the currency cap EXCEEDS 0.
 ```
 
 Term number cap: the largest size of a whole number a call names or answers, an amount, a numerator, a denominator or a share alike — a [Number Cap]; 999999999999999999 where a deployment declares none, which is eighteen digits — a default cap a deployment may override as Execution Contract Input 2 allows, though a call naming a number over the number cap answers invalid-money, invalid-rate or invalid-shares (Operation 1, Operation 2, Operation 12, Operation 13, Operation 19), this atom's own answers in place of Input 2's invalid-request.
 
 Term part cap: the most shares one [Split] call names — a [Part Cap]; 1,000 where a deployment declares none, and a call over the part cap answers too-many-parts (Operation 17).
+
+Term currency cap: the bound on a currency's length in Unicode code points — a [Currency Cap]; 1,024 code points where a deployment declares none, the corpus's default for text, a default cap a deployment may override as Execution Contract Input 2 allows, though a call naming a currency over the currency cap answers invalid-money (Operation 1, Operation 2), this atom's own answer in place of Input 2's invalid-request, and the length is counted on the currency as the call carries it (Execution Contract Input 2).
 
 Term capped number: a whole number whose size is no more than the number cap.
 
@@ -149,7 +152,7 @@ Term action: [Add] | [Subtract] | [Compare] | [Negate] | [Multiply] | [Split] �
 
 Term pair action: [Add] | [Subtract] | [Compare] — the actions that name two moneys.
 
-Term well-formed money: a value carrying a currency of one or more codepoints and a capped number as amount; an amount with a fraction, such as 10.5, is no whole number.
+Term well-formed money: a value carrying a currency of one or more codepoints and no more than the currency cap, and a capped number as amount; an amount with a fraction, such as 10.5, is no whole number.
 
 Term other money: the second money a pair action names — a [Money].
 
@@ -304,7 +307,7 @@ The dinner is refunded. `negate(money("USD", 10000))` answers `money("USD", -100
 
 ### Rejection paths
 
-A deployment that declares neither cap, so the number cap is eighteen digits and the part cap is 1,000:
+A deployment that declares none of the three caps, so the number cap is eighteen digits, the part cap is 1,000 and the currency cap is 1,024 code points:
 
 - `add(money("USD", 100), money("EUR", 100))` — rejected as [Mixed Currency].
 - `add(money("USD", 100), money("usd", 100))` — rejected as [Mixed Currency]: two currencies are compared codepoint for codepoint, and the atom normalizes neither (Identity 2, Identity 3).
@@ -388,9 +391,10 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the number cap confirmed against the moneys, the numerators, the denominators and the shares held MUST read the number cap the deployment declares and the records of the composing patterns that hold a money, a numerator, a denominator or a share (Capability requirement 3).
-External check 2: An auditor needing the number cap and the part cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5).
+External check 2: An auditor needing the number cap, the part cap and the currency cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5, Capability requirement 8).
 External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
 External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
+External check 5: An auditor needing the currency cap confirmed against the currencies held MUST read the currency cap the deployment declares and the records of the composing patterns that hold a currency (Capability requirement 7).
 ```
 
 ## Non-goals
@@ -439,13 +443,13 @@ Term record verbs: identify, compare, normalize, carry, store, declare, answer, 
 
 Term value sets: action, pair action, order and roundings are declared above and cited here (GRACE-lang Closed vocabulary 15); the action rejection is every code on the refuses lines of the Operations.
 
-Term bounds: positive count (one, the floor of a denominator and a share); number cap (the largest size of a whole number a call names or answers, eighteen digits where a deployment declares none); part cap (the most shares one [Split] call names, 1,000 where a deployment declares none).
+Term bounds: positive count (one, the floor of a denominator and a share); number cap (the largest size of a whole number a call names or answers, eighteen digits where a deployment declares none); part cap (the most shares one [Split] call names, 1,000 where a deployment declares none); currency cap (the bound on a currency's length in code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-13) through the Grace connector.
 
-Term terms: money, currency, amount, minor unit, whole number, positive count, size, negation, number cap, part cap, capped number, capped count, action, pair action, well-formed money, other money, result, sum, difference, order, rate, numerator, denominator, product, quotient, remainder, rounding, roundings, down, up, half-up, half-even, rounded size, rounded product, shares, share count, share total, part, parts, share product, base size, part remainder, short part, short count, base share, leftover, first parts, step, stepped share, total, gap, round trip, negated call, conformance table.
+Term terms: money, currency, amount, minor unit, whole number, positive count, size, negation, number cap, part cap, currency cap, capped number, capped count, action, pair action, well-formed money, other money, result, sum, difference, order, rate, numerator, denominator, product, quotient, remainder, rounding, roundings, down, up, half-up, half-even, rounded size, rounded product, shares, share count, share total, part, parts, share product, base size, part remainder, short part, short count, base share, leftover, first parts, step, stepped share, total, gap, round trip, negated call, conformance table.
 
 #### Add
 
@@ -491,7 +495,7 @@ Kind: Type
 
 #### Currency
 
-The unit of account a money is counted in, such as an ISO 4217 code; a string of one or more codepoints, held as supplied and compared codepoint for codepoint.
+The unit of account a money is counted in, such as an ISO 4217 code; a string of one or more codepoints and no more than the [Currency Cap], held as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Money
@@ -553,9 +557,17 @@ Kind:         Parameter
 Parameter of: Split
 Projection:   part_cap
 
+#### Currency Cap
+
+The bound on a currency's length in Unicode code points; 1,024 code points where a deployment declares none. A deployment never declares one below the length of a currency a composing pattern holds, and never one of zero.
+
+Kind:         Parameter
+Parameter of: every action ([Add], [Subtract], [Compare], [Negate], [Multiply], [Split])
+Projection:   currency_cap
+
 #### Invalid Money
 
-The refusal of a value that is no well-formed money: a currency of no codepoints, an [Amount] that is no whole number, or a size past the [Number Cap].
+The refusal of a value that is no well-formed money: a currency of no codepoints or past the [Currency Cap], an [Amount] that is no whole number, or a size past the [Number Cap].
 
 Kind:       Member
 Member of:  the action rejection
@@ -634,6 +646,7 @@ Projection: invalid-shares
 [Shares]: #shares
 [Number Cap]: #number-cap
 [Part Cap]: #part-cap
+[Currency Cap]: #currency-cap
 [Invalid Money]: #invalid-money
 [Mixed Currency]: #mixed-currency
 [Over Cap]: #over-cap
@@ -669,8 +682,7 @@ status: doing
 formal: verified — money.als + 6 twins (the static data model, one call and its answer: State 1, Identity 2, Invariant 1.1, 1.2 and 7.1 checked, Identity 3 caught by the Invariant 1.1 and 1.2 checks); money.tla + 28 twins (each action as a function of the call's inputs, and the calls around it: Operation 1 through 24 and Invariant 2.1, 3.1, 4.1, 5.1, 6.1 and 6.2 checked, Identity 2 cross-checked by the Operation 3 check, State 2 by the Operation 23 check), with TLAPS proofs over the same model that discharge Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 at every size (tlapm --strict, 714 obligations, none owed); the vote yes of 2026-11-13, on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed, 2026-11-13
 last gate: 2026-11-13 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8b6954c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; it raised External check 1's missing source for the declared cap as refining, cured, and the later holding of a money past the cap as refining Kind C, recorded in the NOTE beside Capability requirement 3); 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
 
-open:
-- 2026-11-13-a · refining · Term currency; Term well-formed money · a currency is a string of one or more codepoints with no length bound, where the corpus's atoms bound a string input by a string cap (Execution Contract Input 2), so a build that refuses a currency past a limit of its own answers differently from one that admits it → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 ## Decisions

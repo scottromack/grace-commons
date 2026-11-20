@@ -44,7 +44,7 @@
 --
 -- NOT MODELED HERE
 --   - Which currencies exist and a currency's minor unit (Non-goal 2, 3: Currency); a
---     currency's length (open 2026-11-13-a). Conversion (Non-goal 1: Currency), a rate held
+--     currency's length (Term currency cap, Operation 1: the models' currencies are symbolic). Conversion (Non-goal 1: Currency), a rate held
 --     or a rounding chosen (Non-goal 4, 5: the composing pattern), pricing, tax, payment,
 --     refund, settlement, the ledger (Non-goal 6 to 11: Pricing, Tax, Payment, Ledger), a
 --     limit on the sign (Non-goal 12: the pattern that stores the money), display (Non-goal
