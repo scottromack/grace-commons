@@ -381,7 +381,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 2: An auditor needing the opaque input cap the instance holds MUST read the cap the deployment discloses (Opaque input bound 4, Execution Contract Input 2).
+External check 2: An auditor needing the opaque input cap the instance holds MUST read the cap the instance holds PER Execution Contract Input 2 (Opaque input bound 4).
 External check 3: An auditor needing the fanout-on-no-record policy, or the default a composing pattern applies for an absent preference field, MUST read the deployment's own disclosure (Capability requirement 7, Capability requirement 11).
 ```
 
