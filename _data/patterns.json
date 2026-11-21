@@ -315,7 +315,7 @@
    "selective-disclosure"
   ],
   "grounded": false,
-  "invariants": 5,
+  "invariants": 4,
   "kind": "composition",
   "models": {
    "als": true,
