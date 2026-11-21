@@ -123,7 +123,7 @@ Operation 5: IF placing actor EQUALS blank THEN [Place] MUST answer invalid-requ
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 7: IF a supplied case reference EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 8: IF now PRECEDES a supplied placement instant THEN [Place] MUST answer invalid-request.
-Operation 10: [Place] MUST accept a placement instant below now.
+Operation 10: [Place] MUST accept a placement instant at or below now.
 Operation 11: IF the database refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 13: IF hold id DOES NOT EQUAL blank AND no hold EXISTS for the hold id THEN [Release] MUST answer not-known.
@@ -162,7 +162,7 @@ Term resolved release instant: the release instant the release records — the c
 
 Term supplied instant: a placement instant or release instant the business caller supplies — a point in time, as GRACE-lang Term instant declares it, written with the offset from UTC (Coordinated Universal Time) that places it, as `2026-02-14T09:30:00Z`; a bare date, and a date and time with no offset, name no one point in time, so neither is an instant and the call is malformed (Execution Contract Input 3).
 
-Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant strictly after the instant, so a hold released at its own placement instant is held at no instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
@@ -171,7 +171,7 @@ The case space, and the rule that owns each case:
 | [Place] | refs and reason present, placement instant not future, database accepts | hold id | one hold lands in [Active], stamped with its entry instant (Operation 1, Operation 2, Operation 43) |
 | [Place] | blank record reference, placing actor, reason, or supplied case reference, or a string input over the string cap, or a supplied placement instant that is not an instant | [Invalid Request] | none (Operation 4 through 7, Execution Contract Input 2, Execution Contract Input 3) |
 | [Place] | supplied placement instant in the future | [Invalid Request] | none (Operation 8) |
-| [Place] | supplied placement instant in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
+| [Place] | supplied placement instant in the past, or equal to now | hold id | one hold lands, recorded as supplied (Operation 10) |
 | [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped; the hold's id, record reference, placing actor, reason, placement instant, entry instant and case reference stand, and no other hold's state changes (Operation 19, State 4, Invariant 1.1, Invariant 4.1) |
 | [Release] | blank hold id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
@@ -241,7 +241,7 @@ Instance 3: The atom MUST NOT reach across database instances.
 Instance 4: The deployment MUST route a call to one database instance.
 Instance 5: [Read] MUST answer the database name the read was routed to.
 Instance 6: A composing pattern MUST match the answered database name against the record's own database instance.
-Instance 7: IF the answered database name DOES NOT EQUAL the record's database instance THEN a composing pattern MUST NOT read an empty answer as unheld.
+Instance 7: IF the answered database name DOES NOT EQUAL the record's database instance THEN a composing pattern MUST NOT read the answer as deciding whether the record is held.
 ```
 
 Term database instance: one named database — a [Database Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
@@ -353,7 +353,7 @@ Non-goal 15: The atom MUST NOT purge a hold record.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 1, Non-goal 2, Non-goal 14); [Tamper Evidence](./tamper-evidence.md) (Non-goal 11, Non-goal 12).
+NOTE: the owners — [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 1, Non-goal 2, Non-goal 14); [Tamper Evidence](./tamper-evidence.md) (Non-goal 11, Non-goal 12); a trusted timestamping pattern *(forthcoming)* (Non-goal 17).
 
 Where the atom breaks down: when the preservation duty is defined by a query rather than a record — *everything touching Project Alpha* — which needs a composing pattern to enumerate and place; when the hold must survive the database that holds it, which needs an external anchor; when who may lift a hold is part of the obligation, which is Permissions' and not a field here.
 
@@ -365,10 +365,11 @@ Where the atom breaks down: when the preservation duty is defined by a query rat
 Concurrency 3: Two placements over one record MUST record two holds.
 ```
 
-### Back-dating a placement
+### Back-dating a placement or a release
 
 ```
 Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placement instant.
+Backdating 4: The deployment MUST own the evidentiary weight of a back-dated release instant.
 ```
 
 ### Place persistence failure
@@ -390,7 +391,6 @@ Aggregate 2: The atom MUST NOT carry a held flag on a record.
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST check a record's active holds at the purge surface.
 Composition note 3: A composing pattern MUST own who may place a hold.
 Composition note 4: A composing pattern MUST own who may release a hold.
@@ -668,14 +668,14 @@ Projection: invalid-query
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-21` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-21
 formal: verified — legal-hold.tla + 4 twins (2026-06-04; 2026-11-21: the entry instant, and Invariant 1.1 and 8.2 checked across steps, Check 6.1 and 6.2 read over committed versions, Invariant 2.1 across steps by construction); legal-hold.als + 19 twins (the static data model, 2026-11-11, the entry instant 2026-11-21: Invariant 1.1, 1.2, 2.1, 3.1, 4.2, 5.1, 5.2, 5.3, 6.1, 7.1, 7.2, 7.3 and 7.4, State 5, Operation 4, 7 and 43 and Instance 2 checked on every hold record an admitted [Place] or [Release] leaves, Invariant 1 and 3.1 read against the versions that built the record, Invariant 4.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 3.2, 4.1, 4.3 and 8: 3.2 names what the signature offers, not a state, and its twin is caught by 3.1; 4.1 and 8 compare two readings, a deleted hold leaving nothing in one state; 4.3 defines a reading over stored fields with no stored aggregate to hold it to); nothing testable in the models for Term supplied instant: the form a supplied instant takes is the wire's (Execution Contract Input 3), and a model's instant is already one point in time; Composition note 7 through 9 are the composing patterns' duties, outside the atom's models; coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11, 2026-11-21
-last gate: 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8, frozen at c39a73f — foundational count 0, clean, one sample
+last gate: 2026-11-21 — Final Critique 10, a full round, frozen at 35745b6a — foundational count 0 after the blind second triage, clean, one sample; Grid's one foundational claim (a placement instant equal to now) refuted, since Operation 8 refuses only a future instant, the case table admits one that is not future and a blank one resolves to exactly now (Execution Contract Logic confinement 12), and Linus's five placed refining or refuted (a released hold's storage-failure leaves it active, Place persistence 4; Database 5 binds every deployment and the checks cite Generation acceptance 1); the settle's own refining cures: Operation 10 admits a placement instant at or below now, Instance 7 reads a mismatched answer as deciding nothing, Backdating 4 gives a back-dated release instant its owner, Composition note 1 deleted to Execution Contract Conformance 9, Term held at an instant states its boundary, Non-goal 17's pattern marked forthcoming; 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8, frozen at c39a73f — foundational count 0, clean, one sample
 
 open: none
 ```

@@ -107,7 +107,7 @@ Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 ```
 
-### Edge cases › Back-dating a placement
+### Edge cases › Back-dating a placement or a release
 
 ```
 Deleted: Backdating 1. Operation 10 owns it.
@@ -118,4 +118,10 @@ Deleted: Backdating 2. Operation 8 owns it.
 
 ```
 Deleted: Aggregate 3. Instance 7 owns it.
+```
+
+### Composition notes
+
+```
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 ```
