@@ -46,7 +46,7 @@ Identity 8: Two evidence over one record set MUST carry two evidence ids.
 ```
 
 
-NOTE: watch the allocation ban (Identity 3).
+NOTE: watch the allocation ban (Execution Contract Logic confinement 3).
 
 Term evidence: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.
 
@@ -86,7 +86,7 @@ Term sealing instant: the wall-time instant the evidence was recorded, stamped f
 
 Term anchoring instant: the time an external anchor recorded at seal time — an [Anchoring Instant]; absent where the mechanism anchors nothing.
 
-Term mechanism credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and a blank value for an unkeyed one, blank as GRACE-lang Term blank has it: absent, empty, or whitespace alone. A keyed mechanism takes no blank credential (Operation 7); an unkeyed mechanism takes one (Operation 8).
+Term mechanism credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and a blank value for an unkeyed one, blank as GRACE-lang Term blank has it: absent, empty, or whitespace alone. A keyed mechanism takes no blank credential (Operation 7); an unkeyed mechanism takes one (Operation 8) and takes no nonblank one (Operation 36).
 
 Term unkeyed mechanism: a mechanism that computes the proof from no keying material, such as a hash chain no key signs; a mechanism that is not unkeyed is keyed.
 
@@ -163,6 +163,7 @@ Operation 29: [Read] MUST NOT write.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 Operation 34: IF a string input EXCEEDS the string cap THEN [Seal] MUST answer invalid-request.
 Operation 35: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS faulted THEN [Verify] MUST answer failed-verification carrying mechanism-verification-failure.
+Operation 36: IF the mechanism EQUALS an unkeyed mechanism AND the mechanism credential DOES NOT EQUAL blank THEN [Seal] MUST answer invalid-request.
 ```
 
 NOTE: watch the cap's refusal (Operation 34).
@@ -186,7 +187,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
 | [Seal] | credential and reference well-formed, mechanism computes, database accepts | evidence id | one evidence lands in [Sealed], its id and every field fixed from then on (Operation 1, Operation 2, Invariant 1.1, Invariant 5.2) |
-| [Seal] | blank reference, blank credential for a keyed mechanism, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Operation 34, Execution Contract Input 2) |
+| [Seal] | blank reference, blank credential for a keyed mechanism, nonblank credential for an unkeyed mechanism, or a string input over the string cap | [Invalid Request] | none (Operation 6, Operation 7, Operation 36, Operation 34, Execution Contract Input 2) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | database refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
@@ -403,7 +404,7 @@ Verification caching 2: An implementation MAY answer a cached verification resul
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
-Composition note 3: A deployment needing attributable evidence MUST supply an actor's credential as the mechanism credential.
+Composition note 3: A deployment needing attributable evidence MUST supply an actor's credential as the mechanism credential of a keyed mechanism.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
 ```
 
@@ -497,7 +498,7 @@ Projection: anchored_at
 
 #### Mechanism Credential
 
-The opaque material the chosen mechanism supplies to [Seal] to produce the [Proof] — keying material for keyed mechanisms, possibly empty or a configuration handle for unkeyed ones. It is *consumed* per call — used to compute the [Proof] and then discarded — and never persisted under this name (or any name) by the atom. It is the only caller-supplied secret.
+The opaque material the chosen mechanism supplies to [Seal] to produce the [Proof] — keying material for keyed mechanisms, and blank for an unkeyed mechanism. It is *consumed* per call — used to compute the [Proof] and then discarded — and never persisted under this name (or any name) by the atom. It is the only caller-supplied secret.
 
 Kind:         Parameter
 Parameter of: Seal
@@ -592,7 +593,7 @@ Projection: mechanism-verification-failure
 
 #### Invalid Request
 
-The refusal [Seal] returns when [Record Set Reference] is blank, [Mechanism Credential] is blank for a keyed mechanism, or a string input exceeds the string cap (Execution Contract Input 2). A guard rejection that fails before any database write; no [Evidence] is recorded.
+The refusal [Seal] returns when [Record Set Reference] is blank, [Mechanism Credential] is blank for a keyed mechanism or nonblank for an unkeyed one, or a string input exceeds the string cap (Execution Contract Input 2). A guard rejection that fails before any database write; no [Evidence] is recorded.
 
 Kind:       Member
 Member of:  the Seal rejection
@@ -655,7 +656,7 @@ Tamper Evidence is a foundational compliance primitive with deep cryptographic a
 - **ISO/IEC 27001 clause A.12.4 (Logging and Monitoring)** — the International Organization for Standardization / International Electrotechnical Commission information-security baseline for log integrity. The atom's no-silent-rewrite guarantee is the structural form.
 - **FIPS 180-4 (Secure Hash Standard)** — a Federal Information Processing Standard (mandatory US government computing standard); the cryptographic foundation for hash-chain and Merkle-tree mechanisms. The atom is hash-function-neutral; FIPS 180-4 is the canonical family anchor.
 - **RFC 3161 (Time-Stamp Protocol)** — the IETF (Internet Engineering Task Force) standard for trusted timestamping. Qualified RFC 3161 timestamps are the canonical external-anchoring mechanism for time-of-seal verifiability under eIDAS and elsewhere.
-- **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-92 (Guide to Computer Security Log Management)** — names log-integrity protection as a baseline requirement; tamper-evidence is the structural mechanism.
+- **NIST (National Institute of Standards and Technology — US federal standards body) SP (Special Publication) 800-92 (Guide to Computer Security Log Management)** — names log-integrity protection as a baseline requirement; tamper-evidence is the structural mechanism.
 - **21 CFR Part 11 — FDA (US Food and Drug Administration) electronic records and electronic signatures** — requires electronic records to be protected against unauthorized modification and to bear evidence of any change. Composes with Actor Identity for the attribution of any modification (which Part 11 also requires).
 - **DoD (US Department of Defense) 5015.02-STD — Design criteria for electronic records management software** — requires records-management systems to protect against unauthorized alteration of records and audit data.
 - **GDPR (EU General Data Protection Regulation) Article 32 (Security of Processing)** — names integrity as a property of processing that controllers must ensure with appropriate technical measures.
@@ -682,8 +683,8 @@ It inherits from:
 
 ```
 status: doing
-formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10 and 35; Concurrency 2; Verification caching 1 and 2, 2026-11-12
-last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10, 35 and 36; Concurrency 2; Verification caching 1 and 2, 2026-11-12
+last gate: 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open: none
 ```
