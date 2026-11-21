@@ -679,7 +679,7 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-21` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -687,9 +687,9 @@ It inherits from:
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-21
 formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10, 35 and 36; Concurrency 2; Verification caching 1, 2, 4 and 5, 2026-11-12
-last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-21 — Final Critique 20, a delta round, one reader (Linus opencode/minimax-m3), frozen at bc8d5fc0 — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Verification caching 4 and 5, the two rules Final Critique 19 added, and raised no finding; the blind second triage placed all five of its points refuted and found no defect of its own); last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open: none
 ```
