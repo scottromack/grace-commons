@@ -233,7 +233,7 @@
    "credential",
    "actor-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -253,7 +253,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-21",
   "substrates": [],
   "title": "Authenticated Actor"
  },
