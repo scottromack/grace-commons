@@ -98,7 +98,7 @@
 --     attest-failed): a refused call writes nothing (Execution Contract Read 4).
 --   - The gating credential type default (Action wiring 30): which type a call carried is
 --     no record; the binding's type is.
---   - Instants and the clock offset allowance: only the store's order is kept.
+--   - Instants and the clock allowance: only the store's order is kept.
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.

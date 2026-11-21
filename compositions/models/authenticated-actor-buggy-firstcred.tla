@@ -87,7 +87,7 @@
 \* Identity's registry-unavailable and invalid-credential (each lands before any write, its
 \* entry naming the current credential as a success entry does); the attest credential and
 \* secret-surface separation (Invariant 2, a deployment obligation); the verify action (a
-\* read); clock values, the clock offset allowance and a second seam's clock; a second
+\* read); clock values, the clock allowance and a second seam's clock; a second
 \* principal and a second credential type; registration instants that tie or run backward
 \* (Credential Operation 69, 70).
 

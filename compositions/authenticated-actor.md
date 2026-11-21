@@ -19,7 +19,7 @@ toc: true
 
 ## Summary
 
-Authenticated Actor is a composition — a specification that wires together two freestanding patterns, each complete on its own and depending on neither the other — that ties a principal's *login* to their *signature*. One pattern, Credential, checks that a presented secret belongs to a principal (the login). The other, Actor Identity, produces an attestation: a permanent, checkable record that a specific actor authorized a specific action (the signature). On their own, neither pattern knows about the other, which leaves three questions unanswered when the same person has both — and this composition answers all three.
+Authenticated Actor is a composition — a specification that wires together two freestanding patterns, each complete on its own and depending on neither the other — that ties a principal's *login* to their *signature*. One pattern, Credential, checks that a presented secret belongs to a principal (the login). The other, Actor Identity, produces an attestation: a permanent, checkable record that a specific actor authorized a specific action (the signature). On their own, neither pattern depends on the other, which leaves three questions unanswered when the same person has both — and this composition answers all three.
 
 First: if you revoke someone's login, can they still produce new signatures through this composition? The answer is no. The composition checks, every time an actor goes to sign, that their login credential is still active, and the check and the recording of the signature commit as one transaction that no revocation can split, so a revocation either comes first and the check turns the signature away, or comes after the signature is recorded. The attest log entry of every signature names the credential the check saw. Crucially, signatures made *before* the revocation were properly authorized at the time, and erasing them would be wrong, so the cascade only closes the door going forward; it never rewrites the past. Whether a past signature still checks out afterwards depends on the credential mechanism the deployment uses.
 
@@ -31,7 +31,7 @@ The composition's defining emergent guarantee — a property that appears only w
 
 ## Intent
 
-Two freestanding atoms answer two adjacent but distinct questions about a principal. **Credential** answers *"did the right material arrive — does this presented secret match what was registered for this principal?"* and produces a momentary `verified` signal. **Actor Identity** answers *"can a future verifier confirm this actor authorized this specific action?"* and produces a durable, non-repudiable attestation. Each is correctly specified without depending on the other (Credential's specification names no other atom; Actor Identity's `verify` validates a proof against the actor registry's public material, not against any credential record). Yet the moment both exist for the *same* principal, three concepts arise that belong to neither atom alone — concepts that were surfaced not by a thought experiment but by a real implementation. The Attributed Permissions Admin demo conflated a single secret to serve as both the login credential and the attestation signing key (the section titled Cross-atom identity surface aliasing in `demos/attributed-permissions-admin/CORNERS.md`), and in doing so exposed three questions the library could not answer: does revoking a login revoke the ability to sign? must the two secret surfaces be distinct? and are the principal reference and actor reference namespaces bound to one principal or free to diverge? This composition is the structure that answers them.
+Two freestanding atoms answer two adjacent but distinct questions about a principal. **Credential** answers *"did the right material arrive — does this presented secret match what was registered for this principal?"* and produces a momentary `verified` signal. **Actor Identity** answers *"can a future verifier confirm this actor authorized this specific action?"* and produces a durable, non-repudiable attestation. Each is correctly specified without depending on the other (Credential's rules depend on no other atom, and Credential Composition note 8, that a composing Actor Identity attest the principal behind a verified answer, the composition answers by attesting only the actor the principal binding carries for the principal reference, under the attest credential Actor Identity's attest checks rather than after a verified answer, the attestation being the load-bearing write (Action wiring 20, Composes 5; the section titled Authentication precedence in `pressure-testing.md`); Actor Identity's `verify` validates a proof against the actor registry's public material, not against any credential record). Yet the moment both exist for the *same* principal, three concepts arise that belong to neither atom alone — concepts that were surfaced not by a thought experiment but by a real implementation. The Attributed Permissions Admin demo conflated a single secret to serve as both the login credential and the attestation signing key (the section titled Cross-atom identity surface aliasing in `demos/attributed-permissions-admin/CORNERS.md`), and in doing so exposed three questions the library could not answer: does revoking a login revoke the ability to sign? must the two secret surfaces be distinct? and are the principal reference and actor reference namespaces bound to one principal or free to diverge? This composition is the structure that answers them.
 
 The first and load-bearing concept is the **revocation cascade**, and it is the outbound-authority counterpart to Login's session cascade. Login makes a revoked credential's *sessions* die: revoking a credential and calling `revoke_sessions_for_credential` walks the derived-session set and terminates each. Authenticated Actor makes a revoked credential's *attestation surface* die: once the principal's authentication credential is revoked, the composition produces no new attestation for the bound actor. The asymmetry between the two cascades is itself load-bearing. A session is mutable, live state with an active set to walk; the cascade is an enumeration-and-revoke. An attestation is an *immutable, point-in-time record* — there is no active-attestation set to retract, and retracting one would be wrong: a validly-authorized attestation made before revocation remains a record of an authorization that was valid at its instant (Actor Identity's non-repudiation contract is conditional on credential integrity *at attestation time*, not perpetually); whether it still verifies after revocation depends on the credential mechanism (Actor Identity Term proof check). The cascade that fits an immutable record surface is *forward closure*: the composition stops producing new attestations from the first gate read that finds the gating credential not effective-active. That forward closure is the emergent guarantee this composition owns.
 
@@ -98,18 +98,19 @@ Term bijection: the principal binding and the inverse together, unique on both k
 **Contract classification: extraction-pending, two elements** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent records is a not-yet-extracted atom* — and it reaches both, because [Credential](../atoms/credential.md) keys on principal reference, [Actor Identity](../atoms/actor-identity.md) keys on actor reference, and neither relates the two.
 
 - The **bijection** is one element, not two — two directions of one truth, with a uniqueness constraint per side. Proposed atom: a **Namespace Binding** — immutable, bijective, unique on both keys, no lifecycle beyond *bound*. Any pattern joining constituents that key on different opaque namespaces needs it.
-- The **attest log** is the second. Proposed atom: an **Attempt Log** — an append-only record of every attempt at an action past its input checks, and of what each answered. The case against it is the corpus's split: [Login](./login.md) holds a sibling `login_event_log`, and [Notification Fanout](./notification-fanout.md) routes the identical concept *out* to [Event Log](../atoms/event-log.md) — three compositions, two answers — so if the attest log proves to be Event Log wired with a composition-supplied entry schema, the extraction goes to Event Log and no new atom is owed.
+- The **attest log** is the second, *extraction-pending, against [Event Log](../atoms/event-log.md)*. It is an append-only record of every attempt at an action past its input checks, and of what each answered; the section titled Three-way taxonomy in [`execution-contract.md`](../execution-contract.md) says a composition that seems to need persistent state composes Event Log rather than keep records of its own, so the extraction is a second Event Log instance with a composition-supplied entry schema, the entries becoming that instance's events, and no Attempt Log atom is owed ([Login](./login.md) holds the sibling `login_event_log` pending the same way, and [Notification Fanout](./notification-fanout.md) routes the identical concept *out* to Event Log). The trigger is the Contract's: the extraction rides this page's next touch-triggered re-pass round (the section titled Composition state in `execution-contract.md`).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: A deployment MUST declare the attest surface separation.
 Capability requirement 2: A deployment MUST set the gating credential type default.
-Capability requirement 10: The deployment MUST declare the clock offset allowance.
+Capability requirement 10: The deployment MUST supply the clock allowance (Execution Contract Logic confinement 18).
 Capability requirement 12: The deployment MUST supply the database PER Execution Contract Database 1 through 5.
 Capability requirement 13: A deployment MUST authenticate the caller of [Register Authenticated Actor] as Credential's authorized caller (Credential Composition note 12).
 Capability requirement 14: A deployment MUST provision the attest credential distinct from the credential material.
 Capability requirement 16: A deployment MUST hold EVERY binding AND the binding's inverse entry that a success entry names.
+Capability requirement 17: A deployment MUST take a call to Actor Identity's attest ONLY through [Attest As Actor].
 ```
 
 
@@ -117,14 +118,14 @@ Term attest surface separation: the deployment's declaration that the attestatio
 
 Term gating credential type default: the credential type the deployment sets, which a registration carrying no credential type passes to Credential's register (Capability requirement 2, Action wiring 30) — a gating credential type default.
 
-Term clock offset allowance: the declared bound on disagreement between this composition's clock reading, Credential's and Actor Identity's, which an auditor's comparison of a credential's stamp with an attestation's narrows under and no rule decides on (the regulated adversarial scenarios) — a clock offset allowance.
+Term clock allowance: the allowance of Execution Contract Logic confinement 18, spent where an auditor compares a stamp another surface's call minted, a credential's revoked instant, with an attestation's stamp, the comparison narrowing under it and no rule deciding on it (the regulated adversarial scenarios) — a clock allowance.
 
 ### Primitive policy
 
 ```
 Primitive policy 1: The composition MUST answer invalid-request for a blank principal reference.
 Primitive policy 2: The composition MUST answer invalid-request for a blank actor reference.
-Primitive policy 3: The composition MUST answer invalid-request for a blank credential material.
+Primitive policy 3: The composition MUST answer invalid-request for an empty credential material (Credential Term empty material).
 Primitive policy 4: The composition MUST answer invalid-request for a blank credential type the caller supplies.
 Primitive policy 5: The composition MUST answer invalid-request for a blank action reference.
 Primitive policy 6: The composition MUST answer invalid-request for a blank attest credential.
@@ -146,7 +147,7 @@ Term boundary predicate: the composition's own validation of an action's inputs,
 ### Action wiring
 
 ```
-register_authenticated_actor(principal_ref, actor_ref, credential_material, optional credential_type, optional expires_at)
+register_authenticated_actor(principal_ref, actor_ref, credential_material, optional presented_material, optional credential_type, optional expires_at)
   answers registration result
   refuses invalid-request | invalid-credential(credential position) | namespace-conflict(conflict position) | storage-failure(storage position)
 
@@ -174,22 +175,22 @@ Term attest position: attestation | log — where an attest failed: at the attes
 Action wiring 2: An admitted registration MUST answer namespace-conflict naming the guard for a principal reference the principal binding carries.
 Action wiring 3: An admitted registration MUST answer namespace-conflict naming the guard for an actor reference the inverse map carries.
 Action wiring 4: An admitted registration MUST call Credential's register ONLY AFTER the guard clears.
-Action wiring 5: IF Credential's register answers duplicate-active-credential THEN an admitted registration MUST call Credential's verify with the supplied credential material.
+Action wiring 5: IF Credential's register answers duplicate-active-credential THEN an admitted registration MUST call Credential's verify with the presented material the call supplies, AND with the supplied credential material as the presented material where the call supplies none.
 Action wiring 6: IF Credential's verify answers failed-verification THEN an admitted registration MUST answer invalid-credential naming existing.
 Action wiring 7: IF Credential's verify answers verified THEN an admitted registration MUST write the principal binding carrying the current credential's credential id AND the inverse map entry.
 Action wiring 8: The composition MUST NOT answer duplicate-active-credential.
 Action wiring 9: IF Credential's register answers a credential id THEN an admitted registration MUST write the principal binding AND the inverse map entry ONLY AFTER Credential's register answers, in the one transaction of Execution Contract Database 1.
 Action wiring 41: An admitted registration MUST record the registration's own clock reading as the bound instant (Execution Contract Logic confinement 3).
+Action wiring 51: An admitted registration MUST write the principal binding carrying the credential type Credential's register took, the gating credential type default where the call carries none (Action wiring 30).
 Action wiring 11: IF the binding write fails THEN an admitted registration MUST answer storage-failure naming the binding.
 Action wiring 14: An admitted attestation MUST resolve the actor reference from the principal binding.
 Action wiring 15: IF no principal binding EXISTS for the principal reference THEN an admitted attestation MUST answer not-bound.
 Action wiring 17: An admitted attestation MUST read Credential's effective status, of each credential, for the principal reference AND the bound credential type; the gate read answers effective-active where an effective-active credential EXISTS for the principal reference AND the bound credential type (Action wiring 18; Credential Operation 52).
 Action wiring 18: IF no effective-active credential EXISTS THEN an admitted attestation MUST answer credential-not-active.
 Action wiring 19: An admitted attestation MUST call Actor Identity's attest ONLY AFTER the gate read answers effective-active.
-Action wiring 20: An admitted attestation MUST call Actor Identity's attest with the caller's action reference AND the bound actor reference.
+Action wiring 20: An admitted attestation MUST call Actor Identity's attest with the caller's action reference AND the bound actor reference (Credential Composition note 8).
 Action wiring 21: An admitted attestation MUST NOT call Actor Identity's attest with a caller-supplied actor reference.
 Action wiring 22: An admitted attestation MUST call Actor Identity's attest with the caller's attest credential.
-Action wiring 23: An admitted attestation MUST NOT call Actor Identity's attest with the credential material.
 Action wiring 47: IF Actor Identity's attest answers registry-unavailable THEN an admitted attestation MUST answer registry-unavailable (Execution Contract Constituent failure 2).
 Action wiring 49: IF Actor Identity's attest answers mechanism-unavailable THEN an admitted attestation MUST answer mechanism-unavailable.
 Action wiring 39: IF Actor Identity's attest answers invalid-credential THEN an admitted attestation MUST answer invalid-attest-credential.
@@ -202,6 +203,7 @@ Action wiring 48: IF Actor Identity's attest answers an attestation id THEN the 
 Action wiring 25: IF an attest log entry's append fails THEN an admitted attestation MUST answer attest-failed naming the log.
 Action wiring 26: [Verify Actor Attestation] MUST call Actor Identity's verify with the attestation id.
 Action wiring 50: IF Actor Identity's verify answers verified OR failed-verification THEN [Verify Actor Attestation] MUST read the attestation's actor reference through Actor Identity's read, selecting the attestation by the attestation id.
+Action wiring 52: IF Actor Identity's read answers no attestation carrying the attestation id THEN [Verify Actor Attestation] MUST answer not-known, carrying neither.
 Action wiring 27: IF the inverse map carries a known attestation's actor reference THEN [Verify Actor Attestation] MUST resolve the actor reference through the inverse map.
 Action wiring 28: [Verify Actor Attestation] MUST NOT write.
 Action wiring 29: The composition MUST take a principal reference, an actor reference AND a credential material on register_authenticated_actor.
@@ -219,9 +221,9 @@ Term admitted registration: a [Register Authenticated Actor] call whose inputs c
 
 Term admitted attestation: an [Attest As Actor] call whose inputs cleared the boundary predicate; the composition's own sense, in which a rule conditioned on it holds for a call whose write then fails and answers attest-failed, and which Execution Contract Read 4's reading of admission on the committed writes does not govern here.
 
-Term effective-active: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading at Credential's own seam.
+Term effective-active: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading the composition's call passes it as now (Execution Contract Logic confinement 19).
 
-Term current credential: of the effective-active credentials Credential's read answers for a principal reference AND a credential type, the one it answers last, the latest by registration instant and, of equal instants, the greatest by credential id, the order Credential's read answers in (Execution Contract Read 5, Credential Operation 69, Credential Operation 70).
+Term current credential: of the effective-active credentials Credential's read answers, in the call that reads them, for a principal reference AND a credential type, the one it answers last, the latest by registration instant and, of equal instants, the greatest by credential id, the order Credential's read answers in (Execution Contract Read 5, Credential Operation 69, Credential Operation 70); a binding or an attest log entry names the one its own call's read found, and a later call reads its own.
 
 NOTE: watch cardinality (Term current credential, Action wiring 17).
 
@@ -233,9 +235,10 @@ Every input an action takes, and every answer a call of the three actions can me
 
 | Action | Input | Lands | Owner |
 |---|---|---|---|
-| [Register Authenticated Actor] | a blank principal reference, actor reference or credential material | invalid-request, nothing written | Primitive policy 1, 2, 3 |
+| [Register Authenticated Actor] | a blank principal reference or actor reference, or an empty credential material | invalid-request, nothing written | Primitive policy 1, 2, 3 |
 | [Register Authenticated Actor] | a blank credential type the call carries | invalid-request, nothing written | Primitive policy 4 |
 | [Register Authenticated Actor] | no credential type | the gating credential type default, passed to Credential's register | Action wiring 30 |
+| [Register Authenticated Actor] | a presented material, or none | the re-entry arm's verify takes it, or the supplied credential material where none is supplied; an empty one is Credential's to refuse, and its check function's refusal lands failed-verification, invalid-credential naming existing | Action wiring 5, 6; Credential Operation 68 |
 | [Register Authenticated Actor] | an expiry instant the clock reading does not precede | invalid-request, nothing written: the registration's own clock reading judges the instant before Credential's register judges it on Credential's, and a refusal at either seam lands invalid-request | Primitive policy 7, Action wiring 31 |
 | [Attest As Actor] | a blank principal reference, action reference or attest credential | invalid-request, nothing written | Primitive policy 1, 5, 6 |
 | [Verify Actor Attestation] | an attestation id | passed to Actor Identity's verify unchanged | Action wiring 26 |
@@ -256,7 +259,7 @@ Every input an action takes, and every answer a call of the three actions can me
 | Answer | Lands | Owner |
 |---|---|---|
 | a credential id | the principal binding and the inverse map entry written, then the registration result answered | Action wiring 9, 41, Term registration result |
-| duplicate-active-credential | Credential's verify, with the supplied credential material; never answered | Action wiring 5, 8 |
+| duplicate-active-credential | Credential's verify, with the presented material the call supplies, or the supplied credential material where it supplies none; never answered | Action wiring 5, 8 |
 | invalid-request | invalid-request | Action wiring 31 |
 | storage-failure | storage-failure naming the credential, nothing committed | Action wiring 32 |
 | state-unavailable | storage-failure naming the credential, nothing committed | Action wiring 43 |
@@ -282,7 +285,7 @@ Every input an action takes, and every answer a call of the three actions can me
 | state-unavailable | passed through unchanged, nothing written | Execution Contract Read 1 through 3 |
 | no answer | no answer to give | Execution Contract Error model 1 |
 
-**Actor Identity's attest**, at [Attest As Actor] once the gate read answers effective-active, with the caller's action reference, the bound actor reference and the caller's attest credential (Action wiring 19 through 23).
+**Actor Identity's attest**, at [Attest As Actor] once the gate read answers effective-active, with the caller's action reference, the bound actor reference and the caller's attest credential (Action wiring 19 through 22, Invariant 2.1).
 
 | Answer | Lands | Owner |
 |---|---|---|
@@ -308,7 +311,8 @@ Every input an action takes, and every answer a call of the three actions can me
 
 | Answer | Lands | Owner |
 |---|---|---|
-| every attestation | the attestation carrying the attestation id selected, and its actor reference taken for the attestation verification result | Action wiring 50, 27 |
+| an attestation carrying the attestation id | the attestation selected, and its actor reference taken for the attestation verification result | Action wiring 50, 27 |
+| no attestation carrying the attestation id, which a purge another specification declares (Execution Contract Database 4) removed after Actor Identity's verify answered | not-known, carrying neither | Action wiring 52, Term attestation verification result |
 | state-unavailable | passed through unchanged | Execution Contract Read 1 through 3 |
 | no answer | no answer to give | Execution Contract Error model 1 |
 
@@ -320,6 +324,7 @@ Every input an action takes, and every answer a call of the three actions can me
 Wiring decision 1: The composition MUST gate an attestation on the gating credential's effective-active status.
 Wiring decision 4: The composition MUST NOT close an attestation Actor Identity already recorded.
 Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revoked principal's attestation.
+Wiring decision 6: The composition MUST NOT write a record relying on the principal reference's authority BEFORE Actor Identity's attest checks the attest credential.
 ```
 
 <details markdown="block">
@@ -330,6 +335,8 @@ Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revok
 *Likely objection.* Why not have Actor Identity refuse a revoked principal, or walk a revocation to the principal's attestations, as Login walks a revoked credential's sessions?
 
 *Mechanism that resolves it.* Actor Identity verifies against the actor registry, not a credential record, and an attestation is an immutable, point-in-time record with no active set to walk: retracting one would undo an authorization that was valid when made (Actor Identity Invariant 8). Only the composition holds both the binding and the call order, so it reads Credential's effective status for the bound pair inside the attesting transaction, and Execution Contract Database 2 commits no write of that transaction against a state the gate read did not see: a revoke commits before the gate read, which then answers credential-not-active, or after the attestation commits.
+
+*Authentication precedence.* The attestation is the load-bearing write and takes the attest credential itself, the first of the three answers of the section titled Authentication precedence in `pressure-testing.md`: nothing commits on the principal's authority first. What commits before it is an attest log entry, the record of the attempt on the references the call supplied, which asserts no authority; a not-bound or credential-not-active answer to a caller no attest credential has yet checked discloses what the attempt log records and no more.
 
 *Result.* Forward closure: a revoked login opens no new signature, and every signature recorded before the revoke stays a record of an authorization that was valid when made (Actor Identity Invariant 8).
 
@@ -361,7 +368,7 @@ Each emerges from the composition; none belongs to one constituent.
 - **Invariant 4 — Attestation traceability.**
   ```
   Invariant 4.2: An [Attest As Actor] call answering attest-failed MUST NOT append an attest log entry.
-  Invariant 4.3: EVERY success entry MUST carry the attestation id AND the current credential's credential id.
+  Invariant 4.3: EVERY success entry MUST carry the attestation id AND the credential id of the current credential the gate read of the entry's call found.
   ```
 
 ---
@@ -376,7 +383,7 @@ A regulated software vendor authenticates developers and requires every release 
 
 2. **Attestation while Active.** The developer signs a release commit with their **separate hardware signing key**: `attest_as_actor(principal_ref = "dev_smith", action_ref = "commit_c44a", attest_credential = <hardware-signing-key>)`. Step 2 resolves `actor_smith`. Step 3 reads Credential's `read(filter)` surface: an effective-Active `fido2` credential, `cred_s01`, exists for `("dev_smith", "fido2")` → gate open. Step 4 calls `Actor Identity.attest("commit_c44a", "actor_smith", <hardware-signing-key>) → attestation_id = "att_a17"`. Step 5 logs `success` with `credential_id: "cred_s01"`. Returns `att_a17`. The continuous-integration system later calls `verify_actor_attestation("att_a17") → {result: verified, actor_ref: "actor_smith", principal_ref: "dev_smith"}` before merging — the signature verifies *and* resolves to the authenticated developer.
 
-3. **Revocation closes the surface.** Security determines `cred_s01` was compromised. The identity-management surface calls `Credential.revoke("cred_s01", revoked_by_ref = "security_team", reason = "key-compromise")` — `cred_s01` is now `Revoked` (Credential Invariant 4). No call into Authenticated Actor is required to "cascade": the next attestation attempt is turned away structurally. `attest_as_actor("dev_smith", "commit_c45b", <hardware-signing-key>)` → step 3 reads the credential records, finds **no effective-Active credential** for `("dev_smith", "fido2")` → appends `attest_log {outcome: credential-not-active, observed_status: Revoked, credential_id: "cred_s01"}`; returns credential-not-active. The revoked login can no longer sign (Invariant 1). The earlier `att_a17` was validly authorized before revocation (Actor Identity Invariant 8). Under a mechanism that carries the revocation status inside the proof (Actor Identity Revocation status 1) it still verifies; under a live revocation mechanism (Revocation status 3) its verify answers failed-verification with the reason proof-invalid once that service names the signing key revoked, which the revoke of the login does not itself do (Capability requirement 14 keeps the signing key distinct from the login).
+3. **Revocation closes the surface.** Security determines `cred_s01` was compromised. The identity-management surface calls `Credential.revoke("cred_s01", revoked_by_ref = "security_team", reason = "key-compromise")` — `cred_s01` is now `Revoked` (Credential Invariant 4). No call into Authenticated Actor is required to "cascade": the next attestation attempt is turned away structurally. `attest_as_actor("dev_smith", "commit_c45b", <hardware-signing-key>)` → step 3 reads the credential records, finds **no effective-Active credential** for `("dev_smith", "fido2")` → appends `attest_log {outcome: credential-not-active, observed_status: Revoked, credential_id: "cred_s01"}`; returns credential-not-active. The revoked login can no longer sign (Invariant 1). The earlier `att_a17` was validly authorized before revocation (Actor Identity Invariant 8). Under a mechanism that carries the revocation status inside the proof (Actor Identity Revocation status 1) it still verifies; under a live revocation mechanism (Revocation status 3) its verify answers as Actor Identity's Term Proof Invalid decides, failed-verification with the reason proof-invalid only where the service names the signing key revoked as of the attestation instant, which the revoke of the login does not itself make (Capability requirement 14 keeps the signing key distinct from the login).
 
 ### Domain example — rotation keeps the surface open
 
@@ -392,11 +399,11 @@ The same developer's hardware authenticator is replaced under the 12-month rotat
 
 Three scenarios the composition must survive in regulated contexts.
 
-**Regulator audit — "prove this signed action was authorized by a principal whose login was valid at signing time, and trace the signature to that login."** An auditor examines attestation `att_a17`. `verify_actor_attestation("att_a17")` returns `{verified, actor_ref: "actor_smith", principal_ref: "dev_smith"}` where the mechanism carries the revocation status inside the proof (Actor Identity Revocation status 1; under a live revocation mechanism, Revocation status 3, a verify made after that service names the signing key revoked answers failed-verification with the reason proof-invalid, and the audit rests on the credential records below) — the proof verifies (Actor Identity Invariants 2 and 3) *and* resolves to the authenticated principal via the namespace binding (Invariant 3). The auditor reads the credential records for `("dev_smith", "fido2")` — `cred_s01`, the record the `success` entry's credential id names — and confirms it was effective-Active at `att_a17.attested_at`: its `revoked_at` lies later than that by more than clock offset allowance (Credential's clock and Actor Identity's are two seams, so the comparison narrows under the allowance rather than deciding on its own). The attest-log entry for `att_a17` corroborates the timeline (Invariant 4). Every claim is provable from the composition's records plus the two constituent records. The structural guarantee that a *revoked* login could not have produced a *new* signature after revocation is Invariant 1.
+**Regulator audit — "prove this signed action was authorized by a principal whose login was valid at signing time, and trace the signature to that login."** An auditor examines attestation `att_a17`. `verify_actor_attestation("att_a17")` returns `{verified, actor_ref: "actor_smith", principal_ref: "dev_smith"}` where the mechanism carries the revocation status inside the proof (Actor Identity Revocation status 1; under a live revocation mechanism, Revocation status 3, the answer is Actor Identity's, failed-verification with the reason proof-invalid only where the service names the signing key revoked as of the attestation instant (Actor Identity Term Proof Invalid), and the audit rests on the credential records below) — the proof verifies (Actor Identity Invariants 2 and 3) *and* resolves to the authenticated principal via the namespace binding (Invariant 3). The auditor reads the credential records for `("dev_smith", "fido2")` — `cred_s01`, the record the `success` entry's credential id names — and confirms it was effective-Active at `att_a17.attested_at`: its `revoked_at` lies later than that by more than clock allowance (the revoke and the attesting call are calls of two seams, so the comparison narrows under the allowance rather than deciding on its own). The attest-log entry for `att_a17` corroborates the timeline (Invariant 4). Every claim is provable from the composition's records plus the two constituent records. The structural guarantee that a *revoked* login could not have produced a *new* signature after revocation is Invariant 1.
 
-**Disputed signature — the principal claims they did not authorize an action.** `dev_smith` disputes `commit_c44a`. The investigator calls `verify_actor_attestation("att_a17")`: `verified` binds `actor_smith` to `commit_c44a` at `attested_at` (Actor Identity Invariant 8). The namespace binding resolves `actor_smith` to `dev_smith` (Invariant 3). The dispute cannot be sustained without claiming credential compromise — which is exactly the boundary Actor Identity Invariant 8 names (non-repudiation conditional on credential integrity), routed to a Compromise Disclosure composing pattern. The investigator additionally confirms, from the credential records and by the entry's credential id, that `cred_s01` was effective-Active at signing time within clock offset allowance, so the signature was produced through a valid login surface — Invariant 1's gate was satisfied at the time.
+**Disputed signature — the principal claims they did not authorize an action.** `dev_smith` disputes `commit_c44a`. The investigator calls `verify_actor_attestation("att_a17")`: `verified` binds `actor_smith` to `commit_c44a` at `attested_at` (Actor Identity Invariant 8). The namespace binding resolves `actor_smith` to `dev_smith` (Invariant 3). The dispute cannot be sustained without claiming credential compromise — which is exactly the boundary Actor Identity Invariant 8 names (non-repudiation conditional on credential integrity), routed to a Compromise Disclosure composing pattern. The investigator additionally confirms, from the credential records and by the entry's credential id, that `cred_s01` was effective-Active at signing time within clock allowance, so the signature was produced through a valid login surface — Invariant 1's gate was satisfied at the time.
 
-**Breach investigation — "during the compromise window, was any new signature produced after we revoked the credential?"** A security team revoked `cred_s01` and asks whether the attacker produced signatures afterward. The revoke's commit is the boundary, not its stamp: `T_revoke` (`cred_s01.revoked_at`) is Credential's clock reading when the revoke ran, an attestation's `attested_at` is Actor Identity's reading inside the attesting transaction, and a revoke can take its reading while an attestation's transaction is open and still commit after it (Execution Contract Database 2), so an `attested_at` later than `T_revoke`, by any margin, the clock offset allowance included, proves nothing alone. For each `success` entry naming `cred_s01`, they read `cred_s01` as it stood at the entry's commit (Execution Contract Database 5): an entry whose credential stood `Revoked` there would be the smoking gun, the conformance failure Check 2.2 reads, and Invariant 1 forecloses it: Execution Contract Database 2 commits no write against a state its guards did not see, so an attestation whose gate read found `cred_s01` effective-Active commits before the revoke does or not at all, reading again and deciding again, and a gate read made after the revoke committed finds no effective-Active record. Every call whose gate read came after the revoke's commit appended `outcome: credential-not-active`, `observed_status: Revoked`, `credential_id: "cred_s01"` and no attestation id — the gate closed on it. The forward-closure boundary is the revocation's commit, and the `attest_log` makes every post-revocation attempt provable.
+**Breach investigation — "during the compromise window, was any new signature produced after we revoked the credential?"** A security team revoked `cred_s01` and asks whether the attacker produced signatures afterward. The revoke's commit is the boundary, not its stamp: `T_revoke` (`cred_s01.revoked_at`) is Credential's clock reading when the revoke ran, an attestation's `attested_at` is the attesting call's one reading (Execution Contract Logic confinement 19), and a revoke can take its reading while an attestation's transaction is open and still commit after it (Execution Contract Database 2), so an `attested_at` later than `T_revoke`, by any margin, the clock allowance included, proves nothing alone. For each `success` entry naming `cred_s01`, they read `cred_s01` as it stood at the entry's commit (Execution Contract Database 5): an entry whose credential stood `Revoked` there would be the smoking gun, the conformance failure Check 2.2 reads, and Invariant 1 forecloses it: Execution Contract Database 2 commits no write against a state its guards did not see, so an attestation whose gate read found `cred_s01` effective-Active commits before the revoke does or not at all, reading again and deciding again, and a gate read made after the revoke committed finds no effective-Active record. Every call whose gate read came after the revoke's commit appended `outcome: credential-not-active`, `observed_status: Revoked`, `credential_id: "cred_s01"` and no attestation id — the gate closed on it. The forward-closure boundary is the revocation's commit, and the `attest_log` makes every post-revocation attempt provable.
 
 ---
 
@@ -411,10 +418,11 @@ Check 1.1: An auditor MUST find EVERY bound principal reference carrying one act
 Check 1.2: An auditor MUST find EVERY bound actor reference carrying one principal reference (Invariant 3.2).
 Check 1.3: An auditor MUST find the principal binding AND the inverse map agreeing (Invariant 3.3).
 Check 1.4: An auditor MUST find EVERY success entry's principal reference carrying a binding (Capability requirement 16).
-Check 2.1: An auditor MUST find EVERY success entry carrying the attestation id AND the current credential's credential id (Invariant 4.3).
+Check 2.1: An auditor MUST find EVERY success entry carrying the attestation id AND the credential id of the current credential as the credential records stood at the entry's commit (Invariant 4.3, Execution Contract Database 5).
 Check 2.2: An auditor MUST read a success entry whose credential id names a credential standing in revoked at the entry's commit as an Invariant 1.1 violation (Execution Contract Database 5).
 Check 3.1: An auditor MUST find EVERY [Attest As Actor] call answering an attest answer carrying one attest log entry (Action wiring 45).
 Check 3.2: An auditor MUST find EVERY credential-not-active entry carrying the observed status (Action wiring 34, Action wiring 46).
+Check 3.3: An auditor MUST find EVERY attestation Actor Identity records for a bound actor reference named by a success entry (Action wiring 48, Capability requirement 17).
 Check 5.1: An auditor MUST find no attest log entry changed (Composition state 9).
 ```
 
@@ -427,6 +435,7 @@ External check 1: An auditor needing the two secret surfaces confirmed distinct 
 External check 3: An auditor needing an actor reference confirmed in the actor registry MUST read the actor registry (Composes 8).
 External check 4: An auditor needing a verification read recorded MUST read a composed access log (Non-goal 12).
 External check 5: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 4).
+External check 6: An auditor needing EVERY [Attest As Actor] call confirmed logged MUST read the deployment's own record of calls to the composition (Check 3.1).
 ```
 
 ---
@@ -435,13 +444,8 @@ External check 5: An auditor needing a constituent's own guarantee confirmed MUS
 
 ```
 Non-goal 1: The composition MUST NOT confirm the two secret surfaces cryptographically distinct.
-Non-goal 2: The composition MUST NOT confirm an actor reference provisioned in the actor registry.
 Non-goal 3: The composition MUST NOT invalidate an attestation for a credential later found compromised.
 Non-goal 4: The composition MUST NOT compose Audit Trail.
-Non-goal 5: The composition MUST NOT revoke a credential.
-Non-goal 6: The composition MUST NOT rotate a credential.
-Non-goal 7: The composition MUST NOT close an attestation already recorded.
-Non-goal 8: The composition MUST NOT register an actor reference.
 Non-goal 9: The composition MUST NOT authorize an action.
 Non-goal 10: A deployment needing an authorized action MUST compose Permissions.
 Non-goal 11: The composition MUST NOT rebind a bound principal reference.
@@ -473,13 +477,13 @@ Composition note 7: A deployment MUST own Credential's register of a new credent
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the three emergent actions it exposes ([Register Authenticated Actor], [Attest As Actor], [Verify Actor Attestation]) — none belonging to a single constituent — the attest-log fields those actions record ([Outcome], [Observed Status]), the outcomes [Attest As Actor] answers without producing an attestation ([Not Bound], [Credential Not Active], [Invalid Attest Credential]), and its own rejections ([Namespace Conflict], [Invalid Credential], [Attest Failed]). Its emergent state — the namespace-binding maps (`principal_to_actor`, `actor_to_principal`) and the `attest_log` — is a composition-introduced surface no constituent provides, left as backticked record tokens rather than carded. References to the constituent atoms and their operations — Credential's `register` / `rotate` / `revoke`, Actor Identity's `attest` / `verify` — the relayed tokens (principal reference, actor reference, action reference, credential material, attest credential, credential type, credential id, attestation id), the credential states (`Active` / `Revoked` / `Expired` / `Rotated`), and the inherited codes (invalid-request; registry-unavailable and mechanism-unavailable, Actor Identity's attest's, which [Attest As Actor] answers as outcomes (Action wiring 47, Action wiring 49); storage-failure — exported at this boundary with its position, `storage-failure(credential | binding)`; `duplicate-active-credential` is consumed by step 3's re-entry arm and not exported) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the three emergent actions it exposes ([Register Authenticated Actor], [Attest As Actor], [Verify Actor Attestation]) — none belonging to a single constituent — the attest-log fields those actions record ([Outcome], [Observed Status]), the outcomes [Attest As Actor] answers without producing an attestation ([Not Bound], [Credential Not Active], [Invalid Attest Credential]), and its own rejections ([Namespace Conflict], [Invalid Credential], [Attest Failed]). Its emergent state — the namespace-binding maps (`principal_to_actor`, `actor_to_principal`) and the `attest_log` — is a composition-introduced surface no constituent provides, left as backticked record tokens rather than carded. References to the constituent atoms and their operations — Credential's `register` / `rotate` / `revoke`, Actor Identity's `attest` / `verify` — the relayed tokens (principal reference, actor reference, action reference, credential material, presented material, attest credential, credential type, credential id, attestation id), the credential states (`Active` / `Revoked` / `Expired` / `Rotated`), and the inherited codes (invalid-request; registry-unavailable and mechanism-unavailable, Actor Identity's attest's, which [Attest As Actor] answers as outcomes (Action wiring 47, Action wiring 49); storage-failure — exported at this boundary with its position, `storage-failure(credential | binding)`; `duplicate-active-credential` is consumed by step 3's re-entry arm and not exported) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, reference, principal binding, attest log, attest answer, success entry, bijection, attest surface separation, gating credential type default, clock offset allowance, blank, opaque input, boundary predicate, admitted registration, admitted attestation, effective-active, current credential, conflict position, credential position, storage position, attest position, registration result, attestation verification result.
+Term terms: composition, constituents, reference, principal binding, attest log, attest answer, success entry, bijection, attest surface separation, gating credential type default, clock allowance, blank, opaque input, boundary predicate, admitted registration, admitted attestation, effective-active, current credential, conflict position, credential position, storage position, attest position, registration result, attestation verification result.
 
 Term record verbs: call, answer, read, write, append, store, key, hold, take, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, change, refuse, set, declare, own, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, authenticate, invalidate, rebind, find, serve, supply, ask, record.
 
@@ -518,7 +522,7 @@ Projection: namespace-conflict
 
 #### Invalid Credential
 
-The composition's own rejection from [Register Authenticated Actor]'s re-entry arm — returned when the pair already holds an effective-Active credential and `Credential.verify` does not return `verified` for the presented credential material: the presenter has not proved possession of the existing credential, so nothing is adopted and nothing is written. Carries existing, its credential position: the verification ran against the pair's current credential, and the answer carries no credential id.
+The composition's own rejection from [Register Authenticated Actor]'s re-entry arm — returned when the pair already holds an effective-Active credential and `Credential.verify` does not return `verified` for the presented material: the presenter has not proved possession of the existing credential, so nothing is adopted and nothing is written. Carries existing, its credential position: the verification ran against the pair's current credential, and the answer carries no credential id.
 
 Kind:       Member
 Member of:  the register rejection
@@ -623,7 +627,7 @@ Authenticated Actor inherits the broader standards compliance of its constituent
 ```
 status: doing
 formal: verified — authenticated-actor.tla + 5 twins + 6 probes (across steps); authenticated-actor.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 3.1 through 3.3, 4.2 and 4.3, Composition state 4, 5, 12 and 13, Action wiring 7, 18, 20, 24 and 34 and Check 2.2 and 3.2 checked on every state of the credential records, the binding maps, the attestations and the attest log the writers can leave, Invariant 1.1, 3.1 through 3.3 and Action wiring 34 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1 and 2.2 (what a call passes is no record), Action wiring 45 (a call is no record), Action wiring 5 and 6 (verify writes nothing) and Composition state 6, 9 and 10 (across steps; an entry names no writer); the model found that Action wiring 46's arm, a bound pair with no credential, is reached by no rule, every binding naming a credential of its pair and only a purge, open line 2026-11-04-a, removing one); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
-last gate: 2026-11-06 — Final Critique 10, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 9, a delta round, frozen at ec26ba5 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8 — foundational count 4, not clean, no sample
+last gate: 2026-11-21 — Final Critique 11 — full, frozen at bb7dc59 — foundational count 3, cured, not clean, no sample; three counted passes (GRID, EOS, Linus): the current credential read at no named call (Term current credential, Invariant 4.3, Check 2.1), the re-entry arm's verify given credential material where Credential's verify takes presented material (Action wiring 5), Credential Composition note 8 answered nowhere on the page (Intent, Action wiring 20); 2026-11-06 — Final Critique 10, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 9, a delta round, frozen at ec26ba5 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8 — foundational count 4, not clean, no sample
 
 open: none
 ```

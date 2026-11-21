@@ -66,6 +66,7 @@ Deleted: Action wiring 33. Execution Contract Database 2 owns it: an action's gu
 Deleted: Action wiring 35. Action wiring 25 owns it.
 Deleted: Action wiring 36. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.
 Deleted: Action wiring 37. Execution Contract Database 2 owns it: an action's guard reads and the writes they decide are one transaction, and the composition names no critical section to lapse.
+Deleted: Action wiring 23. Invariant 2.1 owns it.
 ```
 
 ### Composition logic › Wiring decision
@@ -124,6 +125,11 @@ Deleted: External check 2. Execution Contract Database 2 owns it.
 ### Non-goals
 
 ```
+Deleted: Non-goal 2. Primitive policy 12 owns it.
+Deleted: Non-goal 5. Composes 7 owns it.
+Deleted: Non-goal 6. Composes 6 owns it.
+Deleted: Non-goal 7. Wiring decision 4 owns it.
+Deleted: Non-goal 8. Composes 8 owns it.
 Deleted: Non-goal 14. Execution Contract Database 1 owns it.
 ```
 
