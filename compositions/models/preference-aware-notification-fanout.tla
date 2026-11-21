@@ -159,11 +159,11 @@ ResOf(v) == IF v = "deliver" THEN "created"
             ELSE IF v = "fail" THEN "failed"
             ELSE "suppressed"
 
-\* A retryable disposition (Term retryable disposition; Action wiring 46, 47): a failure event, a
-\* retry-eligible suppression, a delivery event whose record is failed or expired, or a queried
-\* pair with no disposition event.
+\* A retryable disposition (Term retryable disposition; Action wiring 46, 47): a failure event
+\* where the pair's latest record is not live, a retry-eligible suppression, a delivery event whose
+\* record is failed or expired, or a queried pair with no disposition event.
 Retryable(e, s) == \/ e = "none"
-                   \/ e = "failed"
+                   \/ (e = "failed" /\ ~Live(s))
                    \/ e = "suppH"
                    \/ (e = "created" /\ s \in {"failed", "expired"})
 
