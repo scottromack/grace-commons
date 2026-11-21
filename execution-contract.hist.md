@@ -134,7 +134,7 @@ This section resolves an inconsistency this document previously carried in three
 
 - *Input 3: An input with no declared type is a string.* (history): Nine specifications once declared such an input's type and named its refusal for themselves, each in the Final Critique that found nothing but a reader's inference holding the input to a type.
 
-- *Input 4: An admitted call records the required inputs its record keeps.* (history): Nine specifications once recorded such inputs by Operation rules of their own, each in the Final Critique that found a build recording a value of its own choosing while obeying every rule (GRACE-lang Hard invariant 20).
+- *Input 4: An admitted call records the inputs its record keeps.* (history): Nine specifications once recorded such inputs by Operation rules of their own, each in the Final Critique that found a build recording a value of its own choosing while obeying every rule (GRACE-lang Hard invariant 20). The rule said *required inputs* until 2026-11-21, when its closing sentence took the optional input too: eight specifications recorded an optional input by a pair of rules, one for the call that carries it not blank and one for the call that leaves it blank (the blank optional input, GRACE-lang.hist.md).
 
 ### Error model
 
