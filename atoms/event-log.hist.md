@@ -46,6 +46,12 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Event Log](./event-log.md) may carry it again.
 
+### Structure › Identity
+
+```
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
+```
+
 ### Structure › State
 
 ```

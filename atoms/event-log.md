@@ -65,7 +65,6 @@ Term business caller: the business caller per Execution Contract Logic confineme
 ```
 Identity 1: The atom MUST identify an event by the event id.
 Identity 2: The host MUST allocate an event id at the atom's seam.
-Identity 3: The transition MUST NOT allocate an event id.
 Identity 4: The business caller MUST NOT supply an event id.
 Identity 5: The atom MUST NOT reuse an event id.
 Identity 6: The atom MUST NOT reassign an event id.
@@ -94,7 +93,7 @@ Kind:       Field
 Field of:   Event
 Projection: recorded_at
 
-Term data: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
+Term data: the opaque sequence of bytes a composing pattern supplies — [Data]; the atom stores the bytes and reads nothing in them. A composing pattern holding a structured value encodes it to bytes before it appends, since it owns the payload's schema (Composition note 3).
 
 #### Data
 
@@ -183,9 +182,9 @@ The case space, and the rule that owns each case:
 | [Append] | database refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, Execution Contract Database 1) |
 
 - `append(65_537_bytes_of_data)` → rejected invalid-payload (payload exceeds the default 65,536-byte cap; configurable per instance).
-- `append({type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
-- The database refuses the write. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, Execution Contract Database 1).
-- Retried, the write commits. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
+- `append(the bytes encoding {type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
+- The database refuses the write. `append(the bytes encoding {type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, Execution Contract Database 1).
+- Retried, the write commits. `append(the bytes encoding {type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
 
 #### Invalid Payload
 
@@ -291,10 +290,6 @@ Append-only and event immutability together give the *immutable journal* propert
 
 ## When something happens
 
-### Indeterminate outcome
-
-### Durability across crashes
-
 ### Erasure where law requires it
 
 ```
@@ -302,8 +297,6 @@ Erasure 1: The atom MUST NOT erase an event.
 Erasure 2: A deployment under an erasure obligation MUST compose an erasure pattern.
 Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as satisfying the obligation.
 ```
-
-### Sequence-number gaps on storage failure
 
 ## Optional
 
@@ -355,7 +348,7 @@ NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Fort
 
 ## Example
 
-A composing system wraps each Personal Todo action as an event: `{type: "add", id: "t1", description: "buy milk"}`, `{type: "complete", id: "t1"}`, `{type: "delete", id: "t1"}`. The log records them in order and never alters them; the user can later query the log to see what they did this week, restore deleted tasks (compose with Reverse Index + Restore), or reason about completion patterns, and the Personal Todo pattern itself is unchanged. A regulated system, a clinical record and a bank journal run the same two calls over other payloads. A compliance log appends `{type: "patient_record_accessed", patient_id: "p123", actor: "dr_smith", reason: "treatment", at: "2026-05-07T14:32:11Z"}` and gets policy-bounded retention, integrity proof and verifiable attribution from the [Audit Trail](../compositions/audit-trail.md) composition, which composes this atom with [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md) and [Actor Identity](./actor-identity.md). A clinical history appends each observation, prescription and lab result, the patient chart is a view over it, and a mistake is corrected by a later correction event, never by an edit. A bank journal appends each credit, debit and adjustment, derives balances by replaying it, and appends a refund event referencing the original charge instead of editing it. What differs is the payload schema, the query patterns, and the composing patterns that derive the views.
+A composing system wraps each Personal Todo action as an event whose data is the encoding of `{type: "add", id: "t1", description: "buy milk"}`, `{type: "complete", id: "t1"}`, `{type: "delete", id: "t1"}`. The log records them in order and never alters them; the user can later query the log to see what they did this week, restore deleted tasks (compose with Reverse Index + Restore), or reason about completion patterns, and the Personal Todo pattern itself is unchanged. A regulated system, a clinical record and a bank journal run the same two calls over other payloads. A compliance log appends the encoding of `{type: "patient_record_accessed", patient_id: "p123", actor: "dr_smith", reason: "treatment", at: "2026-05-07T14:32:11Z"}` and gets policy-bounded retention, integrity proof and verifiable attribution from the [Audit Trail](../compositions/audit-trail.md) composition, which composes this atom with [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md) and [Actor Identity](./actor-identity.md). A clinical history appends each observation, prescription and lab result, the patient chart is a view over it, and a mistake is corrected by a later correction event, never by an edit. A bank journal appends each credit, debit and adjustment, derives balances by replaying it, and appends a refund event referencing the original charge instead of editing it. What differs is the payload schema, the query patterns, and the composing patterns that derive the views.
 
 ### Regulated adversarial scenarios
 
@@ -461,7 +454,7 @@ Term terms: event id, seam, now, transition, business caller, event, sequence nu
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -469,9 +462,9 @@ Term terms: event id, seam, now, transition, business caller, event, sequence nu
 </summary>
 
 ```
-status: done — 2026-11-20
+status: doing
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12
-last gate: 2026-11-20 — Final Critique 16, a delta round, one reader (Linus claude-haiku-5-5), frozen at 61ab031f — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims (a purge between the two reads of Check 3.2, and the auditor's own reads against Execution Contract Generation acceptance 1) placed refining B by the first triage and refuted C by the blind second: the check reads each query as of a committed version, Database 5 removes every version of what a purge erases, so both reads lack the purged event and the check holds, and Check 3.2 now cites Generation acceptance 1; 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
+last gate: 2026-11-21 — Final Critique 17, a delta round (the reach of the reorganisation, 87 rules and terms), one reader (Linus beam-free), frozen at 032ca56d — foundational count 1 after the blind second triage, not clean, no sample; Linus's report counted 0 foundational, 3 refining and 3 held questions, and the blind second triage refuted all six (Term payload cap counts per Input 2's own-answer clause, Read 5 and Query 5 do not reach a log that names its order and has no string axis, State 5 and Identity 10 own the fresh instance whoever starts it) and placed one finding of its own foundational: the page called data an opaque payload and capped it in bytes with no encoding named, so a 40,000-character string was within the cap on a build counting UTF-8 and over it on one counting UTF-16; cured by Term data, now an opaque sequence of bytes a composing pattern encodes its structured value into (Composition note 3), the examples saying so; the settle's own cures: Identity 3 deleted (Logic confinement 3 owns it) and three empty headings removed; 2026-11-20 — Final Critique 16, a delta round, one reader (Linus claude-haiku-5-5), frozen at 61ab031f — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims (a purge between the two reads of Check 3.2, and the auditor's own reads against Execution Contract Generation acceptance 1) placed refining B by the first triage and refuted C by the blind second: the check reads each query as of a committed version, Database 5 removes every version of what a purge erases, so both reads lack the purged event and the check holds, and Check 3.2 now cites Generation acceptance 1; 2026-11-19 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at e4c5745 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational, 8 refining and 3 rhetorical, and neither foundational held (refuted: the lowered payload cap starts from a deployment declaring a cap a landed value exceeds, which Execution Contract Input 2 forbids, and its cure restates Input 2's carve-out; a range carrying no lower end stays malformed under Execution Contract Query 1, which Term query displaces only for the upper end, and the entry for [Invalid Query] names it); the settle's own refining cures: External check 6 reads the cap the instance holds per Input 2, Capability requirement 2 cites Read 6, Check 3.2 reads between the commits two reads answer at, the entry for [Query] cites Operation 15 for the answer; 2026-11-19 — Final Critique 14, a delta round, frozen at c649138 — foundational count 1, not clean, no sample; 2026-10-25 — Final Critique 13, frozen at bae1f12 — foundational count 0, clean, one sample
 
 open: none
 ```
