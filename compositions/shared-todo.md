@@ -331,7 +331,7 @@ A four-person team. The engineering manager holds `tasks:view`, `tasks:assign`, 
 - Bob completes the task: `complete_task(bob, task_t1) → ok`. Assignment a2 remains Active — it becomes the completion-attribution record.
 - Alice reads: `responsible_actor(alice, task_t1) → bob`, `active_assignment(alice, task_t1) → assignment_a2` and `visible_tasks(alice)` → every task of the list, `task_t1` among them. Each is permitted: `tasks:view`.
 - Dev Carol tries `delete_task(carol, task_t1)` → permission-denied. Carol holds no `tasks:delete` grant.
-- Manager calls `delete_task(manager, task_t1)`, and the database refuses the cascade's write: storage-failure, nothing committed. Assignment a2 is still Active and `task_t1` is still carried, since the recall and the delete are one transaction (Action wiring 9, 10).
+- Manager calls `delete_task(manager, task_t1)`, and the database refuses the cascade's write: storage-failure, nothing committed. Assignment a2 is still Active and `task_t1` is still carried, since the recall and the delete are one transaction (Action wiring 9, 10; Execution Contract Database 1).
 - Manager calls `delete_task(manager, task_t1)` again. Assignment a2 is recalled (cascade-on-delete); task_t1 is deleted.
 
 The responsibility history is intact: a1 (Alice, Transferred at the reassign), a2 (Bob, Recalled by the delete), each with the instants Assignment stamped.
@@ -623,14 +623,14 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-21` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
+status: done — 2026-11-21
 formal: verified — shared-todo.tla + 1 twin (2026-06-03); shared-todo.als + 8 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 3.1, 3.2, 4.1 and 5.2 checked on every call of the composition, over what its transaction reads of the three constituents' records and what it leaves in them, Invariant 3.1 and 3.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1, 4.2 and 5.1: whether two active assignments co-exist depends on the order of the calls that wrote them, Assignment's guard, which Assignment's own TLA+ model checks (Composes 6), and a whole history is that no record of it is later removed or rewritten, which a single state cannot show; the model found that Scope vocabulary 11 names no action for "that action", so whether a finer scope refining tasks:assign gates [Assign Task], [Reassign Task] or both is unsaid); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owes TLA+ checks of Invariant 4.2 and 5.1 (across steps); owed rows: Invariant 4.2; Invariant 5.1, 2026-11-12
-last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 227ba75 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
+last gate: 2026-11-21 — Final Critique 12, frozen at f9d54b1c — delta, foundational count 0, clean, no sample; Linus's one report, read on Zen's minimax-m3 as the round's one pass, brought two foundational findings and a refining one, and both triages refuted all three, none by a cure (the settle's one edit is the sprint-board example's citation of the one transaction, which now names Execution Contract Database 1 beside Action wiring 9, 10): an assign racing a delete leaves no assignment on a deleted task, since Execution Contract Database 2 reads an action's guards inside the transaction that writes its effects, so no write commits against a state its guards did not see and a conflict is read again and decided again; two concurrent deletes of one task leave no loser whose recall answer is unowned, since the closure table's row for Assignment's recall answering not-known or not-active says none arises, the read and the recall being one transaction (Execution Contract Database 1, 2); and every action's scope is stated, in Scope vocabulary 2 through 9 and the admitted terms, so Action wiring 4 owes no scope of its own; 2026-11-05 — Final Critique 11, a delta round, frozen at 227ba75 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
 open: none
 ```

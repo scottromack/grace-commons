@@ -1833,7 +1833,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1843,7 +1843,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-21",
   "substrates": [],
   "title": "Shared Todo"
  },
