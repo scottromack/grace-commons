@@ -30,7 +30,8 @@
 --   Invariant 3.1        — a denied answer follows an admitted gate.
 --   Invariant 3.2        — a session-invalid answer never follows an admitted gate.
 --   Invariant 3.3        — never denied where validate gave an invalid answer.
---   Invariant 4.1        — an admitted gate answers denied for a pair no active grant covers.
+--   Invariant 4.1        — where Permissions answers, an admitted gate answers denied for a
+--                          pair no active grant covers.
 --   Invariant 4.2        — a valid session never stands as sufficient for access.
 --   Action wiring 3, 6   — validate asked with the session token, permitted with the action
 --                          scope, each byte-exact (Primitive policy 5 to 8).
@@ -60,12 +61,12 @@
 -- session the token names; Permissions: permitted exactly when an active grant covers the
 -- pair). A failed read answers state-unavailable (Execution Contract Constituent failure 3).
 --
--- FINDINGS (recorded for the page's next round, not cured here)
---   - Invariant 4.1 says an admitted gate MUST answer denied for a pair no active grant
---     covers; the closure table lands Permissions' state-unavailable as state-unavailable.
---     For an admitted gate over an uncovered pair whose permitted read fails, the two rules
---     disagree. The model checks 4.1 where Permissions answered (run ShowPermittedUnavailable
---     shows the other case).
+-- FINDINGS (none open)
+--   - Invariant 4.1 reads IF Permissions' permitted answers THEN the gate answers denied for
+--     a pair no active grant covers (cured, Final Critique 12, 2026-11-20); the closure
+--     table lands a failed permitted read as state-unavailable, which 4.1 no longer
+--     contradicts. The model checks 4.1 where Permissions answered (run
+--     ShowPermittedUnavailable shows the other case).
 --
 -- HOW TO READ RESULTS
 -- Every "check" must return "No counterexample found" (UNSAT) — the guarantee holds.
@@ -324,7 +325,7 @@ assert A_Invariant_3_3 {
 check A_Invariant_3_3 for 4
 
 -- A_Invariant_4_1: an admitted gate over a pair no active grant covers answers denied, where
--- Permissions answered (Invariant 4.1; see FINDINGS for its read failing).
+-- Permissions answered (Invariant 4.1's condition; see FINDINGS for its read failing).
 assert A_Invariant_4_1 {
     Built implies all c : Call |
         (admitted[c] and PUnavailable not in c.pc.pkind and
@@ -457,7 +458,7 @@ run ShowValidateUnavailable {
 } for 4
 
 -- ShowPermittedUnavailable: an admitted gate whose permitted read fails: state-unavailable
--- (the case FINDINGS names against Invariant 4.1).
+-- (the case Invariant 4.1's condition leaves to the closure table; see FINDINGS).
 run ShowPermittedUnavailable {
     Built
     some c : Call | admitted[c] and c.ans = StateUnavailable
