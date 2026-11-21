@@ -35,11 +35,11 @@ The most common uses are software development sprint boards with role-based edit
 
 Personal Todo is single-actor by design. It has no concept of who is acting, no concept of what different actors are allowed to do, and no concept of one actor being responsible for completing a task someone else created. Those three concepts — task lifecycle, authorization, and responsibility — are each freestanding atoms that compose cleanly. Shared Todo is the composition that wires them.
 
-The pattern addresses the form of multi-actor work that recurs across virtually every collaborative domain: a development team's sprint board where tasks are visible to all but editable only by their owners; a support queue where tickets are assigned to agents with different role-based access; a clinical care plan where nurses and physicians see the same task list but hold different permissions over it; a legal matter where paralegals and partners share a checklist with clear ownership of each item.
+The pattern addresses the form of multi-actor work that recurs across virtually every collaborative domain: a development team's sprint board where every task is visible to each actor holding the view grant but editable only by actors holding the edit grant; a support queue where tickets are assigned to agents with different role-based access; a clinical care plan where nurses and physicians see the same task list but hold different permissions over it; a legal matter where paralegals and partners share a checklist with clear ownership of each item.
 
 The shape is constant across all of them: actors see and act on tasks according to granted scopes (opaque permission tokens, such as `tasks:edit`, that the composition defines and Permissions enforces); at most one actor is responsible for a task at any given time; the full history of who held what permission and who was responsible for what task is provable.
 
-This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that makes their three concepts coherent — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
+This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that joins their three concepts — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
 
 ---
 
@@ -54,10 +54,10 @@ Composes 1: EXACTLY ONE Personal Todo instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: EXACTLY ONE Assignment instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
-Composes 5: The composition MUST replace the constituents' own caller surface.
+Composes 5: The composition MUST replace the constituents' own caller surface other than Permissions' grant surface, which the deployment administers (Composition note 4).
 Composes 6: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 7: The composition MUST discharge Permissions Composition note 2.
-Composes 8: The composition MUST discharge Assignment Composition note 2.
+Composes 8: The composition MUST discharge Assignment's Term task reference.
 Composes 9: The composition MUST NOT answer a constituent's rejection changed.
 ```
 
@@ -94,10 +94,31 @@ Term assignee reference: the opaque reference a call carries for the actor an as
 
 Term unassigned: the answer [Responsible Actor] and [Active Assignment] give for a task id the Personal Todo instance carries where Assignment's active_for answers none.
 
+Term new assignment id: the assignment id [Reassign Task] answers for the assignment it opens in place of the one it moves.
+
+Term description: the text a task carries, which [Add Task] takes and Personal Todo validates.
+
+Term new description: the text [Edit Task] sets in place of a task's description, which Personal Todo validates as it does a description.
+
+Term done: Personal Todo's Done member of the unit state, which Personal Todo's complete sets.
+
+Term reference: actor reference, assignee reference, task id OR assignment id — every opaque reference a call carries; the deployment canonicalizes each at the seam (Execution Contract Logic confinement 13).
+
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply the constituents' database PER Execution Contract Database 1 and Execution Contract Database 2.
+Capability requirement 2: The deployment MUST supply now at the seam PER Personal Todo Capability requirement 1, Permissions Capability requirement 1 AND Assignment Capability requirement 1.
+Capability requirement 3: The deployment MUST supply at the seam, for each [Assign Task] call and each [Reassign Task] call, an assignment id no assignment has carried PER Assignment Capability requirement 5.
+```
+
+### Primitive policy
+
+```
+Primitive policy 1: A deployment MAY declare the length bound of EVERY opaque input PER Execution Contract Input 2.
+Primitive policy 2: The composition MUST answer a blank, malformed, over-bound input as the Closure table's Inputs rows say.
+Primitive policy 3: The composition MUST check an input byte-exact.
+Primitive policy 4: The composition MUST NOT change an input.
 ```
 
 ### Action wiring
@@ -157,7 +178,7 @@ Action wiring 9: An admitted delete MUST call Assignment's active_for with the t
 Action wiring 10: An admitted delete of a task whose active_for answers an assignment MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
 Action wiring 10a: An admitted delete of a task whose active_for answers none MUST call Personal Todo's delete.
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
-Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER Action wiring 13's existence check clears.
+Action wiring 14: An admitted assign MUST call Assignment's assign with the task id and the assignee reference ONLY AFTER Action wiring 13's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
 Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee reference.
 Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment id.
@@ -241,21 +262,8 @@ Every input an action takes, and every answer a constituent call can meet, with 
 ### Wiring decision
 
 ```
-Wiring decision 1: The composition MUST delete a task carrying an active assignment ONLY AFTER the task's active assignment is recalled.
+Wiring decision 1: The composition MUST own the cascade of a delete over an active assignment.
 ```
-
-<details markdown="block">
-<summary>WHY</summary>
-
-**Principle.** A task is deleted only once it carries no active assignment, so that no assignment outlives its task (Invariant 3).
-
-**Likely objection.** Why not leave the recall to the caller, who knows both the task and its assignment? Because no one else holds both: a caller that deletes first leaves an active assignment naming a task id no record holds, and nothing either constituent states notices it.
-
-**Mechanism that resolves it.** The cascade is the composition's load-bearing decision and neither constituent holds it — [Personal Todo](../atoms/personal-todo.md) knows nothing of assignments and [Assignment](../atoms/assignment.md) knows nothing of task deletion. The composition's delete reads Assignment's active_for for the task id, recalls the assignment it finds, and only then calls Personal Todo's delete; a task with no active assignment skips the recall (Action wiring 9, 10, 10a). The calls commit together or not at all (Execution Contract Database 1).
-
-**Result.** Invariant 3.1 and 3.2 hold from the records alone: Check 1.1 and Check 1.2 find no deleted task with an active assignment.
-
-</details>
 
 ### Scope vocabulary
 
@@ -279,11 +287,11 @@ Term action scopes: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete`
 
 ## Composition-level invariants
 
-Each of these needs two or all three constituents working together. None is available from one atom called alone.
+Each of these is a property of the composed list. Invariant 1, 3, 4.1 and 5.2 need two or all three constituents working together; Invariant 2.1, 4.2 and 5.1 are one constituent's records, stated here because the closing claim rests on them.
 
 - **Invariant 1 — Permission enforcement.**
   ```
-  Invariant 1.1: EVERY state-changing call MUST follow a permitted answer for EVERY scope the call's action is gated on.
+  Invariant 1.1: IF a call changes a constituent's records THEN EVERY scope the call's action is gated on MUST answer permitted.
   Invariant 1.2: A denied answer MUST NOT reach a constituent.
   ```
 - **Invariant 2 — At most one responsible actor per task.**
@@ -297,12 +305,12 @@ Each of these needs two or all three constituents working together. None is avai
   ```
 - **Invariant 4 — Responsibility queryability.**
   ```
-  Invariant 4.1: The composition MUST answer a task's responsible actor through [Responsible Actor], which joins Personal Todo's records with Assignment's active_for.
-  Invariant 4.2: The Assignment instance MUST answer a task's responsibility history.
+  Invariant 4.1: [Responsible Actor]'s answer for EVERY task the Personal Todo records carry MUST derive from the Personal Todo records and the Assignment records alone.
+  Invariant 4.2: The Assignment records MUST carry EVERY assignment a task has had, transferred and recalled ones included.
   ```
 - **Invariant 5 — Authorization history completeness.**
   ```
-  Invariant 5.1: The Permissions instance MUST answer an actor reference's grant history.
+  Invariant 5.1: The Permissions records MUST carry EVERY grant naming an actor reference, revoked ones included.
   Invariant 5.2: A task's delete MUST NOT change a grant record.
   ```
 
@@ -318,11 +326,13 @@ A four-person team. The engineering manager holds `tasks:view`, `tasks:assign`, 
 
 - Dev Alice calls `add_task(alice, "implement login flow") → task_t1`. Permitted: `tasks:add`. Task enters Pending.
 - Manager calls `assign_task(manager, task_t1, alice) → assignment_a1`. Permitted: `tasks:assign`. Alice is now responsible.
-- Alice calls `edit_task(alice, task_t1, "implement login flow — OAuth2 only") → ok`. Permitted: `tasks:edit`.
+- Alice calls `edit_task(alice, task_t1, "implement login flow — OAuth2 only") → ok`. Permitted: `tasks:edit`. (OAuth2 is an open standard for delegated sign-in.)
 - Alice gets pulled onto an incident. Manager calls `reassign_task(manager, assignment_a1, bob) → assignment_a2`. Alice's assignment moves to Transferred; Bob is now responsible.
 - Bob completes the task: `complete_task(bob, task_t1) → ok`. Assignment a2 remains Active — it becomes the completion-attribution record.
+- Alice reads: `responsible_actor(alice, task_t1) → bob`, `active_assignment(alice, task_t1) → assignment_a2` and `visible_tasks(alice)` → every task of the list, `task_t1` among them. Each is permitted: `tasks:view`.
 - Dev Carol tries `delete_task(carol, task_t1)` → permission-denied. Carol holds no `tasks:delete` grant.
-- Manager calls `delete_task(manager, task_t1)`. Assignment a2 is recalled (cascade-on-delete); task_t1 is deleted.
+- Manager calls `delete_task(manager, task_t1)`, and the database refuses the cascade's write: storage-failure, nothing committed. Assignment a2 is still Active and `task_t1` is still carried, since the recall and the delete are one transaction (Action wiring 9, 10).
+- Manager calls `delete_task(manager, task_t1)` again. Assignment a2 is recalled (cascade-on-delete); task_t1 is deleted.
 
 The responsibility history is intact: a1 (Alice, Transferred at the reassign), a2 (Bob, Recalled by the delete), each with the instants Assignment stamped.
 
@@ -335,8 +345,9 @@ A support team has tier-1 and tier-2 agents and a supervisor. Agents at both tie
 - Agent J investigates but cannot resolve. They have no `tasks:assign` grant, so they cannot reassign directly. They flag the supervisor.
 - Supervisor calls `reassign_task(supervisor, assignment_b5, agent_k_tier2) → assignment_b6`. Tier-2 is now responsible.
 - Tier-2 resolves: `complete_task(agent_k_tier2, ticket_t22) → ok`.
+- The deployment recalls a resolved ticket's assignment (Composition note 3): `recall_assignment(supervisor, assignment_b6) → ok`. Permitted: `tasks:recall`. `responsible_actor(supervisor, ticket_t22) → unassigned`.
 
-The Assignment records show: agent J held responsibility for 2 hours (Transferred); tier-2 agent K held it for 45 minutes (Active at completion). SLA (service-level agreement) analysis uses `assigned_at` and `transferred_at` per record.
+The Assignment records show: agent J held responsibility for 2 hours (Transferred); tier-2 agent K held it for 45 minutes (Active at completion, Recalled by the deployment right after). SLA (service-level agreement) analysis uses `assigned_at` and `transferred_at` per record.
 
 ### Clinical care plan — shared task list with role separation
 
@@ -348,7 +359,7 @@ A ward team: attending physician (all scopes), registered nurses (`tasks:view`, 
 - Orderly tries to add a task: `add_task(orderly_o, "Transport to radiology") → permission-denied`. Orderly holds no `tasks:add` grant.
 - Nurse N completes the vitals check: `complete_task(nurse_n, task_c7) → ok`.
 
-The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which role level held which grants. Who *invoked* each reassignment is not recorded by any constituent here — Assignment records the responsibility chain, not the acting caller — so a regulated clinical environment needing invocation-level attribution composes the action surface with Audit Trail (which also makes the record tamper-evident and retention-bounded).
+The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which actor reference held which grants. No constituent records who invoked a reassignment: Assignment records the responsibility chain, not the acting caller. A regulated clinical deployment needing that record composes Audit Trail (Non-goal 7, External check 3).
 
 ---
 
@@ -359,12 +370,11 @@ The closing claim above is the acceptance bar and this section distributes it: *
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY assignment of a deleted task whose status EQUALS EXACTLY ONE OF recalled, transferred (Invariant 3.1).
-Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo records do not carry (Invariant 3.2).
+Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo records do not carry (Invariant 3.1, Invariant 3.2).
 Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment records (Invariant 2.1).
 Check 3.1: An auditor MUST find a task's responsible actor from the Personal Todo and Assignment records, through [Responsible Actor] (Invariant 4.1).
-Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records (Invariant 4.2).
-Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records (Invariant 5.1).
+Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records, by filtering for the task id (Invariant 4.2).
+Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records, by filtering the read's grants for the actor reference (Invariant 5.1).
 Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task id the Personal Todo records carry where the Assignment records carry no active assignment for the task id (Action wiring 21).
 Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo records do not carry (Action wiring 20).
 Check 5.3: An auditor MUST find [Active Assignment] answering the assignment id the Assignment records carry active for a task id (Action wiring 25).
@@ -378,7 +388,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
-External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
+External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's binding of callers to actor references (Non-goal 12, Composition note 2).
 External check 5: An auditor needing a task's delete confirmed clear of the grants MUST read the deployment's own implementation (Invariant 5.2).
 ```
 
@@ -401,9 +411,11 @@ Non-goal 12: The composition MUST NOT authenticate an actor reference.
 Non-goal 13: A deployment needing an authenticated actor reference MUST compose an authenticating pattern.
 Non-goal 14: An authenticating pattern MUST supply the actor reference the composition checks.
 Non-goal 15: The composition MUST NOT partition the Personal Todo instance's description uniqueness per actor.
+Non-goal 16: The composition MUST NOT refuse an assignee reference on whether the assignee may hold the task.
+Non-goal 17: The composition MUST NOT wire an action for a deprovisioning sweep.
 ```
 
-NOTE: the owners — [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8, External check 3); [Attributed Permissions Admin](./attributed-permissions-admin.md) for a regulated deployment (Non-goal 11, Composition note 4); the deployment (Non-goal 15).
+NOTE: the owners — [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8, External check 3); [Attributed Permissions Admin](./attributed-permissions-admin.md) for a regulated deployment's grant administration (Non-goal 11); Execution Contract Database 5 (Non-goal 5); a priority and ordering pattern *(forthcoming)* (Non-goal 9); a due-date pattern *(forthcoming)* (Non-goal 10); the deployment (Non-goal 1, Non-goal 2, Non-goal 3, Non-goal 4 with Composition note 3, Non-goal 12 through 14 with Composition note 2, Non-goal 15, Non-goal 16 with Composition note 8, Non-goal 17 with Composition note 7).
 
 ---
 
@@ -421,10 +433,12 @@ Concurrency 4: The composition MUST check permitted at a call's start.
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: A deployment MUST bind an actor reference to an authenticated caller.
-Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.
+Composition note 2: A deployment MUST own the binding between a caller and the actor reference the caller's calls carry.
+Composition note 3: A deployment MUST own whether a completed task's assignment is recalled, through a call of [Recall Assignment].
 Composition note 4: A deployment MUST administer the Permissions instance's grants.
 Composition note 5: A deployment MUST NOT wire a second Assignment instance over the task list.
+Composition note 7: A deployment MUST own a departing actor reference's deprovisioning sweep.
+Composition note 8: A deployment MUST own whether an assignee reference may hold a task.
 ```
 
 ---
@@ -437,13 +451,13 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, caller surface, responsible actor, visible tasks, assignment id, assignee reference, unassigned, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference.
+Term terms: composition, constituents, caller surface, responsible actor, visible tasks, assignment id, assignee reference, unassigned, new assignment id, description, new description, done, reference, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference.
 
 Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, leave, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 
 Term actors: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, declined. [Assignment](../atoms/assignment.md) `Composition note 2` — what a task is. [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, declined.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, left to the deployment (Composition note 2). [Permissions](../atoms/permissions.md) `Composition note 5` — a departing subject's deprovisioning sweep, left to the deployment (Composition note 7). [Assignment](../atoms/assignment.md) `Term task reference` — what a task is, which the host owns (Action wiring 13). [Assignment](../atoms/assignment.md) `Composition note 3` — whether an assignee may hold the task, left to the deployment (Composition note 8). [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, left to the deployment (Composition note 3).
 
 #### Add Task
 
@@ -605,7 +619,7 @@ Projection: permission-denied
 
 ## Standards references
 
-Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer. The standards it touches are its constituents' and are cited there: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
+Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer and no regulated adversarial scenarios; the clinical example shows a role split, not a regulated acceptance bar. The standards it touches are its constituents' and are cited there: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
 
 ## Status
 
@@ -618,15 +632,7 @@ status: doing
 formal: verified — shared-todo.tla + 1 twin (2026-06-03); shared-todo.als + 8 twins (the static data model, 2026-11-12: Invariant 1.1, 1.2, 3.1, 3.2, 4.1 and 5.2 checked on every call of the composition, over what its transaction reads of the three constituents' records and what it leaves in them, Invariant 3.1 and 3.2 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 2.1, 4.2 and 5.1: whether two active assignments co-exist depends on the order of the calls that wrote them, Assignment's guard, which Assignment's own TLA+ model checks (Composes 6), and a whole history is that no record of it is later removed or rewritten, which a single state cannot show; the model found that Scope vocabulary 11 names no action for "that action", so whether a finer scope refining tasks:assign gates [Assign Task], [Reassign Task] or both is unsaid); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owes TLA+ checks of Invariant 4.2 and 5.1 (across steps); owed rows: Invariant 4.2; Invariant 5.1, 2026-11-12
 last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 227ba75 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10, frozen at 493f80f — foundational count 4, cured, not clean, no sample; Final Critique 9, 2026-09-30, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
-open:
-- 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; Action wiring 14's arguments; happy-path examples and the cascade recall's scope shown only in an example → one refining pass
-- 2026-09-30-b · refining · Final Critique 8 · routed open, non-blocking: Composes 5's caller surface read against Composition note 4's grant administration, which needs a Permissions surface the literal replacement removes; the clinical Example 3 invokes a regulated domain and Regulated adversarial scenarios stand nowhere in the examples, beside Standards references calling the pattern not regulated → one refining pass
-- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no database holds and collapses into Check 1.2 → one refining pass
-- 2026-09-30-e · rhetorical · Final Critique 9 · Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → drop the restatement; say which actor reference held which grants
-- 2026-11-04-a · refining · Final Critique 10 · routed open, non-blocking: Invariant 1.1, 4.1, 4.2 and 5.1 oblige acts, which Standard label 14 files under Action wiring, not the Invariant family; Check 1.1's `status EQUALS EXACTLY ONE OF recalled, transferred` matches no declared condition shape (IS IN, or one EQUALS per member); Non-goals 1, 2, 3, 5, 9 and 10 state a MUST NOT with no owner named, which the container requires of each Non-goal → one refining pass
-- 2026-11-04-b · refining · Final Critique 10 · routed open, non-blocking: no Primitive policy heading although the composition takes actor_ref, task_id, assignment_id, assignee_ref and a description, and `assignee_ref` and `assignment_id` are declared as opaque terms but not as reference terms Logic confinement 13 canonicalizes (the Closure table's Inputs rows land each blank or malformed input through a constituent refusal); the signature names new_assignment_id, description and new_description carry no Term, and Action wiring 15's `done` cites Personal Todo's member without a citation line; the Vocabulary's operation, scope and permission-denied entries carry no Term declaration, and fewer terms are named than the Vocabulary prints → one refining pass
-- 2026-11-04-c · refining · Final Critique 10 · routed open, non-blocking: neither Visible Tasks nor Responsible Actor nor Active Assignment nor Recall Assignment appears in any example, and the cascade's rejecting mode is never walked → one refining pass; the examples gain a walk of each
-- 2026-11-04-d · rhetorical · Final Critique 10 · OAuth2 appears in the sprint-board example without spell-out; the Intent's load-bearing word coherent is never defined; the clinical example's closing note apologises for a constituent a sentence naming Audit Trail would carry; the owners note names Attributed Permissions Admin as owner of Composition note 4 where the note makes the deployment its actor → one rhetorical pass
+open: none
 ```
 
 <details markdown="block">

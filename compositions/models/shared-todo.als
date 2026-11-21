@@ -15,17 +15,18 @@
 -- shared-todo.tla, which owns the operation sequences.
 --
 -- RULES ENCODED (named by the page's own labels)
---   Invariant 1.1 — every call that changes a constituent's records follows a permitted
---                   answer for every scope its action is gated on (Scope vocabulary 2 to
---                   9, and a deployment's finer scope under Scope vocabulary 11).
+--   Invariant 1.1 — a call changes no constituent's records where a scope its action is
+--                   gated on answered denied (Scope vocabulary 2 to 9, and a deployment's
+--                   finer scope under Scope vocabulary 11).
 --   Invariant 1.2 — a call with a denied answer calls no constituent beyond the gate.
 --   Invariant 3.1 — a delete that takes a task out leaves no active assignment for it
 --                   (a cross-check with the TLA+ model's Inv_CascadeOnDelete).
 --   Invariant 3.2 — no call leaves active an assignment naming a task id it took out of
 --                   the Personal Todo instance, or brings into the active set a task id the
 --                   instance does not carry (a cross-check with Inv_CascadeOnDelete).
---   Invariant 4.1 — [Responsible Actor] answers by joining Personal Todo's records with
---                   Assignment's active_for (Term responsible actor; Action wiring 20, 21).
+--   Invariant 4.1 — a task's responsible actor is derived from Personal Todo's records
+--                   joined with Assignment's active_for (Term responsible actor; Action
+--                   wiring 20, 21).
 --   Invariant 5.2 — a task's delete changes no grant record.
 --
 -- NOT CHECKED HERE
@@ -34,9 +35,9 @@
 --     on the order of the calls that wrote them, which only the sequence shows. Here it is
 --     Assignment's answer, taken from outside (fact AssignmentAnswersOneActivePerTask);
 --     assignment.tla checks it.
---   Invariant 4.2 (the Assignment instance answers a task's responsibility history) and
---     Invariant 5.1 (the Permissions instance answers an actor reference's grant history):
---     each obliges a constituent's own read; that the history it answers is whole is that
+--   Invariant 4.2 (the Assignment records carry every assignment a task has had) and
+--     Invariant 5.1 (the Permissions records carry every grant naming an actor reference):
+--     each is a constituent's own records; that the history they carry is whole is that
 --     no record of it is ever removed or rewritten, which compares a state with a later one.
 --     The records themselves are the constituents' (assignment.als, permissions.als).
 --
