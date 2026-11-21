@@ -58,17 +58,15 @@ Term transition: the atom's evaluation of one call against the hold records, as 
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 8, Operation 10, Operation 17, Operation 18, Operation 38 and Operation 39).
 
 ### State
 
 ```
-State 1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
-State 2: EVERY hold MUST carry hold id, record reference, placing actor, hold reason, placement instant and state.
+State 2: EVERY hold MUST carry hold id, record reference, placing actor, hold reason, placement instant, entry instant and state.
 State 3: A hold MAY carry case reference.
 State 4: A released hold MUST carry releasing actor, release reason and release instant.
 State 5: An active hold MUST NOT carry a release field.
-State 7: The atom MUST NOT delete a hold.
 State 8: The atom MUST NOT hold an aggregate for a record.
 ```
 
@@ -79,6 +77,8 @@ Term placing actor: the opaque reference naming who placed the hold — a [Placi
 Term hold reason: the narrative ground the hold was placed on — a [Hold Reason].
 
 Term placement instant: the instant the obligation was recorded — a [Placement Instant].
+
+Term entry instant: the instant the atom stamped when it recorded the hold, from the injected now — an [Entry Instant]; no caller supplies it, and unlike the placement instant it is never a claim, so a composing pattern ages and orders holds by it.
 
 Term case reference: the opaque reference naming the matter the hold sits under — a [Case Reference]; absent where no formal matter exists yet.
 
@@ -133,7 +133,6 @@ Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-
 Operation 17: IF the resolved release instant PRECEDES the hold's placement instant THEN [Release] MUST answer invalid-request.
 Operation 18: IF now PRECEDES a supplied release instant THEN [Release] MUST answer invalid-request.
 Operation 19: [Release] MUST stand the hold in released.
-Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the database refuses the write THEN [Release] MUST answer storage-failure.
 Operation 23: [Read] MUST answer the holds the query matches.
 Operation 24: [Read] MUST order the answer by placement instant, rising.
@@ -148,8 +147,7 @@ Operation 31: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 34: [Read] MUST NOT write.
 Operation 38: The business caller MAY supply placement instant.
 Operation 39: The business caller MAY supply release instant.
-Operation 40: The atom MUST judge a supplied placement instant against the injected now.
-Operation 41: The atom MUST judge a supplied release instant against the injected now.
+Operation 43: [Place] MUST stamp entry instant from the injected now.
 ```
 
 NOTE: watch the blank id (Operation 13).
@@ -162,21 +160,23 @@ Term admitted axis: hold id | record reference | placing actor | case reference 
 
 Term resolved release instant: the release instant the release records — the caller's value, as Execution Contract Logic confinement 12 resolves it.
 
+Term supplied instant: a placement instant or release instant the business caller supplies — a point in time, as GRACE-lang Term instant declares it, written with the offset from UTC (Coordinated Universal Time) that places it, as `2026-02-14T09:30:00Z`; a bare date, and a date and time with no offset, name no one point in time, so neither is an instant and the call is malformed (Execution Contract Input 3).
+
 Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the hold records |
 |---|---|---|---|
-| [Place] | refs and reason present, placement instant not future, database accepts | hold id | one hold lands in [Active] (Operation 1, Operation 2) |
-| [Place] | blank record reference, placing actor, reason, or supplied case reference, or a string input over the string cap | [Invalid Request] | none (Operation 4 through 7, Execution Contract Input 2) |
+| [Place] | refs and reason present, placement instant not future, database accepts | hold id | one hold lands in [Active], stamped with its entry instant (Operation 1, Operation 2, Operation 43) |
+| [Place] | blank record reference, placing actor, reason, or supplied case reference, or a string input over the string cap, or a supplied placement instant that is not an instant | [Invalid Request] | none (Operation 4 through 7, Execution Contract Input 2, Execution Contract Input 3) |
 | [Place] | supplied placement instant in the future | [Invalid Request] | none (Operation 8) |
 | [Place] | supplied placement instant in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
-| [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped; the hold's id, record reference, placing actor, reason, placement instant and case reference stand, and no other hold's state changes (Operation 19, State 4, Invariant 1.1, Invariant 4.1) |
+| [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped; the hold's id, record reference, placing actor, reason, placement instant, entry instant and case reference stand, and no other hold's state changes (Operation 19, State 4, Invariant 1.1, Invariant 4.1) |
 | [Release] | blank hold id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
 | [Release] | hold already released | [Already Released] | none; the release fields stand as stamped (Operation 14, Invariant 1.2) |
-| [Release] | blank releasing actor or release reason, or a string input over the string cap | [Invalid Request] | none (Operation 15, Operation 16, Execution Contract Input 2) |
+| [Release] | blank releasing actor or release reason, or a string input over the string cap, or a supplied release instant that is not an instant | [Invalid Request] | none (Operation 15, Operation 16, Execution Contract Input 2, Execution Contract Input 3) |
 | [Release] | resolved release instant before placement instant, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | database refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Place persistence 4) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
@@ -189,7 +189,7 @@ Where two [Release] rows hold at once, the earlier row answers: the refuses line
 
 - **Invariant 1 — Hold immutability.**
   ```
-  Invariant 1.1: A recorded hold's hold id, record reference, placing actor, hold reason, placement instant and case reference MUST NOT change.
+  Invariant 1.1: A recorded hold's hold id, record reference, placing actor, hold reason, placement instant, entry instant and case reference MUST NOT change.
   Invariant 1.2: A released hold's releasing actor, release reason and release instant MUST NOT change.
   ```
 - **Invariant 2 — Membership exclusivity.**
@@ -222,6 +222,7 @@ Where two [Release] rows hold at once, the earlier row answers: the refuses line
   Invariant 7.1: EVERY hold MUST carry a placing actor that is not blank.
   Invariant 7.2: EVERY hold MUST carry a hold reason that is not blank.
   Invariant 7.3: EVERY hold MUST carry placement instant.
+  Invariant 7.4: EVERY hold MUST carry entry instant.
   ```
 - **Invariant 8 — Hold record durability.**
   ```
@@ -271,30 +272,34 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 
 `release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → invalid-request. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
 
+### Rejection path — place with an instant naming no point in time
+
+`place(record_ref: "doc-0100", placed_by: "counsel_lee", reason: "Hold under matter 2026-0100", placed_at: "2026-02-14T09:30:00")` → invalid-request. The value carries no offset from UTC, so it names no one point in time and is not an instant (Term supplied instant); a bare date such as `2026-02-14` is refused the same way, and no hold is created.
+
 ### Regulated adversarial scenarios
 
-#### Regulator audit — HHS OCR HIPAA investigation
-
-HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placing Actor] and [Hold Reason] strings, neither blank, and a [Placement Instant] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, provable preservation response.
-
-#### Spoliation challenge — federal litigation
-
-Opposing counsel in federal litigation argues that the defendant destroyed documents after the duty to preserve was triggered under FRCP (Federal Rules of Civil Procedure — the rules governing civil lawsuits in US federal courts) Rule 37(e). Defendant's counsel queries `read({record_ref: "doc-contract-077"})` for all holds ever placed on the disputed document. The query returns the hold placed on the record, with `placed_at: 2026-02-14` — the date the preservation obligation was recognized. The opposing party claims the document was destroyed on `2026-02-10`. The hold record shows [Placement Instant] postdating the destruction. If a corresponding purge record from Retention Window shows `purged_at: 2026-02-10` and no [Active] hold existed at that time, the records faithfully document the chronology — the hold was placed after the purge. If the document was never purged and remains in the database, the hold records confirm ongoing preservation. Either way, the court has the complete record; the atom does not manufacture a defense but it does not hide the facts either.
-
-#### Concurrent hold integrity — dual regulatory investigation
+#### Regulator audit — dual regulatory investigation
 
 A financial institution is simultaneously under a DOJ (US Department of Justice) criminal investigation and an SEC (US Securities and Exchange Commission — the federal regulator of securities markets) civil enforcement action. Both issue preservation demands covering the same set of trading records. The compliance team places holds under both matters:
 
 - `hold-doj-001` through `hold-doj-240`: `case_ref: "doj-crim-2026-0011"`
 - `hold-sec-001` through `hold-sec-240`: `case_ref: "sec-enf-2026-0087"`
 
-The DOJ investigation closes first. The compliance team releases all `hold-doj-*` holds. Query `read({record_ref: "trade-record-0042", state: Active})` returns `hold-sec-042` — the SEC hold remains [Active]. Invariant 4 guarantees that releasing the DOJ holds had no effect on the SEC holds. The institution correctly continues to preserve the records under SEC obligation. An auditor reviewing the hold records sees the full picture: two independent regulatory demands, one resolved, one active, no record destroyed while any [Active] hold covered it.
+The DOJ investigation closes first. The compliance team releases all `hold-doj-*` holds. Query `read({record_ref: "trade-record-0042", state: Active})` returns `hold-sec-042` — the SEC hold remains [Active]. Invariant 4 guarantees that releasing the DOJ holds had no effect on the SEC holds. The institution correctly continues to preserve the records under SEC obligation. A regulator's auditor reading the hold records for the trading records sees the full picture: two independent regulatory demands, one resolved, one active, no record destroyed while any [Active] hold covered it.
+
+#### Spoliation challenge — federal litigation
+
+Opposing counsel in federal litigation argues that the defendant destroyed documents after the duty to preserve was triggered under FRCP (Federal Rules of Civil Procedure — the rules governing civil lawsuits in US federal courts) Rule 37(e). Defendant's counsel queries `read({record_ref: "doc-contract-077"})` for all holds ever placed on the disputed document. The query returns the hold placed on the record, with `placed_at: 2026-02-14T09:30:00Z` — the date the preservation obligation was recognized. The opposing party claims the document was destroyed on `2026-02-10`. The hold record shows [Placement Instant] postdating the destruction. If a corresponding purge record from Retention Window shows `purged_at: 2026-02-10` and no [Active] hold existed at that time, the records faithfully document the chronology — the hold was placed after the purge. If the document was never purged and remains in the database, the hold records confirm ongoing preservation. The entry instant the system stamped shows when the hold was recorded, so a back-dated placement instant cannot pass for the date the hold was entered. Either way, the court has the complete record; the atom does not manufacture a defense but it does not hide the facts either.
+
+#### Breach investigation — HHS OCR HIPAA investigation
+
+HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placing Actor] and [Hold Reason] strings, neither blank, and a [Placement Instant] timestamp that is set — immutable by Invariants 1 and 7. The investigator also reads each hold's entry instant, which the system stamped and no placer supplied, and so reads when each hold was recorded whatever placement instant the placer claimed. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, provable preservation response.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the hold records' stored fields.
+This atom's acceptance is provable: an external auditor clears it from the hold records' stored fields, with their committed versions (Execution Contract Generation acceptance 1).
 
 ### Conformance checks
 
@@ -304,15 +309,16 @@ Check 2.1: An auditor MUST find placing actor and hold reason not blank on EVERY
 Check 2.2: An auditor MUST find placement instant set on EVERY hold (Invariant 7.3).
 Check 2.3: An auditor MUST find record reference not blank on EVERY hold (Operation 4).
 Check 2.4: An auditor MUST find hold id not blank on EVERY hold (Identity 2, Instance 2).
+Check 2.5: An auditor MUST find entry instant set on EVERY hold (Invariant 7.4).
 Check 3.1: An auditor MUST find releasing actor and release reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
 Check 3.2: An auditor MUST find release instant set on EVERY released hold (Invariant 5.3).
 Check 3.3: An auditor MUST find no released hold whose release instant PRECEDES the hold's placement instant (Invariant 6.1).
-Check 4.1: An auditor MUST find a second hold over one record still active once the first hold is released (Invariant 4.1).
-Check 5.1: An auditor MUST find already-released answered for a release against a released hold (Operation 14, Invariant 3.1).
-Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1, Invariant 1.2).
-Check 6.1: An auditor MUST find the hold set never shrinking across two readings (Invariant 8.2).
-Check 6.2: An auditor MUST find EVERY placement field unchanged across two readings (Invariant 1.1).
-Check 6.3: An auditor MUST read an active-to-released move between two readings as conformant (Invariant 2.1).
+Check 4.1: IF a hold over a record was released while a second hold over the record stood active THEN an auditor MUST find the second hold active in the committed version the release wrote (Invariant 4.1, Execution Contract Generation acceptance 1).
+Check 5.1: IF a hold stands released THEN an auditor MUST find already-released answered to a call of [Release] naming the hold id (Operation 14, Invariant 3.1).
+Check 5.2: IF a call of [Release] named a released hold and answered already-released THEN an auditor MUST find the hold's committed versions unchanged by that call (Invariant 1.1, Invariant 1.2, Execution Contract Generation acceptance 1).
+Check 6.1: An auditor MUST find every hold id of one committed version of the hold set in every later committed version (Invariant 8.2, Execution Contract Generation acceptance 1).
+Check 6.2: An auditor MUST find EVERY field Invariant 1.1 names equal in every committed version of the hold (Invariant 1.1, Execution Contract Generation acceptance 1).
+Check 6.3: IF a hold state EQUALS active in one committed version AND the hold state EQUALS released in a later one THEN an auditor MUST find each committed version of the hold standing in EXACTLY ONE OF active, released (Invariant 2.1, Execution Contract Generation acceptance 1).
 ```
 
 ### External checks
@@ -362,8 +368,6 @@ Concurrency 3: Two placements over one record MUST record two holds.
 ### Back-dating a placement
 
 ```
-Backdating 1: [Place] MUST accept a placement instant below now.
-Backdating 2: [Place] MUST NOT accept a placement instant above now.
 Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placement instant.
 ```
 
@@ -381,7 +385,6 @@ Place persistence 4: A caller MUST NOT read storage-failure from [Release] as th
 ```
 Aggregate 1: A composing pattern MUST read a record's active holds to answer whether the record is held.
 Aggregate 2: The atom MUST NOT carry a held flag on a record.
-Aggregate 3: A composing pattern MUST read an empty active set as the record standing unheld ONLY IF the answered database name matches the record's database instance.
 ```
 
 ## Composition notes
@@ -393,6 +396,9 @@ Composition note 3: A composing pattern MUST own who may place a hold.
 Composition note 4: A composing pattern MUST own who may release a hold.
 Composition note 5: A composing pattern MUST own a bulk placement.
 Composition note 6: A composing pattern MUST own a bulk release.
+Composition note 7: A composing pattern MUST commit the check of a record's active holds and the purge of the record together, the check read inside the transaction that writes the purge (Execution Contract Database 1, Execution Contract Database 2).
+Composition note 8: A composing pattern MUST pass the placement instant and the release instant a business caller supplies down to [Place] and [Release] unchanged, in EVERY call that Composition note 3 through 6 give the composing pattern.
+Composition note 9: A composing pattern MUST read an invalid-request that the atom answers on a supplied instant as no placement and no release, whatever authority the composing pattern granted for the call.
 ```
 
 NOTE: composing patterns — [Defensible Retention](../compositions/defensible-retention.md), [Audit Trail](../compositions/audit-trail.md).
@@ -405,9 +411,9 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the database; a hold; a release; a placement; a query.
 
-Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
+Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, entry instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
-Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, carry, stand, offer, delete, record, answer, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, carry, stand, offer, delete, record, answer, accept, read, order, write, change, rest, shrink, stamp, commit, pass, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, precede, fall.
 
 Term value sets: hold state = active | released.
 
@@ -417,7 +423,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: database instance, database name, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, release field, query, resolved release instant, admitted axis, held at an instant, string cap.
+Term terms: database instance, database name, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, entry instant, case reference, releasing actor, release reason, release instant, release field, query, resolved release instant, supplied instant, admitted axis, held at an instant, string cap.
 
 #### Place
 
@@ -471,11 +477,19 @@ Projection: hold_reason
 
 #### Placement Instant
 
-The timestamp the hold was placed — supplied or defaulted to the receiving node's wall clock; must not be future. Set on [Place], immutable. The lower bound for [Release Instant] (Invariant 6) and the ordering key for [Read].
+The instant the placer claims the obligation began — a supplied instant (Term supplied instant), or now where the call leaves it blank (Execution Contract Logic confinement 12); must not be future. Set on [Place], immutable. The lower bound for [Release Instant] (Invariant 6) and the ordering key for [Read].
 
 Kind:       Field
 Field of:   the hold record
 Projection: placed_at
+
+#### Entry Instant
+
+The instant the atom stamped when it recorded the hold, from the injected now (Execution Contract Logic confinement 11). Set on [Place], immutable; no caller supplies it. A composing pattern ages and orders holds by it, where the [Placement Instant] is the placer's claim.
+
+Kind:       Field
+Field of:   the hold record
+Projection: entered_at
 
 #### Case Reference
 
@@ -511,7 +525,7 @@ Projection: release_reason
 
 #### Release Instant
 
-The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placement Instant] (Invariant 6). Set at [Release], immutable; present on [Released] holds only.
+The instant the releaser claims the obligation ended — a supplied instant (Term supplied instant), or now where the call leaves it blank (Execution Contract Logic confinement 12); must not be future and must not precede [Placement Instant] (Invariant 6). Set at [Release], immutable; present on [Released] holds only.
 
 Kind:       Field
 Field of:   the hold record
@@ -545,17 +559,19 @@ Projection:   query
 
 The non-terminal state of a hold whose preservation obligation is in effect. A composition wiring this atom to a purge surface treats an [Active] hold as blocking purge. May be released or read.
 
-Kind:      Member
-Member of: the hold state
-Role:      Outcome
+Kind:       Member
+Member of:  the hold state
+Role:       Outcome
+Projection: active
 
 #### Released
 
 The terminal state of a hold whose preservation obligation has ended. Carries [Releasing Actor], [Release Reason], and [Release Instant]; retained as audit evidence, no further transition (Invariant 3).
 
-Kind:      Member
-Member of: the hold state
-Role:      Outcome
+Kind:       Member
+Member of:  the hold state
+Role:       Outcome
+Projection: released
 
 #### Invalid Request
 
@@ -615,6 +631,7 @@ Projection: invalid-query
 [Placing Actor]: #placing-actor
 [Hold Reason]: #hold-reason
 [Placement Instant]: #placement-instant
+[Entry Instant]: #entry-instant
 [Case Reference]: #case-reference
 [State]: #state
 [Releasing Actor]: #releasing-actor
@@ -657,18 +674,10 @@ Projection: invalid-query
 
 ```
 status: doing
-formal: verified — legal-hold.tla + 2 twins (2026-06-04); legal-hold.als + 16 twins (the static data model, 2026-11-11: Invariant 1.1, 1.2, 2.1, 3.1, 4.2, 5.1, 5.2, 5.3, 6.1, 7.1, 7.2 and 7.3, State 5, Operation 4 and 7 and Instance 2 checked on every hold record an admitted [Place] or [Release] leaves, Invariant 1 and 3.1 read against the versions that built the record, Invariant 4.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 3.2, 4.1, 4.3 and 8: 3.2 names what the signature offers, not a state, and its twin is caught by 3.1; 4.1 and 8 compare two readings, a deleted hold leaving nothing in one state; 4.3 defines a reading over stored fields with no stored aggregate to hold it to); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
+formal: verified — legal-hold.tla + 4 twins (2026-06-04; 2026-11-21: the entry instant, and Invariant 1.1 and 8.2 checked across steps, Check 6.1 and 6.2 read over committed versions, Invariant 2.1 across steps by construction); legal-hold.als + 19 twins (the static data model, 2026-11-11, the entry instant 2026-11-21: Invariant 1.1, 1.2, 2.1, 3.1, 4.2, 5.1, 5.2, 5.3, 6.1, 7.1, 7.2, 7.3 and 7.4, State 5, Operation 4, 7 and 43 and Instance 2 checked on every hold record an admitted [Place] or [Release] leaves, Invariant 1 and 3.1 read against the versions that built the record, Invariant 4.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 3.2, 4.1, 4.3 and 8: 3.2 names what the signature offers, not a state, and its twin is caught by 3.1; 4.1 and 8 compare two readings, a deleted hold leaving nothing in one state; 4.3 defines a reading over stored fields with no stored aggregate to hold it to); nothing testable in the models for Term supplied instant: the form a supplied instant takes is the wire's (Execution Contract Input 3), and a model's instant is already one point in time; Composition note 7 through 9 are the composing patterns' duties, outside the atom's models; coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11, 2026-11-21
 last gate: 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8, frozen at c39a73f — foundational count 0, clean, one sample
 
-open:
-- 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate
-- 2026-10-05-b · refining · Operation 8, 17; Composition note 3 through 6 · a future placement instant and a release ahead of the placement are refused only at the atom's seam, after a composing pattern's intent, and the notes that give authority and bulk to a composing pattern admit no pass-down → state each; reported by the same gate
-- 2026-10-21-a · refining · Operation 29; Active and Released entries · [Read]'s hold state filter is left to the build: the hold state members carry no Projection line while the examples query `state: Active` → give the members their wire spelling
-- 2026-10-21-b · refining · Operation 8, 18; Placement Instant and Release Instant entries · a supplied placement or release instant has no declared form, and the examples write two (a zoned date and time, a bare date), so a zoneless value near now is placed by a build reading it as UTC and refused as future by one reading it in the deployment's zone → declare the form a supplied instant takes, or name the layer that turns a wire value into an instant
-- 2026-10-21-c · refining · State 1, 7; Invariant 2.1, 4.1, 8.1; Operation 8, 10, 18, 20, 40, 41; Backdating 1, 2; Aggregate 3; Instance 7 · propositions owned twice: State 1 and Invariant 2.1 word for word, State 7 and Invariant 8.1, Operation 10 and Backdating 1, Operation 8 with Backdating 2 and Operation 40, Operation 18 with Operation 41, Operation 20 and Invariant 4.1, Aggregate 3 and Instance 7 → one owner each (GRACE-lang Authority 3), each tombstone checked against the pages that cite it
-- 2026-10-21-e · refining · Examples · no breach or incident read is walked on its own: the regulator audit is a regulator's breach investigation, and the third scenario is a dual-regulator one → walk the three regulated reads spec-format asks for, the breach read on its own
-- 2026-10-21-f · refining · Check 4.1, 5.1, 6.3 · each check presupposes a history the hold records may not hold (a second hold over one record, a refused second release, a move between two readings), so an auditor holding none finds nothing to test → state each check's antecedent, or say that the auditor makes the history
-- 2026-10-21-h · refining · Composition note 2; Aggregate 1 · a composing pattern's check of a record's active holds at the purge surface can race a placement over the record, and no rule names who serializes them; the check and the purge are the composing pattern's one action, whose reads and writes Execution Contract Database 1 and Database 2 hold in one transaction → say so in the Composition notes
+open: none
 ```
 
 <details markdown="block">

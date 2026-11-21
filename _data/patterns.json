@@ -966,7 +966,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 18
+   "twins": 23
   },
   "regulated_by": [
    "defensible-retention"

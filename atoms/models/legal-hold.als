@@ -1,6 +1,7 @@
 -- legal-hold.als
 -- Alloy structural model for the Legal Hold atom (Grace Commons atoms/legal-hold.md)
--- Grounded on Final Critique 8, 2026-10-24 at c39a73f — Alloy layer authored 2026-11-11.
+-- Grounded on Final Critique 8, 2026-10-24 at c39a73f — Alloy layer authored 2026-11-11;
+-- the entry instant (Operation 43, Invariant 7.4) and the retired labels' owners 2026-11-21.
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -12,11 +13,11 @@
 --
 -- RULES ENCODED (named by the page's own labels)
 --   Invariant 1.1 — a hold's hold id, record reference, placing actor, hold reason,
---                   placement instant and case reference are the ones its [Place] recorded.
+--                   placement instant, entry instant and case reference are the ones its
+--                   [Place] recorded.
 --   Invariant 1.2 — a released hold's releasing actor, release reason and release instant
 --                   are the ones the release that ended it recorded.
---   Invariant 2.1 — every hold stands in exactly one of active, released (State 1 says the
---                   same, word for word; the page's open line 2026-10-21-c lists it).
+--   Invariant 2.1 — every hold stands in exactly one of active, released.
 --   Invariant 3.1 — a hold that once stood released does not stand in active.
 --   Invariant 4.2 — a released hold was released by a [Release] naming its own hold id.
 --   Invariant 5.1 — a released hold carries a releasing actor that is not blank.
@@ -26,9 +27,12 @@
 --   Invariant 7.1 — every hold carries a placing actor that is not blank.
 --   Invariant 7.2 — every hold carries a hold reason that is not blank.
 --   Invariant 7.3 — every hold carries a placement instant.
+--   Invariant 7.4 — every hold carries an entry instant.
 --   State 5       — an active hold carries no release field.
 --   Operation 4   — every hold carries a record reference that is not blank (Check 2.3).
 --   Operation 7   — a hold that carries a case reference carries one that is not blank.
+--   Operation 43  — the entry instant [Place] stamps is the call's injected now, never a
+--                   caller's value (Term entry instant: it is no claim).
 --   Instance 2    — two holds in one database instance do not share a hold id (with one
 --                   instance in the model, Identity 4 and Identity 8 in one state).
 -- Invariant 1 and 3.1 compare a hold with what it was: the page keeps no history of a hold
@@ -36,7 +40,8 @@
 -- found, back to the placement, and reads a version against the versions that built it, as
 -- duplicate-prevention.als reads a recording instant against the record that opened its
 -- guard. A field changed and changed back leaves the fields as recorded; that sequence is
--- the TLA+ model's. Invariant 4.2 and 6.1 are checked by legal-hold.tla too
+-- the TLA+ model's, which checks the two instants it carries across steps
+-- (Inv1_1_PlacementFieldsFixed). Invariant 4.2 and 6.1 are checked by legal-hold.tla too
 -- (Inv_HoldIndependence, Inv_TemporalOrdering), so the two models cross-check them; there
 -- the clock only advances, while here a call's now is any reading and a caller may supply
 -- either instant, so 6.1 rests on Operation 17's guard alone.
@@ -50,7 +55,7 @@
 --   instant) that the atom stores no aggregate to compare with (State 8, Aggregate 2): both
 --   are the TLA+ model's (4.1 is Inv_HoldIndependence there). Invariant 8 (no hold deleted;
 --   the hold set never shrinks) compares two readings, and a deleted hold leaves nothing in
---   one state to read.
+--   one state to read: the TLA+ model checks it across steps (Inv8_2_HoldSetNeverShrinks).
 --
 -- SCOPE
 -- A hold version is what one admitted call leaves: [Place] records a hold in active from
@@ -78,6 +83,9 @@
 --     a shape.
 --   - The order of [Release]'s refusals (the Decisions entry of 2026-10-24): the answer, not
 --     the record.
+--   - The form of a supplied instant (Term supplied instant, Execution Contract Input 3): a
+--     value naming no one point in time is malformed and refused as invalid-request, which
+--     writes nothing; an instant here is an integer, already one point in time.
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
@@ -150,8 +158,9 @@ sig Hold {
     placedBy      : lone Str,        -- placing actor
     holdReason    : lone Str,        -- hold reason
     placedAt      : lone Int,        -- placement instant
+    enteredAt     : lone Int,        -- entry instant (Operation 43)
     caseRef       : lone Str,        -- case reference (State 3: may be absent)
-    state         : set HoldState,   -- the hold state (State 1)
+    state         : set HoldState,   -- the hold state (Invariant 2.1)
     releasedBy    : lone Str,        -- releasing actor (State 4)
     releaseReason : lone Str,        -- release reason (State 4)
     releasedAt    : lone Int,        -- release instant (State 4)
@@ -214,12 +223,13 @@ pred placeWrites[c : PlaceCall, h : Hold] {
     nonBlank[c.placedByIn]                             -- Operation 5
     nonBlank[c.holdReasonIn]                           -- Operation 6
     no c.caseRefIn or c.caseRefIn not in Blank         -- Operation 7
-    no c.placedAtIn or c.placedAtIn <= c.now           -- Operation 8, 40; Backdating 2
+    no c.placedAtIn or c.placedAtIn <= c.now           -- Operation 8
     h.holdId     = c.allocatedId                       -- Identity 2, 3
     h.recordRef  = c.recordRefIn
     h.placedBy   = c.placedByIn
     h.holdReason = c.holdReasonIn
     h.placedAt   = resolved[c.placedAtIn, c.now]       -- Operation 10, Logic confinement 12
+    h.enteredAt  = c.now                               -- Operation 43, Logic confinement 11
     h.caseRef    = c.caseRefIn
     h.state      = Active                              -- Operation 2
     no h.releasedBy
@@ -235,6 +245,7 @@ pred keepsPlacement[pre, h : Hold] {
     h.placedBy   = pre.placedBy
     h.holdReason = pre.holdReason
     h.placedAt   = pre.placedAt
+    h.enteredAt  = pre.enteredAt
     h.caseRef    = pre.caseRef
 }
 
@@ -245,7 +256,7 @@ pred releaseWrites[pre : Hold, c : ReleaseCall, h : Hold] {
     Released not in pre.state                          -- Operation 14
     nonBlank[c.releasedByIn]                           -- Operation 15
     nonBlank[c.releaseReasonIn]                        -- Operation 16
-    no c.releasedAtIn or c.releasedAtIn <= c.now       -- Operation 18, 41
+    no c.releasedAtIn or c.releasedAtIn <= c.now       -- Operation 18
     not (resolved[c.releasedAtIn, c.now] < pre.placedAt)   -- Operation 17
     keepsPlacement[pre, h]
     h.state         = Released                         -- Operation 19
@@ -278,8 +289,8 @@ pred recorded[h : Hold] {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- A_Invariant_1_1: every placement field of a hold — hold id, record reference, placing
--- actor, hold reason, placement instant, case reference — is the one its [Place] recorded,
--- however many calls came after.
+-- actor, hold reason, placement instant, entry instant, case reference — is the one its
+-- [Place] recorded, however many calls came after.
 assert A_Invariant_1_1 {
     all h : Hold | recorded[h] implies all o : originOf[h] {
         h.holdId     = o.holdId
@@ -287,6 +298,7 @@ assert A_Invariant_1_1 {
         h.placedBy   = o.placedBy
         h.holdReason = o.holdReason
         h.placedAt   = o.placedAt
+        h.enteredAt  = o.enteredAt
         h.caseRef    = o.caseRef
     }
 }
@@ -319,7 +331,7 @@ assert A_Invariant_3_1 {
 check A_Invariant_3_1 for 4 but 4 Int
 
 -- A_Invariant_4_2: a released hold was stood in released by a [Release] that named its own
--- hold id, not by a release of another hold over the same record (Non-goal 10, Operation 20).
+-- hold id, not by a release of another hold over the same record (Non-goal 10, Invariant 4.1).
 assert A_Invariant_4_2 {
     all h : Hold | (recorded[h] and Released in h.state) implies all r : firstRelease[h] {
         r.writtenBy in ReleaseCall
@@ -374,6 +386,13 @@ assert A_Invariant_7_3 {
 }
 check A_Invariant_7_3 for 4 but 4 Int
 
+-- A_Invariant_7_4: every hold carries its entry instant (Check 2.5), the instant the atom
+-- stamped when it recorded the hold, whether or not the caller supplied a placement instant.
+assert A_Invariant_7_4 {
+    all h : Hold | recorded[h] implies one h.enteredAt
+}
+check A_Invariant_7_4 for 4 but 4 Int
+
 -- A_State_5: an active hold carries no releasing actor, release reason or release
 -- instant, so no reading of the stored fields takes an active hold for an ended one (Term
 -- held at an instant).
@@ -398,6 +417,16 @@ assert A_Operation_7 {
     all h : Hold | recorded[h] implies (no h.caseRef or h.caseRef not in Blank)
 }
 check A_Operation_7 for 4 but 4 Int
+
+-- A_Operation_43: the entry instant the version [Place] wrote carries is the now injected
+-- for that call, whatever placement instant the caller supplied: no caller sets it (Term
+-- entry instant). That later versions keep it is Invariant 1.1's; that it is there at all
+-- is Invariant 7.4's.
+assert A_Operation_43 {
+    all h : Hold | (recorded[h] and h.writtenBy in PlaceCall and some h.enteredAt)
+        implies h.enteredAt = h.writtenBy.now
+}
+check A_Operation_43 for 4 but 4 Int
 
 -- A_Instance_2: two holds placed by different [Place] calls never share a hold id — two
 -- holds over one record included (Identity 8, Concurrency 3).
@@ -424,10 +453,12 @@ run ShowPlacedWithoutCase {
     some h : Hold | recorded[h] and h.state = Active and no h.caseRef
 } for 4 but 4 Int
 
--- ShowBackdatedPlacement: a hold whose placement instant the caller set below now
--- (Operation 10, Backdating 1).
+-- ShowBackdatedPlacement: a hold whose placement instant the caller set below now, so its
+-- placement instant (the claim) precedes its entry instant (the stamp) (Operation 10,
+-- Operation 43).
 run ShowBackdatedPlacement {
     some h : Hold | recorded[h] and h.writtenBy in PlaceCall and h.placedAt < h.writtenBy.now
+        and h.placedAt < h.enteredAt
 } for 4 but 4 Int
 
 -- ShowReleased: a hold released, its release fields stamped (the settlement).

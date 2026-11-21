@@ -886,7 +886,7 @@ First half 6: The first half MUST NOT re-read the predicate BEFORE taking the cr
 First half 7: The first half MUST NOT write BEFORE re-reading the predicate under the critical section.
 First half 9: IF a re-drive lands under-legal-hold THEN the first half MUST leave the entry open and MUST NOT count the entry against Audit Trail's compensation window.
 First half 10: The first half MUST re-drive an entry left open under a hold on the first run after the hold is released.
-First half 11: IF a hold over an open entry is released THEN the first half MUST count the entry's Audit Trail compensation window from the instant of the first run that reads no active hold over the event, AND MUST NOT count the window from a release instant the Legal Hold records carry, which a caller may have supplied and backdated (Legal Hold Operation 39, Operation 41).
+First half 11: IF a hold over an open entry is released THEN the first half MUST count the entry's Audit Trail compensation window from the instant of the first run that reads no active hold over the event, AND MUST NOT count the window from a release instant the Legal Hold records carry, which a caller may have supplied and backdated (Legal Hold Operation 39, Operation 18).
 First half 12: The first half MUST take as upper edge the retention policy of the audit instance the first half reads, under which the Purged retention (Retention Window Invariant 10.1), the seal record (Audit Trail retention policy 5), the destruction record and the erasure outcome (Execution Contract Database 3, Execution Contract Database 4) stand indefinitely.
 First half 13: The first half MUST NOT record an audit.reconciliation event.
 ```

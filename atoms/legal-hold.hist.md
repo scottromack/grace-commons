@@ -43,7 +43,9 @@ Deleted: Identity 6. Execution Contract Logic confinement 10 owns it.
 ### Structure › State
 
 ```
+Deleted: State 1. Invariant 2.1 owns it.
 Deleted: State 6. Invariant 3.2 owns the absent re-activation.
+Deleted: State 7. Invariant 8.1 owns it.
 Deleted: State 9. Non-goal 9 owns the case lifecycle.
 ```
 
@@ -62,12 +64,15 @@ Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 Deleted: Operation 9. Execution Contract Logic confinement 12 owns it.
 Deleted: Operation 18a. Execution Contract Logic confinement 12 owns it.
+Deleted: Operation 20. Invariant 4.1 owns it.
 Deleted: Operation 22. Execution Contract Database 3 owns it.
 Deleted: Operation 32. Execution Contract Query 3 and Operation 23 own it.
 Deleted: Operation 33. Execution Contract Query 3 and Operation 23 own it.
 Deleted: Operation 35. Capability requirement 1 owns it.
 Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 40. Operation 8 and Operation 10 own it.
+Deleted: Operation 41. Operation 17 and Operation 18 own it.
 Deleted: Operation 42. Execution Contract Refusal 1 owns it.
 ```
 
@@ -100,4 +105,17 @@ Deleted: Non-goal 16. Execution Contract Database 4 owns it.
 ```
 Deleted: Concurrency 1. Execution Contract Database 2 owns it.
 Deleted: Concurrency 2. Execution Contract Database 2 owns it.
+```
+
+### Edge cases › Back-dating a placement
+
+```
+Deleted: Backdating 1. Operation 10 owns it.
+Deleted: Backdating 2. Operation 8 owns it.
+```
+
+### Edge cases › The aggregate question
+
+```
+Deleted: Aggregate 3. Instance 7 owns it.
 ```
