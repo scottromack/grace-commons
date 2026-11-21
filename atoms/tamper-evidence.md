@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Tamper Evidence answers one question: has this set of records changed since it was sealed? A seal is a permanent record holding a proof — a mathematical fingerprint of the records as they stood when sealed — and checking the seal recomputes the fingerprint over the records presented and compares the two, so any change since sealing shows. The pattern detects tampering rather than preventing it: someone who can rewrite both the records and the seal can rewrite both, and only a record of the seal kept beyond their reach, which a separate pattern supplies, defeats that. It works the same with any fingerprinting method that has no known way to fake a match and that anyone holding the records and the seal can check, and on its own it does not say when or by whom records were changed, who made a seal, or whether a seal's time can be trusted; each of those is a separate pattern built on top. This is the mechanism behind sealing financial transaction journals, medical-record change logs and payment-card access logs so auditors can confirm nothing was rewritten, and Git's commit history (a widely used system for tracking changes to software) rests on the same idea.
+Tamper Evidence answers one question: has this set of records changed since it was sealed? Sealing records evidence, a permanent record holding a proof — a mathematical fingerprint of the records as they stood when sealed — and checking the evidence recomputes the fingerprint over the records presented and compares the two, so any change since sealing shows. The pattern detects tampering rather than preventing it: someone who can rewrite both the records and the evidence can rewrite both, and only a record of the evidence kept beyond their reach, which a separate pattern supplies, defeats that. It works the same with any fingerprinting method that has no known way to fake a match and that anyone holding the records and the evidence can check, and on its own it does not say when or by whom records were changed, who sealed, or whether the sealing instant can be trusted; each of those is a separate pattern built on top. This is the mechanism behind sealing financial transaction journals, medical-record change logs and payment-card access logs so auditors can confirm nothing was rewritten, and Git's commit history (a widely used system for tracking changes to software) rests on the same idea.
 
 ---
 
@@ -27,7 +27,7 @@ Tamper Evidence answers one question: has this set of records changed since it w
 <details markdown="block">
 <summary>WHY</summary>
 
-A regulated record set must answer one question provably: *have these been altered since they were sealed?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more: it says whether a record set changed since a seal, never when it changed, which belongs to the patterns that own time and reach. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
+A regulated record set must answer one question provably: *have these been altered since they were sealed?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more: it says whether a record set changed since it was sealed, never when it changed, which belongs to the patterns that own time and reach. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the evidence rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
 
 </details>
 
@@ -42,10 +42,9 @@ Identity 4: The business caller MUST NOT supply an evidence id.
 Identity 5: The atom MUST NOT reuse an evidence id.
 Identity 6: The atom MUST NOT identify evidence by the record set reference.
 Identity 7: The atom MUST NOT identify evidence by sealing instant.
-Identity 8: Two seals over one record set MUST carry two evidence ids.
+Identity 8: Two evidence over one record set MUST carry two evidence ids.
 ```
 
-NOTE: open 2026-10-22-a — the evidence id's source is the host's allocation under Identity (Identity 2), not a Capability requirement.
 
 NOTE: watch the allocation ban (Identity 3).
 
@@ -54,6 +53,8 @@ Term evidence: one recorded commitment over a record set — an [Evidence]; carr
 Term evidence id: the opaque value naming one evidence — an [Evidence Id].
 
 Term record set reference: the opaque reference naming what was sealed — a [Record Set Reference]; the host owns what a record set is.
+
+Term sealed record set: the record set the record set reference names at the call of [Seal], over which the mechanism computes the proof (Term cryptographic material); an original record set that differs from it is a changed one.
 
 Term seam: the atom's I/O boundary; the host injects the clock reading, the evidence id, the cryptographic material and record set match here.
 
@@ -104,14 +105,16 @@ Capability requirement 3: The deployment MUST declare the deployment's mechanism
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
 Capability requirement 6: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
-Capability requirement 7: The deployment MUST supply, at the seam, a seal check that never answers held over an original record set that differs from the record set presented at [Seal] (Invariant 3.2).
-Capability requirement 8: The deployment MUST supply, at the seam, a seal check that never answers failed over an original record set that does not differ from the record set presented at [Seal] while no anchor change EXISTS for the recorded proof (Invariant 3.1).
+Capability requirement 7: The deployment MUST supply, at the seam, a seal check that never answers held over an original record set that differs from the sealed record set (Invariant 3.2).
+Capability requirement 8: The deployment MUST supply, at the seam, a seal check that never answers failed over an original record set that does not differ from the sealed record set while no anchor change EXISTS for the recorded proof (Invariant 3.1).
 Capability requirement 9: The deployment MUST supply, at the seam, a seal check that answers unavailable ONLY IF the mechanism's verification function consults the mechanism's own external anchor AND that anchor is unavailable at verify time.
+Capability requirement 10: The deployment MUST present the record set a record set reference names in one form at [Seal] and at [Verify].
+Capability requirement 11: The deployment MUST supply at the seam, for each [Seal] call, an evidence id no evidence has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 12: The deployment MUST supply, at the seam, a seal check that answers faulted ONLY IF the mechanism's verification function cannot run to a result at the seam for a cause other than an unavailable anchor.
 ```
 
 Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
 
-NOTE: open 2026-11-05-c — a mechanism whose verification fails at the seam with no anchor consulted has no arm: Capability requirement 8 bars failed there and Capability requirement 9 bars unavailable (Operation 17, Operation 18).
 
 ### Operations
 
@@ -129,7 +132,7 @@ read()
 
 Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reason the deployment's mechanism gives at the seam where the mechanism cannot compute the proof, and blank where the mechanism computes one; [Seal]'s mechanism-failure carries the reason (Operation 9).
 
-Term verification failure: proof-invalid | record-set-mismatch | mechanism-verification-unavailable — the reasons [Verify] gives for a failed verification.
+Term verification failure: proof-invalid | record-set-mismatch | mechanism-verification-unavailable | mechanism-verification-failure — the reasons [Verify] gives for a failed verification.
 
 ```
 Operation 1: [Seal] MUST record the proof the deployment supplies at the seam.
@@ -147,9 +150,9 @@ Operation 13: [Verify] MUST take the original record set.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
 Operation 15: IF no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
 Operation 16: IF evidence EXISTS for the evidence id AND record set match EQUALS no THEN [Verify] MUST answer failed-verification carrying record-set-mismatch.
-Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer failed-verification carrying mechanism-verification-unavailable.
-Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer failed-verification carrying proof-invalid.
-Operation 19: IF record set match EQUALS yes AND seal check EQUALS held THEN [Verify] MUST answer verified.
+Operation 17: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer failed-verification carrying mechanism-verification-unavailable.
+Operation 18: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer failed-verification carrying proof-invalid.
+Operation 19: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS held THEN [Verify] MUST answer verified.
 Operation 20: [Verify] MUST NOT write.
 Operation 22b: The atom MUST NOT judge record set match.
 Operation 25: The business caller MUST NOT supply sealing instant.
@@ -159,6 +162,7 @@ Operation 28: [Read] MUST answer EVERY evidence field an evidence carries.
 Operation 29: [Read] MUST NOT write.
 Operation 33: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 Operation 34: IF a string input EXCEEDS the string cap THEN [Seal] MUST answer invalid-request.
+Operation 35: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS faulted THEN [Verify] MUST answer failed-verification carrying mechanism-verification-failure.
 ```
 
 NOTE: watch the cap's refusal (Operation 34).
@@ -169,11 +173,11 @@ Term string cap: the bound on a string input's length in Unicode code points; 4,
 
 Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original record set is the record set the evidence's record set reference names. A different record set answers no; the named record set answers yes even where its content differs, and the content difference is for seal check to decide. The atom cannot judge it: record set reference is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
-Term seal check: held | failed | unavailable — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own proof check over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
+Term seal check: held | failed | unavailable | faulted — the mechanism's verification function, run over the presented record set against the recorded proof; faulted where it cannot run to a result at the seam for a cause other than an unavailable anchor, the counterpart of the mechanism failure reason at [Seal]. Named for the seal because [Actor Identity](./actor-identity.md) declares its own proof check over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
 
 Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
-Term verification set: the evidence's own fields, the presented original record set, the host-injected record set match, where the mechanism's verification function consults one, that mechanism's own external anchor, and the seal check computed over them at the seam; everything [Verify] is allowed to read, and nothing else.
+Term verification set: the evidence the lookup of the evidence id finds, or the lookup miss where it finds none, taking each value the host injects as given and consulting none, the presented original record set, the host-injected record set match, where the mechanism's verification function consults one, that mechanism's own external anchor, and the seal check computed over them at the seam; everything [Verify] is allowed to read, and nothing else.
 
 Term anchor change: a change in what the mechanism's own external anchor answers the mechanism's verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records; a mechanism whose verification function consults no external anchor has none.
 
@@ -188,6 +192,7 @@ The case space, and the rule that owns each case:
 | [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | evidence found, wrong records presented | [Record Set Mismatch] | none (Operation 16) |
 | [Verify] | right records, seal check unavailable | [Mechanism Verification Unavailable] | none (Operation 17) |
+| [Verify] | right records, seal check faulted | [Mechanism Verification Failure] | none (Operation 35) |
 | [Verify] | right records, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19, Operation 33) |
 | [Read] | any call | every evidence, with its stored fields | none (Operation 27 through 29) |
@@ -202,18 +207,19 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
 - **Invariant 2 — Detectability of tampering.**
   ```
-  Invariant 2.1: IF record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND the original record set differs from the record set presented at [Seal] THEN [Verify] MUST answer failed-verification carrying proof-invalid.
+  Invariant 2.1: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND seal check DOES NOT EQUAL faulted AND the original record set differs from the sealed record set THEN [Verify] MUST answer failed-verification carrying proof-invalid.
   Invariant 2.2: A deployment MUST NOT rest detectability on a mechanism that is not sound.
   ```
 - **Invariant 3 — Record-set binding.**
   ```
-  Invariant 3.1: IF no anchor change EXISTS for a recorded proof AND the seal check DOES NOT EQUAL unavailable THEN the recorded proof MUST verify against the record set presented at [Seal].
-  Invariant 3.2: A recorded proof MUST NOT verify against a record set that differs from the record set presented at [Seal].
+  Invariant 3.1: IF no anchor change EXISTS for a recorded proof AND the seal check DOES NOT EQUAL unavailable AND the seal check DOES NOT EQUAL faulted THEN the recorded proof MUST verify against the sealed record set.
+  Invariant 3.2: A recorded proof MUST NOT verify against a record set that differs from the sealed record set.
   ```
 - **Invariant 4 — Verification self-containment given the originating records.**
   ```
   Invariant 4.1: [Verify] MUST consult the verification set.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
+  Invariant 4.4: [Verify] MUST take the proof, the record set reference and the record set match as values the host injects at the seam.
   ```
 - **Invariant 5 — Id stability.**
   ```
@@ -226,7 +232,7 @@ Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuse
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
   ```
-  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set AND no verification answering mechanism-verification-failure EXISTS among the two verifications AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Mechanism opacity.**
   ```
@@ -242,7 +248,6 @@ NOTE: watch the external answer that moves (Invariant 3.1, Invariant 7.1).
 
 NOTE: watch the host's state (Invariant 4.3).
 
-NOTE: open 2026-11-05-a — the verification set holds the evidence's own fields, yet [Verify] reads the seal records to find no evidence (Operation 15), and the seam's reads of the proof, the reference and the record set match are placed nowhere (Invariant 4.1, Invariant 4.3).
 
 Term contract: the rules of this specification, which a composing pattern relies on.
 
@@ -256,7 +261,7 @@ A bank's settlement system seals each day's transaction journal: `seal(journal_2
 
 ### Healthcare — EHR change-log integrity under HIPAA and 21 CFR Part 11
 
-A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new seal. `verify(seal, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log, not a modification of yesterday's; if anyone retroactively edited yesterday's entry, every seal made over that entry before the edit would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
+A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new evidence. `verify(evidence, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log, not a modification of yesterday's; if anyone retroactively edited yesterday's entry, every evidence made over that entry before the edit would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
 
 ### Source control — Git's commit DAG
 
@@ -270,11 +275,11 @@ A law firm timestamps an executed contract via a qualified Time-Stamp Authority 
 
 A payment processor seals each day's cardholder-data access log: `seal(pan_access_log_2026-05-10, processor_key) → evidence_p41`. The mechanism is a SHA-256 hash chain — each entry's hash includes the previous entry's hash and the entry's content — whose tail is signed each day under the processor's key, the [Proof] carrying the signature and the public key that checks it. A chain keyed by a shared secret, such as an HMAC (Hash-based Message Authentication Code) chain, is outside the contract: checking it needs the secret, which the verification set does not carry (Invariant 8.1). PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data; here applied to PAN, the Primary Account Number) Requirement 10.5 mandates audit-log integrity; the seal is the structural form. A QSA's (Qualified Security Assessor — a PCI-certified auditor) annual assessment runs verify over the prior year's daily logs; any tampering — whether to hide a cardholder-data exfiltration or to forge access for a fraudulent dispute — is detected from the logs themselves.
 
-The mechanic is identical across all five. What differs: the mechanism family (hash chain, Merkle tree, qualified timestamp), the frequency of sealing (per-commit, per-amendment, per-document, per-day), the anchoring story (none, RFC 3161 TSA, blockchain), and the composing patterns active around it (Actor Identity for authored seals, Trusted Timestamping for qualified anchors, External Anchoring for tamper-proof reach, Forensic Attribution for when and by whom a record set changed).
+The mechanic is identical across all five. What differs: the mechanism family (hash chain, Merkle tree, qualified timestamp), the frequency of sealing (per-commit, per-amendment, per-document, per-day), the anchoring story (none, RFC 3161 TSA, blockchain), and the composing patterns active around it (Actor Identity for authored evidence, Trusted Timestamping for qualified anchors, External Anchoring for tamper-proof reach, Forensic Attribution for when and by whom a record set changed).
 
 ### Rejection and verification-failure paths
 
-**Tampering detected — [Proof Invalid].** An incident response team queries a transaction journal seal and presents the journal as it exists now — after a discovered alteration:
+**Tampering detected — [Proof Invalid].** An incident response team queries a transaction journal's evidence and presents the journal as it exists now — after a discovered alteration:
 
 ```
 verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10_altered)
@@ -288,9 +293,9 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10_back
 → verified
 ```
 
-verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the journal changed since the seal.
+verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the journal changed since it was sealed.
 
-**Wrong record set presented — [Record Set Mismatch].** A verifier accidentally presents the wrong day's journal to a seal:
+**Wrong record set presented — [Record Set Mismatch].** A verifier accidentally presents the wrong day's journal to an evidence:
 
 ```
 verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-11)
@@ -304,10 +309,9 @@ The presented record set does not match the [Record Set Reference] the [Evidence
 Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator integrity audit.** A regulator asks *"how do I know these records weren't rewritten after the fact?"* The auditor takes the original record set from the host, the [Evidence Id] from the seal records, and runs [Verify] — independently, with their own implementation of the mechanism's verification function. [Verified] is a structural guarantee, not a procedural promise. Invariants 2 and 3 are the structural answer. A bound on when the records could have been forged is not the atom's to give: a qualified TSA's time on the [Evidence] sets one only through Trusted Timestamping *(forthcoming)* (Non-goal 9).
-- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records and run [Verify] on each over the suspect records as they now stand: [Proof Invalid] says the records changed since that seal, where no anchor change has reached its proof, and [Verified] says they have not. The atom answers that much for each seal and no more. When the records were altered, and who altered them, is Forensic Attribution's *(forthcoming)*, which reads these answers against the times a trusted-timestamping pattern vouches for (Non-goal 9, Non-goal 15, Non-goal 16).
-- **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`. The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to the Content Lock or Document Versioning composing pattern.
+- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records and run [Verify] on each over the suspect records as they now stand: [Proof Invalid] says the records changed since that evidence was recorded, where no anchor change has reached its proof, and [Verified] says they have not. The atom answers that much for each evidence and no more. When the records were altered, and who altered them, is Forensic Attribution's *(forthcoming)*, which reads these answers against the times a trusted-timestamping pattern vouches for (Non-goal 9, Non-goal 15, Non-goal 16).
+- **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`. The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to a composing pattern that locks or versions the document.
 
-NOTE: open 2026-11-05-e — the example names Content Lock and Document Versioning, which roadmap.md carries no row for.
 
 ---
 
@@ -318,16 +322,15 @@ This atom's acceptance is provable: an external auditor clears the conformance c
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST reconstruct EVERY seal from the evidence's stored fields (Invariant 1.1, State 3).
+Check 1.1: An auditor MUST reconstruct EVERY evidence from the evidence's stored fields (Invariant 1.1, State 3).
 Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.3).
 Check 1.3: An auditor MUST confirm that EVERY evidence field of an evidence EQUALS the evidence field in EVERY committed version of the evidence (Invariant 1.1, Execution Contract Generation acceptance 1, Execution Contract Database 5).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
-Check 3.1: IF the record set match of a verification over an original record set carrying a single-byte change to the record set presented at [Seal] EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
-
-NOTE: open 2026-11-02-a — Check 3.1 exercises the failure direction alone, over one named differing set (a single-byte change) where Invariant 2.1 covers any, and no check has the record set presented at [Seal] answer verified (Operation 19, Invariant 3.1).
+Check 3.1: IF the record set match of a verification over an original record set carrying a single-byte change, the least difference, to the sealed record set EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
+Check 3.2: IF the record set match of a verification over the sealed record set EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted AND no anchor change EXISTS for the recorded proof THEN an auditor MUST confirm that the verification answers verified (Invariant 3.1, Operation 19).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
-Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
+Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid, mechanism-verification-unavailable and mechanism-verification-failure as four distinct reasons (Operation 16, Operation 17, Operation 18, Operation 35).
 ```
 
 ### External checks
@@ -351,46 +354,41 @@ Non-goal 3: The atom MUST NOT anchor a proof once the seal lands.
 Non-goal 4: The atom MUST NOT choose the mechanism's hash function.
 Non-goal 5: The atom MUST NOT choose the mechanism's signature scheme.
 Non-goal 6: The atom MUST NOT bind a proof to a named actor.
-Non-goal 7: A deployment needing an attributable seal MUST compose Actor Identity.
+Non-goal 7: A deployment needing attributable evidence MUST compose Actor Identity.
 Non-goal 8: The atom MUST NOT vouch for the clock.
 Non-goal 9: A deployment whose time of seal carries legal force MUST compose a trusted-timestamping pattern.
 Non-goal 10: The atom MUST NOT purge an evidence alongside purged records.
 Non-goal 11: The atom MUST NOT define a record set.
-Non-goal 12: The host MUST present a record set alike at seal time and at verify time.
-Non-goal 13: The atom MUST NOT deduplicate two seals over one record set.
-Non-goal 14: A pattern needing one seal per record set per cadence MUST own that coordination.
+Non-goal 13: The atom MUST NOT deduplicate two [Seal] calls over one record set.
+Non-goal 14: A pattern needing one [Seal] call per record set per cadence MUST own that coordination.
 Non-goal 15: The atom MUST NOT bound when a record set changed.
 Non-goal 16: A deployment needing when a record set changed MUST compose a forensic-attribution pattern.
 Non-goal 17: A deployment needing a record set re-sealed under a sound mechanism MUST compose a mechanism-registry pattern.
 ```
 
-NOTE: open 2026-11-05-b — *the record set presented at [Seal]* is declared by no Term, [Seal] taking a reference and no set, and Non-goal 12 obliges the host to present it alike at both times under a Non-goal heading.
 
 Where the atom breaks down: when the host cannot supply a record set reference whose contents are reproducibly addressable at verify time; when the chosen mechanism commits to the records' identity and not their content; when the proof records and the sealed records share an adversary with write access to both and no external anchor exists.
 
 ## Edge cases
 
-NOTE: open 2026-11-05-d — the headings *Atomicity of a seal* and *Retention coupling* stand beside spec-format's *Atomic writes* and *Retention asymmetry* rows, and the rule labels follow the headings.
+### Atomic writes
 
-### Atomicity of a seal
-
-### Concurrent seals
+### Concurrency
 
 ```
-Concurrent seal 1: Two seals over one record set MUST stand as independent evidence.
-Concurrent seal 2: The atom MUST NOT order two seals over one record set.
+Concurrency 1: Two [Seal] calls over one record set MUST record independent evidence.
+Concurrency 2: The atom MUST NOT order two [Seal] calls over one record set.
 ```
 
-NOTE: the evidence a [Read] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, since the atom orders no seal (Concurrent seal 2, Operation 27).
+NOTE: the evidence a [Read] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, since the atom orders no seal (Concurrency 2, Operation 27).
 
-NOTE: watch the order an atom forbids (Concurrent seal 2).
+NOTE: watch the order an atom forbids (Concurrency 2).
 
-NOTE: open 2026-10-21-f — *seal* names both the action [Seal] and the evidence it records (Identity 8, Concurrent seal 1).
 
-### Retention coupling
+### Retention asymmetry
 
 ```
-Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
+Retention asymmetry 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
 ```
 
 ### Verification caching
@@ -405,7 +403,7 @@ Verification caching 2: An implementation MAY answer a cached verification resul
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
-Composition note 3: A deployment needing an attributable seal MUST supply an actor's credential as the mechanism credential.
+Composition note 3: A deployment needing attributable evidence MUST supply an actor's credential as the mechanism credential.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
 ```
 
@@ -417,13 +415,13 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an adversary; the mechanism; the seal records; an evidence; a seal; a verification.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an adversary; the mechanism; the seal records; an evidence; a verification.
 
 Term records: evidence — one commitment, carrying evidence id, record set reference, proof, sealing instant and, where the mechanism anchors, anchoring instant.
 
 Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, cache, declare, renumber, add, refuse, evaluate.
 
-Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
+Term value sets: record set match = yes | no. seal check = held | failed | unavailable | faulted. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
 Term bounds: string cap.
 
@@ -431,11 +429,11 @@ Term cadences: empty — a seal cadence is the composing pattern's (Composition 
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, unkeyed mechanism, evidence field, deletion surface, revocation surface, cryptographic material, record set match, seal check, original record set, verification set, anchor change, contract, mechanism failure reason, verification failure, string cap.
+Term terms: now, evidence, evidence id, record set reference, seam, transition, business caller, sealed, proof, sealing instant, anchoring instant, mechanism credential, unkeyed mechanism, evidence field, deletion surface, revocation surface, cryptographic material, record set match, seal check, sealed record set, original record set, verification set, anchor change, contract, mechanism failure reason, verification failure, string cap.
 
 #### Evidence
 
-The record this atom defines: a permanent, verifiable seal over a record set — cryptographic evidence of whether the set has been altered since it was sealed. It is produced by [Seal] and carries its [Evidence Id], [Record Set Reference], [Proof], [Sealing Instant], and optional [Anchoring Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke, modify, or re-anchor it.
+The record this atom defines: a permanent, verifiable commitment over a record set — cryptographic evidence of whether the set has been altered since it was sealed. It is produced by [Seal] and carries its [Evidence Id], [Record Set Reference], [Proof], [Sealing Instant], and optional [Anchoring Instant]; nothing about it changes once recorded, and the atom offers no surface to revoke, modify, or re-anchor it.
 
 Kind: Type
 
@@ -540,7 +538,7 @@ Projection: verified
 
 #### Failed Verification
 
-The outcome [Verify] returns when the [Evidence] exists but does not verify, carrying a reason — [Proof Invalid], [Record Set Mismatch], or [Mechanism Verification Unavailable]. Distinct from [Not Known], which is a lookup miss.
+The outcome [Verify] returns when the [Evidence] exists but does not verify, carrying a reason — [Proof Invalid], [Record Set Mismatch], [Mechanism Verification Unavailable] or [Mechanism Verification Failure]. Distinct from [Not Known], which is a lookup miss.
 
 Kind:       Member
 Member of:  the Verify outcome
@@ -582,6 +580,15 @@ Kind:       Member
 Member of:  the Failed Verification reason
 Role:       Outcome
 Projection: mechanism-verification-unavailable
+
+#### Mechanism Verification Failure
+
+The [Failed Verification] reason returned when the mechanism's verification function cannot run to a result at the seam for a cause other than an unavailable anchor — the counterpart of [Mechanism Failure] at [Seal]. It is not a verdict on the records: it says the check could not be made, distinct from [Proof Invalid] and from [Mechanism Verification Unavailable].
+
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: mechanism-verification-failure
 
 #### Invalid Request
 
@@ -634,6 +641,7 @@ Projection: storage-failure
 [Proof Invalid]: #proof-invalid
 [Record Set Mismatch]: #record-set-mismatch
 [Mechanism Verification Unavailable]: #mechanism-verification-unavailable
+[Mechanism Verification Failure]: #mechanism-verification-failure
 [Invalid Request]: #invalid-request
 [Mechanism Failure]: #mechanism-failure
 [Storage Failure]: #storage-failure
@@ -674,18 +682,10 @@ It inherits from:
 
 ```
 status: doing
-formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrent seal 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 8.2, Capability requirement 7 through 9 (the deployment's seal check, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10; Concurrent seal 2; Verification caching 1 and 2, 2026-11-12
+formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10 and 35; Concurrency 2; Verification caching 1 and 2, 2026-11-12
 last gate: 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
-open:
-- 2026-11-05-a · refining · Invariant 4.1, 4.3; Operation 15; Term verification set; Term seam · the verification set holds the evidence's own fields, yet [Verify] reads the seal records to find that no evidence exists for an id (Operation 15), and where the seam gets the proof, the record set reference and the record set match is placed nowhere, nor what [Verify] answers when that read fails beyond Execution Contract Read 1; a host-injected value is received, not consulted, and no rule says so → a lookup miss answers from the verification set alone; the seam's proof, record set reference and match are host-injected values, received, and a rule says so (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-05-b · refining · Non-goal 12; Invariant 2.1, 3.1, 3.2; Capability requirement 7, 8; Check 3.1 · *the record set presented at [Seal]* is declared by no Term, since [Seal] takes a reference and no set, and seven rules rest on it; Non-goal 12 obliges the host to present a record set alike at seal time and at verify time under a Non-goal heading → declare the record set the reference names at the call of [Seal], and place the host's obligation as a capability requirement
-- 2026-11-05-c · refining · Capability requirement 8, 9; Operation 17, 18 · a mechanism whose verification function fails at the seam where no anchor is consulted has no arm: Capability requirement 8 bars failed over an unchanged record set while no anchor change exists, Capability requirement 9 bars unavailable unless an anchor is consulted, and [Seal]'s mechanism-failure has no verify counterpart → add the reason mechanism-verification-failure, the counterpart of [Seal]'s mechanism-failure (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-05-d · refining · Edge cases headings; Seal atomicity, Concurrent seal, Retention coupling labels · the headings *Atomicity of a seal* and *Retention coupling* stand beside spec-format's table rows *Atomic writes* and *Retention asymmetry*, and the tombstoned and live labels follow the headings, each cited by name in other pages → spec-format's table spellings bind the headings and labels; the old labels leave tombstones naming the new, and citing pages re-point (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-05-e · refining · Examples (false-tamper-claim disproof) · the example names Content Lock and Document Versioning as the composing patterns, with no link and no roadmap row to mark them forthcoming (M-orphan-forthcoming), so a reader cannot tell whether either exists → the example names the composing patterns in words, with no pattern names and no roadmap rows (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-10-21-f · refining · Summary; Identity 8; Concurrent seal 1 · seal names both the action [Seal] and the evidence it records → one name each
-- 2026-11-02-a · refining · Check 3.1; Operation 19; Invariant 2.1; Invariant 3.1 · Check 3.1 confirms the failure direction alone, over the one differing set of a single-byte change though Invariant 2.1 covers any differing set (Final Critique 17), so a mechanism answering failed on the record set presented at [Seal] meets it, though Operation 19 and Invariant 3.1 oblige verified there; no rule of the corpus says a spec's checks cover each direction of an invariant, and a positive check carries the same conditions Check 3.1 has just been cured to name (record set match, seal check not unavailable, no anchor change) → widen the invariant or narrow the check, recording the cost; an unreachable state named in an invariant is retired or made reachable; a failure-sensitive invariant gets both directions checked (decided 2026-11-19, group 6 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-10-22-a · refining · Identity 2; Capability requirement · the evidence id's source is named as the host's allocation under Identity and not among the Capability requirements, where spec-format's atom shape lists an id source under Capability requirement; Event Log routed the same form (its 2026-10-22-b), twenty atoms writing the host's allocation under Identity and four having the deployment supply id material under Capability requirement 2 → one form for the corpus, as the seam normalization made one for now
+open: none
 ```
 
 <details markdown="block">

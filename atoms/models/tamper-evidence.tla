@@ -48,7 +48,7 @@
 \*                    (State 7 with it)                            (State2_NoTransitionOut)
 \*   Operation 2    — exactly one evidence per successful seal, a
 \*                    record set or instant already sealed included
-\*                    (Identity 6, 7, Concurrent seal 1 through it) (Op2_OneEvidencePerSeal)
+\*                    (Identity 6, 7, Concurrency 1 through it) (Op2_OneEvidencePerSeal)
 \*   Operation 14   — [Verify] answers exactly one outcome         (Op14_ExactlyOneAnswer)
 \*   Operation 15   — no evidence under the id: not-known          (Op15_NotKnown)
 \*   Operation 16   — record set match no: record-set-mismatch     (Op16_RecordSetMismatch)
@@ -91,7 +91,7 @@
 \*
 \* BOUNDS (the .cfg)
 \* One record set reference (every second evidence is then over a record set
-\* already sealed: Operation 2, Identity 6 and 8, Concurrent seal 1); two
+\* already sealed: Operation 2, Identity 6 and 8, Concurrency 1); two
 \* contents, so a record set presented at [Verify] can differ from the one
 \* presented at [Seal], and two seals over one reference can commit to two
 \* contents; three evidence ids and room for two evidences, so an id names
@@ -414,7 +414,7 @@ State2_NoTransitionOut ==
 \* Op2_OneEvidencePerSeal: a step that records an evidence id the records did
 \* not carry adds exactly one evidence, where an evidence over the same record
 \* set or at the same instant stands already: the atom identifies an evidence
-\* by neither (Operation 2; Identity 6, 7; Concurrent seal 1).
+\* by neither (Operation 2; Identity 6, 7; Concurrency 1).
 Op2_OneEvidencePerSeal ==
     [][(Carried' \ Carried # {}) => Cardinality(Live') = Cardinality(Live) + 1]_vars
 

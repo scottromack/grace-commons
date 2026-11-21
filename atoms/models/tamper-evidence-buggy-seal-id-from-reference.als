@@ -355,7 +355,7 @@ check A_Operation_34 for 4
 
 -- A_Non_goal_13: a [Seal] over a record set reference an earlier evidence carries is
 -- admitted wherever no rule refuses it: the atom deduplicates no two seals over one
--- record set (Non-goal 13, Concurrent seal 1).
+-- record set (Non-goal 13, Concurrency 1).
 assert A_Non_goal_13 {
     all c : SealCall | ((some r : Ev | recorded[r] and C/lt[r.writtenBy, c] and r.ref = c.refIn)
         and c.refIn not in Strings.blank
@@ -386,7 +386,7 @@ run ShowAnchored {
 -- ShowTwoOverOneSet: two evidences over one record set reference at one sealing instant,
 -- under two ids, which the page admits: two seals stand as independent evidence and the
 -- atom identifies an evidence by neither the reference nor the instant (Identity 6, 7,
--- 8; Concurrent seal 1; Non-goal 13).
+-- 8; Concurrency 1; Non-goal 13).
 run ShowTwoOverOneSet {
     some r1, r2 : Ev | recorded[r1] and recorded[r2] and r1.writtenBy != r2.writtenBy
         and r1.ref = r2.ref and r1.sealedAt = r2.sealedAt

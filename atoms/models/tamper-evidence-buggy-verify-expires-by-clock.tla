@@ -315,7 +315,7 @@ State2_NoTransitionOut ==
 \* Op2_OneEvidencePerSeal: a step that records an evidence id the records did
 \* not carry adds exactly one evidence, where an evidence over the same record
 \* set or at the same instant stands already: the atom identifies an evidence
-\* by neither (Operation 2; Identity 6, 7; Concurrent seal 1).
+\* by neither (Operation 2; Identity 6, 7; Concurrency 1).
 Op2_OneEvidencePerSeal ==
     [][(Carried' \ Carried # {}) => Cardinality(Live') = Cardinality(Live) + 1]_vars
 

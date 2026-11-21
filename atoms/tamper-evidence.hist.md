@@ -35,6 +35,7 @@ Entries that record a round or a migration rather than a turn the pattern took.
 - **2026-10-23 — The atom answers only whether a record set changed since its seal; when it changed belongs to the composing patterns.** *Chose:* the atom bounding no time of change (Non-goal 15), a deployment needing one composing a forensic-attribution pattern (Non-goal 16); Check 5.1, the anchored lower bound on a detected tampering, deleted to a trusted-timestamping pattern (Non-goal 9), and Check 5.2, the bound between two seals, to a forensic-attribution pattern; Verification caching 3, no cached result across an anchor change, deleted to an external-anchoring pattern (Non-goal 2), whose question is what a seal answers once its anchor changes; Retention coupling 3, no seal over destroyed records read as proof of their content, deleted to the composing pattern that owns the purge (Retention coupling 2), and Retention coupling 1's tombstone re-pointed there; the Breach forensics scenario answering, for each seal, whether the suspect records changed since it, with the window and the attribution left to Forensic Attribution; the Rejection paths, the Regulator integrity audit, the Financial and Healthcare examples, the [Evidence] and [Verified] entries and the eIDAS reference no longer placing a change in time; the Summary and the Intent saying the same; rules 100 to 98. The anchor change stays on Invariant 3.1 and Invariant 7.1 and in the [Proof Invalid] entry: it keeps the binding and consistency claims [Verify] makes against one seal true for a mechanism whose anchor can change, and says nothing of what such a seal then means. The anchoring instant stays a field the evidence carries (State 4, Operation 4); a bound drawn from it is the trusted-timestamping pattern's. *Over:* the atom keeping a forensic bound on when records changed, which three rounds cured and the next found broken on histories the page permits (Final Critique 6 through 8). *Because:* the maintainer ruled on 2026-10-23, direction (b) of the 02:44Z escalation, that the atom answers only *has this record set changed since this seal*, and that when it changed leaves the atom for Trusted Timestamping, External Anchoring and Forensic Attribution, all forthcoming. Compositions affected: none; Audit Trail's own forensic window (its Check 4.1, seal cadence 1 and 2, seal mechanism 2) rests on [Verify]'s answers and the seal stamps, which stand, and on none of the deleted rules.
 
 - **2026-11-02 — The string cap has a default.** *Chose:* the string cap stated as 4,096 Unicode code points where a deployment declares none, Capability requirement 6 added, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs are a record set reference and a mechanism credential, which is keying material, and a PEM-encoded 4096-bit RSA private key runs to about 3,200 code points; the credential sets the cap.
+- **2026-11-21 — A mechanism's verification fault has its own answer; the host's duties at the seam are capability requirements; the page's edge-case headings and labels take spec-format's spellings.** *Chose:* the seal check gaining the value faulted (Capability requirement 12) and [Verify] answering mechanism-verification-failure on it (Operation 35), the counterpart of [Seal]'s mechanism-failure, with Invariant 2.1 and 3.1 conditioned on neither unavailable nor faulted and Invariant 7.1 excluding a failure as it excludes an outage; Term sealed record set declaring what Invariant 2.1, 3.1 and 3.2 compare with, and Non-goal 12 becoming Capability requirement 10 (the host presents a record set in one form at [Seal] and [Verify]); Capability requirement 11, the deployment supplying an evidence id no evidence has carried, the form Assignment, Approval Step and Notification took, Identity 2 standing; Invariant 4.4, a value the host injects at the seam being taken, not consulted, and Operation 17, 18, 19 and 35 and Invariant 2.1 conditioned on an evidence existing for the id, as Operation 16 is, so a lookup miss answers not-known alone; Check 3.2 checking the sealed record set answers verified, beside Check 3.1's failure direction, which stays at its least difference; the record is *evidence* and the action is [Seal], one name each; the headings *Atomic writes*, *Concurrency* and *Retention asymmetry*, the old labels tombstoned naming the new. *Over:* a seal check of three values that left a faulting mechanism with no arm (Capability requirement 8 barred failed there, Capability requirement 9 barred unavailable), an obligation on the host under a Non-goal heading, a check that proved one direction of Invariant 3.1 and 2.1 alone, and headings that stood beside the table's own rows. *Because:* Scott's directions of 2026-11-19 (rounds/open-line-choices-directions-2.md, items 77 to 80, and group 6 of 2026-11-19T21:32Z); the cost of the check Check 3.1 keeps is that it tries one differing set, the least, where Invariant 2.1 covers any.
 
 ## Migration notes
 
@@ -98,7 +99,13 @@ Deleted: Check 6.2. External check 4 owns it.
 Deleted: External check 3. Execution Contract Conformance 9 owns it.
 ```
 
-### Edge cases › Atomicity of a seal
+### Non-goals
+
+```
+Deleted: Non-goal 12. Capability requirement 10 owns it.
+```
+
+### Edge cases › Atomic writes
 
 ```
 Deleted: Seal atomicity 1. Execution Contract Database 1 owns it.
@@ -106,11 +113,19 @@ Deleted: Seal atomicity 2. Execution Contract Database 1 and Execution Contract 
 Deleted: Seal atomicity 3. Execution Contract Database 3 owns it.
 ```
 
-### Edge cases › Retention coupling
+### Edge cases › Concurrency
 
 ```
-Deleted: Retention coupling 1. The composing pattern that owns the purge owns it (Retention coupling 2): a copy of a purged record set can still verify.
-Deleted: Retention coupling 3. The composing pattern that owns the purge owns it (Retention coupling 2): what a seal over destroyed records proves.
+Deleted: Concurrent seal 1. Concurrency 1 owns it.
+Deleted: Concurrent seal 2. Concurrency 2 owns it.
+```
+
+### Edge cases › Retention asymmetry
+
+```
+Deleted: Retention coupling 1. The composing pattern that owns the purge owns it (Retention asymmetry 2): a copy of a purged record set can still verify.
+Deleted: Retention coupling 2. Retention asymmetry 2 owns it.
+Deleted: Retention coupling 3. The composing pattern that owns the purge owns it (Retention asymmetry 2): what a seal over destroyed records proves.
 ```
 
 ### Edge cases › Verification caching
