@@ -38,6 +38,7 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 ### Structure › Identity model
 
 ```
+Deleted: Identity 4. Execution Contract Logic confinement 3 owns it.
 Deleted: Identity 8. Invariant 7.1 owns it.
 Deleted: Identity 10. Identity 9 and Capability requirement 4 own it.
 ```
@@ -71,10 +72,10 @@ Deleted: Capability requirement 6. Execution Contract Logic confinement 21 owns 
 Deleted: Configuration 1. Capability requirement 2 owns it.
 Deleted: Configuration 2. Operation 48 owns it.
 Deleted: Configuration 3. Capability requirement 3 owns it.
-Deleted: Configuration 4. Operation 49 owns it.
+Deleted: Configuration 4. Execution Contract Logic confinement 3 owns it.
 Deleted: Configuration 5. Capability requirement 4 owns it.
 Deleted: Configuration 6. Capability requirement 5 owns it.
-Deleted: Configuration 7. Capability requirement 6 owns it.
+Deleted: Configuration 7. Execution Contract Logic confinement 21 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -96,6 +97,7 @@ Deleted: Operation 42. Capability requirement 1 owns it.
 Deleted: Operation 43. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 44. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 46. Non-goal 7 owns it.
+Deleted: Operation 49. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 54. Execution Contract Input 1 owns it.
 ```
 

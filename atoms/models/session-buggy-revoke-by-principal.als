@@ -383,7 +383,7 @@ check A_Operation_10 for 4 but 5 Int
 
 -- A_Operation_58: every version of a session carries the digest of the session token the
 -- host allocated for the [Issue] that recorded it: the transition mints no key of its own
--- (Operation 58, Identity 4, Identity 6).
+-- (Operation 58, Identity 6).
 assert A_Operation_58 {
     all r : Sess | recorded[r] implies r.digest = origin[r].hostDig
 }
