@@ -275,7 +275,7 @@ fun pending[s : set Event] : set Step {
 }
 
 -- newestPending: the pending compensation the reverse order takes first, the step declared
--- last (steps complete in declared order) (Capability requirement 1; Invariant 5.1).
+-- last (steps complete in declared order) (Invariant 5.1).
 fun newestPending[s : set Event] : set Step {
     { st : pending[s] | no (pending[s] & ahead.st) }
 }

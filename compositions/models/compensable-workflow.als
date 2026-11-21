@@ -108,8 +108,8 @@
 -- it is admitted (Action wiring 47). No trace, no `var`, no stepping.
 --
 -- NOT MODELED HERE
---   - The parallel compensation order (open 2026-11-03-a): it has no semantics; the model
---     takes the reverse order (Capability requirement 1).
+--   - The compensation order is reverse alone (the parallel order and Capability requirement 1
+--     retired 2026-11-20); the model takes it (Invariant 5.1).
 --   - The re-entry arm's re-run (Action wiring 15 to 19): whether a re-run appends an
 --     attempt marker is open (2026-11-06-a); the model appends none and lets a completion
 --     record or failure event resolve the standing marker.
@@ -120,8 +120,9 @@
 --     (Primitive policy 1 to 18, 26): a refused call writes nothing. The start event is the
 --     definition the state carries; the compensable workflow record and the reads are left
 --     out (Composition state 4 to 10, Action wiring 62 to 68 but 62 and 63, 78 to 80).
---   - The critical section, the lease, the bounds and the horizon (Capability requirement
---     5 to 9, 16, 17): durations and a second writer are the TLA+ model's.
+--   - The critical section, the lease, the bounds, the clock allowance and the horizon
+--     (Capability requirement 5 to 8, 16, 17, 21, 22; Primitive policy 28): durations and a
+--     second writer are the TLA+ model's.
 --   - Storage failures (Action wiring 52 to 55): a failed append writes nothing.
 --
 -- HOW TO READ RESULTS
@@ -398,7 +399,7 @@ fun pending[s : set Event] : set Step {
 }
 
 -- newestPending: the pending compensation the reverse order takes first, the step declared
--- last (steps complete in declared order) (Capability requirement 1; Invariant 5.1).
+-- last (steps complete in declared order) (Invariant 5.1).
 fun newestPending[s : set Event] : set Step {
     { st : pending[s] | no (pending[s] & ahead.st) }
 }

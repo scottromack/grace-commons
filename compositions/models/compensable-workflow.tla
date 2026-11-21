@@ -65,11 +65,13 @@
 \* (Action wiring 3 to 5; `ghost`), while the next invocation re-enters from the log. A target honours an
 \* effect key it has seen until the key lapses (`lap`); a key can lapse only while the run rests
 \* halted, and an operator whose parked key has lapsed cannot truthfully assert the horizon (Primitive
-\* policy 7), so the run stays halted (open 2026-11-03-d).
+\* policy 7), so the run stays halted. Since 2026-11-20 the page bounds the rest itself: a resume past
+\* the halt bound answers halt-lapsed (Primitive policy 28) and Capability requirement 17 keeps every
+\* key honoured inside it, so the operator's guard here stands for both, an over-approximation.
 \*
 \* SCOPE (named)
-\* - The parallel compensation order has no semantics on the page (open 2026-11-03-a); the model
-\*   takes the reverse order.
+\* - The compensation order is reverse alone (the parallel order retired 2026-11-20, with
+\*   Capability requirement 1); the model takes it.
 \* - Several unresolved attempts (the re-entry after a halt that named two steps) are re-run one per
 \*   invocation; Action wiring 15 says all in one, once each per execution, which the model cannot
 \*   break, and no invariant reads the difference.
@@ -85,9 +87,12 @@
 \* - Invariant 1 (one event per recorded act), Invariant 3.1 (pairing) and Invariant 6.1 and 6.2
 \*   are by construction of the projection: a step is one event, a step carries its compensation,
 \*   the phase is one value, halted is a phase and never an outcome.
-\* - The critical section's cross-node exclusion (Capability requirement 6) and the lease length
-\*   (Capability requirement 9) are the host's: the model takes one holder at a time and lets the
-\*   lease expire at any point.
+\* - The critical section's cross-node exclusion (Capability requirement 6) is the host's: the
+\*   model takes one holder at a time and lets the lease expire at any point (Capability
+\*   requirement 9 retired 2026-11-20).
+\* - The clocks: the step completion bound and the halt bound are read at a call's own now with the
+\*   clock allowance (Term elapsed keys, Term lapsed halt); the model has no clock, and a bound
+\*   elapses at any step (Bound*), which over-approximates the page's reading.
 \*
 \* ENCODING (the proven idiom of compositions/idempotent-reservation.tla)
 \* - No Sequences, RECURSIVE or CHOOSE; flat \E/\A; column-aligned junctions; the operators below
@@ -392,8 +397,8 @@ RecordOverflow ==
     /\ vd' = "none"
     /\ UNCHANGED <<eff, lap, ghost, op, piv, pol>>
 
-\* An applied verdict whose completion record does not land before the step completion bound: the
-\* invocation answers storage-failure naming effect-landed (Action wiring 52, 53). The attempt
+\* An applied verdict whose completion record does not land: the invocation answers
+\* storage-failure naming effect-landed (Action wiring 53). The attempt
 \* marker stands as the unresolved attempt, the effect stands unrecorded.
 RecordStorageFail ==
     /\ pc = "ran"
@@ -451,9 +456,10 @@ CompFailedContinue ==
     /\ vd' = "none"
     /\ UNCHANGED <<ph, hp, hs, eff, lap, ghost, sp, viol, piv, pol, ov, op>>
 
-\* A verdict the target has not settled is asked again under the same key inside the step
-\* completion bound (Action wiring 27, 42, 46): a failed verdict on a roll-forward step, an
-\* indeterminate one, an unknown one.
+\* A verdict the target has not settled is asked again under the same key: a failed verdict on a
+\* roll-forward step, an indeterminate one, an unknown one. Since 2026-11-20 the page runs an effect
+\* once per invocation and the next [Advance]'s re-entry arm re-runs the standing attempt (Action
+\* wiring 15, 19); this in-invocation re-ask, and an expiry at the verdict, over-approximate it.
 Retry ==
     /\ pc = "ran"
     /\ \/ vd = "indet"
@@ -548,7 +554,7 @@ Cancel ==
 
 \* A target forgets an applied effect key once the effect key horizon elapses. The model lets it
 \* happen only while the run rests halted, on a key the halt parks or names: the rest in the halted
-\* phase is the gap a deployment cannot keep (open 2026-11-03-d).
+\* phase, which the halt bound caps (Primitive policy 28).
 Lapse ==
     /\ ph = "halted"
     /\ pc = "idle"
