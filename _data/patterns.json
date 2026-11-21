@@ -1784,7 +1784,7 @@
    "session",
    "permissions"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -1801,7 +1801,7 @@
    "OWASP ASVS",
    "PCI DSS"
   ],
-  "status": "done \u2014 2026-11-21",
+  "status": "doing",
   "substrates": [],
   "title": "Session-Gated Authorization"
  },
