@@ -24,6 +24,8 @@ Entries that record a migration rather than a turn the pattern took.
 
 - **2026-11-02 — The maximum length has a default.** *Chose:* the maximum length stated as 1,024 Unicode code points where a deployment declares none, the unit written as Unicode code points as Permissions, Credential and Provenance count theirs, and String 6 turned from *set* to *declare*; String 7, String 9 and String 10 stand, citing Execution Contract Input 2. *Over:* a bound the deployment must supply, or silence. *Because:* the maintainer ruled on 2026-11-01 that what the host must bound takes one posture, a corpus default a deployment may override; the string inputs run from principal and issuer references to a revocation reason, and 1,024 code points, the corpus's default for text (Personal Todo's description cap), holds a sentence or two.
 
+- **2026-11-21 — The session is keyed by the digest of the session token, never the token.** *Chose:* a session identified by the session token digest, the digest the host computes of a session token at the seam (Term session token digest, Capability requirement 12; Execution Contract Logic confinement 8 and 21, cited, not restated): [Issue] records and answers the digest (Operation 3, Operation 58), [Validate] and [Revoke] are given the digest, never the live token (the signatures, Operation 14, Operation 22, the case rows), the session token stays the bearer credential and its digest is what [Validate] accepts and [Revoke] takes as the whole authorization (Identity 2, Operation 36), and the live token reaches its holder by the host alone, outside every record, event and log of the atom (Capability requirement 13); the keys and the uniqueness rules read the digest (Identity 1, 5, 6 and 7, State 2, Invariant 1.1, 3.1, 7.1 and 7.2), [Read] still answers no key (Operation 52, now of the digest), and a deployment propagating a logout holds digests (Non-goal 15, Non-goal 18). Retired: Capability requirement 6 and Non-goal 17, both to Logic confinement 21, since the database never holds the token raw. Added: Capability requirement 12 and 13, and the Term session token digest beside the Term session token, whose entry turns from a field of the session to a value (Kind Type). Rules 169 to 169. Both models re-derived over the digest key, every twin still caught. *Over:* the session keyed by the live token, the record identity and the bearer credential in one value. *Because:* Scott's session ruled on 2026-11-21 02:09Z (rounds/escalations.md, "Logic confinement 21 reaches the session token") that Execution Contract Logic confinement 21 reaches the session token: it is the bearer credential a cookie holds, so a record, an event or a log carrying it hands out live sessions; found by Linus in Login Final Critique 21 and 22. The page leaves `done` and takes a delta round; each composition that names Session takes its own.
+
 ## Migration notes
 
 - **2026-09-15 — Capability requirement 1, moved from Operation.** What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
@@ -65,6 +67,7 @@ Deleted: Capability requirement 11. Operation 56 owns it.
 Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 6. Execution Contract Logic confinement 21 owns it: the record carries the session token digest, never the session token.
 Deleted: Configuration 1. Capability requirement 2 owns it.
 Deleted: Configuration 2. Operation 48 owns it.
 Deleted: Configuration 3. Capability requirement 3 owns it.
@@ -142,6 +145,7 @@ Deleted: Check 5.1. External check 2 owns it.
 ### Non-goals
 
 ```
+Deleted: Non-goal 17. Execution Contract Logic confinement 21 owns it: the database holds the session token digest, never the session token.
 Deleted: Non-goal 23. Non-goal 24 and Composition note 3 own it.
 ```
 

@@ -1747,7 +1747,7 @@
    "session-gated-authorization"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -1775,7 +1775,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-18",
+  "status": "doing",
   "title": "Session"
  },
  "session-gated-authorization": {

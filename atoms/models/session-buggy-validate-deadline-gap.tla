@@ -11,7 +11,7 @@
 EXTENDS Integers, FiniteSets
 
 CONSTANTS
-    Tokens,      \* the session tokens the host may allocate, and a caller present
+    Digests,     \* the session token digests the host may inject at the seam
     Principals,  \* the principal references an [Issue] may carry
     Windows,     \* the session durations an [Issue] may carry, each above zero
     MaxTime,     \* the last instant the clock reaches in the model
@@ -36,9 +36,9 @@ Answers == {"valid", "expired", "revoked", "not-known"}
 NoEff == [s \in Slots |-> "none"]
 
 \* NoCall: the record of the last call before any call is made, and the shape
-\* of every such record: the action, the token it named, the answers it gave,
+\* of every such record: the action, the digest it named, the answers it gave,
 \* and the effective status a [Read] carried for each session.
-NoCall == [op |-> "none", tok |-> NONE, ans |-> {}, eff |-> NoEff]
+NoCall == [op |-> "none", dig |-> NONE, ans |-> {}, eff |-> NoEff]
 
 \* ---------------------------------------------------------------------------
 \* State
@@ -47,7 +47,7 @@ NoCall == [op |-> "none", tok |-> NONE, ans |-> {}, eff |-> NoEff]
 VARIABLES
     now,        \* the host's clock reading, injected at the seam
     n,          \* the next slot an issued session takes
-    tok,        \* slot -> session token
+    dig,        \* slot -> session token digest
     prin,       \* slot -> principal reference
     iss,        \* slot -> issued by reference
     issuedAt,   \* slot -> issuance instant
@@ -59,24 +59,24 @@ VARIABLES
     last        \* the last call made and what it answered (NoCall's shape)
 
 \* vars: every variable; a step that changes none of them is a stutter.
-vars == <<now, n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason, last>>
+vars == <<now, n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason, last>>
 
 \* sessions: every variable that holds a session's fields: what the database
 \* holds.
-sessions == <<n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
+sessions == <<n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
 
 \* Recorded: the slot holds a session [Issue] recorded.
 Recorded(s) == s < n
 
-\* Carried: the session tokens the recorded sessions carry.
-Carried == {tok[s] : s \in {x \in Slots : Recorded(x)}}
+\* Carried: the session token digests the recorded sessions carry.
+Carried == {dig[s] : s \in {x \in Slots : Recorded(x)}}
 
 \* Live: the slots holding a session; its size is the session count.
 Live == {s \in Slots : status[s] # "none"}
 
-\* SlotOf: the slot whose session the token names, or 0 where it names none.
-SlotOf(t) == IF \E s \in Slots : Recorded(s) /\ tok[s] = t
-             THEN CHOOSE s \in Slots : Recorded(s) /\ tok[s] = t
+\* SlotOf: the slot whose session the digest names, or 0 where it names none.
+SlotOf(t) == IF \E s \in Slots : Recorded(s) /\ dig[s] = t
+             THEN CHOOSE s \in Slots : Recorded(s) /\ dig[s] = t
              ELSE 0
 
 \* Lapsed: the session is stored active and now is no earlier than its expiry
@@ -87,8 +87,8 @@ Lapsed(s) == status[s] = "active" /\ now >= expiresAt[s]
 \* stored status otherwise (Term effective status).
 Effective(s) == IF Lapsed(s) THEN "expired" ELSE status[s]
 
-\* ValidateAnswers: what [Validate] answers for a token, each of the page's rules
-\* adding the answer its condition calls for: not-known where the token names
+\* ValidateAnswers: what [Validate] answers for a digest, each of the page's rules
+\* adding the answer its condition calls for: not-known where the digest names
 \* no session (Operation 14), revoked where the stored status is revoked
 \* (Operation 15), expired where the session is lapsed (Operation 16, 17), valid
 \* where the effective status is active (Operation 18). Invariant 6.1 asks that
@@ -106,7 +106,7 @@ ValidateAnswers(t) ==
 TypeOK ==
     /\ now \in 0..MaxTime
     /\ n \in 1..(MaxSess + 1)
-    /\ tok \in [Slots -> Tokens \cup {NONE}]
+    /\ dig \in [Slots -> Digests \cup {NONE}]
     /\ prin \in [Slots -> Principals \cup {NONE}]
     /\ iss \in [Slots -> {Issuer, NONE}]
     /\ issuedAt \in [Slots -> Int]
@@ -120,7 +120,7 @@ TypeOK ==
 Init ==
     /\ now = 0
     /\ n = 1
-    /\ tok = [s \in Slots |-> NONE]
+    /\ dig = [s \in Slots |-> NONE]
     /\ prin = [s \in Slots |-> NONE]
     /\ iss = [s \in Slots |-> NONE]
     /\ issuedAt = [s \in Slots |-> -1]
@@ -144,31 +144,31 @@ Tick ==
     /\ UNCHANGED sessions
 
 \* Issue: [Issue] records one session in active (Operation 1, 2) in the next
-\* slot, carrying the token the host allocated, one no session carries
-\* (Operation 58, Identity 3, Invariant 7.2), the principal and issued by
+\* slot, carrying the digest of the token the host allocated, one no session
+\* carries (Operation 58, Identity 3, Invariant 7.2), the principal and issued by
 \* references (Operation 50, 51), the injected now as its issuance instant
 \* (Operation 9) and now plus the window as its expiry instant (Operation 10),
-\* and answers the token (Operation 3).
+\* and answers the digest (Operation 3).
 Issue(t, p, w) ==
     /\ n <= MaxSess
     /\ t \notin Carried
-    /\ tok' = [tok EXCEPT ![n] = t]
+    /\ dig' = [dig EXCEPT ![n] = t]
     /\ prin' = [prin EXCEPT ![n] = p]
     /\ iss' = [iss EXCEPT ![n] = Issuer]
     /\ issuedAt' = [issuedAt EXCEPT ![n] = now]
     /\ expiresAt' = [expiresAt EXCEPT ![n] = now + w]
     /\ status' = [status EXCEPT ![n] = "active"]
     /\ n' = n + 1
-    /\ last' = [op |-> "issue", tok |-> t, ans |-> {"issued"}, eff |-> NoEff]
+    /\ last' = [op |-> "issue", dig |-> t, ans |-> {"issued"}, eff |-> NoEff]
     /\ UNCHANGED <<now, revokedAt, revokedBy, reason>>
 
-\* Validate: [Validate] of a token answers by the page's rules and writes
+\* Validate: [Validate] of a digest answers by the page's rules and writes
 \* nothing (Operation 14 to 18, 20).
 Validate(t) ==
-    /\ last' = [op |-> "validate", tok |-> t, ans |-> ValidateAnswers(t), eff |-> NoEff]
-    /\ UNCHANGED <<now, n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
+    /\ last' = [op |-> "validate", dig |-> t, ans |-> ValidateAnswers(t), eff |-> NoEff]
+    /\ UNCHANGED <<now, n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
 
-\* RevokeActive: [Revoke] of a token naming an active session, lapsed or not
+\* RevokeActive: [Revoke] of a digest naming an active session, lapsed or not
 \* (Operation 27), stands it in revoked (Operation 28), stamps the injected now
 \* as its revocation instant (Operation 29), records the revoked by reference
 \* and the reason (Operation 30, 31), and answers revoked (Operation 33).
@@ -180,41 +180,41 @@ RevokeActive(t) ==
     /\ revokedAt' = [revokedAt EXCEPT ![s] = now]
     /\ revokedBy' = [revokedBy EXCEPT ![s] = Actor]
     /\ reason' = [reason EXCEPT ![s] = Reason]
-    /\ last' = [op |-> "revoke", tok |-> t, ans |-> {"revoked"}, eff |-> NoEff]
-    /\ UNCHANGED <<now, n, tok, prin, iss, issuedAt, expiresAt>>
+    /\ last' = [op |-> "revoke", dig |-> t, ans |-> {"revoked"}, eff |-> NoEff]
+    /\ UNCHANGED <<now, n, dig, prin, iss, issuedAt, expiresAt>>
 
-\* RevokeAlready: [Revoke] of a token naming a revoked session answers
+\* RevokeAlready: [Revoke] of a digest naming a revoked session answers
 \* already-terminal and writes nothing (Operation 23).
 RevokeAlready(t) ==
     LET s == SlotOf(t) IN
     /\ s # 0
     /\ status[s] = "revoked"
-    /\ last' = [op |-> "revoke", tok |-> t, ans |-> {"already-terminal"}, eff |-> NoEff]
-    /\ UNCHANGED <<now, n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
+    /\ last' = [op |-> "revoke", dig |-> t, ans |-> {"already-terminal"}, eff |-> NoEff]
+    /\ UNCHANGED <<now, n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
 
-\* RevokeNotKnown: [Revoke] of a token naming no session answers not-known and
+\* RevokeNotKnown: [Revoke] of a digest naming no session answers not-known and
 \* writes nothing (Operation 22).
 RevokeNotKnown(t) ==
     /\ SlotOf(t) = 0
-    /\ last' = [op |-> "revoke", tok |-> t, ans |-> {"not-known"}, eff |-> NoEff]
-    /\ UNCHANGED <<now, n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
+    /\ last' = [op |-> "revoke", dig |-> t, ans |-> {"not-known"}, eff |-> NoEff]
+    /\ UNCHANGED <<now, n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
 
 \* Read: [Read] answers every session with its effective status (Operation 37,
 \* 38) and writes nothing (Operation 39).
 Read ==
-    /\ last' = [op |-> "read", tok |-> NONE, ans |-> {},
+    /\ last' = [op |-> "read", dig |-> NONE, ans |-> {},
                 eff |-> [s \in Slots |-> IF Recorded(s) THEN Effective(s) ELSE "none"]]
-    /\ UNCHANGED <<now, n, tok, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
+    /\ UNCHANGED <<now, n, dig, prin, iss, issuedAt, expiresAt, status, revokedAt, revokedBy, reason>>
 
 \* Next: the clock moving, or any call: an [Issue], a [Validate] or a [Revoke]
-\* of any token, or a [Read].
+\* of any digest, or a [Read].
 Next ==
     \/ Tick
-    \/ \E t \in Tokens, p \in Principals, w \in Windows : Issue(t, p, w)
-    \/ \E t \in Tokens : Validate(t)
-    \/ \E t \in Tokens : RevokeActive(t)
-    \/ \E t \in Tokens : RevokeAlready(t)
-    \/ \E t \in Tokens : RevokeNotKnown(t)
+    \/ \E t \in Digests, p \in Principals, w \in Windows : Issue(t, p, w)
+    \/ \E t \in Digests : Validate(t)
+    \/ \E t \in Digests : RevokeActive(t)
+    \/ \E t \in Digests : RevokeAlready(t)
+    \/ \E t \in Digests : RevokeNotKnown(t)
     \/ Read
 
 \* Spec: every behaviour from Init by Next steps.
@@ -225,17 +225,17 @@ Spec == Init /\ [][Next]_vars
 \* so a defect in an action's own reading of it shows.
 \* ---------------------------------------------------------------------------
 
-\* Names: some recorded session carries the token.
-Names(t, s) == Recorded(s) /\ tok[s] = t
+\* Names: some recorded session carries the digest.
+Names(t, s) == Recorded(s) /\ dig[s] = t
 
-\* Inv1_1_IssueFieldsFixed: no step changes a recorded session's token,
+\* Inv1_1_IssueFieldsFixed: no step changes a recorded session's digest,
 \* principal reference, issued by reference, issuance instant or expiry
 \* instant: what [Issue] recorded reads the same for ever (Invariant 1.1,
 \* Identity 6, Check 1.2). With the page's nine fields, the status and the
 \* revocation fields are all a later step may write (Invariant 1.2).
 Inv1_1_IssueFieldsFixed ==
     [][\A s \in Slots : Recorded(s) =>
-          /\ tok'[s] = tok[s]
+          /\ dig'[s] = dig[s]
           /\ prin'[s] = prin[s]
           /\ iss'[s] = iss[s]
           /\ issuedAt'[s] = issuedAt[s]
@@ -247,24 +247,24 @@ Inv1_1_IssueFieldsFixed ==
 Inv2_1_ExpiryFixed ==
     [][\A s \in Slots : Recorded(s) => expiresAt'[s] = expiresAt[s]]_vars
 
-\* Inv3_1_ValidOnlyIfLive: [Validate] answers valid only where the token names
+\* Inv3_1_ValidOnlyIfLive: [Validate] answers valid only where the digest names
 \* a session stored active whose expiry instant now has not reached
 \* (Invariant 3.1).
 Inv3_1_ValidOnlyIfLive ==
     [][(last'.op = "validate" /\ "valid" \in last'.ans) =>
-          \E s \in Slots : Names(last'.tok, s) /\ status[s] = "active" /\ now < expiresAt[s]]_vars
+          \E s \in Slots : Names(last'.dig, s) /\ status[s] = "active" /\ now < expiresAt[s]]_vars
 
 \* Inv3_3_RevokedNeverExpired: [Validate] never answers expired for a revoked
 \* session, its deadline passed or not: revocation takes precedence
 \* (Invariant 3.3, Operation 15, 17).
 Inv3_3_RevokedNeverExpired ==
-    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.tok, s) /\ status[s] = "revoked")
+    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.dig, s) /\ status[s] = "revoked")
           => "expired" \notin last'.ans]_vars
 
 \* Inv4_1_RevokedNeverValid: [Validate] never answers valid for a revoked
 \* session, its window still open or not (Invariant 4.1).
 Inv4_1_RevokedNeverValid ==
-    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.tok, s) /\ status[s] = "revoked")
+    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.dig, s) /\ status[s] = "revoked")
           => "valid" \notin last'.ans]_vars
 
 \* Inv5_1_RevokedStaysRevoked: no step moves a revoked session out of revoked
@@ -280,11 +280,12 @@ Inv6_1_ExactlyOneAnswer ==
           /\ Cardinality(last'.ans) = 1
           /\ last'.ans \subseteq Answers]_vars
 
-\* Inv7_2_HostTokenFresh: no [Issue] records a token a session already carries,
-\* a revoked or lapsed session's included: a token is never reused
+\* Inv7_2_HostTokenFresh: no [Issue] records a digest a session already
+\* carries, a revoked or lapsed session's included: the host never allocates a
+\* token whose digest is carried, and a digest is never reused
 \* (Invariant 7.2, Identity 5).
 Inv7_2_HostTokenFresh ==
-    [][last'.op = "issue" => last'.tok \notin Carried]_vars
+    [][last'.op = "issue" => last'.dig \notin Carried]_vars
 
 \* Inv9_2_CountNeverReduced: no step reduces the session count: the atom offers
 \* no removal (Invariant 9.2, Invariant 9.1, State 11).
@@ -295,7 +296,7 @@ Inv9_2_CountNeverReduced ==
 \* active whose expiry instant now has reached, the deadline instant itself
 \* included (Invariant 11.1, Term lapsed).
 Inv11_1_LapsedNeverValid ==
-    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.tok, s) /\ status[s] = "active" /\ now >= expiresAt[s])
+    [][(last'.op = "validate" /\ \E s \in Slots : Names(last'.dig, s) /\ status[s] = "active" /\ now >= expiresAt[s])
           => "valid" \notin last'.ans]_vars
 
 \* Inv12_3_LapseWritesNothing: the clock moving, and every lapse it brings,
@@ -320,11 +321,11 @@ Inv12_4_EffectiveStatus ==
 Op20_ValidateWritesNothing ==
     [][last'.op = "validate" => UNCHANGED sessions]_vars
 
-\* Op27_RevokeAcceptsLapsed: a [Revoke] of a token naming a session stored
+\* Op27_RevokeAcceptsLapsed: a [Revoke] of a digest naming a session stored
 \* active answers revoked, its deadline passed or not: a lapse is not a stored
 \* terminal (Operation 27, Operation 24).
 Op27_RevokeAcceptsLapsed ==
-    [][(last'.op = "revoke" /\ \E s \in Slots : Names(last'.tok, s) /\ status[s] = "active")
+    [][(last'.op = "revoke" /\ \E s \in Slots : Names(last'.dig, s) /\ status[s] = "active")
           => last'.ans = {"revoked"}]_vars
 
 \* Op39_ReadWritesNothing: a [Read] step changes no session (Operation 39).

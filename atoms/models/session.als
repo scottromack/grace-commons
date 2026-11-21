@@ -1,6 +1,8 @@
 -- session.als
 -- Alloy structural model for the Session atom (Grace Commons atoms/session.md)
--- Grounded on Final Critique 19, 2026-11-04 at 260b6c6 — Alloy layer authored 2026-11-11.
+-- Grounded on Final Critique 19, 2026-11-04 at 260b6c6 — Alloy layer authored 2026-11-11;
+-- re-derived over the session token digest 2026-11-21 (unit `session: keyed by the digest
+-- of the session token (Logic confinement 21)`).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -9,21 +11,21 @@
 -- session records the database holds must satisfy in any one state, whatever calls wrote
 -- them. The page's single-state rules are checked here; everything that happens across
 -- steps (the issue fields and the expiry instant never change, revoked never left, no
--- session removed, a lapse writes nothing, the host never hands out a carried token, and
--- what [Validate], [Revoke] and [Read] answer as the clock moves) is the TLA+ model's,
--- session.tla.
+-- session removed, a lapse writes nothing, the host never hands out a token whose digest
+-- is carried, and what [Validate], [Revoke] and [Read] answer as the clock moves) is the
+-- TLA+ model's, session.tla.
 --
 -- RULES ENCODED (named by the page's own labels)
 --   State 1          — every session stands in exactly one of active, revoked.
---   State 2          — every session carries session token, principal reference, issued
---                      by reference, issuance instant, expiry instant and status.
+--   State 2          — every session carries session token digest, principal reference,
+--                      issued by reference, issuance instant, expiry instant and status.
 --   State 4          — a revoked session carries revocation instant, revoked by reference
 --                      and revocation reason.
 --   State 5, 6, 7    — an active session carries no revocation instant, no revoked by
 --                      reference, no revocation reason.
---   Identity 1       — a session is identified by its session token: a [Revoke] writes the
---                      session its token names.
---   Invariant 7.1    — two sessions never share a session token.
+--   Identity 1       — a session is identified by its session token digest: a [Revoke]
+--                      writes the session its digest names.
+--   Invariant 7.1    — two sessions never share a session token digest.
 --   Invariant 8.1    — every revoked session carries a revocation instant.
 --   Invariant 8.2    — every revoked session's revoked by reference is non-blank.
 --   Invariant 8.3    — every revoked session's revocation reason is non-blank.
@@ -37,14 +39,14 @@
 --   Operation 10     — the expiry instant is the issuance instant plus the window [Issue]
 --                      applied: the session duration supplied, or the default session
 --                      duration where none was (Operation 6, Term expiry deadline).
---   Operation 58     — a session carries the session token the host allocated for its
---                      [Issue].
+--   Operation 58     — a session carries the digest of the session token the host
+--                      allocated for its [Issue].
 --
 -- NOT CHECKED HERE (across steps or answers; the TLA+ model's)
 --   Invariant 1.1, 1.2 and 2.1 (issue fields and expiry instant never change; Identity
 --   6), 3.1, 3.3, 4.1, 6.1 and 11.1 (what [Validate] answers), 5.1 (revoked never left;
---   State 10), 7.2 (the host never allocates a carried token; Identity 5), 9.1 and 9.2 (no
---   session removed; State 11), 12.3 (a lapse writes nothing), 12.4 (the effective status
+--   State 10), 7.2 (the host never allocates a token whose digest is carried; Identity
+--   5), 9.1 and 9.2 (no session removed; State 11), 12.3 (a lapse writes nothing), 12.4 (the effective status
 --   [Read] carries), Concurrency 4, Operation 20, 27 and 39: each compares a session with
 --   a later state of itself, or reads what a call answered at a moving now.
 --
@@ -70,8 +72,12 @@
 --   - The maximum length (String 6, 7, 9, 10) and a malformed duration or reason
 --     (Operation 55, 57): each refuses as a blank one does; Operation 4, 5 and Invariant
 --     8.2 and 8.3 stand for the class.
---   - The token's random material, entropy and format (Identity 9, Capability requirement
---     3 to 6, Token format 1 to 3): the deployment's, read by External check 1.
+--   - The session token itself, its random material, entropy and format (Identity 9,
+--     Capability requirement 3 to 5, Token format 1 to 3), and its delivery to its holder
+--     (Capability requirement 13): the host's and the deployment's, outside the atom, whose
+--     records carry only the digest (Identity 1, State 2). Each call carries the digest the
+--     host computed at the seam (Capability requirement 12; Execution Contract Logic
+--     confinement 8), so the model's one key is the digest.
 --   - [Read]'s filter (Operation 53, 61, Term filter): a read writes nothing.
 --   - A window past the instant range: the page sets no maximum session duration
 --     (Non-goal 28), so the model keeps the clock readings and the durations small
@@ -103,9 +109,11 @@ one sig Strings {
     blank : set Str
 }
 
--- Token: a session token, the opaque value naming one session (Term session token). The
--- host allocates it at the seam (Identity 3); the atom only records and compares it.
-sig Token {}
+-- Digest: a session token digest, the digest the host computes of a session token at the
+-- seam (Term session token digest): the key naming one session. The host allocates the token
+-- at the seam (Identity 3) and supplies its digest (Capability requirement 12); the atom only
+-- records and compares the digest.
+sig Digest {}
 
 -- Status: what a session's stored status field could hold. The page's stored status is
 -- active or revoked (Term status); Expired is the derived effective status's member,
@@ -131,18 +139,18 @@ abstract sig Call {
 }
 
 -- IssueCall: one [Issue] call, issue(principal_ref, issued_by_ref, optional
--- session_duration), with the session token the host allocated at the seam for it
--- (Identity 3, Capability requirement 3).
+-- session_duration), with the digest of the session token the host allocated at the seam
+-- for it (Identity 3, Capability requirement 12).
 sig IssueCall extends Call {
     prinIn  : one Str,     -- principal_ref
     issIn   : one Str,     -- issued_by_ref
     durIn   : lone Int,    -- session_duration, absent where the call supplies none
-    hostTok : one Token    -- the session token the host allocated
+    hostDig : one Digest   -- the digest of the session token the host allocated
 }
 
--- RevokeCall: one [Revoke] call, revoke(session_token, revoked_by_ref, reason).
+-- RevokeCall: one [Revoke] call, revoke(session_token_digest, revoked_by_ref, reason).
 sig RevokeCall extends Call {
-    tokIn    : one Token,  -- session_token
+    digIn    : one Digest, -- session_token_digest
     byIn     : one Str,    -- revoked_by_ref
     reasonIn : one Str     -- reason
 }
@@ -155,7 +163,7 @@ sig RevokeCall extends Call {
 -- the type so a write that stamped one would show. The last two fields are the model's
 -- own: which call wrote this version, and which version a [Revoke] found.
 sig Sess {
-    token     : lone Token,   -- session token
+    digest    : lone Digest,  -- session token digest
     principal : lone Str,     -- principal reference
     issuer    : lone Str,     -- issued by reference
     issuedAt  : lone Int,     -- issuance instant
@@ -189,13 +197,13 @@ fact DurationsWithinTheModelsSpan {
     all d : Config.defaultDuration | d >= -7 and d <= 7
 }
 
--- The host allocates, for each [Issue], a session token no session recorded before it
--- carries (Identity 3: the host allocates at the seam; Invariant 7.2 binds the host). The
--- atom takes the token from outside; whether the host keeps this duty across steps is
+-- The host allocates, for each [Issue], a session token whose digest no session recorded
+-- before it carries (Identity 3: the host allocates at the seam; Invariant 7.2 binds the
+-- host). The atom takes the digest from outside; whether the host keeps this duty across steps is
 -- checked in the TLA+ model (Inv7_2_HostTokenFresh).
 fact HostAllocatesAnUncarriedToken {
     all c : IssueCall | no v : Sess |
-        recorded[v] and C/lt[v.writtenBy, c] and v.token = c.hostTok
+        recorded[v] and C/lt[v.writtenBy, c] and v.digest = c.hostDig
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -234,7 +242,7 @@ pred lapsedFor[pre : Sess, c : Call] {
 -- keepsTheIssue: the later version carries what [Issue] recorded, as found: a [Revoke]
 -- writes only the status and the revocation fields (Invariant 1.2).
 pred keepsTheIssue[pre, post : Sess] {
-    post.token     = pre.token
+    post.digest    = pre.digest
     post.principal = pre.principal
     post.issuer    = pre.issuer
     post.issuedAt  = pre.issuedAt
@@ -248,7 +256,7 @@ pred keepsTheIssue[pre, post : Sess] {
 -- issueWrites: the session an admitted [Issue] records, and the guards it passes first:
 -- both references non-blank (Operation 4, 5), a default session duration configured and
 -- above the zero duration (Operation 48, 56), and a supplied session duration above the
--- zero duration (Operation 8). The session carries the token the host allocated
+-- zero duration (Operation 8). The session carries the digest of the token the host allocated
 -- (Operation 58), the call's references (Operation 50, 51), the injected now as its
 -- issuance instant (Operation 9), the expiry deadline as its expiry instant (Operation 6,
 -- 10), status active (Operation 2), and no revocation field and no lapse stamp.
@@ -258,7 +266,7 @@ pred issueWrites[c : IssueCall, r : Sess] {
     some Config.defaultDuration                                       -- Operation 48
     Config.defaultDuration > 0                                        -- Operation 56
     all d : c.durIn | d > 0                                           -- Operation 8
-    r.token     = c.hostTok                                           -- Operation 58
+    r.digest    = c.hostDig                                           -- Operation 58
     r.principal = c.prinIn                                            -- Operation 50
     r.issuer    = c.issIn                                             -- Operation 51
     r.issuedAt  = c.now                                               -- Operation 9
@@ -271,7 +279,7 @@ pred issueWrites[c : IssueCall, r : Sess] {
 }
 
 -- revokeWrites: the version an admitted [Revoke] records over the version it found: the
--- call's token names the session (Operation 22, Identity 1), the session stands active
+-- call's digest names the session (Operation 22, Identity 1), the session stands active
 -- (Operation 23), and the revoked by reference and the reason are non-blank (Operation
 -- 25, 26). A lapsed session is accepted (Operation 27): no guard reads the clock
 -- (Clock dependence 2). The version stands in revoked (Operation 28), carries the
@@ -279,7 +287,7 @@ pred issueWrites[c : IssueCall, r : Sess] {
 -- (Operation 30) and the reason as its revocation reason (Operation 31), and keeps what
 -- [Issue] recorded.
 pred revokeWrites[pre : Sess, c : RevokeCall, r : Sess] {
-    pre.token = c.tokIn                                               -- Operation 22, Identity 1
+    pre.digest = c.digIn                                              -- Operation 22, Identity 1
     pre.status = Active                                               -- Operation 23
     usable[c.byIn]                                                    -- Operation 25
     usable[c.reasonIn]                                                -- Operation 26
@@ -320,12 +328,12 @@ assert A_State_1 {
 }
 check A_State_1 for 4 but 5 Int
 
--- A_State_2: every session carries its session token, principal reference, issued by
+-- A_State_2: every session carries its session token digest, principal reference, issued by
 -- reference, issuance instant, expiry instant and status, whichever call last wrote it
 -- (State 2).
 assert A_State_2 {
     all r : Sess | recorded[r] implies {
-        some r.token
+        some r.digest
         some r.principal
         some r.issuer
         some r.issuedAt
@@ -364,20 +372,20 @@ assert A_State_7 {
 }
 check A_State_7 for 4 but 5 Int
 
--- A_Identity_1: a version a [Revoke] wrote carries the session token that call named: a
--- session is found by its token, never by its principal or by anything else, so one
--- token's logout never cancels another session (Identity 1; Non-goal 14).
+-- A_Identity_1: a version a [Revoke] wrote carries the session token digest that call
+-- named: a session is found by its digest, never by its principal or by anything else, so
+-- one token's logout never cancels another session (Identity 1; Non-goal 14).
 assert A_Identity_1 {
     all r : Sess | (recorded[r] and r.writtenBy in RevokeCall)
-        implies r.token = r.writtenBy.tokIn
+        implies r.digest = r.writtenBy.digIn
 }
 check A_Identity_1 for 4 but 5 Int
 
--- A_Invariant_7_1: no two sessions share a session token, so a token names one session
+-- A_Invariant_7_1: no two sessions share a session token digest, so a digest names one session
 -- and [Validate] has one record to answer from (Invariant 7.1).
 assert A_Invariant_7_1 {
     all r1, r2 : Sess | (recorded[r1] and recorded[r2] and origin[r1] != origin[r2])
-        implies no (r1.token & r2.token)
+        implies no (r1.digest & r2.digest)
 }
 check A_Invariant_7_1 for 4 but 5 Int
 
@@ -454,11 +462,11 @@ assert A_Operation_10 {
 }
 check A_Operation_10 for 4 but 5 Int
 
--- A_Operation_58: every version of a session carries the session token the host
--- allocated for the [Issue] that recorded it: the transition mints no token of its own
+-- A_Operation_58: every version of a session carries the digest of the session token the
+-- host allocated for the [Issue] that recorded it: the transition mints no key of its own
 -- (Operation 58, Identity 4, Identity 6).
 assert A_Operation_58 {
-    all r : Sess | recorded[r] implies r.token = origin[r].hostTok
+    all r : Sess | recorded[r] implies r.digest = origin[r].hostDig
 }
 check A_Operation_58 for 4 but 5 Int
 
@@ -468,7 +476,7 @@ check A_Operation_58 for 4 but 5 Int
 -- UNSAT means the model forbids a state the page admits.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ShowActive: a session just issued with the duration the call supplied, as tok_abc123
+-- ShowActive: a session just issued with the duration the call supplied, as the session keyed by dig_7e41c9
 -- for user_u91, issued at 10:00:00Z and expiring at 11:00:00Z.
 run ShowActive {
     some r : Sess | recorded[r] and r.status = Active and some origin[r].durIn
