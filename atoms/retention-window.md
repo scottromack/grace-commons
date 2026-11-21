@@ -777,7 +777,10 @@ It inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -796,6 +799,8 @@ open:
 - 2026-10-05-a · refining · Operation 29; [Read] · the read answers every retention of the instance with no key, so a composing pattern's read by retention id or by record is a whole-database enumeration under its lease → a keyed read; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 - 2026-10-20-a · refining · Term seam; Operation 6, 8c, 24b · the rules answer on the registry's reply and on the instants the database holds, which the transition may not read (Operation 26) and the seam does not list among the values the host injects → list each injected value
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

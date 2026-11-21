@@ -1369,7 +1369,10 @@ The three constituents carry their own deep standards inheritance — see each c
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1390,6 +1393,8 @@ open:
 - 2026-11-10-d · refining · Action wiring 159 through 167, 171 · the admission, clearance and closure transactions read the composition's own Audit Trail events inside the commit's transaction, which the 2026-10-20 one database permits under Execution Contract Database 2 and no other adopter of Recoverable Invocation has done → confirm the reading, or read the open-trigger and party-to-case indexes under rebuild on miss instead, which stand outside every transaction (Composition state 7)
 - 2026-11-10-e · refining · Composition state 52; Term pre-switch record; Term counterpart; Reconciliation 41 · a case older than the switch rebuilds from records of the old classes, which carry an intent event id and no act key, read as their counterparts, and the reconciliation reads no record before the cut-over instant → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

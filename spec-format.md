@@ -336,7 +336,7 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | atom tree | What it keeps | 2 | | yes | any order |
 | atom tree | What people do | 2 | | yes | any order |
 | atom tree | Every action | 3 | What people do | no | no |
-| atom tree | Always true | 2 | | yes | any order |
+| atom tree | What is and what should never be (Invariants) | 2 | | yes | any order |
 | atom tree | When something happens | 2 | | no | any order |
 | atom tree | Atomic writes | 3 | When something happens | no | no |
 | atom tree | Concurrency | 3 | When something happens | no | no |
@@ -347,7 +347,6 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | atom tree | Retention asymmetry | 3 | While something is so | no | no |
 | atom tree | String policy | 3 | While something is so | no | no |
 | atom tree | Optional | 2 | | no | any order |
-| atom tree | Never | 2 | | no | any order |
 | atom tree | Left to others | 2 | | yes | any order |
 | atom tree | Example | 2 | | yes | any order |
 | atom tree | Source | 2 | | yes | no |
@@ -367,7 +366,7 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | composition tree | Every action | 3 | What people do | yes | no |
 | composition tree | Scope vocabulary | 3 | What people do | no | no |
 | composition tree | Verdict | 3 | What people do | no | no |
-| composition tree | Always true | 2 | | yes | any order |
+| composition tree | What is and what should never be (Invariants) | 2 | | yes | any order |
 | composition tree | When something happens | 2 | | no | any order |
 | composition tree | Audit arm | 3 | When something happens | no | no |
 | composition tree | Reconciliation | 3 | When something happens | no | no |
@@ -382,7 +381,6 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | composition tree | Retention asymmetry | 3 | While something is so | no | no |
 | composition tree | String policy | 3 | While something is so | no | no |
 | composition tree | Optional | 2 | | no | any order |
-| composition tree | Never | 2 | | no | any order |
 | composition tree | Left to others | 2 | | yes | any order |
 | composition tree | Example | 2 | | yes | any order |
 | composition tree | Source | 2 | | yes | no |
@@ -451,9 +449,20 @@ A name below is the row's name under an older spelling or an older shape. A migr
 
 Every pattern moves, one at a time, from the section shape above to the tree order: the rough draft's headings ([`rough-draft.md`](./rough-draft.md)) filled out, one branch for each action, and each name declared where it is first used. The maintainer approved the shape on 2026-11-18 on a trial layout of Tenure ("Yes this is WAY better"; "mirror the rough draft we started with just filled out"), and `working-ideas/tenure-tree.md` in the repository, which the site does not publish, is the model. The order of the headings, both shapes:
 
-**What it is**, **What it keeps**, **What people do** (an `### Every action` branch, then one `###` branch for each action), **Always true**, **When something happens**, **While something is so**, **Optional**, **Never**, **Left to others**, **Example**, **Source**, **Proof**, then **Status**, **Ledger** and **Decisions** as the section shape keeps them.
+**What it is**, **What it keeps**, **What people do** (an `### Every action` branch, then one `###` branch for each action), **What is and what should never be (Invariants)**, **When something happens**, **While something is so**, **Optional**, **Left to others**, **Example**, **Source**, **Proof**, then **Status**, **Ledger** and **Decisions**, the Ledger and the Decisions each folded (below).
 
 The rows of the table titled *Heading tables* whose shape is `atom tree` or `composition tree` own each heading's level, parent, order and requirement. A pattern is in the tree order when its first `##` heading is `What it is`; until its reorganisation it keeps the section shape, and both shapes are canonical while the sweep runs. A pattern changes shape only by the unit that reorganises it, and that unit changes the order and the sentences of the standard forms ([`GRACE-lang.md`](./GRACE-lang.md), the section titled *Standard sentences*) and nothing of the meaning: every label, every rule's obligation, every term entry, every signature and every case stays.
+
+### The jobs each section does
+
+Each fact about a pattern is stated once, in the section whose job it is (the maintainer, 2026-11-21, "you must now remove 90% of the overlap"; "What is and what should never be (Invariants)", "This reads well to ALL and puts Invariants and negative Invariants together"; "Yes good idea about history collapse").
+
+- **What it is** says what the pattern is and does, in plain sentences. **WHY**, the folded block under it (folded by default), says only why the shape recurs, why each load-bearing decision is so, and what the pattern leaves to others; it restates no effect What it is states. A sentence of the WHY that says again what a stamp, a hold or a refusal does is cut.
+- A **`Term` line** defines the name. Its **term entry** adds only what the line does not say (a bound, a form, an example) and repeats nothing the line states.
+- A **case table** is the action's rendering of its rules, one row for each case, and stays; a check keeps its rows true to the rules they cite (`tools/linter/lint.py`, `Y-case-row`).
+- An action's **example bullets** show one call each. The **Example** section is one short story that repeats no bullet.
+- **What is and what should never be (Invariants)** is one `##` section, in both tree shapes: first the invariants that say what the records hold in every reachable state, then those that forbid an act. A rule keeps its number and its text.
+- The **Ledger** and the **Decisions** are each folded the way the WHY is: `<details markdown="block">` around the section, its `<summary>` holding the heading as an `<h2>`, `<h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>` and `<h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>`, the fenced block unchanged inside. A reader of the pattern sees a closed fold; the tools find the section by either form of the heading.
 
 ### Where each section goes
 
@@ -473,7 +482,7 @@ Nothing is dropped: every line of a pattern in the section shape lands in one ro
 | Operations | What people do | one `###` branch for each action, in the order of the signature blocks: the action's term entry (`Kind: Operation`) under the branch's heading, then its signature, its Operation rules, its rows of the decision table and its answers' term entries at `####`, then the action's own examples; the rules and rows that cover several actions go under `### Every action` |
 | Action wiring (composition) | What people do | the closure table and the rules over several actions under `### Every action`, then one branch for each action, as Operations go |
 | Scope vocabulary; Verdict (composition) | What people do, `### Scope vocabulary` and `### Verdict` | unchanged |
-| Invariants; Composition-level invariants | Always true, or Never | an invariant that says what the records hold in every reachable state goes under Always true; one that forbids an act (`MUST NOT change`, `MUST NOT remove`, `MUST NOT reuse`) under Never; numbers unchanged |
+| Invariants; Composition-level invariants | What is and what should never be (Invariants) | one section: the invariants that say what the records hold in every reachable state first, then those that forbid an act (`MUST NOT change`, `MUST NOT remove`, `MUST NOT reuse`); numbers and rule text unchanged |
 | Edge cases | When something happens, While something is so, or Optional | a case an event sets off (Atomic writes, Concurrency, Indeterminate outcome, a handover) under When something happens; a case of a standing condition (Clock dependence, Clock semantics, Retention asymmetry, String policy) under While something is so; a case of a setting under Optional; each keeps its heading at `###` |
 | Audit arm, Reconciliation, Housekeeping (composition) | When something happens | at `###`, unchanged |
 | Primitive policy (composition) | While something is so | at `###`, unchanged |
@@ -484,7 +493,7 @@ Nothing is dropped: every line of a pattern in the section shape lands in one ro
 | Standards references | Source | with what the pattern inherits from |
 | Generation acceptance, Conformance checks, External checks | Proof, `### Generation acceptance`, then `#### Conformance checks` and `#### External checks` | unchanged |
 | Terms: the category lines (`Term actors:` and the rest) and the registry's link lines | Proof, `### Vocabulary` | unchanged |
-| Status, Ledger, Decisions | the same, last | unchanged |
+| Status, Ledger, Decisions | the same, last | Status unchanged; the Ledger and the Decisions each folded, as the section titled *The jobs each section does* gives |
 
 A family the table titled *Rule families* does not list (a policy family such as Personal Todo's *Description policy*, or a step block) keeps its own heading at `###` under the tree heading its rules answer to: a policy on a stored string under While something is so, a policy on an input under the action's branch.
 

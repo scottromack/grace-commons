@@ -524,7 +524,10 @@ Comment is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -534,8 +537,15 @@ last gate: 2026-11-19 — Final Critique 3, a delta round, one counted reader (L
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Taken in from MIT's Commenting concept, drafted through the Grace connector mirroring Reaction.** *Chose:* a reply tree on one item, edit and retract by the author only, a retracted comment kept in place with no words. *Over:* MIT's flat list where a retracted comment is deleted. *Because:* a forum's replies must not be orphaned, and Execution Contract Database 5 keeps every wording.
+
+</details>
 
 NOTE: End of Comment.

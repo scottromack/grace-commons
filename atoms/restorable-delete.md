@@ -23,7 +23,7 @@ Restorable Delete makes deleting something a two-step act: delete marks an item 
 <details markdown="block">
 <summary>WHY</summary>
 
-People delete by mistake, and businesses need some deletes to be final. This atom holds both. Three decisions carry the weight. Deleting and purging are two acts, and purge is refused on an item not first deleted, so nothing is made final in one slip. The restore window is fixed when the item is deleted, so a reader can always tell a person how long they have, and a restore past the window is refused rather than silently honoured. And the atom keeps only where an item stands: the item's own record is another pattern's, the database's history keeps every earlier version of the item, and destroying those versions is a separate pattern's job, with Erasure Tombstone recording that a lawful destruction happened. An item with no deletion record stands present, so nothing is written for the many items never deleted. Taken in from the Massachusetts Institute of Technology's (MIT's) sync-engine Trashing concept (Daniel Jackson's group). Its spec names the normal state "kept" while its actions say "active"; here the one word is present.
+People delete by mistake, and businesses need some deletes to be final. This atom holds both. Three decisions carry the weight. Purge is refused on an item not first deleted, so nothing is made final in one slip. The restore window is fixed when the item is deleted, so a reader can always tell a person how long they have, and a restore past the window is refused rather than silently honoured. And the atom keeps only where an item stands: the item's own record is another pattern's, the database's history keeps every earlier version of the item, and destroying those versions is a separate pattern's job, with Erasure Tombstone recording that a lawful destruction happened. An item with no deletion record stands present, so nothing is written for the many items never deleted. Taken in from the Massachusetts Institute of Technology's (MIT's) sync-engine Trashing concept (Daniel Jackson's group). Its spec names the normal state "kept" while its actions say "active"; here the one word is present.
 
 </details>
 
@@ -35,7 +35,7 @@ Term deletion: the record of where one deleted item stands, kept from the item's
 
 #### Deletion
 
-Where one deleted item stands: recorded by the item's first [Delete], moved by [Restore], [Purge] and a later [Delete]; never removed by the atom.
+Recorded by the item's first [Delete], moved by [Restore], [Purge] and a later [Delete]; never removed by the atom.
 
 Kind: Type
 
@@ -43,7 +43,7 @@ Term item reference: the string naming an item, such as a post, a product or a f
 
 #### Item Reference
 
-Names the item a deletion is about, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint.
+Stored as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Deletion
@@ -59,7 +59,7 @@ Term status: where an item stands, present, deleted or purged — the [Status].
 
 #### Status
 
-Where an item stands: [Present], [Deleted] or [Purged].
+Holds [Present], [Deleted] or [Purged].
 
 Kind:       Field
 Field of:   Deletion
@@ -69,7 +69,7 @@ Term present: the status of an item readers may see — [Present]; an item with 
 
 #### Present
 
-The status of an item readers may see; an item never deleted stands present without a record.
+[Restore] stands a deleted item back in it; an item never deleted stands in it without a record.
 
 Kind:       Member
 Member of:  the status
@@ -79,7 +79,7 @@ Term deleted: the status of an item marked deleted, restorable until its restore
 
 #### Deleted
 
-The status of an item marked deleted, restorable until its restore deadline passes.
+Stood by [Delete].
 
 Kind:       Member
 Member of:  the status
@@ -89,7 +89,7 @@ Term purged: the status of an item deleted for good — [Purged]; final.
 
 #### Purged
 
-The status of an item deleted for good; never changed.
+Stood by [Purge]; never changed.
 
 Kind:       Member
 Member of:  the status
@@ -99,7 +99,7 @@ Term deleted instant: the instant of the latest [Delete] call that stood the ite
 
 #### Deleted Instant
 
-The instant of the latest [Delete] that stood the item in deleted, stamped from the injected now.
+Stamped from the injected now.
 
 Kind:       Field
 Field of:   Deletion
@@ -109,7 +109,7 @@ Term restore deadline: `(deleted_instant + restore_window)` — the [Restore Dea
 
 #### Restore Deadline
 
-The instant one restore window on from the [Deleted Instant]; a [Restore] later than it is refused.
+A [Restore] later than it is refused.
 
 Kind:       Field
 Field of:   Deletion
@@ -366,11 +366,16 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [List Expired] | any | every deleted item past its window, the earliest deadline first | none (Operation 19) |
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 2 — One deletion per item.**
   ```
   Invariant 2.1: Two deletions MUST NOT share an item reference.
+  ```
+
+- **Invariant 1 — Purged is final.**
+  ```
+  Invariant 1.1: The atom MUST NOT change the status of a deletion standing in purged.
   ```
 
 ## When something happens
@@ -409,13 +414,6 @@ Term restore window: how long a deleted item may be restored, a whole number of 
 
 A restore window a deployment changes takes effect at the instance's next start (Execution Contract Logic confinement 17); an item already deleted keeps the restore deadline stamped at its delete.
 
-## Never
-
-- **Invariant 1 — Purged is final.**
-  ```
-  Invariant 1.1: The atom MUST NOT change the status of a deletion standing in purged.
-  ```
-
 ## Left to others
 
 ```
@@ -442,15 +440,7 @@ NOTE: composing patterns — none yet. Forthcoming: Forum.
 
 ## Example
 
-The same pattern in two domains, then the rejection paths.
-
-### Forum
-
-A member deletes her own post, `p-7`: `delete("p-7")` answers ok, and `look_up("p-7")` answers deleted with a restore deadline 30 days on. The forum hides the post from readers because the post stands deleted. Two days later she changes her mind; `restore("p-7")` answers ok and the post is back. A spam post, `p-9`, is deleted by a moderator and purged at once with `purge("p-9")`; `restore("p-9")` now answers [Item Purged].
-
-### Shop
-
-A shop sets the restore window to seven days. Each night a job calls `list_expired()` and purges every product it answers; a product deleted six days ago is not in the list and can still be restored. A job that sends the same `delete("p-7")` twice gets ok both times and the second changes nothing.
+A forum member deletes her own post, `p-7`: `delete("p-7")` answers ok, and `look_up("p-7")` answers deleted with a restore deadline 30 days on. The forum hides the post from readers because the post stands deleted. Two days later she changes her mind; `restore("p-7")` answers ok and the post is back. A spam post, `p-9`, is deleted by a moderator and purged at once with `purge("p-9")`; `restore("p-9")` now answers [Item Purged]. A shop that sets the restore window to seven days has a nightly job call `list_expired()` and purge every product it answers; a product deleted six days ago is not in the list and can still be restored, and a job that sends the same `delete("p-7")` twice gets ok both times and the second changes nothing.
 
 ## Source
 
@@ -533,7 +523,10 @@ Term terms: deletion, deletions, item reference, restore window, string cap, sea
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -543,10 +536,17 @@ last gate: 2026-11-21 — Final Critique 4, a delta round, one reader (Linus nem
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Taken in from MIT's Trashing concept, drafted through the Grace connector mirroring Reaction.** *Chose:* present, deleted and purged, a restore window fixed at delete, purge refused on an item not first deleted. *Over:* MIT's three states, whose spec names the normal one kept and whose actions say active, and a restore with no window. *Because:* Scott's forum sketch: "tombstone with a restore window"; one name for one state.
 
 - **2026-11-19 — Purge is the atom's irreversible action, named in its own rules (Operation 25).** *Chose:* [Purge] is irreversible in the sense of Execution Contract Undo 1, stated in one sentence as Operation 25 under Undo 2; the page's undo sentence cites Operation 25 in place of Undo 4's final-state arm. *Over:* a state made final that erases no record, under Undo 4. *Because:* Scott's undo rule (2026-11-14: undoability is declared in one sentence naming the undo, or the final-state rule that makes undo inappropriate), applied to this page by his direction of 2026-11-19 3:47 PM Central (rounds/open-line-choices-directions-3.md, item 137): purge erases the item for a reader, and nothing restores it. Overrulable by a new direction.
+
+</details>
 
 NOTE: End of Restorable Delete.

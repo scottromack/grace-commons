@@ -702,7 +702,10 @@ Communication is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -712,8 +715,15 @@ last gate: 2026-11-19 — Final Critique 4, a delta round, frozen at d81f35b5 �
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./communication.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/communication.md`.
+
+</details>
 
 NOTE: End of Communication.

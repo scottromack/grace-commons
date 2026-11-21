@@ -493,7 +493,10 @@ Reaction is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-20` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-20
@@ -503,8 +506,15 @@ last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus cla
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./reaction.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/reaction.md`.
+
+</details>
 
 NOTE: End of Reaction.

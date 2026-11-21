@@ -495,7 +495,7 @@ Operation 39: [History For] MUST NOT write.
 
 - `history_for("acme-supply", date="next Tuesday")` — answers an empty list: the date is not a date (Operation 38).
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 1 — A tenure ends after it starts.**
   ```
@@ -504,6 +504,17 @@ Operation 39: [History For] MUST NOT write.
 - **Invariant 2 — One person holds one role in one thing once on any day.**
   ```
   Invariant 2.1: Two tenures sharing a person reference, a role AND an item reference MUST NOT overlap, a withdrawn tenure excepted.
+  ```
+
+- **Invariant 3 — A tenure keeps its id, its person and its thing.**
+  ```
+  Invariant 3.1: The atom MUST NOT change a tenure's tenure id.
+  Invariant 3.2: The atom MUST NOT change a tenure's person reference.
+  Invariant 3.3: The atom MUST NOT change a tenure's item reference.
+  ```
+- **Invariant 4 — Withdrawn is final.**
+  ```
+  Invariant 4.1: The atom MUST NOT change a withdrawn tenure.
   ```
 
 ## When something happens
@@ -563,19 +574,6 @@ NOTE: Capability requirement 4 through 6 are the atom's own rule for the canonic
 ### A role set or a one-holder set that changes
 
 A deployment that drops a role from the role set or adds a role to the one-holder set changes a setting, and the change takes effect at the instance's next start (Execution Contract Logic confinement 17): from that start on, every [Begin] and every [Change] carrying the dropped role answers [Invalid Role] (Operation 6), and every [Begin] and every [Change] in the newly capped role is checked against the one-holder set (Operation 13). Tenures already in the dropped role keep the role and keep answering; tenures already overlapping in the newly capped role stay as they are, and a [Change] to one of them that leaves the overlap in place answers [Role Taken].
-
-## Never
-
-- **Invariant 3 — A tenure keeps its id, its person and its thing.**
-  ```
-  Invariant 3.1: The atom MUST NOT change a tenure's tenure id.
-  Invariant 3.2: The atom MUST NOT change a tenure's person reference.
-  Invariant 3.3: The atom MUST NOT change a tenure's item reference.
-  ```
-- **Invariant 4 — Withdrawn is final.**
-  ```
-  Invariant 4.1: The atom MUST NOT change a withdrawn tenure.
-  ```
 
 ## Left to others
 

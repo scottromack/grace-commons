@@ -43,6 +43,7 @@ from lint import (  # noqa: E402
     check_term_kind,
     check_pattern_not_page,
     check_standard_sentences,
+    check_case_rows,
     check_term_registry,
     check_term_coverage,
     check_dead_anchors,
@@ -824,6 +825,22 @@ def check_standard_sentences_synthetic(problems: list[str]) -> int:
     return len(STD_CASES)
 
 
+def check_case_rows_synthetic(problems: list[str]) -> int:
+    head = "## Operations\n\n```\nOperation 1: [Stamp] MUST answer not-known.\n```\n\n| Call | Case | Answer | Effect on the punch cards |\n|---|---|---|---|\n"
+    cases = (
+        ("a row citing a rule that stands, answering what it names", "| [Stamp] | no code | [Not Known] | none (Operation 1) |\n", 0),
+        ("a row citing a rule the page lacks", "| [Stamp] | no code | [Not Known] | none (Operation 9) |\n", 1),
+        ("a row answering what its rule does not name", "| [Stamp] | full | [Full] | none (Operation 1) |\n", 1),
+        ("a row citing the Execution Contract only", "| any call | read fails | `state-unavailable` | none (Execution Contract Read 1) |\n", 0),
+    )
+    for what, row, want in cases:
+        path = Path("synthetic/atoms/cart.md")
+        got = len(check_case_rows({path: Pattern(path=path, text=head + row, invariant_count=1, done=False)}))
+        if got != want:
+            problems.append(f"case rows: {what}: fired {got}, want {want}")
+    return len(cases)
+
+
 # ── The tree order, pinned on Tenure and its approved trial ──────────────── #
 # spec-format.md, the section titled *The tree order*: a pattern whose first `##` is `What it is` is read against the tree
 # rows of the heading table, its labels name their standard family wherever they stand (GRACE-lang Rule shape 7, Term label
@@ -841,9 +858,11 @@ def check_tree_order_synthetic(problems: list[str]) -> int:
     cases = (
         ("Tenure in the section shape", (data / "tenure.md").read_text(encoding="utf-8"), set()),
         ("Tenure in the tree order", tree, set()),
-        ("the tree with Never before Always true",
-         tree.replace("## Always true\n", "## Never placeholder\n", 1).replace("## Never\n", "## Always true\n", 1).replace("## Never placeholder\n", "## Never\n", 1),
+        ("the tree with Optional before While something is so",
+         tree.replace("## While something is so\n", "## Optional placeholder\n", 1).replace("## Optional\n", "## While something is so\n", 1).replace("## Optional placeholder\n", "## Optional\n", 1),
          {"H-heading"}),
+        ("the tree with the invariants under their old two headings",
+         tree.replace("## What is and what should never be (Invariants)\n", "## Always true\n", 1), {"H-heading"}),
         ("the tree with a section heading left in it", tree.replace("## Source\n", "## Standards references\n", 1), {"H-heading"}),
         ("the tree with a non-standard family away from its heading",
          tree.replace("Identity 1: The atom MUST identify", "Tenure policy 1: The atom MUST identify", 1), {"R-label-heading"}),
@@ -4721,6 +4740,14 @@ def main(argv: list[str]) -> int:
               "fixtures hold (each standard sentence and a field of a declared Type silent; a qualified key, an owner said "
               "with `in one`, a link with EXACTLY ONE, a range with `stand as` and `Field of` naming the pattern each fire "
               "its own code once) \u2713")
+
+    row_problems: list[str] = []
+    n_row = check_case_rows_synthetic(row_problems)
+    failures.extend(row_problems)
+    if not row_problems:
+        print(f"Y-case-row: {n_row} synthetic fixtures hold (a row citing a rule that stands and answering what it names and "
+              "a row citing the Execution Contract stay silent; a rule the page lacks and an answer no cited rule names each "
+              "fire) \u2713")
 
     tree_problems: list[str] = []
     n_tree = check_tree_order_synthetic(tree_problems)

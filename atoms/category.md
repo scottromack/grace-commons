@@ -593,7 +593,10 @@ Category is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -603,10 +606,17 @@ last gate: 2026-11-19 — Final Critique 4, a delta round, one reader (Linus ope
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Drafted through the Grace connector mirroring Reaction, from Scott's forum sketch.** *Chose:* a tree that is also the menu, one home per item, hide in place of remove, no move. *Over:* MIT's Labeling, several names per item in one flat scope. *Because:* Scott 2026-11-18: a forum gets both categories and tags, and a busy tag is graduated into a category; one home per item is the category, several names is the tag, and the graduation is Tag Promotion *(forthcoming)*. Moving a category is left to Category Move *(forthcoming)*, so the atom stays as simple as possible without losing fidelity.
 
 - **2026-11-19 — One string cap bounds an item reference and a category name.** *Chose:* the atom states one cap for both, as Tag and Reaction do, and a deployment declares one value (Execution Contract Input 2: a deployment overrides the cap the page states, and the page states one). *Over:* a cap for each, as Erasure Tombstone and Condition Register declare. *Because:* a deployment that wants a different bound for a name declares it by a new direction on this page, not by a gap in this one; "as simple as possible without losing fidelity" keeps Category the same shape as Tag, its sibling with the same two inputs.
+
+</details>
 
 NOTE: End of Category.

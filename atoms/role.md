@@ -517,7 +517,10 @@ Role is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -527,8 +530,15 @@ last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus cla
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — From GLM's rough draft, drafted through the Grace connector mirroring Reaction.** *Chose:* GLM's shape — a role table the deployment declares, holdings with who and when, an ask that only reads and answers allow or deny, deny by default under every setting, grant and revoke governed by the same table, an optional parent role and an optional self-grant. *Over:* resolving roles into Permissions grants, as the forum sketch first had it. *Because:* an atom stands alone; Permissions answers for one person on one item and Role for a whole class of action, and the composing pattern chooses which to ask. Changed from the rough draft: the first holders and a new person's roles go to External Onboarding, not Customer Onboarding; a cycle in parent roles is refused when the deployment declares the table, since the table is the deployment's and grant never writes it; Tenure is named so its other sense of "role" stays apart.
+
+</details>
 
 NOTE: End of Role.

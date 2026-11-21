@@ -442,7 +442,10 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -463,6 +466,8 @@ open:
 - 2026-10-04-k · refining · Operation 1, 2b; Capability requirement 1 · a blocking take reads the host's clock twice and waits, and the page never says the host is a capability outside the Execution Contract's pipeline → say so, citing Logic confinement 3 and 6
 - 2026-10-05-a · refining · Term unit of work; Sizing 2a, 5; Capability requirement 7 · a unit's bound runs from the reading's ask where an adopter's latency runs from the call's issue, a remaining that answers none is classed by no sizing rule, and every unfenced write inside the call pause bound cannot hold for an adopter's one-call unit run to its own bound → one origin; an arm; scope the requirement; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

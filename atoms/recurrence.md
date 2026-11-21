@@ -775,7 +775,10 @@ Recurrence is a primitive with no regulatory anchor of its own. It inherits from
 
 `done — 2026-11-08` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-08
@@ -784,6 +787,8 @@ last gate: 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundat
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

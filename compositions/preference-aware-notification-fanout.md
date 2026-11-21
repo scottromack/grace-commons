@@ -993,7 +993,10 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1002,6 +1005,8 @@ last gate: 2026-11-06 — Final Critique 18, delta, one fresh reader (Linus), fr
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

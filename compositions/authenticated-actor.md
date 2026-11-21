@@ -622,7 +622,10 @@ Authenticated Actor inherits the broader standards compliance of its constituent
 
 `done — 2026-11-21` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-21
@@ -631,6 +634,8 @@ last gate: 2026-11-21 — Final Critique 12, a delta round, one reader (Linus mi
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

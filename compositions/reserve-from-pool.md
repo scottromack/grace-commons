@@ -729,7 +729,10 @@ The five constituents carry their own deep standards inheritance — see each co
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -738,6 +741,8 @@ last gate: 2026-11-18 — Final Critique 15, a delta round, one reader (Linus mi
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

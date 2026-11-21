@@ -673,7 +673,10 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -683,8 +686,15 @@ last gate: 2026-11-19 — Final Critique 4, delta, frozen at ce83afd1 — founda
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./waitlist.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/waitlist.md`.
+
+</details>
 
 NOTE: End of Waitlist.

@@ -816,7 +816,10 @@ Calendar Time is a primitive with no regulatory anchor of its own. It inherits f
 
 `done — 2026-11-08` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-08
@@ -825,6 +828,8 @@ last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational c
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

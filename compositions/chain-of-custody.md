@@ -988,7 +988,10 @@ this composition inherits the broader standards compliance of its constituents:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1015,6 +1018,8 @@ open:
 - 2026-11-11-d · refining · Invariant 1.1, Check 1.1, Check 5.9 · the carrying intent's states (open, escalated, abandoned, refused) are named inside conditions and no Term declares the set Value set 1 asks for, and Recoverable Invocation declares no term for an intent's states → carry to Recoverable Invocation: declare the intent's states, then cite them here; re-found by Final Critique 23
 - 2026-11-11-e · refining · Composes 10, Composition state 7 · the invalid-query rule answers state-unavailable at [Verify Custody] alone, and the binding rebuild Composition state 7 obliges names no action that runs it, while Check 5.1 reads the enumeration too → widen the invariant or narrow the check, recording the cost; an unreachable state named in an invariant is retired or made reachable; a failure-sensitive invariant gets both directions checked (decided 2026-11-19, group 6 of Scott's ruling of 2026-11-19T21:32Z)
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

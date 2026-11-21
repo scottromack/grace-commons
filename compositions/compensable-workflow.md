@@ -964,7 +964,10 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -974,6 +977,8 @@ last gate: 2026-11-18 — Final Critique 9, a delta round, one reader (Linus lon
 open:
 - 2026-11-03-b · foundational · Composes 3 · nothing provisions the per-run Event Log instance or maps the compensable workflow id to it; Event Log Identity 10 gives the count of log instances to the composing pattern and Event Log Capability requirement 6 has the deployment begin every one at the first start, before any run exists, and Composes 3 does not bar one instance serving every run, where [Read Log] answers other runs' events → waits for Scott: one Event Log instance serving the composition, every event carrying the compensable workflow id, or a log instance per run that the deployment begins at the run's start
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

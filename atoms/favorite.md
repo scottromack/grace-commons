@@ -23,7 +23,7 @@ Favorite lets a person mark an item so they can find it again later: a product, 
 <details markdown="block">
 <summary>WHY</summary>
 
-A person browsing more than they can use today wants to come back to some of it, and the shape recurs wherever a business shows people items: a heart on a product, a star on a recipe, a bookmark on an article. This atom is that and nothing more. Two decisions carry the weight. Marking and unmarking are two requests, each safe to repeat, so a double tap or a slow connection never undoes what the person meant; the screen sends whichever fits the heart it is showing. And unmarking keeps the favorite with the moment it was first marked, so marking it again restores it where it stood; the list the atom answers never reshuffles because of a slip, and how a page shows that list is the page's (Non-goal 6). What the item is, whether it can still be had, and who may look are other patterns' questions, and declining them is what lets one favorite serve products, recipes and articles alike.
+The shape recurs wherever a business shows people more than they can use today: a heart on a product, a star on a recipe, a bookmark on an article. Two decisions carry the weight. Marking and unmarking are two requests, each safe to repeat, so a double tap or a slow connection never undoes what the person meant. And unmarking keeps the first marked moment, so the list the atom answers never reshuffles because of a slip; how a page shows that list is the page's (Non-goal 6). What the item is, whether it can still be had, and who may look are other patterns' questions, and declining them is what lets one favorite serve products, recipes and articles alike.
 
 </details>
 
@@ -35,7 +35,7 @@ Term favorite: one person's mark on one item, kept from the first mark on — a 
 
 #### Favorite
 
-One person's mark on one item: recorded by the first [Mark], stood in [Unmarked] by [Unmark] and back in [Marked] by [Mark]; never removed by the atom.
+Recorded by the first [Mark], stood in [Unmarked] by [Unmark] and back in [Marked] by [Mark]; never removed by the atom.
 
 Kind: Type
 
@@ -49,7 +49,7 @@ Term person reference: the string naming the person a favorite belongs to, in th
 
 #### Person Reference
 
-Names the person a favorite belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether the caller is that person is the composing pattern's question.
+Stored as supplied and compared codepoint for codepoint; whether the caller is that person is the composing pattern's question.
 
 Kind:       Field
 Field of:   Favorite
@@ -64,7 +64,7 @@ Term item reference: the string naming the item a favorite is for, such as a pro
 
 #### Item Reference
 
-Names the item a favorite is for, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether it names a real item, and whether that item can still be had, are a catalog's questions.
+Stored as supplied and compared codepoint for codepoint; whether it names a real item, and whether that item can still be had, are a catalog's questions.
 
 Kind:       Field
 Field of:   Favorite
@@ -79,7 +79,7 @@ Term first marked instant: the instant of the first [Mark] call that recorded a 
 
 #### First Marked Instant
 
-The instant of the [Mark] call that recorded the favorite, stamped from the injected now; never changed, so a favorite unmarked and marked again keeps it.
+Stamped from the injected now, so a favorite unmarked and marked again keeps it.
 
 Kind:       Field
 Field of:   Favorite
@@ -89,7 +89,7 @@ Term status: where a favorite stands, marked or unmarked — the [Status].
 
 #### Status
 
-Where a favorite stands: [Marked] or [Unmarked].
+Holds [Marked] or [Unmarked].
 
 Kind:       Field
 Field of:   Favorite
@@ -99,7 +99,7 @@ Term marked: the status of a favorite the person keeps — [Marked]; the heart i
 
 #### Marked
 
-The status of a favorite the person keeps, and [Look Up]'s answer for one.
+[Look Up]'s answer for one.
 
 Kind:       Member
 Member of:  the status
@@ -109,7 +109,7 @@ Term unmarked: the status of a favorite the person has let go — [Unmarked]; th
 
 #### Unmarked
 
-The status of a favorite the person has let go, and [Look Up]'s answer for one and for a pair with no favorite.
+[Look Up]'s answer for one and for a pair with no favorite.
 
 Kind:       Member
 Member of:  the status
@@ -292,11 +292,18 @@ The case space, and the rule that owns each case:
 | [List] | the person keeps marked favorites | each one's item reference and first marked instant, earliest first, then by item reference | none (Operation 16, Operation 17, Operation 19, Operation 25) |
 | [List] | the person keeps none, or the person reference is blank, over the string cap, or not a string | an empty list | none (Operation 18, Operation 24) |
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 1 — An item is a person's favorite once or not at all.**
   ```
   Invariant 1.1: Two favorites MUST NOT share a pair.
+  ```
+
+- **Invariant 2 — A favorite never moves.**
+  ```
+  Invariant 2.1: The atom MUST NOT change a favorite's first marked instant.
+  Invariant 2.2: The atom MUST NOT change a favorite's person reference.
+  Invariant 2.3: The atom MUST NOT change a favorite's item reference.
   ```
 
 ## When something happens
@@ -333,15 +340,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 NOTE: Capability requirement 4 and Capability requirement 5 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each person reference and each item reference is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 5).
 
-## Never
-
-- **Invariant 2 — A favorite never moves.**
-  ```
-  Invariant 2.1: The atom MUST NOT change a favorite's first marked instant.
-  Invariant 2.2: The atom MUST NOT change a favorite's person reference.
-  Invariant 2.3: The atom MUST NOT change a favorite's item reference.
-  ```
-
 ## Left to others
 
 ```
@@ -370,15 +368,9 @@ NOTE: composing patterns — none yet. Forthcoming: Catalog, Favorite Sharing.
 
 ## Example
 
-The same pattern in two domains, then the rejection paths.
-
-### Online store
-
 A shopper, `ana`, taps the heart on a blue kettle: `mark("ana", "kettle-blue")` answers ok, and the favorite's first marked instant is that moment, 9:14 on Monday. She marks a teapot on Tuesday. Her favorites page asks `list("ana")` and is answered the kettle, then the teapot, each with its first marked instant, and the page, which sets its own order (Non-goal 6), shows the teapot above the kettle. On Wednesday she taps the kettle's heart by mistake: `unmark("ana", "kettle-blue")` answers ok, and the kettle leaves what `list("ana")` answers, while the shop still shows the kettle with an empty heart. She taps it again: `mark("ana", "kettle-blue")` answers ok, and the kettle is marked with the first marked instant it always had, 9:14 on Monday, so `list("ana")` answers it first again. Nothing moved. A week later the shop discontinues the kettle; `list("ana")` still answers it, and the page shows it as discontinued from the shop's own catalog.
 
-### Recipe site
-
-A cook, `r7`, stars a lentil soup: `mark("r7", "recipe-lentil-soup")` answers ok. The page checks the star for each recipe it shows: `look_up("r7", "recipe-lentil-soup")` answers marked, and `look_up("r7", "recipe-flatbread")` answers unmarked, since `r7` never marked the flatbread. A slow connection sends the same star twice; the second `mark("r7", "recipe-lentil-soup")` answers ok and writes nothing.
+A recipe site reads the same list a heart at a time: `look_up("r7", "recipe-lentil-soup")` answers marked for a recipe the cook starred and `look_up("r7", "recipe-flatbread")` answers unmarked for one never marked, and a star sent twice answers ok the second time and writes nothing.
 
 ## Source
 
@@ -455,7 +447,10 @@ Term terms: favorite, favorites, pair, person reference, item reference, string 
 
 `done — 2026-11-17` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-17
@@ -465,8 +460,15 @@ last gate: 2026-11-21 — Final Critique 6, a delta round, one reader (Linus bea
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./favorite.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/favorite.md`.
+
+</details>
 
 NOTE: End of Favorite.

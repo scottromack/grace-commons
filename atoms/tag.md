@@ -23,7 +23,7 @@ Tag lets a business keep a flat list of named tags — clay, cover-crops, beginn
 <details markdown="block">
 <summary>WHY</summary>
 
-A category says where an item lives; a tag says what an item is about, and an item is about several things at once. This atom is that and nothing more. Four decisions carry the weight. Tags are flat and many-to-many: no tag sits under another, and an item carries any number. A tag's name is unique and a rename keeps every item the tag is on, so fixing a typo never loses anything. And putting a tag on and taking a tag off are each safe to repeat, so a double click never errors. Tags are never removed, which keeps every item's tags real; a tag no longer wanted is simply taken off its items. Taken in from MIT's sync-engine Labeling concept (Daniel Jackson's group), narrowed to one list per deployment and made safe to repeat. Scott, 2026-11-18: a forum gets both categories and tags, and communities graduate a busy tag into a category, which is Tag Promotion's job.
+A category says where an item lives; a tag says what an item is about, and an item is about several things at once, so tags are flat and many-to-many and no tag sits under another. A rename keeps every item the tag is on, so fixing a typo never loses anything, and putting a tag on and taking one off are each safe to repeat, so a double click never errors. Tags are never removed, which keeps every item's tags real; a tag no longer wanted is simply taken off its items. Taken in from MIT's sync-engine Labeling concept (Daniel Jackson's group), narrowed to one list per deployment and made safe to repeat. Scott, 2026-11-18: a forum gets both categories and tags, and communities graduate a busy tag into a category, which is Tag Promotion's job.
 
 </details>
 
@@ -35,7 +35,7 @@ Term tag: one named tag in the deployment's list — a [Tag].
 
 #### Tag
 
-One named tag in the deployment's list: recorded by [Create], renamed by [Rename]; never removed by the atom.
+Recorded by [Create], renamed by [Rename]; never removed by the atom.
 
 Kind: Type
 
@@ -43,7 +43,7 @@ Term tag id: the string the atom assigns a tag when the tag is created — a [Ta
 
 #### Tag Id
 
-The string the atom assigns a tag when the tag is created, carried by no other tag; never changed.
+Never changed.
 
 Kind:       Field
 Field of:   Tag
@@ -58,7 +58,7 @@ Term tag name: the string the business wrote as the tag's name, such as clay —
 
 #### Tag Name
 
-The string the business wrote as the tag's name; no other tag carries the same name. Compared codepoint for codepoint.
+No other tag carries the same name; compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Tag
@@ -73,7 +73,7 @@ Term tagging: the record that one tag is on one item — a [Tagging].
 
 #### Tagging
 
-One tag on one item: recorded by [Apply], removed by [Remove].
+Recorded by [Apply], removed by [Remove].
 
 Kind: Type
 
@@ -85,7 +85,7 @@ Term item reference: the string naming an item, such as a post or a product, in 
 
 #### Item Reference
 
-Names the item a tagging is on, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint.
+Stored as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Tagging
@@ -353,7 +353,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [List Tags] | any | every tag, by name | none (Operation 15) |
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 1 — Names and taggings stay one each.**
   ```
@@ -414,15 +414,9 @@ NOTE: composing patterns — none yet. Forthcoming: Forum, Tag Promotion.
 
 ## Example
 
-The same pattern in two domains, then the rejection paths.
-
-### Forum
-
 A forum creates `create("claey")`, a typo, and `create("cover-crops")`. A post, `p-7`, gets both: `apply(claey-id, "p-7")` and `apply(cover-id, "p-7")`. `items_with(claey-id)` now answers `p-7` with every other claey post, and `tags_on("p-7")` answers claey and cover-crops. A moderator fixes the typo with `rename(claey-id, "clay")`, a name no tag carries; every post stays tagged, and `tags_on("p-7")` now answers clay and cover-crops.
 
-### Photo library
-
-A photographer tags one photo `beach`, `sunset` and `family`. Taking `family` off is `remove(family-id, "img-204")`; a second, identical remove sent by a slow connection answers ok and changes nothing.
+A photo library tags one photo `beach`, `sunset` and `family`; taking `family` off is `remove(family-id, "img-204")`, and a second, identical remove sent by a slow connection answers ok and changes nothing.
 
 ## Source
 
@@ -502,7 +496,10 @@ Term terms: tag, tags, tag id, tag name, tagging, taggings, item reference, stri
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -512,8 +509,15 @@ last gate: 2026-11-21 — Final Critique 4, a delta round, one reader (Linus ope
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Taken in from MIT's Labeling concept, drafted through the Grace connector mirroring Reaction.** *Chose:* one flat list of tags per deployment, many per item, apply and remove safe to repeat, no tag removed. *Over:* MIT's scoped labels, whose duplicate apply and missing remove are refused. *Because:* Scott 2026-11-18: a forum gets both categories and tags; repeat-safe calls match Reaction's precedent, and one list per deployment is as simple as possible without losing fidelity.
+
+</details>
 
 NOTE: End of Tag.

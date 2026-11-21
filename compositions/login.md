@@ -616,7 +616,10 @@ Inherited from:
 
 `done — 2026-11-21` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-21
@@ -625,6 +628,8 @@ last gate: 2026-11-21 — Final Critique 25, frozen at d0b2d011 — delta, found
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -562,7 +562,10 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -571,6 +574,8 @@ last gate: 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundat
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -677,7 +677,10 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -687,8 +690,15 @@ last gate: 2026-11-19 — Final Critique 5, a full round, three readers (GRID gl
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./money.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/money.md`.
+
+</details>
 
 NOTE: End of Money.

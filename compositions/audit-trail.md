@@ -1776,7 +1776,10 @@ The composition is the structural form of what every major audit regime requires
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1804,6 +1807,8 @@ open:
 - 2026-11-02-a · refining · Term closure sum; Term closure floor; Term re-drive spend; Instance start 12, 16, 17, 19, 23; purge completion bound 1, 2; Reconciliation 1; reconciliation cadence 5 · the closure arithmetic and the scan's cadence still price a first half, a hold placement and a cascade that Defensible Retention now owns, and this page keeps declared the bounds they name, so an instance of this page alone must set a purge completion bound for a cascade it does not run → split the sum and the start checks by the page that owns each leg, or state that the instance carries the composer's bounds; found by the purge move
 - 2026-11-02-b · refining · record destruction 1 through 4; record destruction step 1.1 through 2.9; the [Record Destruction] closure rows · the action is the old cascade's steps 1 and 2 under a new name and has had no round of its own: its refusal arms (retention-period-not-elapsed passed through, destruction-failure carrying the step) and its closure rows are new text, and a caller other than Defensible Retention's purge_event is unstated → read it in the page's full round; found by the purge move
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

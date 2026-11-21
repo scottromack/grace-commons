@@ -25,7 +25,7 @@ Duplicate Prevention gives a system a short-term memory of things it has recentl
 <details markdown="block">
 <summary>WHY</summary>
 
-Every system that accepts input from a person or another system meets the same class of problem: the double-submit, the rapid re-add, the replayed message, the retried charge, the double-posted comment, the redundant sign-up. The shape is constant — an action carries an identity, the action should be rejected, de-duplicated or replayed if that identity was seen recently, and *recently* is a wall-time window. The atom is that mechanic and nothing more: it places an identity under guard for a bounded term and answers whether the identity is still under guard. It does not compare identities, does not decide what a repeat means, and does not act. The same literature names it three times — *idempotency window* in distributed systems, *cooldown* in user experience, *replay protection* in security — and the concept underneath is one concept.
+Every system that accepts input from a person or another system meets the same class of problem: the double-submit, the rapid re-add, the replayed message, the retried charge, the double-posted comment, the redundant sign-up. The shape is constant: an identity, a wall-time window, and a decision about what a repeat means. The atom leaves that decision, and the comparison of identities, to the containing pattern, because one mechanic serves every one of those problems only if it chooses for none of them. The same literature names it three times — *idempotency window* in distributed systems, *cooldown* in user experience, *replay protection* in security — and the concept underneath is one concept.
 
 </details>
 
@@ -37,7 +37,7 @@ Term identity: the opaque value a containing pattern asks the atom to remember a
 
 #### Identity
 
-The value a containing pattern asks Duplicate Prevention to remember and recognize — what counts as "the same thing seen again." The concept treats it as opaque: it stores and compares the value but never interprets it, and how two identities are judged equal is the containing pattern's matching rule, which the containing pattern applies before the value reaches this atom.
+What counts as "the same thing seen again." How two identities are judged equal is the containing pattern's matching rule, which it applies before the value reaches this atom.
 
 Kind: Type
 
@@ -55,7 +55,7 @@ Term recorded set: every identity a [Record] has placed under guard, each held w
 
 #### Recorded Set
 
-The atom's memory: every [Identity] a [Record] has placed under guard, each held together with the time its current guard opened. An [Identity] enters on [Record] and stays: once its [Window] has elapsed it is no longer under guard and [Check] answers [Not Seen] for it, but no action of the atom removes its entry. It is an internal mechanism, not a user-facing surface.
+An [Identity] enters on [Record] and stays: once its [Window] has elapsed [Check] answers [Not Seen] for it, but no action of the atom removes its entry. An internal mechanism, not a user-facing surface.
 
 Kind:       Type
 Projection: recorded
@@ -64,7 +64,7 @@ Term recording instant: the instant an identity was placed under guard, stamped 
 
 #### Recording Instant
 
-The moment an [Identity] was placed under guard — the per-entry timestamp the guard window is measured from. It is stamped from the injected [Now] on the [Record] that opens the guard, and a [Record] on an already-guarded [Identity] leaves it unchanged (single-recording). It is the only datum the [Recorded Set] carries per entry beyond the [Identity] itself.
+Stamped from the injected [Now] on the [Record] that opens the guard, and a [Record] on an already-guarded [Identity] leaves it unchanged (single-recording). It is the only datum the [Recorded Set] carries per entry beyond the [Identity] itself.
 
 Kind:       Field
 Field of:   Recorded Set
@@ -74,7 +74,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 #### Now
 
-The current wall-time reading the [Record] and [Check] behaviors evaluate against, supplied to the pure transition by the host at the I/O seam (never read inside the transition, never supplied by the business caller). [Record] stamps [Recording Instant] from it; [Check] compares it against the [Window] to decide [Seen] versus [Not Seen].
+Supplied to the pure transition by the host at the I/O seam, never read inside the transition and never supplied by the business caller. [Check] compares it against the [Window] to decide [Seen] versus [Not Seen].
 
 Kind:         Parameter
 Parameter of: Record and Check
@@ -98,7 +98,7 @@ NOTE: watch the degenerate bound (Term window duration).
 
 #### Window Duration
 
-The length the containing pattern chooses for a [Window] — how long a recently-recorded [Identity] stays guarded. It is supplied by the containing pattern, one for each instance of the atom and always more than zero (24 hours for a to-do list, minutes for a payment), sizes the [Window] but is not itself part of the concept's state, and is the value the expiry comparison measures [Now] − [Recording Instant] against.
+One for each instance of the atom (24 hours for a to-do list, minutes for a payment); it sizes the [Window] but is not itself part of the concept's state.
 
 Kind:         Parameter
 Parameter of: Record and Check
@@ -206,7 +206,7 @@ Projection: not-seen
 
 A payment processor calls [Check] while the database cannot be read: [Check] answers state-unavailable (Execution Contract Read 1), and proceeding as on [Not Seen] (fail-open) or as on [Seen] (fail-closed) is the processor's own decision (Operation 12).
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 2 — Single-recording.**
   ```
@@ -214,6 +214,11 @@ A payment processor calls [Check] while the database cannot be read: [Check] ans
   Invariant 2.2: [Record] MUST preserve the recording instant of an identity under guard.
   ```
 - **Invariant 4 — Eventual expiry.**
+
+- **Invariant 3 — Idempotency of check.**
+  ```
+  Invariant 3.1: [Check] MUST NOT alter the recorded set.
+  ```
 
 ## When something happens
 
@@ -250,13 +255,6 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 ```
 
-## Never
-
-- **Invariant 3 — Idempotency of check.**
-  ```
-  Invariant 3.1: [Check] MUST NOT alter the recorded set.
-  ```
-
 ## Left to others
 
 ```
@@ -285,25 +283,11 @@ The comment and payment examples check and record in separate steps. A containin
 
 ## Example
 
-### Personal Todo (24-hour window)
-
-A user deletes *"buy milk."* Personal Todo calls [Record] with `"buy milk"`. Two hours later, the user attempts to add *"buy milk"* again. Personal Todo calls [Check] with `"buy milk"`, receives [Seen], rejects the add as `duplicate-recent`. Twenty-five hours after the original delete, the user tries again. Personal Todo calls [Check] with `"buy milk"`, receives [Not Seen], accepts the add.
+In Personal Todo, with a 24-hour window, a user deletes *"buy milk."* Personal Todo calls [Record] with `"buy milk"`. Two hours later, the user attempts to add *"buy milk"* again. Personal Todo calls [Check] with `"buy milk"`, receives [Seen], rejects the add as `duplicate-recent`. Twenty-five hours after the original delete, the user tries again. Personal Todo calls [Check] with `"buy milk"`, receives [Not Seen], accepts the add.
 
 (`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; Personal Todo's term entry [Duplicate Recent](./personal-todo.md#duplicate-recent) names it. Per [`annotation.md`](https://github.com/scottromack/grace-commons/blob/main/working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
 
-### Comment double-post protection (60-second window)
-
-A user submits a comment, the page hangs, they click submit again. The comment system calls [Record] with the normalized comment text after the first submission completes. The second click triggers [Check], receives [Seen], rejects the second post. The first comment goes through; the second does not. Two clicks at once can both receive [Not Seen] and both post, since the system checks and records in separate steps (see the Composition notes).
-
-### Payment idempotency (5-minute window)
-
-A payment processor receives a charge request with an idempotency key. It calls [Check] with the key, receives [Not Seen], processes the charge, caches the response against the key in its own records and calls [Record] with the key. A retry two minutes later triggers [Check] with the key, receives [Seen], and the processor returns its cached result without re-processing. Two requests with the same key at once can both receive [Not Seen] and both be charged, since the processor checks and records in separate steps (see the Composition notes).
-
-### Newsletter double-subscribe (1-hour window)
-
-A user submits the same email address to a newsletter form twice in quick succession (browser back button, double-click on submit). The first submission processes. The second, a few seconds later, receives [Seen] and is silently absorbed-as-already-subscribed rather than producing a duplicate confirmation email.
-
-The mechanic is identical across all four. What differs: the [Window Duration], the identity-matching rule, and the containing pattern's response on [Seen] (reject, return-cached, silently-absorb).
+The same two calls serve the others. A comment box records the normalized comment text once the first post completes, so the second click is [Seen] and rejected (60-second window). A payment processor checks the idempotency key, charges and caches the response, then records the key, so a retry two minutes later is [Seen] and answered from the cache (5-minute window); a newsletter form absorbs a second submission of the same address as already subscribed (1-hour window). Where the system checks and records in separate steps, two requests at once can both receive [Not Seen] (see the Composition notes). What differs across all four is the [Window Duration], the identity-matching rule, and the containing pattern's response on [Seen].
 
 ## Source
 
@@ -385,7 +369,10 @@ Term terms: identity, matching rule, recorded set, recording instant, window dur
 
 `done — 2026-11-20` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-20
@@ -394,6 +381,8 @@ last gate: 2026-11-21 — Final Critique 10, a delta round, one reader (Linus be
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -1000,7 +1000,10 @@ Actor Suspension inherits the broader standards compliance of its constituents:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1022,6 +1025,8 @@ open:
 - 2026-11-03-f · refining · Action wiring · no closure table as the subsection's first block → write the table
 - 2026-11-03-g · refining · Capability requirement 48, Capability requirement 49, Primitive policy 22 · the plan carries live session tokens into the sealed record, and a deployment holding hashed tokens only cannot adopt the page → the plan carries a digest of the token, never the live token (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

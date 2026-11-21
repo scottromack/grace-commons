@@ -1678,7 +1678,10 @@ The composition anchors the accountability a regulated adopter's regime requires
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1689,6 +1692,8 @@ open:
 - 2026-11-07-a · refining · Binding 12; Binding 11; Binding 14 · Binding 12 holds a lengthening until every record placed under the old period is past its retention end, and a record is placed under the old period for as long as the lengthening is pending, so on an instance that keeps placing records the change may never take effect, and no rule says whether the change waits only for the records present when it is requested or the deferral is accepted → waits on Scott (Needs Scott, 2026-11-20): group 2 of the ruling of 2026-11-19T21:32Z names no direction for item 86; the choice is whether the request binds the records present at that instant or the deferral is accepted and named a non-goal
 - 2026-11-07-b · refining · reconcile step 3.24a; reconcile step 2.1; reconcile step 3.19 · a service identity is a registered actor and no rule says whether two kinds may bind the same one, so where a write answers invalid-credential no rule says whether credential-refused opens for the act's kind alone or for every kind bound to that identity, whose own writes the credential refuses too → waits on Scott (Needs Scott, 2026-11-20): the direction "a service identity serves one kind" disagrees with Multi-Party Approval, Capability-Backed Sharing, Chain of Custody and Customer Onboarding, each of which binds one recovery identity as the service identity of several kinds; the choice is whether those pages rebind or credential-refused opens for every kind bound to the identity
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

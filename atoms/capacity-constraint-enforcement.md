@@ -1058,7 +1058,10 @@ The atom inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1078,6 +1081,8 @@ open:
 - 2026-11-03-j · refining · Identity 14 · the database's refusal of a colliding write has no supplying rule and [Declare Pool] answers none → a Capability requirement and an answer
 - 2026-11-03-k · refining · String 12 · normalizes a field the atom never compares → declare the compared values or delete
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

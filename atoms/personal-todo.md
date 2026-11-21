@@ -584,7 +584,10 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -593,6 +596,8 @@ last gate: 2026-11-19 — Final Critique 9, a delta round, one reader (Linus min
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

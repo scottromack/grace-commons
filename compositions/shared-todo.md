@@ -625,7 +625,10 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 `done — 2026-11-21` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-21
@@ -634,6 +637,8 @@ last gate: 2026-11-21 — Final Critique 12, frozen at f9d54b1c — delta, found
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

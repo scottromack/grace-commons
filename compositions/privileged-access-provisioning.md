@@ -1068,7 +1068,10 @@ Projection: invalid-credential
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1088,6 +1091,8 @@ open:
 - 2026-11-10-a · refining · Action wiring 19 through 25, Action wiring 34 through 37, Action wiring 66 through 71, Action wiring 116; the request signatures · Multi-Party Approval composes Recoverable Invocation (its 2026-11-10 decision): initiate chain, the step decisions and withdraw chain now also answer act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted and recording-failure carrying refusal, initiate chain already-assigned and the decisions chain-state-changed, each closed before or without a commit, and the wiring maps none of them → a retry is recognised by a key that survives a lost answer, never "the cost is stated" (decided 2026-11-19, group 3 of Scott's ruling of 2026-11-19T21:32Z)
 - 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

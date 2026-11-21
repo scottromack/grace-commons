@@ -1187,7 +1187,10 @@ This composition inherits the broader standards compliance of its constituents:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1242,6 +1245,8 @@ open:
 - 2026-10-06-l · refining · the rounds of 2026-10-06 and 2026-10-07; 2026-10-05-p · seventeen foundational findings in fourteen passes, twelve of them in the intent and outcome pairing, the reconciliation's edges, bounds and runs and the horizon — the protocol line 2026-10-05-p names, which Defensible Retention carries too. After fifteen Ledger lines were cured or stated in the body the next pass returned half the refining reports and one foundational finding, in a check written that morning for the same protocol → bind this page to Recoverable Invocation and delete what it then cites; the three passes after
 - 2026-10-07-a · rhetorical · Term enumeration instant; Capability requirement 33 · the intended instant is called the now under which the universe was enumerated, where it is the reading ahead of the take and stale by any stall; and the requirement holds by the floors' own formulas → rewrite on the next load-bearing touch
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

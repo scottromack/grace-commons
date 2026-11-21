@@ -1233,7 +1233,10 @@ It inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1260,6 +1263,8 @@ open:
 - 2026-11-11-a · refining · Term routed transition; Term decision probe; Composes 11 · a step decision written outside the composition by the approver's own credential, at the pairing instant of that approver's open decision intent, matches the intent on act key, actor and pairing datum, so it is a routed transition and no write-ownership finding opens; the reason cannot be compared (an approval's reason is optional, and the seam may canonicalize it) → accept the residual under Composes 11 and name it in a Non-goal; Approval Step's seam does not change for it (Composes 4) (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 - 2026-11-11-b · refining · Term routed vector; Term routed transition · past the retention horizon the trailing flag of a purged decision intent is not a surviving field, so a trailing decision counts in A, R or W → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

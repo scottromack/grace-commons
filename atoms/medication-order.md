@@ -1303,7 +1303,10 @@ It inherits from:
 
 `done — 2026-11-05` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-05
@@ -1312,6 +1315,8 @@ last gate: 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 —
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -1173,7 +1173,10 @@ This composition inherits the broader standards compliance of its constituents:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1209,6 +1212,8 @@ open:
 - 2026-11-04-c · refining · Audit Trail's Record Action closure table, its lost-answer cell · the cell reads nothing committed where Execution Contract Error model 1 and both adopters' read-backs (Recoverable Invocation Primitive policy 32a, Audit arm 30) leave the append possibly committed → cure on audit-trail.md in its own round
 - 2026-10-19-e · refining · Reconciliation 33; Term false closing · reopened 2026-11-04: an abandonment beside a disclosure write still in flight is reachable again now the intent commits ahead of the write, and Reconciliation 33's alert is what reads it → the alert does not suffice alone: Reconciliation 33 resolves an abandonment beside an in-flight write (completes it or records it abandoned) and alerts only what it cannot resolve (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

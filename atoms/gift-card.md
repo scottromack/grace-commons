@@ -512,7 +512,10 @@ State unclaimed-property laws, which may oblige a seller to report a balance lef
 
 `done — 2026-11-06` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-06
@@ -521,6 +524,8 @@ last gate: 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mim
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

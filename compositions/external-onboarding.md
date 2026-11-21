@@ -870,7 +870,10 @@ Projection: onboarding.refused
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -879,6 +882,8 @@ last gate: 2026-11-10 — Final Critique 19, delta, frozen at 66da7e8 — founda
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

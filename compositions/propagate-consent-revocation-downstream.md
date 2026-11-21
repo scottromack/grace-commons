@@ -1074,7 +1074,10 @@ The four constituents carry their own deep standards inheritance — see each co
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1085,6 +1088,8 @@ open:
 - 2026-11-04-a · refining · Capability requirement 4, Action wiring 13, 14 · no rule refuses a consent retention whose period exceeds the audit horizon at the placement, and Check 7.1 finds the breach only after the record stands → name the refusal the placement lands among the Action wiring, or name the policy registry the owner (External check 5); re-found by Final Critique 15, 19, 23 and 27
 - 2026-11-11-c · refining · Composition state 5, Action wiring 22, Term live index entry · a repeat registration of a pair whose first registration event the audit horizon destroyed changes no binding (Composition state 5), so the pair classifies purged and extraction-pending against Processing Register (Composition state 16) while an equal pair whose first event stands classifies live; every build does the same and no check fails, so the cure is a decision, not a gap → a later registration event that the record read answers Retained re-binds the pair, so a pair that is live classifies live. One pair, one meaning; recording the misclassification as a deployment obligation is make-work (Scott, 2026-11-18: "We are here to reduce work"). The reach is every rule that cites Term live index entry; the cure takes all of them (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -552,7 +552,10 @@ Moderation is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-19` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-19
@@ -562,8 +565,15 @@ last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus cla
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Drafted through the Grace connector mirroring Reaction, from Scott's forum sketch.** *Chose:* flag, then six moves on three independent settings, and a hide that clears the item's pending flags in the same commit. *Over:* a moderator clearing the queue by hand. *Because:* Scott, 2026-11-18, on leftover approval items: "making managers manually clean up workers mess is ... pure make work. We are here to reduce work."
+
+</details>
 
 NOTE: End of Moderation.

@@ -319,7 +319,10 @@ ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O
                                             # the standard sentences: advisory until the reorganisation sweep is done, then a gate
                                             # (unit `method: the forms of the tree reorganisation and the standard sentences`)
                                             "Y-key-sentence", "Y-owner-key-sentence", "Y-link-sentence", "Y-range-sentence",
-                                            "Y-record-type"})
+                                            "Y-record-type",
+                                            # a case table's rows true to the rules they cite: advisory until it reads clean across the corpus
+                                            # (unit `format: the last reorganisation rules`, 2026-11-21)
+                                            "Y-case-row"})
 
 
 @dataclass
@@ -2449,6 +2452,8 @@ def parse_ledger(text: str) -> Ledger | None:
     fence = FENCE.search(text, m.end())
     # the fence must be the first non-blank content after the heading
     between = text[m.end():fence.start()] if fence else text[m.end():m.end() + 200]
+    # a folded Ledger puts the heading's `</summary>` between the <h2> and the fence (spec-format.md, *The jobs each section does*)
+    between = re.sub(r"^\s*</summary>", "", between)
     if not fence or between.strip():
         led.problems.append((led.line, "no fenced block immediately after `## Ledger`"))
         return led
@@ -3892,6 +3897,76 @@ def check_standard_sentences(patterns: dict[Path, Pattern]) -> list[Finding]:
     return out
 
 
+# Y-case-row (advisory): a case table's row is true to the rules it cites (spec-format.md, *The jobs each section does*): every
+# rule the row's closing citation names stands on the page, and the answer the row gives is named by a rule it cites.
+_CASE_HEAD = re.compile(r"^\|\s*Call\s*\|\s*Case\s*\|\s*Answer\s*\|")
+_RULE_LABEL = re.compile(r"^\s*([A-Z][A-Za-z ]*? \d+[a-z]?(?:\.\d+)?):\s*(.*)$")
+_CITE = re.compile(r"^([A-Z][A-Za-z ]*?) (\d+)(?:[a-z]|\.\d+)? through (\d+)$|^([A-Z][A-Za-z ]*? \d+[a-z]?(?:\.\d+)?)$")
+
+
+def _words(s: str) -> str:
+    return " ".join(re.sub(r"[-_\[\]`]", " ", s).casefold().split())
+
+
+def check_case_rows(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """Y-case-row (advisory): a row of a case table cites a rule that is not on the page, or gives a bracketed answer
+    that none of the page's rules it cites names."""
+    out: list[Finding] = []
+    for path, p in sorted(patterns.items()):
+        lines = p.text.split("\n")
+        rules: dict[str, str] = {}
+        fence = False
+        for ln in lines:
+            if ln.lstrip().startswith("```"):
+                fence = not fence
+                continue
+            m = _RULE_LABEL.match(ln) if fence else None
+            if m:
+                rules[m.group(1)] = rules.get(m.group(1), "") + " " + m.group(2)
+        in_table = False
+        for i, ln in enumerate(lines, start=1):
+            if _CASE_HEAD.match(ln):
+                in_table = True
+                continue
+            if not in_table:
+                continue
+            if not ln.startswith("|"):
+                in_table = False
+                continue
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cells) < 4 or set(cells[0]) <= set("-: "):
+                continue
+            cite = re.search(r"\(([^()]*)\)\s*$", cells[-1])
+            if not cite:
+                continue
+            named: list[str] = []
+            for part in re.split(r",\s*|\s+and\s+", cite.group(1)):
+                part = part.strip()
+                if part.startswith("Execution Contract"):
+                    continue
+                m = _CITE.match(part)
+                if not m:
+                    continue
+                if m.group(1):
+                    labels = [f"{m.group(1)} {n}" for n in range(int(m.group(2)), int(m.group(3)) + 1)]
+                else:
+                    labels = [m.group(4)]
+                for lab in labels:
+                    if lab in rules:
+                        named.append(lab)
+                    else:
+                        out.append(Finding(path, i, "Y-case-row",
+                                           f"the row cites {lab}, which no rule on the page carries"))
+            answer = re.findall(r"\[([^\]]+)\]", cells[2])
+            if answer and named:
+                said = _words(" ".join(rules[n] for n in named))
+                for a in answer:
+                    if _words(a) not in said:
+                        out.append(Finding(path, i, "Y-case-row",
+                                           f"the row answers [{a}], which none of the rules it cites names"))
+    return out
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     flags = {a for a in argv[1:] if a.startswith("--")}
@@ -3959,6 +4034,7 @@ def main(argv: list[str]) -> int:
     findings += check_requirement_text(patterns)
     findings += check_pattern_not_page(root, patterns)
     findings += check_standard_sentences(patterns)
+    findings += check_case_rows(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

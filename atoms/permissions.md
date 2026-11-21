@@ -598,7 +598,10 @@ It inherits from:
 
 `done — 2026-11-20` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-20
@@ -607,6 +610,8 @@ last gate: 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde �
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

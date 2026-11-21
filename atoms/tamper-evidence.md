@@ -681,7 +681,10 @@ It inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -690,6 +693,8 @@ last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 �
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

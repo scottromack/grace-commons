@@ -511,7 +511,10 @@ Post is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-20` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-20
@@ -521,8 +524,15 @@ last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus nem
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 - **2026-11-18 — Taken in from MIT's Posting concept, drafted through the Grace connector mirroring Reaction.** *Chose:* a changeable post, draft or published, its revisions read from the database's history. *Over:* MIT's unchanging message, and a revision list kept by hand. *Because:* a forum post is drafted and corrected, and Execution Contract Database 5 already keeps every version. A post's web address is left to Post Address *(forthcoming)*, so the atom stays as simple as possible without losing fidelity.
+
+</details>
 
 NOTE: End of Post.

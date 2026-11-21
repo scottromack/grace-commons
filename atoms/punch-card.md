@@ -23,7 +23,7 @@ Punch Card is a shop's punch card: a punch card collects one stamp per purchase,
 <details markdown="block">
 <summary>WHY</summary>
 
-A shop rewards a returning customer with a free item, and the shape recurs wherever a shop hands out punch cards: a count that rises by one per purchase, a goal, and a reward claimed at the goal. This atom is that and nothing more. Two decisions carry the weight. A stamp adds exactly one or is refused, so a call means one thing and a punch card never holds more stamps than its goal; a full punch card is redeemed first. And redeeming empties the punch card and counts the redemption, so one punch card serves a customer for good and a balance of stamps is always read from the punch card alone; double stamps, expiry, transfer and taking a stamp back make a loyalty card system, a different concept.
+The shape recurs wherever a shop rewards a returning customer: a count, a goal, a reward claimed at the goal. Two decisions carry the weight. A stamp adds one or is refused, so a call means one thing and a stamp count never passes the goal. Redeeming restarts the same punch card, so one punch card serves a customer for good and a balance is read from the punch card alone. Double stamps, expiry, transfer and taking a stamp back make a loyalty card system, a different concept.
 
 </details>
 
@@ -35,7 +35,7 @@ Term punch card: one count of stamps collected toward a goal and traded for a fr
 
 #### Punch Card
 
-One count of stamps, started by [Issue], raised by [Stamp] and emptied by [Redeem] at its [Goal]; never cancelled, expired or removed by the atom.
+Started by [Issue], raised by [Stamp], emptied by [Redeem]; the atom never cancels, expires or removes it.
 
 Kind: Type
 
@@ -43,7 +43,7 @@ Term card id: the opaque value naming one punch card in the shop's records — a
 
 #### Card Id
 
-The opaque, immutable identity of a punch card in the shop's records, allocated by the host at the seam on [Issue], never reused; it claims nothing.
+Immutable; allocated by the host at the seam on [Issue].
 
 Kind:       Field
 Field of:   Punch Card
@@ -59,7 +59,7 @@ Term card code: the random value whose holder collects stamps on a punch card an
 
 #### Card Code
 
-The random value whose holder collects stamps and claims the free item, allocated by the host at the seam on [Issue] from a cryptographically secure random source, with at least 64 bits of random material; never reused, never changed, answered only by [Issue], stored as supplied and compared codepoint for codepoint.
+Allocated by the host at the seam on [Issue] from a cryptographically secure random source, with at least 64 bits of random material; never changed, stored as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Punch Card
@@ -83,7 +83,7 @@ Term goal: the number of stamps that earns a punch card's free item — a [Goal]
 
 #### Goal
 
-The number of stamps that earns a punch card's free item: a whole number, one or more; set by [Issue] from the [Stamp Goal], never changed.
+Set by [Issue] from the [Stamp Goal]; never changed.
 
 Kind:       Field
 Field of:   Punch Card
@@ -93,7 +93,7 @@ Term stamps: the number of stamps a punch card holds toward its next free item �
 
 #### Stamps
 
-The number of stamps a punch card holds toward its next free item: a whole number, zero or more, never more than the [Goal]; set to zero by [Issue], raised by one by [Stamp], set to zero by [Redeem].
+Set to zero by [Issue], raised by one by [Stamp], set to zero by [Redeem].
 
 Kind:       Field
 Field of:   Punch Card
@@ -103,7 +103,7 @@ Term redemptions: the number of free items a punch card has given — the [Redem
 
 #### Redemptions
 
-The number of free items a punch card has given: a whole number, zero or more; set to zero by [Issue], raised by one by [Redeem], never lowered.
+Set to zero by [Issue], raised by one by [Redeem], never lowered.
 
 Kind:       Field
 Field of:   Punch Card
@@ -322,12 +322,25 @@ The case space, and the rule that owns each case:
 
 - `read(p404)`, where no punch card `p404` exists — rejected as [Not Known].
 
-## Always true
+## What is and what should never be (Invariants)
 
 - **Invariant 1 — A punch card never holds more stamps than its goal.**
   ```
   Invariant 1.1: EVERY punch card MUST carry a whole count as the punch card's stamps.
   Invariant 1.2: A punch card's stamps MUST NOT EXCEED the punch card's goal.
+  ```
+
+- **Invariant 2 — A punch card keeps its code and its goal, and its redemptions never fall.**
+  ```
+  Invariant 2.1: The atom MUST NOT change a punch card's card code.
+  Invariant 2.2: The atom MUST NOT change a punch card's goal.
+  Invariant 2.3: The atom MUST NOT lower a punch card's redemptions.
+  ```
+- **Invariant 3 — A refused call changes nothing.**
+  ```
+  Invariant 3.1: A refused [Stamp] MUST NOT change a punch card's stamps.
+  Invariant 3.2: A refused [Redeem] MUST NOT change a punch card's stamps.
+  Invariant 3.3: A refused [Redeem] MUST NOT change a punch card's redemptions.
   ```
 
 ## When something happens
@@ -374,21 +387,6 @@ Projection: stamp_goal
 
 NOTE: watch the unset setting (Capability requirement 5).
 
-## Never
-
-- **Invariant 2 — A punch card keeps its code and its goal, and its redemptions never fall.**
-  ```
-  Invariant 2.1: The atom MUST NOT change a punch card's card code.
-  Invariant 2.2: The atom MUST NOT change a punch card's goal.
-  Invariant 2.3: The atom MUST NOT lower a punch card's redemptions.
-  ```
-- **Invariant 3 — A refused call changes nothing.**
-  ```
-  Invariant 3.1: A refused [Stamp] MUST NOT change a punch card's stamps.
-  Invariant 3.2: A refused [Redeem] MUST NOT change a punch card's stamps.
-  Invariant 3.3: A refused [Redeem] MUST NOT change a punch card's redemptions.
-  ```
-
 ## Left to others
 
 ```
@@ -420,15 +418,7 @@ NOTE: composing patterns — none yet. Forthcoming: Checkout.
 
 ## Example
 
-The same pattern in two domains, then the rejection paths.
-
-### Thrift store
-
-A thrift store that declares no stamp goal hands a shopper a punch card: `issue()` answers `issued(p1, "7KQ9M2XV4RTP8HNC")`, and the punch card's goal is five. Each purchase earns a stamp: the first `stamp("7KQ9M2XV4RTP8HNC")` answers 1, and the fifth answers 5. The shopper checks the punch card — `check_stamps("7KQ9M2XV4RTP8HNC")` answers 5 stamps of a goal of 5 — picks a free item, and the till redeems: `redeem("7KQ9M2XV4RTP8HNC")` answers 1, the punch card's first redemption. The punch card is empty again, and the next purchase's stamp answers 1. The store's back office reads the punch card by its id — `read(p1)` answers a goal of 5, 1 stamp and 1 redemption, and no code.
-
-### Café
-
-A café declares a stamp goal of 6. `issue()` answers `issued(c3, "Q4WN8ZT2HC6PLM3R")`. Six coffees bring the stamps to 6, `redeem("Q4WN8ZT2HC6PLM3R")` answers 1, and the seventh coffee is free. The café later raises its stamp goal to 8 and the instance restarts (Execution Contract Logic confinement 17); punch card `c3` keeps its goal of 6, and a punch card issued after the restart carries a goal of 8.
+A thrift store that declares no stamp goal hands a shopper a punch card: `issue()` answers `issued(p1, "7KQ9M2XV4RTP8HNC")`. Each purchase earns a stamp: the first `stamp("7KQ9M2XV4RTP8HNC")` answers 1, and the fifth answers 5. The shopper picks a free item, and the till redeems: `redeem("7KQ9M2XV4RTP8HNC")` answers 1, the punch card's first redemption, and the next purchase's stamp answers 1 again. The back office reads the punch card by its id: `read(p1)` answers a goal of 5, 1 stamp and 1 redemption, and no code. A café that declares a stamp goal of 6 runs the same calls with six coffees; when it later raises the goal to 8 and the instance restarts (Execution Contract Logic confinement 17), its earlier punch cards keep 6 and a punch card issued after the restart carries 8.
 
 ## Source
 
@@ -510,7 +500,10 @@ Term terms: punch card, card id, card code, code entropy, seam, goal, stamps, re
 
 `done — 2026-11-13` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-13
@@ -520,8 +513,15 @@ last gate: 2026-11-21 — Final Critique 5, a delta round, one reader (Linus ope
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./punch-card.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/punch-card.md`.
+
+</details>
 
 NOTE: End of Punch Card.

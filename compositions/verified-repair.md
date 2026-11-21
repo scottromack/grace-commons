@@ -696,7 +696,10 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -757,6 +760,8 @@ open:
 - 2026-11-16-g · refining · Term site, Term records fragment · a Decisions entry is added to the pattern's history file since the Decisions moved there (2026-11-16), and Term site still lists the pattern's end marker among the records sites, which a Decisions entry no longer goes ahead of → the end marker taken out of the records sites, and the history file named a site of the records fragment, on a round on the page
 - 2026-11-16-h · refining · Verdict 4, Term holds, Term counted verdict · nothing binds a reader's holds to a read of the permitted ranges, so a reader that read none of them and reports no finding carries holds and its pass counts → what bears on interoperability or audit across deployments is named in the atom or the Execution Contract; pure operating policy is a deployment capability; a rule about the corpus's own form is stated once (the Execution Contract, every page citing it) (decided 2026-11-19, group 4 of Scott's ruling of 2026-11-19T21:32Z)
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

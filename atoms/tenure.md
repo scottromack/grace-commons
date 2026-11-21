@@ -663,7 +663,10 @@ Tenure is a primitive with no regulatory anchor. It inherits from:
 
 `done — 2026-11-16` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-16
@@ -673,8 +676,15 @@ last gate: 2026-11-17 — Final Critique 4, a delta round, frozen at f8dce3b8 �
 open: none
 ```
 
-## Decisions
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
 
 Decisions are kept in [the pattern's history](./tenure.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/tenure.md`.
+
+</details>
 
 NOTE: End of Tenure.

@@ -1506,7 +1506,10 @@ The three constituents carry their own standards inheritance — see each consti
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1540,6 +1543,8 @@ open:
 - 2026-11-02-c · refining · call pause bound; clock offset allowance; Term purge edge · the moved cascade reads Audit Trail's call pause bound and clock offset allowance beside this page's own terms of the same names, qualified in the rules that name them and not renamed (open line 2026-10-25-b, GRACE-lang Closed vocabulary 17) → rename this page's side of each; found by the purge move
 - 2026-11-04-c · refining · Non-goal 23; Term horizon alert · the alert for a hold approaching the audit horizon names no threshold for approaching → state the span before the horizon at which the alert reads, a decision no rule makes; found by the Final Critique 17 delta round
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

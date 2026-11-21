@@ -670,7 +670,10 @@ Projection: invalid-query
 
 `done — 2026-11-21` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: done — 2026-11-21
@@ -679,6 +682,8 @@ last gate: 2026-11-21 — Final Critique 10, a full round, frozen at 35745b6a �
 
 open: none
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

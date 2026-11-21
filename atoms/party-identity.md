@@ -919,7 +919,10 @@ It inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -937,6 +940,8 @@ open:
 - 2026-11-04-g · refining · Check 8.1 · partition by state decides nothing Check 1.1 does not already decide and names State 1 alone, no invariant → fold it into Check 1.1, or name Invariant 2.1 as its target
 - 2026-11-04-h · refining · page head · the title-and-summary blockquote spec-format's atom shape item 2 requires is absent, and the frontmatter carries no nav_order; the sibling atoms share the same head, so the shape is the corpus's to settle → the corpus's practice stands, and spec-format's atom shape is amended once to match it. The `## Summary` section already is the one-paragraph summary, so a title-and-summary blockquote would say it twice ("make all things mean one thing"); `nav_order` is not required (the site lists patterns by its own index). The category lines GRACE-lang's Closed vocabulary 2 and 3 require (a composing-patterns line where a page names composing patterns, a cited line where it cites the Execution Contract) are the grammar, so they are added wherever owed, as one sweep with a check. One unit: `method: the atom head is the corpus's practice; the vocabulary's category lines added where owed` (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

@@ -1173,7 +1173,10 @@ It inherits from:
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -1183,6 +1186,8 @@ last gate: 2026-11-19 — Final Critique 17, a delta round, one reader (Linus be
 open:
 - 2026-10-31-b · foundational · Audit arm 11; Term stage; the four signatures' refuses lines · recording-failure carrying post-commit stands on each writing action's refuses line though the action's load-bearing write committed, where Execution Contract Read 4 says a refused call writes nothing and Read 7 puts a failure whose effects commit on the answers line, so one build rolls the act back with the refusal and another keeps it → waits for Scott: move the post-commit case to the answers line, one form for every page that passes through Audit Trail
 ```
+
+</details>
 
 <details markdown="block">
 <summary>

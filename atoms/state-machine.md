@@ -916,7 +916,10 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 `doing` — see the Ledger.
 
-## Ledger
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
 
 ```
 status: doing
@@ -926,6 +929,8 @@ last gate: 2026-11-17 — Final Critique 22, delta, frozen at 5a146b1 — founda
 open:
 - 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given instance id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 86) now answers the other way, the instance ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
 ```
+
+</details>
 
 <details markdown="block">
 <summary>
