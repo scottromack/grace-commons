@@ -59,6 +59,7 @@ Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns i
 Deleted: Capability requirement 14. Execution Contract Database 1 owns it.
 Deleted: Capability requirement 15. Action wiring 13 owns it: every admitted login records its login event.
 Deleted: Capability requirement 19. Primitive policy 18 owns it.
+Deleted: Capability requirement 24. Reconciliation 15 and the revocation horizon went with it (Final Critique 21).
 ```
 
 ### Composition logic › Primitive policy
@@ -95,13 +96,16 @@ Deleted: Reconciliation 1. Execution Contract Database 1 and Execution Contract 
 Deleted: Reconciliation 6. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 8. Execution Contract Database 1 owns it: a login's session, its login event log entry and its login event commit together, so no session outruns every record.
 Deleted: Reconciliation 9. Execution Contract Database 1 owns it.
-Deleted: Reconciliation 10. Reconciliation 15 owns it.
+Deleted: Reconciliation 10. Execution Contract Database 1 owns it, as it owns Reconciliation 15, which Final Critique 21 deleted.
 Deleted: Reconciliation 11. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 12. Execution Contract Database 1 owns it: the cascade is one transaction, so no reachable state holds an initiation without its completion and the abandoned arm has nothing to catch (Scott, 2026-11-17 9:19 PM Central, "as recommended", rounds/escalations.md 2026-11-18 03:19Z, item 2: do not compose Recoverable Invocation for the cascade).
+Deleted: Reconciliation 15. Execution Contract Database 1 owns it: a logout's revoke and its event, and a cascade's revokes and their events, commit together, and Capability requirement 17 bars a revocation outside the composition, so no reachable state holds a revoked session with no revocation-family event; and the sweep could not find the pair, since Session's read never answers a session token (Session Operation 52), so the match by token had no declared source (Final Critique 21, Linus F2).
 Deleted: Reconciliation 16. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 17. Execution Contract Database 1 owns it: the cascade is one transaction, so no reachable state holds an initiation without its completion and the abandoned arm has nothing to catch (Scott, 2026-11-17 9:19 PM Central, "as recommended", rounds/escalations.md 2026-11-18 03:19Z, item 2: do not compose Recoverable Invocation for the cascade).
 Deleted: Reconciliation 18. Execution Contract Database 1 owns it.
 Deleted: Reconciliation 19. Execution Contract Database 1 owns it: the cascade is one transaction, so no reachable state holds an initiation without its completion and the abandoned arm has nothing to catch (Scott, 2026-11-17 9:19 PM Central, "as recommended", rounds/escalations.md 2026-11-18 03:19Z, item 2: do not compose Recoverable Invocation for the cascade).
+Deleted: Reconciliation 22. Reconciliation 15's match of a revoked session to a revocation-family event went with it, for the reason Reconciliation 15 gives (Final Critique 21).
+Deleted: Reconciliation 23. Reconciliation 15's match went with it, for the reason Reconciliation 15 gives (Final Critique 21).
 ```
 
 ### Composition-level invariants › Invariant 2 — Cascade completeness
@@ -112,6 +116,8 @@ Deleted: Reconciliation 19. Execution Contract Database 1 owns it: the cascade i
 
 ### Composition-level invariants › Invariant 4 — Login event log completeness
 
+The heading left the page in Final Critique 21: it carried no rule, and Check 3.1 and Check 3.2 rest on Composition state 10.
+
 ```
   Deleted: Invariant 4.2. Execution Contract Database 1 owns it.
   Deleted: Invariant 4.1. Composition state 10 owns it.
@@ -120,6 +126,7 @@ Deleted: Reconciliation 19. Execution Contract Database 1 owns it: the cascade i
 ### Generation acceptance › Conformance checks
 
 ```
+Deleted: Check 5.1. Reconciliation 15 went with it, and no auditor's read of Session answers a session token to match a revoked session to its event (Session Operation 52); Execution Contract Database 1 owns the pairing (Final Critique 21).
 Deleted: Check 5.2. Execution Contract Database 1 owns it.
 ```
 

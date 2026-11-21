@@ -990,7 +990,7 @@
    "session"
   ],
   "grounded": false,
-  "invariants": 6,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": true,
