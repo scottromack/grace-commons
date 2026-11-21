@@ -24,7 +24,7 @@ It works through records that bind a principal to a **verifier**: an artifact de
 
 Each record stands in one open status, active, or in one of two permanent stored ends: rotated (replaced by a newer credential) or revoked (deliberately cancelled, with when, why and whom the caller named recorded). A credential also *expires* — but expiry is not a stored status. When the deadline passes, a still-active record is simply shown expired, computed at read time from the deadline and the clock, never written.
 
-One principal reference holds at most one *effective-active* credential of a given type, where effective-active means stored active **and** before its deadline. That bound is judged at any moment from the latest registration for the principal and type on. A call whose clock reads earlier than a newer registration can still find an older credential live beside it. It holds across spellings because the deployment canonicalizes references — rewriting spellings that differ only in letter case, surrounding spaces or Unicode form to one — and declares no two credential types that differ only that way. A lapsed record no longer occupies that slot, so a fresh registration is permitted beside it. Rotation is clean: the successor is a new record and the predecessor moves to rotated carrying a link forward, so the whole chain of replacements is walkable.
+One principal reference holds at most one *effective-active* credential of a given type, where effective-active means stored active **and** before its deadline. That bound is judged at any moment from the latest registration for the principal and type on. A call whose clock reads earlier than a newer registration can still find an older credential live beside it. It holds across spellings because the deployment canonicalizes references — rewriting spellings that differ only in letter case, surrounding spaces or Unicode form (the several byte sequences the Unicode character standard allows for one character) to one — and declares no two credential types that differ only that way. A lapsed record no longer occupies that slot, so a fresh registration is permitted beside it. Rotation is clean: the successor is a new record and the predecessor moves to rotated carrying a link forward, so the whole chain of replacements is walkable.
 
 This is the mechanism behind password login, public-key authentication (safe against a captured answer being sent again only when a composing pattern issues a fresh challenge each time), programming-interface tokens (secrets a program presents to a service in place of a person) and hardware keys. Proving who the principal is in the first place, sequencing multiple factors, keeping someone logged in, and deciding what they may do are each a separate pattern.
 
@@ -46,7 +46,7 @@ This is a freestanding atom in the EOS (Essence of Software, Daniel Jackson's co
 
 ```
 Identity 1: The atom MUST identify a credential by the credential id.
-Identity 2: The atom MUST assign the credential id from the id material the seam supplies.
+Identity 2: The atom MUST assign the id material the seam supplies as the credential id.
 Identity 3: The atom MUST NOT generate a credential id.
 Identity 4: The atom MUST NOT change a credential's credential id.
 Identity 5: Two credentials MUST NOT share a credential id.
@@ -55,16 +55,15 @@ Identity 7: The atom MUST compare a reference byte-exactly.
 Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
-Identity 11: The atom MUST confirm that a credential type names a derivation function in the derivation registry.
 ```
 
 Term credential: the record this atom holds — one principal's binding to one verifier, for one credential type.
 
-Term fresh credential id: a credential id naming no credential of the database instance, assigned from the id material the seam supplies (Capability requirement 34, 35).
+Term fresh credential id: a credential id naming no credential of the database instance, the id material the seam supplies assigned as the credential id (Capability requirement 34, 35).
 
-Term credential id: the opaque value naming one credential — a [Credential Id]; assigned from the id material the seam supplies.
+Term credential id: the opaque value naming one credential — a [Credential Id]; the id material the seam supplies, assigned as it stands (Identity 2).
 
-Term id material: the value the deployment supplies at the seam, from which the atom assigns a credential id (Identity 2, Capability requirement 2).
+Term id material: the value the deployment supplies at the seam, which the atom assigns as a credential id (Identity 2, Capability requirement 2).
 
 Term pair: principal reference and credential type together — the key the effective-active bound ranges over.
 
@@ -96,7 +95,6 @@ State 11: The atom MUST NOT offer a reactivate surface.
 State 12: The atom MUST NOT offer a window extension surface.
 State 13: The atom MUST NOT offer a credential removal surface.
 State 14: The atom MUST NOT offer a verifier migration surface.
-State 15: The atom MUST NOT lower the database instance's credential count.
 ```
 
 Term lapse instant: an instant a database writes when a credential starts to read lapsed, beside a status that stays active — the materialized lapse; never stored here, because lapse is read, not written.
@@ -128,8 +126,6 @@ Capability requirement 32: IF presented material EXCEEDS the material bound THEN
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
 Capability requirement 35: The deployment MUST NOT supply the same id material to two calls (Execution Contract Logic confinement 16).
 Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
-Capability requirement 38: The deployment MUST NOT supply blank id material.
-Capability requirement 39: The deployment MUST supply id material whose assigned credential id DOES NOT EXCEED the length bound.
 Capability requirement 40: The deployment MUST declare a check function that checks a secret verifier in constant time.
 Capability requirement 41: The deployment MUST NOT remove a credential type a credential carries from the derivation registry.
 Capability requirement 42: The deployment MUST supply id material in the spelling the deployment's reference canonicalization produces.
@@ -201,7 +197,7 @@ Operation 39: An admitted rotate MUST record the successor's credential id as th
 Operation 41: An admitted rotate MUST answer the successor's credential id.
 Operation 42: An admitted revoke MUST stand the credential in revoked.
 Operation 43: An admitted revoke MUST record revoked by reference, reason as revocation reason and now as revocation instant.
-Operation 45: IF the database refuses the write THEN an action MUST answer storage-failure.
+Operation 82: An admitted revoke MUST answer revoked.
 Operation 50: The atom MUST NOT offer an expire action.
 Operation 51: [Read] MUST answer EVERY matching credential.
 Operation 52: [Read] MUST answer the effective status PER matching credential.
@@ -223,6 +219,7 @@ Operation 70: A proceeding verify MUST check against the credential carrying the
 Operation 71: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted register MUST record no expiry instant.
 Operation 72: IF expiry instant EQUALS blank AND the default validity EQUALS unbounded THEN an admitted rotate MUST record no expiry instant on the successor.
 Operation 73: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no credential.
+Operation 83: IF a filter names a field whose value EXCEEDS the length bound THEN [Read] MUST answer no credential (Execution Contract Query 5).
 Operation 80: IF a supplied expiry instant is malformed THEN [Register] MUST answer invalid-request (Execution Contract Input 1).
 Operation 81: IF a supplied expiry instant is malformed THEN [Rotate] MUST answer invalid-request (Execution Contract Input 1).
 ```
@@ -296,7 +293,7 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
   ```
   Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented material matches the verifier of the credential a proceeding verify checks against PER the check function.
   ```
-- **Invariant 4 — Revocation is absorbing.**
+- **Invariant 4 — Revocation is absorbing.** Invariant 5.1 holds it: revoked is a stored terminal.
 - **Invariant 5 — A stored terminal is absorbing.**
   ```
   Invariant 5.1: A credential whose status IS IN the stored terminals MUST NOT leave the stored terminal.
@@ -325,7 +322,7 @@ Term admitted revoke: a [Revoke] call the action admits (Execution Contract Read
   ```
   Invariant 10.1: The atom MUST NOT remove a credential from the database.
   ```
-- **Invariant 11 — A lapse precludes verification.**
+- **Invariant 11 — A lapse precludes verification.** Invariant 3.1 holds it: a lapsed credential is not the credential a proceeding verify checks against.
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: The atom MUST NOT write a field when a credential lapses.
@@ -395,8 +392,8 @@ Check 6.2: An auditor MUST find no terminal field on an active credential (State
 Check 7.1: An auditor MUST find EVERY credential's properties unchanged across EVERY committed version of the credential (Invariant 1.1, Invariant 6.1; Execution Contract Generation acceptance 1).
 Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Generation acceptance 1).
-Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1, State 15; Execution Contract Generation acceptance 1).
-Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, State 15, Invariant 10.1).
+Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
+Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, Invariant 10.1).
 Check 10.1: An auditor MUST find no two credentials sharing a credential id (Identity 5).
 ```
 
@@ -478,6 +475,8 @@ NOTE: the owners — Compromise Disclosure *(forthcoming)* (Non-goal 19, Composi
 
 ### Atomic writes
 
+No rule is owed here: Execution Contract Database 1 and Read 4 own every write's atomicity and a refused call's silence.
+
 ### Concurrency
 
 ```
@@ -501,15 +500,20 @@ String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN [Register] MUST answer invalid-request.
 String 9: IF a string input EXCEEDS the length bound THEN [Revoke] MUST answer invalid-request.
+String 11: IF a string input EXCEEDS the length bound THEN [Verify] MUST answer no-active-credential (Execution Contract Input 2).
 ```
 
 Term string input: a reference, credential type OR reason — every caller-supplied string this atom accepts beside material.
 
 Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
 
-Term material bound: the maximum size of one credential type's material, in the measure the deployment declares with the bound; 4,096 code points of the material as the call carries it where a deployment declares none for the type (Capability requirement 27).
+Term material bound: the maximum size of one credential type's material, in the measure the deployment declares with the bound; where a deployment declares none for the type, 4,096 units, a unit being a code point of material the call carries as a string and a byte of material the call carries as bytes, summed over the parts of material the call carries as parts (Capability requirement 27).
 
-Term empty material: material that is absent OR carries no character — the material [Register] and [Rotate] refuse as missing (Operation 2, Operation 31); material of whitespace alone is not empty material, since the derivation function owns material's normalization (Capability requirement 28).
+Term empty material: material that is absent OR of size zero in the measure of the material bound — the material [Register] and [Rotate] refuse as missing (Operation 2, Operation 31); material of whitespace alone is not empty material, since the derivation function owns material's normalization (Capability requirement 28).
+
+### What undoes a write
+
+A [Register] is undone by a [Revoke], which stands the credential in revoked for good, or by a [Rotate], which stands it in rotated beside a successor. A [Rotate] and a [Revoke] are not undone by this atom: a stored terminal is absorbing (Invariant 5.1) and no reactivate surface exists (State 11), so the caller registers or rotates afresh and the earlier record stays as it was (Execution Contract Undo 4).
 
 ---
 
@@ -532,7 +536,7 @@ Composition note 14: A composing pattern MUST call [Revoke] ONLY AFTER authentic
 Composition note 15: A composing pattern MUST pass the authenticated caller as revoked by reference.
 Composition note 16: A composing pattern MUST expose [Read] ONLY AFTER authorizing the caller.
 Composition note 17: A deployment refusing reused secret material MUST call [Rotate] ONLY AFTER a verify of the new material against the pair answers material-mismatch.
-Composition note 18: A composing Retention Window MUST purge a pair's rotation chain whole.
+Composition note 18: A composing Retention Window MUST purge a rotation chain whole.
 ```
 
 Term authorized caller: a caller authenticated as the principal the call names — for [Rotate] and [Revoke], which name a credential id, the principal that credential carries; for a principal holding no effective-active credential, a lapsed credential's principal among them, a caller authenticated by a composing enrollment pattern's own proof, as External Onboarding's invitation; OR a caller authenticated as an actor a composing Permissions decision authorizes over that principal, with the decision's subject bound to that authenticated actor (Permissions Composition note 3).
@@ -549,7 +553,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the host; the implementation; the database; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a refused action; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter; the database instance's credential count.
+Term actors: the atom; the deployment; the host; the implementation; the database; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a refused action; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter.
 
 Term records: credential — one principal's binding to one verifier for one credential type, carrying credential id, principal reference, credential type, verifier, registration instant, a status and, where supplied or set, expiry instant, rotation instant, successor credential id, revocation instant, revoked by reference and revocation reason.
 
@@ -587,7 +591,7 @@ Kind: Operation
 
 #### Verify
 
-The read-only behavior that answers whether [Presented Material] matches the [Verifier] of the pair's latest-registered effective-active credential, as the type's check function decides. Answers verified, or failed-verification naming [Material Mismatch] or [No Active Credential]. Writes nothing, counts nothing, and does not say *why* no effective-active credential exists.
+The read-only behavior that answers whether [Presented Material] matches the [Verifier] of the pair's latest-registered effective-active credential, as the type's check function decides. Answers verified, or failed-verification naming [Material Mismatch] or [No Active Credential]. Writes nothing, counts nothing, and does not say *why* no effective-active credential exists; a reference or credential type over the length bound names no pair, so it answers [No Active Credential] too (String 11).
 
 Kind: Operation
 
@@ -618,7 +622,7 @@ Projection: status
 
 #### Credential Id
 
-The opaque, immutable identity of a [Credential], assigned on the [Register] or [Rotate] that records it, from the id material the seam supplies. Never reused, and never the pair — two credentials for one pair are a rotation predecessor and its successor, each standing on its own.
+The opaque, immutable identity of a [Credential], assigned on the [Register] or [Rotate] that records it, as the id material the seam supplies. Never reused, and never the pair — two credentials for one pair are a rotation predecessor and its successor, or a lapsed credential and a later registration, each standing on its own.
 
 Kind:       Field
 Field of:   Credential
@@ -738,7 +742,7 @@ Projection:   presented_material
 
 #### Filter
 
-The matching criteria supplied to [Read]: a principal reference, a credential type, a credential id, or any combination of them. A credential matches when it carries every value the filter names and the filter names no other field, so a filter naming no field matches every credential.
+The matching criteria supplied to [Read]: a principal reference, a credential type, a credential id, or any combination of them. A credential matches when it carries every value the filter names and the filter names no other field, so a filter naming no field matches every credential. A filter naming a blank value or a value over the length bound matches none (Operation 73, Operation 83).
 
 Kind:         Parameter
 Parameter of: Read
@@ -803,7 +807,7 @@ Projection: material-mismatch
 
 #### No Active Credential
 
-The [Verify] answer when the pair has no effective-active credential — because none was registered, because every record is a stored terminal, or because the only active one reads lapsed. The three are deliberately one answer: distinguishing them would let a caller enumerate which principals hold which credential types.
+The [Verify] answer when the pair has no effective-active credential — because none was registered, because every record is a stored terminal, or because the only active one reads lapsed. The three are deliberately one answer: distinguishing them would let a caller learn whether a pair ever held a credential, or lost it by revocation or lapse, which a caller of [Verify] is not owed (material-mismatch already says the pair holds an effective-active credential, Operation 22).
 
 Kind:       Member
 Member of:  the failed-verification reason
@@ -812,7 +816,7 @@ Projection: no-active-credential
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, the material is absent or carries no character, a [Credential Type] names no derivation function, a supplied [Expiry Instant] is no instant or does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the length bound. On a transitioning write it is listed after not-known and the standing refusals, so it answers only once none of them applies.
+The refusal returned when a required string input is blank, the material is absent or of size zero, a [Credential Type] names no derivation function, a supplied [Expiry Instant] is no instant or does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the length bound. On a transitioning write it is listed after not-known and the standing refusals, so it answers only once none of them applies.
 
 Kind:       Member
 Member of:  the action rejection
@@ -933,7 +937,7 @@ It inherits from:
 ```
 status: doing
 formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
-last gate: 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
+last gate: 2026-11-20 — Final Critique 23, three readers (GRID opencode/beam-free, EOS anthropic/claude-sonnet-5-5, Linus opencode/minimax-m3), frozen at 91c6335e — foundational count 3, cured, not clean, no sample; 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
 
 open: none
 ```

@@ -27,7 +27,7 @@ sig Str {}
 -- strings these are is the world's, not the atom's, so it is a subset with no rule on it.
 sig Blank in Str {}
 
--- Id: an opaque credential id (Term credential id), assigned from the id material the
+-- Id: an opaque credential id (Term credential id), assigned as the id material the
 -- seam supplies (Identity 2). It means nothing by itself.
 sig Id {}
 
@@ -39,7 +39,7 @@ sig Instant {}
 -- presented material a caller supplies to [Verify].
 sig Material {}
 
--- Empty: the empty materials, material that carries no character (Term empty material),
+-- Empty: the empty materials, material of size zero (Term empty material),
 -- which [Register] and [Rotate] refuse (Operation 2, 31). Which materials these are is the
 -- world's, so it is a subset with no rule on it.
 sig Empty in Material {}
@@ -167,7 +167,7 @@ sig Credential {
 
 -- The deployment supplies id material naming no credential of the database instance and
 -- never the same id material to two calls (Capability requirement 34, 35), and the atom
--- assigns the credential id from it (Identity 2). This is where Identity 5 comes from.
+-- assigns it as the credential id (Identity 2). This is where Identity 5 comes from.
 fact DeploymentSuppliesFreshIdMaterial {
     all disj a, b : RecordingCall | a.idMaterial != b.idMaterial
 }
@@ -271,7 +271,7 @@ pred registerWrites[c : RegisterCall, x : Credential] {
     nonBlank[c.principalIn]                         -- Operation 1
     hasMaterial[c.materialIn]                       -- Operation 2
     nonBlank[c.typeIn]                              -- Operation 3
-    c.typeIn in Registry.declared                   -- Operation 4, Identity 11
+    c.typeIn in Registry.declared                   -- Operation 4
     expiryAdmitted[c]                               -- Operation 5
     some derived[c.typeIn, c.materialIn]            -- Operation 66
     x.credId       = c.idMaterial                   -- Operation 9, Identity 2

@@ -59,12 +59,14 @@ Deleted: Identity 12. Execution Contract Database 7 owns it.
 Deleted: Identity 13. Capability requirement 34 owns it.
 Deleted: Identity 14. Capability requirement 35 owns it.
 Deleted: Identity 15. Execution Contract Database 7 owns it.
+Deleted: Identity 11. Operation 4 owns it: a credential type naming no derivation function is refused at [Register].
 ```
 
 ### Structure › State
 
 ```
 Deleted: State 4. Invariant 9.1 through 9.3 own it.
+Deleted: State 15. Invariant 10.1 owns it.
 ```
 
 ### Structure › Capability requirement
@@ -90,6 +92,8 @@ Deleted: Capability requirement 22. Execution Contract Database 2 owns it: the p
 Deleted: Capability requirement 23. Execution Contract Database 2 owns it.
 Deleted: Capability requirement 33. Execution Contract Database 7 owns it.
 Deleted: Capability requirement 36. Execution Contract Database 7 owns it.
+Deleted: Capability requirement 38. Execution Contract Input 2 owns it: the host allocates an id that is not blank.
+Deleted: Capability requirement 39. Execution Contract Input 2 owns it: the host allocates an id that does not exceed the cap of every input naming a record by its id.
 ```
 
 ### Structure › Operations
@@ -101,6 +105,7 @@ Deleted: Operation 30. Execution Contract Refusal 1 owns it.
 Deleted: Operation 34. Execution Contract Refusal 1 owns it.
 Deleted: Operation 40. Execution Contract Database 1 owns it.
 Deleted: Operation 44. Execution Contract Database 1 owns it.
+Deleted: Operation 45. Execution Contract Read 4 owns it: a call whose write fails answers storage-failure.
 Deleted: Operation 46. Execution Contract Refusal 1 owns it.
 Deleted: Operation 47. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
 Deleted: Operation 48. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
