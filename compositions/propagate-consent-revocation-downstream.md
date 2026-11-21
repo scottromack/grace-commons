@@ -103,7 +103,7 @@ Term consent namespace: the action references consent.grant.intended, consent.gr
 
 Term act kind: consent.grant or consent.withdrawal — the two act kinds this composition binds on its Recoverable Invocation instance, one per act the composition's Consent write stands for.
 
-Term consent bindings: each act kind's bindings, under the name Recoverable Invocation gives each. For consent.withdrawal: act key — the consent id; commit — the revoke write; pairing datum — the revocation instant, passed into the revoke write; repeatable — yes; act probe — the withdrawal probe; journal events — consent.withdrawal.intended, the one outcome consent.withdrawal.revoked, consent.withdrawal.refused. For consent.grant: act key — the subject reference with the purpose; commit — the grant transaction; pairing datum — the grant instant, which Consent's grant write takes from the invocation's now (Execution Contract Logic confinement 19); repeatable — yes; act probe — the grant probe; journal events — consent.grant.intended, the one outcome consent.grant.granted, consent.grant.refused. For both: invocation completion bound — the administration completion bound; commit round trip and probe round trip — the deployment's disclosed bounds; journal — the composition's Audit Trail instance; retention period — the audit horizon; settling period — the deployment's settling period; service identity — the recovery identity; outcome envelope — sized from the registrations cap, the field length cap and the event id width (Capability requirement 14).
+Term consent bindings: each act kind's bindings, under the name Recoverable Invocation gives each. For consent.withdrawal: act key — the consent id; commit — the revoke write; pairing datum — the revocation instant, passed into the revoke write; repeatable — yes; act probe — the withdrawal probe; journal events — consent.withdrawal.intended, the one outcome consent.withdrawal.revoked, consent.withdrawal.refused. For consent.grant: act key — the subject reference with the purpose; commit — the grant transaction; pairing datum — the grant instant, which Consent's grant write takes from the invocation's now (Execution Contract Logic confinement 19); repeatable — yes; act probe — the grant probe; journal events — consent.grant.intended, the one outcome consent.grant.granted, consent.grant.refused. For both: invocation completion bound — the administration completion bound; commit round trip and probe round trip — the deployment's disclosed bounds; journal — the composition's Audit Trail instance; retention period — the audit horizon; settling period — the deployment's settling period; service identity — the recovery identity; outcome envelope — the maximal envelope (Capability requirement 14).
 
 Term withdrawal key: the consent id, known before the invocation's open, which the subject index resolves (Primitive policy 5). One consent has one terminal withdrawal: a second withdrawal is refused already-revoked by Consent itself, a pre-commit arm.
 
@@ -137,7 +137,6 @@ Composition state 8: The composition MUST classify a live index entry as a deriv
 Composition state 9: The composition MUST rebuild the live downstream entries PER the downstream rebuild.
 Composition state 10: The composition MUST rebuild the live key entries PER the grant rebuild.
 Composition state 11: The composition MUST NOT rebuild an index entry from Consent's records.
-Composition state 12: A rebuild MUST read the enumeration of Consent's records ONLY as a cross-check.
 Composition state 13: The composition MUST classify a purged index entry as truth-bearing.
 Composition state 14: A rebuild MUST NOT remove a purged index entry.
 Composition state 16: The composition MUST classify a purged downstream entry as extraction-pending against Processing Register.
@@ -148,8 +147,6 @@ Composition state 20: The composition MUST NOT store a consent validity flag.
 Composition state 21: The composition MUST NOT duplicate a constituent's records.
 Composition state 23: The composition MUST NOT store a record of the Recoverable Invocation instance.
 ```
-
-NOTE: open 2026-11-04-b — Composition state 12 makes the enumeration of Consent's records a cross-check, and no rule says what the composition does where it and the log disagree.
 
 NOTE: open 2026-11-11-c — a repeat registration changes no binding (Composition state 5), so a pair whose first registration event the audit horizon destroyed stays purged though a later registration of it stands Retained, and no rule says whether it re-binds.
 
@@ -257,9 +254,7 @@ Term event id width: the widest event id, in bytes, the wired Audit Trail instan
 
 Term id width: the widest consent id or retention id, in bytes, the host allocates at the seam of Consent or of Retention Window (Consent Identity 2, Retention Window Identity 2), whichever is wider.
 
-Term maximal envelope: the largest outcome the composition could write — the registrations cap's pairs at the field length cap, every reference and the reason at the field length cap, the intent event id at the event id width, the consent id and the retention id at the id width, and the fixed fields — serialized as the substrate sizes it.
-
-NOTE: open 2026-11-09-b — the maximal envelope names the fixed fields and enumerates none of them.
+Term maximal envelope: the largest outcome the composition could write, a grant event or a propagation event with the fields Recoverable Invocation writes on it (Action wiring 17, 41, Recoverable Invocation Primitive policy 4, 11) — the registrations cap's pairs at the field length cap, every reference and the reason at the field length cap, the intent event id at the event id width, the consent id and the retention id at the id width, the act key at the id width, or at the field length cap twice where it is the subject reference with the purpose, and the fixed fields: the act kind, the invocation id as the host injects it (Capability requirement 27), the revocation instant, the expiry and the recovery flag — serialized as the substrate sizes it.
 
 
 Term required setting: the administration completion bound, the field length cap, the registrations cap, the event id width, the id width, the commit round trip, the probe round trip, the settling period or the recovery identity.
@@ -435,8 +430,6 @@ Action wiring 60: IF a call of the revoke write answers an arm of the unknown pa
 Action wiring 61: IF the invocation open, refuse or close answers a code of Recoverable Invocation's Action wiring table THEN the action MUST answer that code.
 ```
 
-NOTE: open 2026-11-04-c — Action wiring 12 lands the constituent's invalid-request after the intent committed, so a caller cannot tell a malformed input from a clock-order refusal (Consent Operation 8, 9) on the grant side; the revoke's clock-order refusal stays reachable under the single clock (Capability requirement 35) where a re-grant commits between a withdrawal's reading of now and its revoke write, and the closure table lands it as invalid-request, refused, with the Consent record left Granted (Action wiring 37).
-
 Term administration action: [Record Consent], [Register Processing], [Withdraw Consent] or [Read Consent History].
 
 Term action's scope: [Consent Grant] for [Record Consent], [Consent Register Processing] for [Register Processing], [Consent Revoke] for [Withdraw Consent], [Consent Read] for [Read Consent History].
@@ -563,7 +556,7 @@ Every input an action takes, and every answer a call of the five actions and of 
 | the consent check, at [Record Consent] | granted | already-granted, the transaction rolling back, the arm refused | Action wiring 8 |
 | the consent check, at [Record Consent] | revoked, expired or not-known | the grant write | Action wiring 9, Term checked grant |
 | the grant write | a consent id | the retention placement | Action wiring 13, Term committed grant |
-| the grant write | invalid-request | invalid-request, rolled back, refused | Action wiring 12 |
+| the grant write | invalid-request | invalid-request, rolled back, refused; Primitive policy 1 through 3 and Capability requirement 43 meet its other grounds, so only the caller's expiry reaches it, one not after now or malformed (Consent Operation 8, 9, 66), and a malformed expiry and one not after now answer alike, Consent's own code (Recoverable Invocation commit 3) | Action wiring 12 |
 | the grant write | storage-failure | storage-failure, rolled back, refused | Action wiring 11 |
 | the retention placement | a retention id | the close | Action wiring 17, Term placed grant |
 | the retention placement | a placement refusal | invalid-request, rolled back, refused | Action wiring 14, Term placement refusal |
@@ -571,7 +564,7 @@ Every input an action takes, and every answer a call of the five actions and of 
 | the retention placement | storage-failure | storage-failure, rolled back, refused | Action wiring 58 |
 | the revoke write | revoked | the close | Action wiring 41, Term committed withdrawal |
 | the revoke write | already-revoked or already-expired | the same code, refused | Action wiring 35, 36 |
-| the revoke write | invalid-request | invalid-request, refused; Primitive policy 1, 3 and 5 and the injected now (Execution Contract Logic confinement 19) meet its other grounds, so only a clock-order refusal reaches it | Action wiring 37 |
+| the revoke write | invalid-request | invalid-request, refused; Primitive policy 1, 3 and 5 and the injected now (Execution Contract Logic confinement 19) meet its other grounds, so only a clock-order refusal reaches it (Consent Operation 25), answered as Consent answers it, the record left Granted (Recoverable Invocation commit 3) | Action wiring 37 |
 | the revoke write | not-known | not-known, refused, and an index-anomaly finding opened and alerted | Action wiring 39, 40, 40a |
 | the revoke write | storage-failure | storage-failure, refused | Action wiring 38 |
 | the revoke write or the grant transaction | a code none of the constituents declares, or a reply not arrived when the commit round trip has elapsed | the yield | Action wiring 59, 60, Term commit partition |
@@ -804,7 +797,7 @@ Check 3.3: An auditor MUST find a passing verification for EVERY propagation eve
 Check 3.4: An auditor MUST resolve EVERY revoked Consent record carrying no propagation event, other than a young record, to EXACTLY ONE OF propagation history purged other than a false closing, an unpropagated record whose withdrawal intent stands open, an escalated withdrawal other than a false closing AND other than propagation history purged, a false closing, an unpropagated record that is a write-ownership finding, a conformance failure (Reconciliation 6, Reconciliation 11, Reconciliation 40, Reconciliation 41).
 Check 3.10: An auditor MUST find EVERY propagation event naming a consent the Consent records hold in Revoked (Invariant 3.1).
 Check 4.1: An auditor MUST find a registration event preceding the event's boundary for EVERY pair a propagation set carries (Invariant 4.1).
-Check 4.2: IF the record read answers Purged for a pair's registration event THEN an auditor MUST compare the event's surviving sequence number with the event's boundary (Invariant 4.1).
+Check 4.2: IF the record read answers Purged on a binding's registration event AND the propagation event carrying the binding's consent id carries the binding's pair THEN an auditor MUST find the registration event's surviving sequence number preceding the propagation event's boundary (Invariant 4.1, Cross-record consistency 3).
 Check 5.1: An auditor MUST find a consent retention in Retained for EVERY governed consent carrying a grant event (Invariant 6.1).
 Check 5.2: An auditor MUST find no consent retention in Purged (Invariant 6.1).
 Check 6.1: An auditor MUST resolve EVERY outcome's intent event id to an intent that PRECEDES the outcome in the Event Log AND carries the outcome's invocation id, the actor of a recovered outcome being the acting actor reference the outcome carries (Recoverable Invocation Invariant 1.1, Recoverable Invocation Invariant 5.2).
@@ -918,7 +911,7 @@ The first two are Recoverable Invocation's Cross-record consistency for the two 
 
 **Recoverable Invocation.** [Record Consent] and [Withdraw Consent] follow [Recoverable Invocation](./recoverable-invocation.md) around their acts (Composes 15 through 19): an intent before the commit, the one outcome as the close, a refusal record where the constituent refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the two act kinds once (Term consent bindings) and restates none of the protocol. [Register Processing], [Read Consent History] and [Processing Permitted] are not bound (Composes 18): a registration is one write and one record, a history read writes only its own access event, and the gate reads Consent alone.
 
-**Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the grant kind's is three calls in one database transaction (Term grant transaction), whose partition belongs to the transaction, the consent check's granted answer and a refusal of the grant write or the retention placement each rolling it back. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch as an open line (Recoverable Invocation Deviation 2), as External Onboarding does. The withdrawal's commit is one call, the revoke write, and needs no such reading.
+**Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the grant kind's is three calls in one database transaction (Term grant transaction), whose partition belongs to the transaction, the consent check's granted answer and a refusal of the grant write or the retention placement each rolling it back. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch here, as evidence for Recoverable Invocation's next revision, which is the record Recoverable Invocation Deviation 2 asks of an adopter first, as External Onboarding and Capability-Backed Sharing do. The withdrawal's commit is one call, the revoke write, and needs no such reading.
 
 ---
 
@@ -1090,11 +1083,6 @@ last gate: 2026-11-19 — Final Critique 27, a delta round, one reader (Linus op
 
 open:
 - 2026-11-04-a · refining · Capability requirement 4, Action wiring 13, 14 · no rule refuses a consent retention whose period exceeds the audit horizon at the placement, and Check 7.1 finds the breach only after the record stands → name the refusal the placement lands among the Action wiring, or name the policy registry the owner (External check 5); re-found by Final Critique 15, 19, 23 and 27
-- 2026-11-04-b · refining · Composition state 12 · a rebuild reads the enumeration of Consent's records as a cross-check, and no rule says what the composition does where the enumeration and the log disagree → name the finding the disagreement opens; re-found by Final Critique 15, 19, 23 and 27
-- 2026-11-04-c · refining · Action wiring 12 · a bare invalid-request lands after the grant intent committed, so a caller cannot tell a malformed input from a clock-order refusal on the grant side (Consent Operation 8, 9) → name the refusal's constituent code, which the invocation's refuse records; re-found by Final Critique 19, 23, 24 and 27
-- 2026-11-09-b · refining · Term maximal envelope · the envelope names the fixed fields and enumerates none of them (the ids and the event id width are sized, Final Critique 23) → list the fixed fields the substrate sizes; re-found by Final Critique 19, 20, 23 and 27
-- 2026-11-10-a · refining · Composition notes; Term grant transaction · Recoverable Invocation's bound commit is one constituent call and the grant kind's is three in one database transaction, a case Recoverable Invocation's closed deviation list does not name (Recoverable Invocation Deviation 2) → carry to Recoverable Invocation's next revision as evidence, or declare it there
-- 2026-11-11-b · refining · Check 4.2, Check 3.3 · Check 4.2 compares the event's surviving sequence number with the event's boundary and states no conclusion, so no deployment can fail it, and Check 3.3 cites Invariant 5.1 where Check 2.3 cites Invariant 2.2 for a propagation event's passing verification → state the conclusion, and cite the invariant that answers the verification; found by Final Critique 23's GRID pass
 - 2026-11-11-c · refining · Composition state 5, Action wiring 22, Term live index entry · a repeat registration of a pair whose first registration event the audit horizon destroyed changes no binding (Composition state 5), so the pair classifies purged and extraction-pending against Processing Register (Composition state 16) while an equal pair whose first event stands classifies live; every build does the same and no check fails, so the cure is a decision, not a gap → a later registration event that the record read answers Retained re-binds the pair, so a pair that is live classifies live. One pair, one meaning; recording the misclassification as a deployment obligation is make-work (Scott, 2026-11-18: "We are here to reduce work"). The reach is every rule that cites Term live index entry; the cure takes all of them (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
 ```
 
