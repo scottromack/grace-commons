@@ -3,7 +3,7 @@
 \*
 \* INJECTED DEFECT: [Grant] derives the grant id from the pair, a hash of subject reference and action
 \* scope, instead of recording the id the host allocated, so a pair granted again after a
-\* revoke, or two pairs the hash folds together, take one id (Invariant 5.1; Identity 3, 6).
+\* revoke, or two pairs the hash folds together, take one id (Invariant 5.1; Identity 6).
 \*
 \* BREAKS: Inv5_1_NoIdShared.
 \* Everything else is permissions.tla as written; read its comments there.

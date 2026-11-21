@@ -38,7 +38,6 @@ Permissions answers one question: "is this actor allowed to do this thing right 
 ```
 Identity 1: The atom MUST identify a grant by the grant id.
 Identity 2: The host MUST allocate a grant id at the atom's seam.
-Identity 3: The transition MUST NOT allocate a grant id.
 Identity 4: The business caller MUST NOT supply a grant id to [Grant].
 Identity 6: The atom MUST NOT identify a grant by the subject reference with the action scope.
 Identity 7: A subject reference MUST NOT hold two active grants over one action scope.
@@ -356,7 +355,7 @@ Grant concurrency 1: IF no active grant matches the pair THEN the admitted concu
 
 ```
 Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure, and the caller owns the retry's count and interval.
-Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
+Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing (Execution Contract Error model 1).
 Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke] to the receiver the deployment declares.
 ```
 
@@ -597,14 +596,14 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-20` — see the Ledger.
 
 ## Ledger
 
 ```
-status: doing
-formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 3, 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19
-last gate: 2026-11-19 — Final Critique 13, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
+status: done — 2026-11-20
+formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19
+last gate: 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
