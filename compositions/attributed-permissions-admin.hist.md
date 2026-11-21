@@ -70,6 +70,13 @@ Deleted: Capability requirement 26. Execution Contract Database 3 owns it.
 Deleted: Capability requirement 31. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, and the composition names no race for a critical section keyed by the pair to close.
 ```
 
+### Composition logic › Primitive policy
+
+```
+Deleted: Primitive policy 15. Primitive policy 14 owns it: an over-cap credential is a caller fault and the composition cannot tell it from a deployment fault without inspecting the credential (Primitive policy 12).
+Deleted: Primitive policy 16. Primitive policy 14 owns it, as Primitive policy 15 does.
+```
+
 ### Composition logic › Action wiring
 
 ```
@@ -119,6 +126,7 @@ Deleted: Housekeeping 19. Action wiring 38 owns it: a retry stands as a fresh ad
 Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
 Deleted: Invariant 2.3. Execution Contract Database 1 owns it.
 Deleted: Invariant 4.3. Execution Contract Logic confinement 19 owns it: the two stamps Invariant 4.1 compares are one call's one reading, so the invariant rests on no clock's monotonicity.
+Deleted: Invariant 7.4. Actor Identity Invariant 5 owns it: an attestation id is never reused, the host that allocates it is bound by Execution Contract Logic confinement 16, and the composition inherits it (Composes 4).
 Deleted: Invariant 9.4. Execution Contract Database 1 and Execution Contract Database 2 own it.
 ```
 
@@ -170,8 +178,11 @@ Deleted: Clock semantics 11. Execution Contract Logic confinement 19 and Executi
 ### Edge cases › Concurrency
 
 ```
+Deleted: Concurrency 2. Execution Contract Database 2 owns it: the read of the pair and the grant of one issuance see one state, so two issuances never both read the pair unheld and both attest.
 Deleted: Concurrency 3. Permissions Identity 7 owns it: a pair holds one active grant, so there is no second grant to read as a defect.
 Deleted: Concurrency 4. Execution Contract Database 2 owns it.
 Deleted: Concurrency 5. Execution Contract Database 2 owns it.
 Deleted: Concurrency 9. Execution Contract Database 2 owns it: a pair-scoped revocation's enumeration and the revocations it decides are one transaction, so no issuance commits inside the sweep for a critical section to keep out.
+Deleted: Concurrency 10. Execution Contract Database 2 owns it: the read and the grant of one issuance see one state, so Permissions never answers a handle the grant attribution map already names.
+Deleted: Concurrency 11. Execution Contract Database 2 owns it, as Concurrency 10 does.
 ```
