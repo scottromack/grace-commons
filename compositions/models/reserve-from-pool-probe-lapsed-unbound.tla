@@ -76,7 +76,7 @@
 \*   Check 7.1 and 7.2) and the witness balance (Action wiring 123, 124) are the entries' fields,
 \*   not the arc's order.
 \* - The audit horizon, the retention floor and who purges a pool holding live reservations are
-\*   open (2026-11-05-a, 2026-11-05-b, 2026-11-06-a, 2026-11-06-b); the model takes the horizon as
+\*   named capabilities (Capability requirement 50 to 55); the model takes the horizon as
 \*   a step that may fire at any time, the strongest reading.
 \* - Actor Identity's registry conditions, the digest and the token are the retry model's or the
 \*   constituents'.

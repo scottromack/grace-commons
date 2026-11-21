@@ -108,9 +108,7 @@ Term reservation-to-pool binding: the composition's map from a reservation id to
 
 Term binding entry: one reservation's entry in the reservation-to-pool binding.
 
-Term aged entry: a journal entry whose `(recording instant + audit horizon)` PRECEDES now — past which the entry's payload may be lawfully destroyed, a reserve outcome entry's once the reservation's binding entry stands (Capability requirement 48), a slot-returning outcome entry's never while the reservation's binding entry stands (Capability requirement 49).
-
-NOTE: open 2026-11-18-a (Term aged entry).
+Term aged entry: a journal entry for which now DOES NOT PRECEDE `((recording instant + audit horizon) - clock allowance)` — past which the entry's payload may be lawfully destroyed, the allowance taken at the reading so an entry reads aged no later than its payload may go (Execution Contract Logic confinement 18), a reserve outcome entry's once the reservation's binding entry stands (Capability requirement 48), a slot-returning outcome entry's never while the reservation's binding entry stands (Capability requirement 49).
 
 Term token results map: the composition's own map from an idempotency token to the answer recorded against the token.
 
@@ -144,9 +142,13 @@ Capability requirement 46: The composition MUST order reservation events by the 
 Capability requirement 47: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Capability requirement 48: IF no binding entry EXISTS for a reserve outcome entry's reservation id THEN the deployment MUST retain the reserve outcome entry's payload.
 Capability requirement 49: IF a reservation's binding entry EXISTS THEN the deployment MUST retain the slot-returning outcome entries naming the reservation.
+Capability requirement 50: The deployment MUST supply the clock allowance at the seam PER Execution Contract Logic confinement 18.
+Capability requirement 51: A deployment MUST set the audit horizon.
+Capability requirement 52: A deployment MUST set the coherence proof period.
+Capability requirement 53: A deployment MUST set the longest reservation lifetime.
+Capability requirement 54: A deployment MUST NOT remove a pool's record while a reservation bound to the pool stands in a slot-holding state.
+Capability requirement 55: A deployment MUST supply storage for the binding entry AND the slot-returning outcome entries of EVERY reservation the composition has admitted.
 ```
-
-NOTE: open 2026-11-06-b (Capability requirement 49).
 
 Term idempotency window: the duration the Duplicate Prevention instance guards a token — chosen to cover the slowest legitimate retry of the most critical action.
 
@@ -158,23 +160,19 @@ Term token max length: the byte cap on an idempotency token, sized against the j
 
 Term digest function: the hash function and serialization convention computing the parameters digest.
 
-NOTE: open 2026-11-05-b (Term audit horizon).
-
-Term audit horizon: the journal's retention horizon — where the journal is the Audit Trail substrate, the substrate's purge horizon.
+Term audit horizon: the duration past a journal entry's recording instant after which the deployment may destroy the entry's payload — the deployment's own setting (Capability requirement 51), since the declared journal is the bare Event Log, which declares no retention (Event Log Non-goal 2), and this composition purges nothing (Non-goal 17), and the retention the deployment composes around the journal where it has one (Non-goal 19); the substrate's purge horizon where the deployment composes Audit Trail as a peer.
 
 Term retention floor: `(longest reservation lifetime + coherence proof period)`.
 
-NOTE: open 2026-11-05-a (Term longest reservation lifetime).
+Term longest reservation lifetime: the duration, in whole seconds, the deployment sets (Capability requirement 53) for the longest a reservation the deployment admits stands Held, the lapse of a hold under the lazy expiry sweep until its next observation included, from [Reserve] to the reservation's confirm outcome entry or slot-returning outcome entry — a reservation standing longer, a Confirmed one among them, is tolerated and counted past the audit horizon from its binding entry (Composition state 15, Check 1.1, Expiry sweep 5).
 
-Term longest reservation lifetime: the longest a reservation the deployment admits stands Held, from [Reserve] to the reservation's confirm outcome entry or slot-returning outcome entry — a reservation standing longer, a Confirmed one among them, is counted past the audit horizon from its binding entry (Composition state 15, Check 1.1).
+Term coherence proof period: the duration, in whole seconds, over which allocation coherence must be provable from the journal — the deployment's setting (Capability requirement 52), taken from the regulation or contract the deployment answers to, and the one term of the retention floor an auditor cannot recompute from the page's other settings (External check 16).
 
-NOTE: open 2026-11-06-a (Term coherence proof period).
-
-Term coherence proof period: the period over which allocation coherence must be provable from the journal.
-
-Term seam: the composition's input and output boundary — the one place the host reads the clock and hands the reading to the composition, per the section titled Logic Confinement Principle in `execution-contract.md`.
+Term seam: the composition's input and output boundary — the one place the host reads the clock and hands the reading and the clock allowance to the composition, per the section titled Logic Confinement Principle in `execution-contract.md`.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
+
+Term clock allowance: the most two of the deployment's clocks may differ, as Execution Contract Logic confinement 18 declares it.
 
 ### Primitive policy
 
@@ -489,6 +487,7 @@ Check 6.8: An auditor MUST find the intent entry carrying an outcome entry's att
 Check 6.9: An auditor MUST NOT report an intent entry carrying no outcome entry as a failure (Invariant 6.1).
 Check 7.1: An auditor MUST chain ONLY outcome entries citing a pool event (Action wiring 64).
 Check 7.2: An auditor MUST find EVERY chained entry's pool event balances equal to the cited pool event's (Action wiring 64).
+Check 8.1: An auditor MUST read the destroyed payload of an aged entry as lawful destruction AND run Check 6.1 through 6.9, Check 7.1 AND Check 7.2 over the entries whose payload stands (Capability requirement 51).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -510,6 +509,10 @@ External check 10: An auditor needing the token max length confirmed MUST read t
 External check 11: An auditor needing the digest function confirmed MUST read the deployment's own configuration (Capability requirement 28).
 External check 12: An auditor needing the expiry sweep confirmed MUST read the deployment's own configuration (Capability requirement 3).
 External check 13: An auditor needing the pool event read confirmed MUST read the deployment's own configuration (Capability requirement 17).
+External check 14: An auditor needing the clock allowance confirmed MUST read the deployment's own configuration (Capability requirement 50).
+External check 15: An auditor needing the audit horizon confirmed MUST read the deployment's own configuration (Capability requirement 51).
+External check 16: An auditor needing the retention floor confirmed MUST read the deployment's own configuration (Capability requirement 52, Capability requirement 53).
+External check 17: An auditor needing a pool's removal confirmed after the reservations bound to the pool MUST read the deployment's own configuration (Capability requirement 54).
 ```
 
 ---
@@ -533,13 +536,16 @@ Non-goal 13: The composition MUST NOT authenticate a replay.
 Non-goal 14: The composition MUST NOT journal a pre-attest refusal.
 Non-goal 15: A deployment needing attempt-level visibility MUST compose Event Log around the call surface.
 Non-goal 16: The composition MUST NOT own a downstream surface.
+Non-goal 17: The composition MUST NOT remove a journal entry.
+Non-goal 18: The composition MUST NOT remove a pool.
+Non-goal 19: A deployment needing a journal entry's payload destroyed at the audit horizon MUST compose Retention Window.
 ```
 
 Term pre-attest refusal: a refusal answered ahead of the attestation — a malformed input, a token collision, a replay.
 
 Term downstream surface: pricing, waitlisting or fulfilment of a reservation.
 
-NOTE: the owners — an expiry sweep outside the composition (Non-goal 6, Expiry sweep 1); a group-booking composing extension (Non-goal 9).
+NOTE: the owners — an expiry sweep outside the composition (Non-goal 6, Expiry sweep 1); a group-booking composing extension (Non-goal 9); [Retention Window](../atoms/retention-window.md), whose purge a deployment composes around the journal (Non-goal 17, Non-goal 19).
 
 ---
 
@@ -564,6 +570,7 @@ Concurrency 4: The composition MUST NOT serialize a single pool call of the comp
 ```
 Expiry sweep 1: An expiry sweep MUST call [Expire Reservation] for a reservation whose window reading EQUALS lapsed.
 Expiry sweep 4: A deployment needing a tight free count MUST declare the eager expiry sweep.
+Expiry sweep 5: A reservation held past the longest reservation lifetime MUST NOT count as a coherence finding.
 ```
 
 ---
@@ -593,15 +600,15 @@ Term record verbs: address, alert, allocate, answer, authenticate, bind, call, c
 
 Term value sets: action = reserve_intended | reserve | confirm_intended | confirm_reservation | cancel_intended | cancel_reservation | expire_intended | expire_reservation. The rest are declared where the section that owns each declares it: action type, position, slot-holding state, slot-returning state, constituent-terminal state, expiry sweep.
 
-Term bounds: audit horizon (journal_retention_ordering), token max length (token_max_length), idempotency window (idempotency_window).
+Term bounds: audit horizon (journal_retention_ordering), clock allowance, coherence proof period, longest reservation lifetime, token max length (token_max_length), idempotency window (idempotency_window).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
 
-Term terms: composition, constituents, reservation, reservation id, journal, journal entry, reservation-to-pool binding, binding entry, aged entry, token results map, action type, parameters digest, business parameter, idempotency window, expiry sweep, pool event read, token max length, digest function, audit horizon, retention floor, longest reservation lifetime, coherence proof period, seam, now, envelope, position, reservation reading, slot-held reading, state-changing action, resolving action, slot-returning action, settling, replay, matching token results entry, action reference, journaled digest, own entry, intent entry, outcome entry, slot-returning outcome entry, admitted reserve, pool event balances, witness balance, terminal state, slot-holding state, slot-returning state, constituent-terminal state, bound slot-holding count, quiescence, divergence, registry condition, pre-attest refusal, downstream surface, reserve intent, reserve outcome entry, confirm intent, confirm outcome entry, cancel intent, cancel outcome entry, expire intent, expire outcome entry.
+Term terms: composition, constituents, reservation, reservation id, journal, journal entry, reservation-to-pool binding, binding entry, aged entry, clock allowance, token results map, action type, parameters digest, business parameter, idempotency window, expiry sweep, pool event read, token max length, digest function, audit horizon, retention floor, longest reservation lifetime, coherence proof period, seam, now, envelope, position, reservation reading, slot-held reading, state-changing action, resolving action, slot-returning action, settling, replay, matching token results entry, action reference, journaled digest, own entry, intent entry, outcome entry, slot-returning outcome entry, admitted reserve, pool event balances, witness balance, terminal state, slot-holding state, slot-returning state, constituent-terminal state, bound slot-holding count, quiescence, divergence, registry condition, pre-attest refusal, downstream surface, reserve intent, reserve outcome entry, confirm intent, confirm outcome entry, cancel intent, cancel outcome entry, expire intent, expire outcome entry.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. commitment id, place hold, confirm, release, expire, resource, requester, duration, window reading, open, lapsed, Held, Confirmed, Released, Expired, not-held, window-elapsed, window-not-elapsed, resource-unavailable: Provisional Commitment. pool id, capacity, allocated, allocate, declare pool, query, audit log, audit event, allocation event, release event, allocation event id, release event id, opening balance, closing balance, over-capacity, suspended, closed: Capacity Constraint Enforcement. check, record, seen, not-seen: Duplicate Prevention. append, event id, sequence number, recording instant, payload cap, invalid-payload: Event Log. attest, verify, attestation id, actor reference, credential, actor registry, invalid-credential, actor-unknown-in-registry, registry-unavailable: Actor Identity.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. Execution Contract Logic confinement 18 — the clock allowance is the deployment's. commitment id, place hold, confirm, release, expire, resource, requester, duration, window reading, open, lapsed, Held, Confirmed, Released, Expired, not-held, window-elapsed, window-not-elapsed, resource-unavailable: Provisional Commitment. pool id, capacity, allocated, allocate, declare pool, query, audit log, audit event, allocation event, release event, allocation event id, release event id, opening balance, closing balance, over-capacity, suspended, closed: Capacity Constraint Enforcement. check, record, seen, not-seen: Duplicate Prevention. append, event id, sequence number, recording instant, payload cap, invalid-payload: Event Log. attest, verify, attestation id, actor reference, credential, actor registry, invalid-credential, actor-unknown-in-registry, registry-unavailable: Actor Identity.
 
 Term composing patterns: [Idempotent Reservation](./idempotent-reservation.md); [Audit Trail](./audit-trail.md); Reversal *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); [Permissions](../atoms/permissions.md).
 
@@ -729,12 +736,7 @@ status: doing
 formal: verified — reserve-from-pool.tla + 23 twins and reserve-from-pool-retry.tla + 14 twins, re-derived 2026-11-09 (it was verified 2026-06-04 over four atomic steps and the retired atomic trio): one pool and its reservations as Provisional Commitment keeps them, the hold's window, the pool's allocated count, the binding entry outside the transaction with its rebuild, the journal's reserve and slot-returning outcome entries with their retention (Capability requirement 48, 49), and the order of the writes inside each action (the attestation, the intent entry, the allocate before the hold, the transition before the release, the outcome entry last); the retry layer as its own model: Duplicate Prevention's window, the token results map, the journal read on a token the guard has not seen, the attestation and the outcome entry; Invariants 1.1, 1.5, 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, 5.3, 6.1, 6.3, 6.4, 8.1 and 8.2 checked, with Check 1.1, Wiring decision 2, 3 and 6, Action wiring 7, 18, 26, 45, 62, 80, 81, 87, 91, 106, 110, 125 and 126, Composition state 6 and 22, and Capability requirement 48 and 49; settled answers and every refusal leave the reservation and the pool as they were, and the pool's own answers, the entries' fields, the clock and the seam, the auditor's reads and the deployment's configuration are not modelled; the arc and the retry layer are two models because the tokens' states times the arc's pass the checker's 200,000-state cap, and the arc holds two reservations because a third passes its depth cap of 40; reserve-from-pool.als + 17 twins (the static data model, 2026-11-12: Invariant 1.1, 1.5, 2.1, 3.1, 4.1, 4.2, 5.1 through 5.3, 6.1 through 6.4, 8.1 and 8.2, Check 1.1, Wiring decision 1, 3 and 6 and Non-goal 9, 12, 13 and 14 checked on every state of the pools with their allocation and release events, the reservations, the binding, the journal's intent and outcome entries with their attestation ids and sequence numbers, the token results map and the attestations, and on every answer a call gives against what it read, a cross-check with the TLA+ models but for Invariant 6.2 and the Non-goal rows; nothing testable in Alloy for Invariant 5.4 (a deployment condition), Non-goal 1 through 6, 8, 10, 11, 15 and 16, Clock semantics 1 through 3, Concurrency 4 and Expiry sweep 4 (another pattern's or the deployment's, an absence no record holds), and Expiry sweep 1 left to TLA+ (liveness); the model found that Invariant 5.1 as written does not hold beside Invariant 5.3, since a confirm and a cancel of one reservation carry one parameters digest, the reservation id being their only business parameter, so under one token Action wiring 6 answers the second token-collision where the first answered ok, and it is checked under one action type); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Expiry sweep 1, 2026-11-09
 last gate: 2026-11-18 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at 978cf49 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational (the pool event read has no source in Capacity Constraint Enforcement's declared surfaces, refuted by Capability requirement 17 and 19, Composes 13 and 14 and External check 13, the read being a deployment-supplied capability keyed on the atom's addressable event id; Check 4.2's retirement against Logic confinement 19, refuted: no two conforming builds differ, Check 4.1 reads the window from the record, and the restoring cure breaks Term aged entry), 7 refining (cured: Action wiring 127 states the slot-held reading's converse, Capability requirement 39, 40 and 43 and Clock semantics 1 deleted for Logic confinement 3 and 7, Logic confinement 3 cited in Capability requirement 41; open line 2026-11-18-a for the clock allowance; refuted: the attestation left by a failed action) and 3 rhetorical; 2026-11-06 — Final Critique 14, a delta round, frozen at a896453 — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 13, full, three passes (GRID, EOS, Linus) — 2 foundational (a reserve or other own outcome entry journaled under a different digest met no rule, cured by widening Action wiring 125 and the digest condition of Action wiring 18; a slot-returning outcome entry could be destroyed while its binding entry stood, cured by Capability requirement 49), GRID's one foundational refuted (Execution Contract Database 1 and Read 4), not clean, no sample
 
-open:
-- 2026-11-06-b · refining · retention · Capability requirement 49 keeps a reservation's slot-returning outcome entries while its binding entry stands, and Composition state 6 never removes the binding entry, so both grow without bound; and a pool purged under a composed retention pattern while a reservation stands makes [Confirm Reservation] answer recording-failure carrying inconsistency for ever (Action wiring 124) → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-05-a · refining · retention · Term longest reservation lifetime counts the time a reservation the deployment admits stands Held, but no rule sets that longest or says whether a hold standing past it under a lazy sweep is tolerated → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-06-a · refining · coherence proof period · Term coherence proof period names the period over which allocation coherence must be provable, but no rule gives its unit, who sets it or where a deployment declares it, so an auditor cannot recompute the retention floor → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-05-b · refining · audit horizon · Term audit horizon names the Audit Trail substrate's purge horizon, while the declared journal is the bare Event Log, which declares no retention, so no rule says who sets the horizon or purges the journal there → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-18-a · refining · aged entry · Term aged entry compares a journal entry's recording instant, which an earlier call stamped, with this call's now, so Execution Contract Logic confinement 18 asks the page to name where the clock allowance is spent, and the page names nowhere; which side the allowance falls on, and so when a payload may lawfully be destroyed, is a decision no rule makes → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
+open: none
 ```
 
 <details markdown="block">

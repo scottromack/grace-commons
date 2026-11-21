@@ -115,8 +115,8 @@
 --     checks hold without it, and a twin's second release shows at small scope as it would
 --     beside another live allocation.
 --   - The audit horizon ages only the two entries the page's retention rules name (Capability
---     requirement 48, 49); the aging of an intent or a confirm outcome entry is open
---     (2026-11-05-b) and not modelled.
+--     requirement 48, 49); the aging of an intent or a confirm outcome entry is left to the audit
+--     horizon (Capability requirement 51) and not modelled.
 --   - The entries' fields beyond the ones above (pool event balances, the witness balance, the
 --     now), the auditor's calls to Actor Identity's verify, and the deployment's configuration
 --     (Composes 1 to 14, Capability requirement 1 to 3, 15 to 47).
