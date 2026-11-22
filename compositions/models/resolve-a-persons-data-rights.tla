@@ -3,1542 +3,496 @@
 \* compositions/resolve-a-persons-data-rights.md. Derived validator; the English spec is the single
 \* source of truth. On any disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* Three files carry this one module body. resolve-a-persons-data-rights.tla runs one erasure against two
-\* legs of the reconciliation. resolve-a-persons-data-rights-access.tla runs a fulfillment with nothing
-\* planned — an access, or an erasure with empty plans — against the same two legs.
-\* resolve-a-persons-data-rights-admission.tla runs two fulfillments of one request against each other.
-\* The party a file leaves off takes no step.
+\* Re-derived 2026-11-22 for the page's unit `composes Recoverable Invocation`: [Fulfill Erasure Request]
+\* binds one act kind, dsar.erasure_execution, on a Recoverable Invocation instance (Composes 15 through 19,
+\* Term erasure binding), and [Receive Request] and [Fulfill Access Request] are one transaction each under
+\* Execution Contract Database 1, so no access state interleaves and the access models of 2026-11-10 retired.
+\* This model checks what the binding leaves the page's own: the commit partition, the erasure probe, the
+\* re-entry bind and the seal, over Recoverable Invocation's contracts. Recoverable Invocation's own protocol
+\* (one writer per act, the sweep's edges, the lease, the fence of a stale writer, an intent closed once) is
+\* recoverable-invocation.tla's, which checks it.
 \*
-\* ONE request, one request section (a Lease on the request id) on one host clock, and a universe of two
-\* records: S, settled before any planned call, and, where the fulfillment plans, R, planned for
-\* Defensible Retention's purge. The parties:
-\*   f, g  a fulfillment: takes the section, reads the request's state under it, and where the request is
-\*         Received writes its intent, makes the planned call, writes the response disclosure and writes
-\*         the fulfilled event — each call started only while the grant has the call's bound left, each
-\*         landing or failing by that bound (Concurrency 3 through 19, 21 and 22). A call may also answer
-\*         and stay in flight: a step-3 refusal, or no answer. The write behind it may still land, or
-\*         never: a store write until another party takes the section, which the store then refuses it
-\*         against (Execution Contract Database 2), and a purge's destruction, an act outside the store, by
-\*         the call's bound whoever holds the section. A purge may answer storage-failure over a record
-\*         the storage layer already destroyed, and is then called once more.
-\*   w, v  a leg: takes the section, reads the request's events, the disclosure store and the plan's
-\*         store under it, and closes the open intent — compensate where a disclosure exists, complete
-\*         where a destruction was planned, abandon where nothing was (Reconciliation 9 through 17, 23
-\*         through 30).
-\* Any party may stall at any moment for any length; a stalled party is a dead one to everyone else.
+\* Two files carry this one module body. resolve-a-persons-data-rights.tla runs two erasure calls of one
+\* request, f and g, against Recoverable Invocation's sweep w and an operator. resolve-a-persons-data-rights-
+\* admission.tla runs three calls, f, g and h, so two erasures meet at the open's pre-check and the execution
+\* commit's guard while a third binds.
+\*
+\* ONE request, ONE act key (the request id), and a universe of two records: S, settled before any planned
+\* call, and R, the one purge plan pair where a call's retention read answered retained (Disposition 17), or
+\* settled erased where it answered purged (Disposition 39). The act section is one holder at a time
+\* (Recoverable Invocation act section). A call c:
+\*   reads the request's state outside any section (Action wiring 5, 6, 43, 44) and enumerates;
+\*   opens the act (Action wiring 24): the pre-check under the section answers act-in-flight over an open
+\*     intent, act-landed over an outcome (Recoverable Invocation open step 3.9: the re-entry route), and
+\*     otherwise writes the intent, which a refusal, an abandonment or an escalation does not stop;
+\*   issues the execution commit (Term execution commit): the guard read refuses already-fulfilled, or the
+\*     read fails state-unavailable — pre-commit, closed by the invocation refuse (Action wiring 47) — and
+\*     otherwise calls Defensible Retention's purge for R, re-invoked once after a retry answer
+\*     (Disposition 41), each answer landing R's purge reading (Term purge reading);
+\*   commits the disclosure, the fulfilled event and the executed outcome in one transaction (Action wiring
+\*     46), which may fail and leave the act the sweep's;
+\*   or runs the re-entry bind (Action wiring 44, 49 through 52): one store transaction under its guard,
+\*     sealing from the act's standing .executed closing.
+\* A call may stop at any moment after its open (a crash, or the unknown arm: the invocation yield, Action
+\* wiring 48); its section lapses and a purge still in flight may land later, or never. The sweep w probes
+\* an open intent whose call has stopped (Term erasure probe) and writes .executed or .escalated, never a
+\* disclosure and never an abandonment. The operator closes an escalated act once no purge of it is in
+\* flight: .executed where its commit made a planned call, .abandoned where it made none.
 \*
 \* WHAT THIS MODEL CHECKS
-\*   Inv_OneSeal        a request carries at most one fulfilled event (Invariant 1.2).
-\*   Inv_NoOrphanEvent  no fulfilled event without its response disclosure (Invariant 1.1).
-\*   Inv_OneDisclosure  a request carries at most one response disclosure (Invariant 5.1).
-\*   Inv_OneClose       an intent is closed at most once (Invariant 1.5, the safety half).
-\*   Inv_OneOpen        a request carries at most one open intent (Reconciliation 8).
-\*   Inv_OrphanOpen     a disclosure with no fulfilled event has an open intent behind it (Invariant 1.4).
-\*   Inv_Accounted      a destruction a fulfillment made, whether or not the store shows it, stands under
-\*                      an open intent or a sealed set, never under an abandoned one (Action wiring 19,
-\*                      Reconciliation 13 and 15).
-\*   Inv_Evidence       erased is sealed only where the store shows the record destroyed (Invariant 3.1).
-\*   Inv_Truth          a record destroyed is never sealed retained (Disposition 42).
-\*   Inv_Cover          every sealed set carries the settled record (Invariant 2.1, Reconciliation 16).
+\*   Inv_OneSeal             a request carries at most one fulfilled event (Invariant 1.2).
+\*   Inv_NoOrphanEvent       no fulfilled event without its response disclosure (Invariant 1.1).
+\*   Inv_OneDisclosure       a request carries at most one response disclosure (Invariant 5.1).
+\*   Inv_NoOrphanDisclosure  no request-scoped disclosure without its fulfilled event, in any state
+\*                           (Invariant 1.4; Action wiring 46, 52).
+\*   Inv_Accounted           a destruction a planned call made stands under no refused and no abandoned
+\*                           intent: the invocation refuse closes only the pre-commit arm (Action wiring 47,
+\*                           Term commit partition).
+\*   Inv_Evidence            erased is sealed, and an .executed closing carries R erased, only where the store
+\*                           shows R purged (Invariant 3.1; Term erasure probe; Action wiring 50).
+\*   Inv_Truth               a record the sealed act's own planned call destroyed is never sealed retained
+\*                           (Disposition 42, Term purge reading).
+\*   Inv_Cover               a sealed set carries the settled record S with the intent's disposition
+\*                           (Invariant 2.1, Action wiring 49).
 \*
-\* THE TWINS, each this file with one constant changed:
-\*   -buggy                  LegTakes = FALSE          a leg closes an intent without the request section (Reconciliation 17).
-\*   -buggy-coverage         FromIntent = FALSE        a compensation built from the plan alone (Reconciliation 16).
-\*   -buggy-retry            Retry = TRUE              the fulfilled event issued a second time (Audit arm 21).
-\*   -buggy-release          Fence = FALSE             a store write still in flight lands after another party took the section (Execution Contract Database 2).
-\*   -buggy-abandon          AbandonUnanswered = TRUE  an abandonment over a disclosure write that did not answer (Action wiring 39).
-\*   -buggy-grant            Reads = FALSE             a call issued without a reading of the grant (Concurrency 9, 12, 13).
-\*   -buggy-unsettled        Unsettled = FALSE         a planned call that did not settle its record read as a refusal (Disposition 42).
-\*   -buggy-plan             AbandonPlanned = TRUE     a leg abandons a planned destruction no store shows (Reconciliation 13, 15).
-\*   -buggy-taint            Taint = FALSE             a storage-failure followed by a refusal sealed retained (Term purge reading).
-\*   -probe-recover          a reachability probe: a leg, not the invocation, writes the one fulfilled event.
-\*   -probe-complete         a reachability probe: a leg writes the response disclosure and then the event.
-\*   -probe-late             a reachability probe: a fulfilled event lands after its own write answered a refusal.
-\*   -access-probe-abandon   a reachability probe: a leg abandons an intent with nothing planned.
-\*   -admission-buggy-order  StateInside = FALSE       the request's state read before the section is taken (Concurrency 7).
-\*   -admission-probe-again  a reachability probe: a second fulfillment seals a request the first abandoned.
-\* HoldRefused, no release over a planned call in flight (Concurrency 19), has no twin: a leg seals a planned
-\* record no store shows destroyed unsettled however late its destruction lands, so no invariant here turns on it.
+\* THE TWINS, each this file in a configuration with one constant changed:
+\*   -buggy-retry          Retry = TRUE         the re-entry bind's fulfilled event issued a second time (Audit arm 21).
+\*   -buggy-coverage       FromIntent = FALSE   the re-entry bind sealed from the .executed closing alone (Action wiring 49).
+\*   -buggy-abandon        RefuseLate = TRUE    the invocation refuse after a planned call answered (Action wiring 47).
+\*   -buggy-unsettled      Unsettled = FALSE    a purge that did not settle R read as a refusal (Disposition 42).
+\*   -buggy-taint          Taint = FALSE        a storage-failure then a refusal sealed retained (Term purge reading).
+\*   -buggy-evidence       ReadErased = TRUE    a storage-failure read as erased (Invariant 3.1, Term purge reading).
+\*   -buggy-orphan         SealFirst = TRUE     the re-entry bind seals ahead of its disclosure (Action wiring 52).
+\*   -buggy-probe-erased   ProbeErased = TRUE   the probe answers committed, R erased, over a gate record with R retained (Term erasure probe).
+\*   -buggy-bind-split     BindSplit = TRUE     the disclosure committed apart from its fulfilled event (Action wiring 52);
+\*                                              bound again after the event failed, a second disclosure (Inv_OneDisclosure).
+\*   -probe-recover        a reachability probe: the sweep probes an act its call left open, the act closes .executed,
+\*                         and a second call's re-entry bind writes the one fulfilled event.
+\*   -probe-late           a reachability probe: a planned purge lands after the sweep's probe read it retained, the
+\*                         escalation stands, and the operator's closing and the bind seal R erased.
+\*   -probe-gap            a reachability probe: the probe meets a state its four answers do not name.
+\*   -admission-buggy-order  ActLanded = FALSE  the open's pre-check skips the act's outcome (Recoverable Invocation open step 3.9).
+\*   -admission-probe-again  a reachability probe: a second erasure seals a request the first refused.
 \*
-\* NOT MODELED: the intake; more than one planned record, the host delete, a re-invocation of a purge
-\* beyond the one after a storage-failure, and a purge's own refusals beyond one that applies nothing and
-\* one storage-failure — Defensible Retention's models carry the gate; the recovery intent, one more audit write under the same floor; the
-\* reconciliation's two edges and the audit horizon, which keep a leg off young and aged work and which no
-\* invariant here rests on; the pause between a reading of the grant and the call the reading admits, and a
-\* lease call that never answers, both carried by the Lease model; the state read's failure; the two
-\* indexes; the sizing of the largest record; a host restart; the rate at which two clocks drift.
+\* WHAT THE MODEL FOUND ON THE PAGE (recorded, not cured):
+\*   (1) Term erasure probe names four answers, and a state with none of them is reachable: R reads no purge
+\*       under the intent's now while a Defensible Retention gate record names it within the plan span (a purge
+\*       that answered under-legal-hold, then the invocation stopped), the host delete plan empty — not
+\*       committed, not not-committed, not undecidable (Recoverable Invocation act probe 1 asks exactly one).
+\*       -probe-gap reaches it; the sweep here escalates it, as it escalates an undecidable act.
+\*   (2) Action wiring 6 (act-in-flight) and Action wiring 44 (the re-entry bind) both fire on a request whose
+\*       one act is open and another's standing closing is .executed, and the page orders neither. With the
+\*       bind's guard read as Action wiring 44's own, Recoverable Invocation open step 3.9 (act-landed) is what
+\*       keeps a bind off a live execution commit: -admission-buggy-order seals twice without it.
+\*   (3) Composition notes, "Recoverable Invocation's commit is one call", reads a planned call's no answer as
+\*       the unknown partition; Term commit partition reads it as committed, R landing unsettled. This model
+\*       follows the Term (the rule); unknown is the commit itself not returning (a stopped call).
+\*
+\* NOT MODELED: the access and the intake (one transaction each, Execution Contract Database 1); Recoverable
+\* Invocation's mechanism — the lease, the take, the sweep's examine and horizon edges, the fence of a stale
+\* writer (a stopped call writes nothing to the store; its purge, an act outside the store, may land), and the
+\* intent closed once, all recoverable-invocation.tla's; the host delete plan and a second purge plan pair
+\* (the probe's undecidable on act probe 3a and 7); the plan cap; the retention re-read of a host delete
+\* record; a hold's own timeline (Defensible Retention's gate, an answer here); an operator whose outcome data
+\* the stores do not bear out (detected, not prevented: Recoverable Invocation Check 6.1), so the operator here
+\* closes .executed exactly where its act's commit made a planned call; the index leg and the stall mark; the
+\* audit horizon; the state read's failure; the sizing of the largest record; the clock.
 EXTENDS Naturals
 
-CONSTANTS Dur, Pause, Lat, PLat, MaxTime, FOn, GOn, WOn, VOn,
-          LegTakes, StateInside, HoldRefused, Retry, AbandonUnanswered, Reads, Unsettled, FromIntent, HasPlan, AbandonPlanned, Taint, Fence
+CONSTANTS Calls, WOn, OpOn, Held, Stor, ActLanded, Retry, Unsettled, Taint, ReadErased,
+          FromIntent, RefuseLate, BindSplit, SealFirst, ProbeErased
 
-VARIABLES now, holder, exp, intF, intG, clF, clG, disc, seals, dest,
-          sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-          fl, flby, fr, fd, gp, gin, gby, gl, glby, gr,
-          gd, wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-          vo, vc, vin, vby, vl, vlby, vdest
-vars == <<now, holder, exp, intF, intG, clF, clG, disc, seals, dest,
-          sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-          fl, flby, fr, fd, gp, gin, gby, gl, glby, gr,
-          gd, wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-          vo, vc, vin, vby, vl, vlby, vdest>>
+VARIABLES ph, int, plan, rset, r, cs, issued, exR, probed, holder,
+          retR, goneR, gateR, destBy, disc, seals, sealedR, sealAct, badCover, rec,
+          sealBy, late, gap
+vars == <<ph, int, plan, rset, r, cs, issued, exR, probed, holder,
+          retR, goneR, gateR, destBy, disc, seals, sealedR, sealAct, badCover, rec,
+          sealBy, late, gap>>
+
+Phases == {"idle", "pre", "open", "call", "commit", "bind", "bind2", "bound", "dead", "done"}
+IntStates == {"none", "open", "refused", "executed", "escalated", "abandoned"}
 
 TypeOK ==
-    /\ now \in 0..MaxTime /\ holder \in {"none", "f", "g", "w", "v"} /\ exp \in 0..(MaxTime + Dur)
-    /\ intF \in {"none", "open", "sealed", "aband"} /\ intG \in {"none", "open", "sealed", "aband"}
-    /\ clF \in 0..2 /\ clG \in 0..2 /\ disc \in 0..2 /\ seals \in 0..2
-    /\ dest \in BOOLEAN /\ sealedR \in {"planned", "none", "erased", "retained", "unsettled"}
-    /\ badCover \in BOOLEAN /\ rec \in BOOLEAN /\ legdisc \in BOOLEAN /\ late \in BOOLEAN
-    /\ gone \in BOOLEAN /\ legab \in BOOLEAN
-    /\ fp \in {"idle", "pre", "held", "adm", "intd", "retry", "exec", "discd", "discr", "hold", "rel", "done"}
-    /\ fin \in {"none", "intent", "purge", "disc", "seal", "aband"} /\ fl \in {"none", "intent", "purge", "disc", "seal", "aband"}
-    /\ fby \in 0..(MaxTime + Lat + PLat) /\ flby \in 0..(MaxTime + Lat + PLat)
-    /\ fr \in {"planned", "none", "tainted", "erased", "retained", "unsettled"} /\ fd \in {"none", "ok", "ref", "una"}
-    /\ gp \in {"idle", "pre", "held", "adm", "intd", "retry", "exec", "discd", "discr", "hold", "rel", "done"}
-    /\ gin \in {"none", "intent", "purge", "disc", "seal", "aband"} /\ gl \in {"none", "intent", "purge", "disc", "seal", "aband"}
-    /\ gby \in 0..(MaxTime + Lat + PLat) /\ glby \in 0..(MaxTime + Lat + PLat)
-    /\ gr \in {"planned", "none", "tainted", "erased", "retained", "unsettled"} /\ gd \in {"none", "ok", "ref", "una"}
-    /\ wp \in {"idle", "held", "read", "hold", "fin", "done"} /\ wo \in {"none", "f", "g"}
-    /\ wc \in {"none", "comp", "complete", "aband"}
-    /\ win \in {"none", "disc", "seal", "aband"} /\ wl \in {"none", "disc", "seal", "aband"}
-    /\ wby \in 0..(MaxTime + Lat) /\ wlby \in 0..(MaxTime + Lat) /\ wdest \in BOOLEAN
-    /\ vp \in {"idle", "held", "read", "hold", "fin", "done"} /\ vo \in {"none", "f", "g"}
-    /\ vc \in {"none", "comp", "complete", "aband"}
-    /\ vin \in {"none", "disc", "seal", "aband"} /\ vl \in {"none", "disc", "seal", "aband"}
-    /\ vby \in 0..(MaxTime + Lat) /\ vlby \in 0..(MaxTime + Lat) /\ vdest \in BOOLEAN
+    /\ ph \in [Calls -> Phases] /\ int \in [Calls -> IntStates]
+    /\ plan \in [Calls -> BOOLEAN] /\ rset \in [Calls -> {"none", "erased"}]
+    /\ r \in [Calls -> {"none", "tainted", "erased", "retained", "unsettled"}]
+    /\ cs \in [Calls -> {"none", "fly", "retry", "lost"}]
+    /\ issued \in [Calls -> BOOLEAN] /\ exR \in [Calls -> {"none", "erased"}] /\ probed \in [Calls -> BOOLEAN]
+    /\ holder \in Calls \cup {"none"}
+    /\ retR \in Calls \cup {"retained"} /\ goneR \in BOOLEAN /\ gateR \in BOOLEAN /\ destBy \in Calls \cup {"none"}
+    /\ disc \in 0..2 /\ seals \in 0..2
+    /\ sealedR \in {"none", "erased", "retained", "unsettled"} /\ sealAct \in Calls \cup {"none"}
+    /\ badCover \in BOOLEAN /\ rec \in BOOLEAN /\ sealBy \in Calls \cup {"none"}
+    /\ late \in BOOLEAN /\ gap \in BOOLEAN
 
 Init ==
-    /\ now = 0 /\ holder = "none" /\ exp = 0
-    /\ intF = "none" /\ intG = "none" /\ clF = 0 /\ clG = 0 /\ disc = 0 /\ seals = 0
-    /\ dest = FALSE /\ sealedR = "planned" /\ badCover = FALSE /\ rec = FALSE /\ legdisc = FALSE /\ late = FALSE /\ gone = FALSE /\ legab = FALSE
-    /\ fp = "idle" /\ fin = "none" /\ fby = 0 /\ fl = "none" /\ flby = 0 /\ fr = "planned" /\ fd = "none"
-    /\ gp = "idle" /\ gin = "none" /\ gby = 0 /\ gl = "none" /\ glby = 0 /\ gr = "planned" /\ gd = "none"
-    /\ wp = "idle" /\ wo = "none" /\ wc = "none" /\ win = "none" /\ wby = 0 /\ wl = "none" /\ wlby = 0 /\ wdest = FALSE
-    /\ vp = "idle" /\ vo = "none" /\ vc = "none" /\ vin = "none" /\ vby = 0 /\ vl = "none" /\ vlby = 0 /\ vdest = FALSE
+    /\ ph = [c \in Calls |-> "idle"] /\ int = [c \in Calls |-> "none"]
+    /\ plan = [c \in Calls |-> FALSE] /\ rset = [c \in Calls |-> "none"] /\ r = [c \in Calls |-> "none"]
+    /\ cs = [c \in Calls |-> "none"] /\ issued = [c \in Calls |-> FALSE]
+    /\ exR = [c \in Calls |-> "none"] /\ probed = [c \in Calls |-> FALSE]
+    /\ holder = "none" /\ retR = "retained" /\ goneR = FALSE /\ gateR = FALSE /\ destBy = "none"
+    /\ disc = 0 /\ seals = 0 /\ sealedR = "none" /\ sealAct = "none"
+    /\ badCover = FALSE /\ rec = FALSE /\ sealBy = "none" /\ late = FALSE /\ gap = FALSE
 
 Inc(n) == IF n < 2 THEN n + 1 ELSE 2
 
-\* Execution Contract Database 2: a store write's lease check and its commit are one transaction, so a take refuses
-\* every store write another party still has in flight. A purge's destruction is an act outside the store, and no
-\* take refuses it.
-StoreWrite(l) == l \in {"intent", "disc", "seal", "aband"}
-Fenced(l) == IF Fence /\ StoreWrite(l) THEN "none" ELSE l
-FencedBy(l, b) == IF Fence /\ StoreWrite(l) THEN 0 ELSE b
+\* The request's state, derived from its records (Composition state 15 through 31).
+Fulfilled == seals > 0
+AnyOpen == \E c \in Calls : int[c] = "open"
+AnyEsc == \E c \in Calls : int[c] = "escalated"
+AnyExec == \E c \in Calls : int[c] = "executed"
 
-\* Lease State 2: free is derived from a passed instant; the key is free at the reading that equals expires_at.
-Free == holder = "none" \/ now >= exp
+\* Action wiring 44's condition, read again inside the bind's transaction (Execution Contract Database 2): an
+\* .executed closing standing with no fulfilled event naming the request. The state read ahead of it routes
+\* act-in-flight (Action wiring 6) and compensation-pending (Action wiring 43) first; inside the transaction
+\* the guard is the rule's own.
+BindRoute == ~Fulfilled /\ AnyExec
 
-AnyOpen == intF = "open" \/ intG = "open"
+\* A destruction of R a planned call made, whether or not the store shows it.
+Destroyed == retR # "retained" \/ goneR
+FirstDest(c) == IF destBy = "none" THEN c ELSE destBy
 
-\* Composition state 17, 19 and 24: Received is no fulfilled event, no open intent and no unbound disclosure.
-AdmitOK == seals = 0 /\ ~AnyOpen /\ disc = 0
+\* What the re-entry bind seals R as, from the act x whose standing closing is .executed: the intent's own
+\* disposition where R was settled ahead of the plan (Action wiring 49), erased where the closing shows R
+\* purged (Action wiring 50), anomaly carrying unsettled otherwise (Action wiring 51).
+BindR(x) == IF ~plan[x] THEN rset[x] ELSE IF exR[x] = "erased" THEN "erased" ELSE "unsettled"
 
-\* A call in flight lands, or fails, by its bound: the clock does not pass it (Lease Capability requirement 7).
-Tick ==
-    /\ now < MaxTime
-    /\ ~(fin # "none" /\ now >= fby) /\ ~(fl # "none" /\ now >= flby)
-    /\ ~(gin # "none" /\ now >= gby) /\ ~(gl # "none" /\ now >= glby)
-    /\ ~(win # "none" /\ now >= wby) /\ ~(wl # "none" /\ now >= wlby)
-    /\ ~(vin # "none" /\ now >= vby) /\ ~(vl # "none" /\ now >= vlby)
-    /\ now' = (now + 1)
-    /\ UNCHANGED <<holder, exp, intF, intG, clF, clG, disc, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
+\* The state read and the enumeration, outside any section (Action wiring 5, 6, 43, 44; Disposition 17, 39).
+Read(c) ==
+    /\ ph[c] = "idle"
+    /\ ph' = [ph EXCEPT ![c] = IF Fulfilled \/ AnyOpen \/ AnyEsc THEN "done" ELSE IF AnyExec THEN "bind" ELSE "pre"]
+    /\ plan' = [plan EXCEPT ![c] = (retR = "retained")]
+    /\ rset' = [rset EXCEPT ![c] = IF retR = "retained" THEN "none" ELSE "erased"]
+    /\ UNCHANGED <<int, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* The twin reads the request's state first and takes the section afterwards.
-FPre ==
-    /\ FOn /\ ~StateInside /\ fp = "idle"
-    /\ fp' = (IF AdmitOK THEN "pre" ELSE "done")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
+\* The invocation open (Action wiring 24, 45): the pre-check under the section.
+OpenInFlight(c) ==
+    /\ ph[c] = "pre" /\ holder = "none" /\ AnyOpen
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
-\* write still in flight (Execution Contract Database 2).
-FTake ==
-    /\ FOn /\ ((StateInside /\ fp = "idle") \/ fp = "pre")
-    /\ Free
-    /\ holder' = "f"
-    /\ exp' = (now + Dur)
-    /\ fp' = (IF fp = "pre" THEN "adm" ELSE "held")
-    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
-    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
-    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fin, fby, fl,
-                   flby, fr, fd, gp, gin, gby, gr, gd, wp,
-                   wo, wc, win, wby, wdest, vp, vo, vc, vin,
-                   vby, vdest>>
+OpenLanded(c) ==
+    /\ ph[c] = "pre" /\ holder = "none" /\ ~AnyOpen /\ ActLanded /\ AnyExec
+    /\ ph' = [ph EXCEPT ![c] = "bind"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 7, Action wiring 5 and 6: the request's state read under the section.
-FRead ==
-    /\ fp = "held"
-    /\ fp' = (IF AdmitOK THEN "adm" ELSE "rel")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
+Open(c) ==
+    /\ ph[c] = "pre" /\ holder = "none" /\ ~AnyOpen /\ ~(ActLanded /\ AnyExec)
+    /\ int' = [int EXCEPT ![c] = "open"]
+    /\ holder' = c
+    /\ ph' = [ph EXCEPT ![c] = "open"]
+    /\ UNCHANGED <<plan, rset, r, cs, issued, exR, probed, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 12: an audit write starts only while the grant has its latency left.
-FIntent ==
-    /\ fp = "adm" /\ fin = "none" /\ fl = "none"
-    /\ (~Reads \/ (holder = "f" /\ exp > now + Lat))
-    /\ fin' = "intent"
-    /\ fby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The execution commit's guard read: pre-commit where it answers already-fulfilled, or where the read fails
+\* state-unavailable — before any planned call — closed by the invocation refuse (Action wiring 47).
+GuardRefuse(c) ==
+    /\ ph[c] = "open"
+    /\ int' = [int EXCEPT ![c] = "refused"]
+    /\ holder' = "none"
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<plan, rset, r, cs, issued, exR, probed, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 13: a planned call starts only above the plan floor, the bind still fitting after it.
-FPurge ==
-    /\ HasPlan /\ fp \in {"intd", "retry"} /\ fin = "none"
-    /\ (~Reads \/ (holder = "f" /\ exp > now + PLat + Pause + Lat))
-    /\ fin' = "purge"
-    /\ fby' = (now + PLat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The guard passes: the purge of the one plan pair, or, the plan empty, nothing to call.
+GuardPass(c) ==
+    /\ ph[c] = "open" /\ ~Fulfilled
+    /\ cs' = [cs EXCEPT ![c] = IF plan[c] THEN "fly" ELSE "none"]
+    /\ issued' = [issued EXCEPT ![c] = plan[c]]
+    /\ ph' = [ph EXCEPT ![c] = IF plan[c] THEN "call" ELSE "commit"]
+    /\ UNCHANGED <<int, plan, rset, r, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* The access path, and an erasure whose plans stand empty: no planned call.
-FNoPlan ==
-    /\ ~HasPlan /\ fp = "intd" /\ fin = "none"
-    /\ fr' = "none"
-    /\ fp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fin,
-                   fby, fl, flby, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The purge answers ok, or not-known over a retention the read then answers purged: R erased (Disposition
+\* 20, 43). Defensible Retention's purge commits its gate record and the purged retention, stamped with the
+\* invocation's now, the pairing datum (Term erasure binding).
+AnsOk(c) ==
+    /\ ph[c] = "call" /\ cs[c] \in {"fly", "retry"}
+    /\ retR' = IF retR = "retained" THEN c ELSE retR
+    /\ gateR' = IF retR = "retained" THEN TRUE ELSE gateR
+    /\ destBy' = IF retR = "retained" THEN FirstDest(c) ELSE destBy
+    /\ r' = [r EXCEPT ![c] = "erased"]
+    /\ cs' = [cs EXCEPT ![c] = "none"]
+    /\ ph' = [ph EXCEPT ![c] = "commit"]
+    /\ UNCHANGED <<int, plan, rset, issued, exR, probed, holder, goneR,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Disposition 45: a planned record the grant admits no call for is unsettled.
-FSkip ==
-    /\ HasPlan /\ fp \in {"intd", "retry"} /\ fin = "none"
-    /\ ~(holder = "f" /\ exp > now + PLat + Pause + Lat)
-    /\ fr' = "unsettled"
-    /\ fp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fin,
-                   fby, fl, flby, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The purge answers under-legal-hold: a gate record, R retained (Disposition 21); after a storage-failure,
+\* unsettled (Term purge reading).
+AnsHeld(c) ==
+    /\ Held /\ ph[c] = "call" /\ cs[c] \in {"fly", "retry"} /\ retR = "retained"
+    /\ gateR' = TRUE
+    /\ r' = [r EXCEPT ![c] = IF cs[c] = "retry" /\ Taint THEN "unsettled" ELSE "retained"]
+    /\ cs' = [cs EXCEPT ![c] = "none"]
+    /\ ph' = [ph EXCEPT ![c] = "commit"]
+    /\ UNCHANGED <<int, plan, rset, issued, exR, probed, holder, retR, goneR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 9: the disclosure write on a live reading.
-FDisc ==
-    /\ fp = "exec" /\ fin = "none"
-    /\ (~Reads \/ (holder = "f" /\ exp > now + Pause))
-    /\ fin' = "disc"
-    /\ fby' = (now + Pause)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The purge answers storage-failure: the retention stays retained and the record may be gone all the same
+\* (Defensible Retention Atomic writes 8, 9). A first one is re-invoked once (Disposition 41); a second is
+\* unsettled (Term purge reading, Disposition 42).
+AnsStor(c, gone) ==
+    /\ Stor /\ ph[c] = "call" /\ cs[c] \in {"fly", "retry"}
+    /\ goneR' = IF gone THEN TRUE ELSE goneR
+    /\ destBy' = IF gone THEN FirstDest(c) ELSE destBy
+    /\ r' = [r EXCEPT ![c] = IF ReadErased THEN "erased"
+                             ELSE IF ~Unsettled THEN "retained"
+                             ELSE IF cs[c] = "fly" THEN "tainted" ELSE "unsettled"]
+    /\ cs' = [cs EXCEPT ![c] = IF ~ReadErased /\ Unsettled /\ cs[c] = "fly" THEN "retry" ELSE "none"]
+    /\ ph' = [ph EXCEPT ![c] = IF ~ReadErased /\ Unsettled /\ cs[c] = "fly" THEN "call" ELSE "commit"]
+    /\ UNCHANGED <<int, plan, rset, issued, exR, probed, holder, retR, gateR,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-FSeal ==
-    /\ fp = "discd" /\ fin = "none"
-    /\ (~Reads \/ (holder = "f" /\ exp > now + Lat))
-    /\ fin' = "seal"
-    /\ fby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The purge answers no answer within the planned call latency: R unsettled (Term purge reading), the
+\* commit going on; the purge may still land, or never.
+AnsNone(c) ==
+    /\ ph[c] = "call" /\ cs[c] \in {"fly", "retry"}
+    /\ r' = [r EXCEPT ![c] = IF Unsettled THEN "unsettled" ELSE "retained"]
+    /\ cs' = [cs EXCEPT ![c] = "lost"]
+    /\ ph' = [ph EXCEPT ![c] = "commit"]
+    /\ UNCHANGED <<int, plan, rset, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Action wiring 19 and 39: an abandonment over a refused disclosure write with nothing possibly destroyed, never over one that did not answer.
-FAband ==
-    /\ fp = "discr" /\ fin = "none"
-    /\ ((fd = "ref" \/ (AbandonUnanswered /\ fd = "una")) /\ fr \notin {"erased", "unsettled"})
-    /\ (~Reads \/ (holder = "f" /\ exp > now + Lat))
-    /\ fin' = "aband"
-    /\ fby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* A purge whose call answered no answer, or whose invocation stopped, lands.
+LateLand(c) ==
+    /\ cs[c] = "lost"
+    /\ retR' = IF retR = "retained" THEN c ELSE retR
+    /\ gateR' = IF retR = "retained" THEN TRUE ELSE gateR
+    /\ destBy' = IF retR = "retained" THEN FirstDest(c) ELSE destBy
+    /\ late' = IF probed[c] THEN TRUE ELSE late
+    /\ cs' = [cs EXCEPT ![c] = "none"]
+    /\ UNCHANGED <<ph, int, plan, rset, r, issued, exR, probed, holder, goneR,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, gap>>
 
-\* Action wiring 29: the fulfillment answers outcome and leaves the intent open.
-FGiveUp ==
-    /\ fp = "discr" /\ fin = "none"
-    /\ ~((fd = "ref" \/ (AbandonUnanswered /\ fd = "una")) /\ fr \notin {"erased", "unsettled"})
-    /\ fp' = (IF fd = "una" THEN "hold" ELSE "rel")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
+NeverLand(c) ==
+    /\ cs[c] = "lost"
+    /\ cs' = [cs EXCEPT ![c] = "none"]
+    /\ UNCHANGED <<ph, int, plan, rset, r, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-FLandIntent ==
-    /\ fin = "intent" /\ now <= fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ intF' = "open"
-    /\ fp' = "intd"
-    /\ UNCHANGED <<now, holder, exp, intG, clF, clG, disc, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fl, flby,
-                   fr, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
+\* The twin's defect: the invocation refuse after a planned call answered.
+RefuseAfter(c) ==
+    /\ RefuseLate /\ ph[c] = "commit" /\ holder = c /\ issued[c]
+    /\ int' = [int EXCEPT ![c] = "refused"]
+    /\ holder' = "none"
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<plan, rset, r, cs, issued, exR, probed, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-FLandPurge ==
-    /\ fin = "purge" /\ now <= fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ dest' = TRUE
-    /\ fr' = "erased"
-    /\ fp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fl, flby,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FLandDisc ==
-    /\ fin = "disc" /\ now <= fby
-    /\ fin' = "none"
-    /\ fby' = 0
+\* Committed: the disclosure, the erasure fulfilled event and the executed outcome in one transaction (Action
+\* wiring 46); the outcome carries only what the stores re-derive (Recoverable Invocation close 5).
+Close(c) ==
+    /\ ph[c] = "commit" /\ holder = c
+    /\ int' = [int EXCEPT ![c] = "executed"]
+    /\ exR' = [exR EXCEPT ![c] = IF retR = c THEN "erased" ELSE "none"]
     /\ disc' = Inc(disc)
-    /\ fd' = "ok"
-    /\ fp' = "discd"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fl, flby,
-                   fr, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FLandSeal ==
-    /\ fin = "seal" /\ now <= fby
-    /\ fin' = "none"
-    /\ fby' = 0
     /\ seals' = Inc(seals)
-    /\ clF' = Inc(clF)
-    /\ intF' = (IF intF = "open" THEN "sealed" ELSE intF)
-    /\ sealedR' = (IF seals = 0 THEN fr ELSE sealedR)
-    /\ fp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intG, clG, disc, dest, badCover, rec,
-                   legdisc, late, gone, legab, fl, flby, fr, fd, gp,
-                   gin, gby, gl, glby, gr, gd, wp, wo, wc,
-                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
-                   vby, vl, vlby, vdest>>
+    /\ sealedR' = IF seals = 0 THEN (IF plan[c] THEN r[c] ELSE rset[c]) ELSE sealedR
+    /\ sealAct' = IF seals = 0 THEN c ELSE sealAct
+    /\ sealBy' = IF seals = 0 THEN c ELSE sealBy
+    /\ holder' = "none"
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<plan, rset, r, cs, issued, probed, retR, goneR, gateR, destBy, badCover, rec, late, gap>>
 
-FLandAband ==
-    /\ fin = "aband" /\ now <= fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ clF' = Inc(clF)
-    /\ intF' = (IF intF = "open" THEN "aband" ELSE intF)
-    /\ fp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intG, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fl, flby, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
+\* The transaction fails: nothing commits, the close's recording-failure carrying outcome, the act the
+\* sweep's (Action wiring 46).
+CloseFail(c) ==
+    /\ ph[c] = "commit" /\ holder = c
+    /\ holder' = "none"
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* A refusal that applied nothing: the record is owed, or the gate refused, or the store refused.
-FFailIntent ==
-    /\ fin = "intent"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
+\* The call stops: a crash, or the unknown arm's invocation yield (Action wiring 48). Its section lapses.
+Stop(c) ==
+    /\ ph[c] \in {"open", "call", "commit"}
+    /\ ph' = [ph EXCEPT ![c] = "dead"]
+    /\ holder' = IF holder = c THEN "none" ELSE holder
+    /\ cs' = [cs EXCEPT ![c] = IF cs[c] \in {"fly", "retry"} THEN "lost" ELSE cs[c]]
+    /\ UNCHANGED <<int, plan, rset, r, issued, exR, probed, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Term purge reading: a pair that answered storage-failure is unsettled whatever the gate then refuses.
-FFailPurge ==
-    /\ fin = "purge"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fr' = (IF fr = "tainted" /\ Taint THEN "unsettled" ELSE "retained")
-    /\ fp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Defensible Retention Atomic writes 8 and 9: a purge that answers storage-failure leaves the retention retained, and the record may be gone all the same.
-FStorPurge ==
-    /\ fin = "purge"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fr' = (IF ~Unsettled THEN "retained" ELSE IF fr = "tainted" THEN "unsettled" ELSE "tainted")
-    /\ fp' = (IF Unsettled /\ fr # "tainted" THEN "retry" ELSE "exec")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-FStorPurgeGone ==
-    /\ fin = "purge"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fr' = (IF ~Unsettled THEN "retained" ELSE IF fr = "tainted" THEN "unsettled" ELSE "tainted")
-    /\ fp' = (IF Unsettled /\ fr # "tainted" THEN "retry" ELSE "exec")
-    /\ gone' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, legab, fl, flby,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FFailDisc ==
-    /\ fin = "disc"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fd' = "ref"
-    /\ fp' = "discr"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fr, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-FFailSeal ==
-    /\ fin = "seal"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-FFailAband ==
-    /\ fin = "aband"
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fl,
-                   flby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* The call answered a step-3 refusal, or never answered, and the write behind it stays in flight: it may still land, or not (Audit Trail record action step 3.7).
-FRefuseIntent ==
-    /\ fin = "intent" /\ fl = "none"
-    /\ fl' = fin
-    /\ flby' = fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FRefusePurge ==
-    /\ fin = "purge" /\ fl = "none"
-    /\ fl' = fin
-    /\ flby' = fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fr' = (IF Unsettled THEN "unsettled" ELSE "retained")
-    /\ fp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fd,
-                   gp, gin, gby, gl, glby, gr, gd, wp, wo,
-                   wc, win, wby, wl, wlby, wdest, vp, vo, vc,
-                   vin, vby, vl, vlby, vdest>>
-
-FRefuseDisc ==
-    /\ fin = "disc" /\ fl = "none"
-    /\ fl' = fin
-    /\ flby' = fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fd' = "una"
-    /\ fp' = "discr"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fr,
-                   gp, gin, gby, gl, glby, gr, gd, wp, wo,
-                   wc, win, wby, wl, wlby, wdest, vp, vo, vc,
-                   vin, vby, vl, vlby, vdest>>
-
-FRefuseSeal ==
-    /\ fin = "seal" /\ fl = "none"
-    /\ fl' = fin
-    /\ flby' = fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = (IF Retry THEN "discd" ELSE "hold")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FRefuseAband ==
-    /\ fin = "aband" /\ fl = "none"
-    /\ fl' = fin
-    /\ flby' = fby
-    /\ fin' = "none"
-    /\ fby' = 0
-    /\ fp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-FLateIntent ==
-    /\ fl = "intent" /\ now <= flby
-    /\ fl' = "none"
-    /\ flby' = 0
-    /\ intF' = "open"
-    /\ UNCHANGED <<now, holder, exp, intG, clF, clG, disc, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-FLatePurge ==
-    /\ fl = "purge" /\ now <= flby
-    /\ fl' = "none"
-    /\ flby' = 0
-    /\ dest' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-FLateDisc ==
-    /\ fl = "disc" /\ now <= flby
-    /\ fl' = "none"
-    /\ flby' = 0
+\* The re-entry bind (Action wiring 44, 49 through 52): one store transaction, its guard read inside it.
+BindTx(c) ==
+    /\ ph[c] = "bind" /\ BindRoute /\ ~BindSplit /\ ~SealFirst
+    /\ \E x \in Calls :
+        /\ int[x] = "executed"
+        /\ sealedR' = BindR(x)
+        /\ sealAct' = x
     /\ disc' = Inc(disc)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-FLateSeal ==
-    /\ fl = "seal" /\ now <= flby
-    /\ fl' = "none"
-    /\ flby' = 0
     /\ seals' = Inc(seals)
-    /\ clF' = Inc(clF)
-    /\ intF' = (IF intF = "open" THEN "sealed" ELSE intF)
-    /\ sealedR' = (IF seals = 0 THEN fr ELSE sealedR)
-    /\ late' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intG, clG, disc, dest, badCover, rec,
-                   legdisc, gone, legab, fp, fin, fby, fr, fd, gp,
-                   gin, gby, gl, glby, gr, gd, wp, wo, wc,
-                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
-                   vby, vl, vlby, vdest>>
-
-FLateAband ==
-    /\ fl = "aband" /\ now <= flby
-    /\ fl' = "none"
-    /\ flby' = 0
-    /\ clF' = Inc(clF)
-    /\ intF' = (IF intF = "open" THEN "aband" ELSE intF)
-    /\ UNCHANGED <<now, holder, exp, intG, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fr, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-FLateDie ==
-    /\ fl # "none"
-    /\ fl' = "none"
-    /\ flby' = 0
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Concurrency 19, 21 and 22: no release with a call in flight, and none over a planned call that answered and may
-\* still land; a store write that may still land is the store's to refuse once another party takes the section.
-FRelease ==
-    /\ fp \in {"rel", "adm", "hold"}
-    /\ fin = "none"
-    /\ (HoldRefused => fl # "purge")
-    /\ holder' = (IF holder = "f" THEN "none" ELSE holder)
-    /\ exp' = (IF holder = "f" THEN 0 ELSE exp)
-    /\ fp' = "done"
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fin, fby, fl,
-                   flby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* The twin reads the request's state first and takes the section afterwards.
-GPre ==
-    /\ GOn /\ ~StateInside /\ gp = "idle"
-    /\ gp' = (IF AdmitOK THEN "pre" ELSE "done")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
-
-\* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
-\* write still in flight (Execution Contract Database 2).
-GTake ==
-    /\ GOn /\ ((StateInside /\ gp = "idle") \/ gp = "pre")
-    /\ Free
-    /\ holder' = "g"
-    /\ exp' = (now + Dur)
-    /\ gp' = (IF gp = "pre" THEN "adm" ELSE "held")
-    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
-    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
-    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fr, fd, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wdest, vp, vo, vc, vin,
-                   vby, vdest>>
-
-\* Concurrency 7, Action wiring 5 and 6: the request's state read under the section.
-GRead ==
-    /\ gp = "held"
-    /\ gp' = (IF AdmitOK THEN "adm" ELSE "rel")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
-
-\* Concurrency 12: an audit write starts only while the grant has its latency left.
-GIntent ==
-    /\ gp = "adm" /\ gin = "none" /\ gl = "none"
-    /\ (~Reads \/ (holder = "g" /\ exp > now + Lat))
-    /\ gin' = "intent"
-    /\ gby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Concurrency 13: a planned call starts only above the plan floor, the bind still fitting after it.
-GPurge ==
-    /\ HasPlan /\ gp \in {"intd", "retry"} /\ gin = "none"
-    /\ (~Reads \/ (holder = "g" /\ exp > now + PLat + Pause + Lat))
-    /\ gin' = "purge"
-    /\ gby' = (now + PLat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* The access path, and an erasure whose plans stand empty: no planned call.
-GNoPlan ==
-    /\ ~HasPlan /\ gp = "intd" /\ gin = "none"
-    /\ gr' = "none"
-    /\ gp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gin, gby, gl,
-                   glby, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Disposition 45: a planned record the grant admits no call for is unsettled.
-GSkip ==
-    /\ HasPlan /\ gp \in {"intd", "retry"} /\ gin = "none"
-    /\ ~(holder = "g" /\ exp > now + PLat + Pause + Lat)
-    /\ gr' = "unsettled"
-    /\ gp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gin, gby, gl,
-                   glby, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Concurrency 9: the disclosure write on a live reading.
-GDisc ==
-    /\ gp = "exec" /\ gin = "none"
-    /\ (~Reads \/ (holder = "g" /\ exp > now + Pause))
-    /\ gin' = "disc"
-    /\ gby' = (now + Pause)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-GSeal ==
-    /\ gp = "discd" /\ gin = "none"
-    /\ (~Reads \/ (holder = "g" /\ exp > now + Lat))
-    /\ gin' = "seal"
-    /\ gby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Action wiring 19 and 39: an abandonment over a refused disclosure write with nothing possibly destroyed, never over one that did not answer.
-GAband ==
-    /\ gp = "discr" /\ gin = "none"
-    /\ ((gd = "ref" \/ (AbandonUnanswered /\ gd = "una")) /\ gr \notin {"erased", "unsettled"})
-    /\ (~Reads \/ (holder = "g" /\ exp > now + Lat))
-    /\ gin' = "aband"
-    /\ gby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Action wiring 29: the fulfillment answers outcome and leaves the intent open.
-GGiveUp ==
-    /\ gp = "discr" /\ gin = "none"
-    /\ ~((gd = "ref" \/ (AbandonUnanswered /\ gd = "una")) /\ gr \notin {"erased", "unsettled"})
-    /\ gp' = (IF gd = "una" THEN "hold" ELSE "rel")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gin, gby, gl,
-                   glby, gr, gd, wp, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
-
-GLandIntent ==
-    /\ gin = "intent" /\ now <= gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ intG' = "open"
-    /\ gp' = "intd"
-    /\ UNCHANGED <<now, holder, exp, intF, clF, clG, disc, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-GLandPurge ==
-    /\ gin = "purge" /\ now <= gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ dest' = TRUE
-    /\ gr' = "erased"
-    /\ gp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gl, glby, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GLandDisc ==
-    /\ gin = "disc" /\ now <= gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ disc' = Inc(disc)
-    /\ gd' = "ok"
-    /\ gp' = "discd"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gl, glby, gr, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GLandSeal ==
-    /\ gin = "seal" /\ now <= gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ seals' = Inc(seals)
-    /\ clG' = Inc(clG)
-    /\ intG' = (IF intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN gr ELSE sealedR)
-    /\ gp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, clF, disc, dest, badCover, rec,
-                   legdisc, late, gone, legab, fp, fin, fby, fl, flby,
-                   fr, fd, gl, glby, gr, gd, wp, wo, wc,
-                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
-                   vby, vl, vlby, vdest>>
-
-GLandAband ==
-    /\ gin = "aband" /\ now <= gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ clG' = Inc(clG)
-    /\ intG' = (IF intG = "open" THEN "aband" ELSE intG)
-    /\ gp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, clF, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-\* A refusal that applied nothing: the record is owed, or the gate refused, or the store refused.
-GFailIntent ==
-    /\ gin = "intent"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Term purge reading: a pair that answered storage-failure is unsettled whatever the gate then refuses.
-GFailPurge ==
-    /\ gin = "purge"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gr' = (IF gr = "tainted" /\ Taint THEN "unsettled" ELSE "retained")
-    /\ gp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Defensible Retention Atomic writes 8 and 9: a purge that answers storage-failure leaves the retention retained, and the record may be gone all the same.
-GStorPurge ==
-    /\ gin = "purge"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gr' = (IF ~Unsettled THEN "retained" ELSE IF gr = "tainted" THEN "unsettled" ELSE "tainted")
-    /\ gp' = (IF Unsettled /\ gr # "tainted" THEN "retry" ELSE "exec")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-GStorPurgeGone ==
-    /\ gin = "purge"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gr' = (IF ~Unsettled THEN "retained" ELSE IF gr = "tainted" THEN "unsettled" ELSE "tainted")
-    /\ gp' = (IF Unsettled /\ gr # "tainted" THEN "retry" ELSE "exec")
-    /\ gone' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gl, glby, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GFailDisc ==
-    /\ gin = "disc"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gd' = "ref"
-    /\ gp' = "discr"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gr,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-GFailSeal ==
-    /\ gin = "seal"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-GFailAband ==
-    /\ gin = "aband"
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = "rel"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* The call answered a step-3 refusal, or never answered, and the write behind it stays in flight: it may still land, or not (Audit Trail record action step 3.7).
-GRefuseIntent ==
-    /\ gin = "intent" /\ gl = "none"
-    /\ gl' = gin
-    /\ glby' = gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GRefusePurge ==
-    /\ gin = "purge" /\ gl = "none"
-    /\ gl' = gin
-    /\ glby' = gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gr' = (IF Unsettled THEN "unsettled" ELSE "retained")
-    /\ gp' = "exec"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gd, wp, wo,
-                   wc, win, wby, wl, wlby, wdest, vp, vo, vc,
-                   vin, vby, vl, vlby, vdest>>
-
-GRefuseDisc ==
-    /\ gin = "disc" /\ gl = "none"
-    /\ gl' = gin
-    /\ glby' = gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gd' = "una"
-    /\ gp' = "discr"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gr, wp, wo,
-                   wc, win, wby, wl, wlby, wdest, vp, vo, vc,
-                   vin, vby, vl, vlby, vdest>>
-
-GRefuseSeal ==
-    /\ gin = "seal" /\ gl = "none"
-    /\ gl' = gin
-    /\ glby' = gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = (IF Retry THEN "discd" ELSE "hold")
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GRefuseAband ==
-    /\ gin = "aband" /\ gl = "none"
-    /\ gl' = gin
-    /\ glby' = gby
-    /\ gin' = "none"
-    /\ gby' = 0
-    /\ gp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-GLateIntent ==
-    /\ gl = "intent" /\ now <= glby
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ intG' = "open"
-    /\ UNCHANGED <<now, holder, exp, intF, clF, clG, disc, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-GLatePurge ==
-    /\ gl = "purge" /\ now <= glby
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ dest' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-GLateDisc ==
-    /\ gl = "disc" /\ now <= glby
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ disc' = Inc(disc)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin,
-                   fby, fl, flby, fr, fd, gp, gin, gby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-GLateSeal ==
-    /\ gl = "seal" /\ now <= glby
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ seals' = Inc(seals)
-    /\ clG' = Inc(clG)
-    /\ intG' = (IF intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN gr ELSE sealedR)
-    /\ late' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, clF, disc, dest, badCover, rec,
-                   legdisc, gone, legab, fp, fin, fby, fl, flby, fr,
-                   fd, gp, gin, gby, gr, gd, wp, wo, wc,
-                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
-                   vby, vl, vlby, vdest>>
-
-GLateAband ==
-    /\ gl = "aband" /\ now <= glby
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ clG' = Inc(clG)
-    /\ intG' = (IF intG = "open" THEN "aband" ELSE intG)
-    /\ UNCHANGED <<now, holder, exp, intF, clF, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-GLateDie ==
-    /\ gl # "none"
-    /\ gl' = "none"
-    /\ glby' = 0
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Concurrency 19, 21 and 22: no release with a call in flight, and none over a planned call that answered and may
-\* still land; a store write that may still land is the store's to refuse once another party takes the section.
-GRelease ==
-    /\ gp \in {"rel", "adm", "hold"}
-    /\ gin = "none"
-    /\ (HoldRefused => gl # "purge")
-    /\ holder' = (IF holder = "g" THEN "none" ELSE holder)
-    /\ exp' = (IF holder = "g" THEN 0 ELSE exp)
-    /\ gp' = "done"
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
-\* store write still in flight (Execution Contract Database 2).
-WTake ==
-    /\ WOn /\ LegTakes /\ wp = "idle" /\ AnyOpen
-    /\ Free
-    /\ holder' = "w"
-    /\ exp' = (now + Dur)
-    /\ wp' = "held"
-    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
-    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
-    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fr, fd, gp, gin, gby, gr, gd, wo, wc,
-                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
-                   vby, vdest>>
-
-\* Reconciliation 9, 23 and 30: the request's events, the disclosure store and the plan's store, read under the section.
-WReadF ==
-    /\ (wp = "held" \/ (WOn /\ ~LegTakes /\ wp = "idle" /\ AnyOpen))
-    /\ intF = "open"
-    /\ wo' = "f"
-    /\ wc' = (IF disc > 0 THEN "comp" ELSE IF (HasPlan /\ ~AbandonPlanned) \/ dest THEN "complete" ELSE "aband")
-    /\ wdest' = dest
-    /\ wp' = "read"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, win, wby, wl, wlby, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-WReadG ==
-    /\ (wp = "held" \/ (WOn /\ ~LegTakes /\ wp = "idle" /\ AnyOpen))
-    /\ intG = "open"
-    /\ wo' = "g"
-    /\ wc' = (IF disc > 0 THEN "comp" ELSE IF (HasPlan /\ ~AbandonPlanned) \/ dest THEN "complete" ELSE "aband")
-    /\ wdest' = dest
-    /\ wp' = "read"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, win, wby, wl, wlby, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
-
-WReadNone ==
-    /\ wp = "held"
-    /\ ~AnyOpen
-    /\ wp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wo, wc, win, wby, wl,
-                   wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
-
-\* Reconciliation 12: a disclosure exists, so the leg seals.
-WCompensate ==
-    /\ wp = "read" /\ win = "none" /\ wl = "none"
-    /\ wc = "comp"
-    /\ (~LegTakes \/ (holder = "w" /\ exp > now + Lat))
-    /\ win' = "seal"
-    /\ wby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Reconciliation 13: no disclosure and a destruction planned, so the leg discloses and then seals.
-WComplete ==
-    /\ wp = "read" /\ win = "none" /\ wl = "none"
-    /\ wc = "complete"
-    /\ (~LegTakes \/ (holder = "w" /\ exp > now + Pause))
-    /\ win' = "disc"
-    /\ wby' = (now + Pause)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Reconciliation 15: no disclosure and nothing planned, so the leg abandons.
-WAbandon ==
-    /\ wp = "read" /\ win = "none" /\ wl = "none"
-    /\ wc = "aband"
-    /\ (~LegTakes \/ (holder = "w" /\ exp > now + Lat))
-    /\ win' = "aband"
-    /\ wby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Reconciliation 14, 16 and 24: the planned record sealed from the store's word, the settled one from the intent.
-WLandSeal ==
-    /\ win = "seal" /\ now <= wby
-    /\ win' = "none"
-    /\ wby' = 0
-    /\ seals' = Inc(seals)
-    /\ clF' = (IF wo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF wo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF wo = "f" /\ intF = "open" THEN "sealed" ELSE intF)
-    /\ intG' = (IF wo = "g" /\ intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN (IF wdest THEN "erased" ELSE IF HasPlan THEN "unsettled" ELSE "none") ELSE sealedR)
-    /\ badCover' = (badCover \/ ~FromIntent)
+    /\ badCover' = IF FromIntent THEN badCover ELSE TRUE
     /\ rec' = TRUE
-    /\ wp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, disc, dest, legdisc, late, gone, legab,
-                   fp, fin, fby, fl, flby, fr, fd, gp, gin,
-                   gby, gl, glby, gr, gd, wo, wc, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
+    /\ sealBy' = c
+    /\ ph' = [ph EXCEPT ![c] = "bound"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy, late, gap>>
 
-WLandDisc ==
-    /\ win = "disc" /\ now <= wby
-    /\ win' = "none"
-    /\ wby' = 0
-    /\ disc' = Inc(disc)
-    /\ wc' = "comp"
-    /\ legdisc' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wl, wlby, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
+BindAnswer(c) ==
+    /\ ph[c] = "bound"
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-WLandAband ==
-    /\ win = "aband" /\ now <= wby
-    /\ win' = "none"
-    /\ wby' = 0
-    /\ clF' = (IF wo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF wo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF wo = "f" /\ intF = "open" THEN "aband" ELSE intF)
-    /\ intG' = (IF wo = "g" /\ intG = "open" THEN "aband" ELSE intG)
-    /\ wp' = "fin"
-    /\ legab' = TRUE
-    /\ UNCHANGED <<now, holder, exp, disc, seals, dest, sealedR, badCover, rec,
-                   legdisc, late, gone, fp, fin, fby, fl, flby, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wo,
-                   wc, wl, wlby, wdest, vp, vo, vc, vin, vby,
-                   vl, vlby, vdest>>
-
-\* Reconciliation 28: a call that refuses leaves the leg's remaining work to the next run.
-WFail ==
-    /\ win # "none"
-    /\ win' = "none"
-    /\ wby' = 0
-    /\ wp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wo, wc, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-WRefuse ==
-    /\ win # "none" /\ wl = "none"
-    /\ wl' = win
-    /\ wlby' = wby
-    /\ win' = "none"
-    /\ wby' = 0
-    /\ wp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wo, wc, wdest, vp, vo,
-                   vc, vin, vby, vl, vlby, vdest>>
-
-WLateSeal ==
-    /\ wl = "seal" /\ now <= wlby
-    /\ wl' = "none"
-    /\ wlby' = 0
+\* The twin's defect: the bind's fulfilled event issued a second time (Audit arm 21).
+Reissue(c) ==
+    /\ Retry /\ ph[c] = "bound"
     /\ seals' = Inc(seals)
-    /\ clF' = (IF wo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF wo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF wo = "f" /\ intF = "open" THEN "sealed" ELSE intF)
-    /\ intG' = (IF wo = "g" /\ intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN (IF wdest THEN "erased" ELSE IF HasPlan THEN "unsettled" ELSE "none") ELSE sealedR)
-    /\ badCover' = (badCover \/ ~FromIntent)
-    /\ rec' = TRUE
-    /\ UNCHANGED <<now, holder, exp, disc, dest, legdisc, late, gone, legab,
-                   fp, fin, fby, fl, flby, fr, fd, gp, gin,
-                   gby, gl, glby, gr, gd, wp, wo, wc, win,
-                   wby, wdest, vp, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-WLateDisc ==
-    /\ wl = "disc" /\ now <= wlby
-    /\ wl' = "none"
-    /\ wlby' = 0
+\* The bind's transaction refuses or fails: nothing commits, and the caller calls again — here, after a split
+\* bind's second write failed, the same call binds once more.
+BindFail(c) ==
+    /\ ph[c] \in {"bind", "bind2"}
+    /\ ph' = [ph EXCEPT ![c] = IF ph[c] = "bind2" THEN "bind" ELSE "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
+
+\* The twins' defects: the bind split into two transactions — the disclosure first (BindSplit), or the
+\* fulfilled event first (SealFirst).
+SplitDisc(c) ==
+    /\ BindSplit /\ ph[c] = "bind" /\ BindRoute
     /\ disc' = Inc(disc)
-    /\ legdisc' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wdest, vp,
-                   vo, vc, vin, vby, vl, vlby, vdest>>
+    /\ ph' = [ph EXCEPT ![c] = "bind2"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-WLateAband ==
-    /\ wl = "aband" /\ now <= wlby
-    /\ wl' = "none"
-    /\ wlby' = 0
-    /\ clF' = (IF wo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF wo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF wo = "f" /\ intF = "open" THEN "aband" ELSE intF)
-    /\ intG' = (IF wo = "g" /\ intG = "open" THEN "aband" ELSE intG)
-    /\ UNCHANGED <<now, holder, exp, disc, seals, dest, sealedR, badCover, rec,
-                   legdisc, late, gone, legab, fp, fin, fby, fl, flby,
-                   fr, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wdest, vp, vo, vc,
-                   vin, vby, vl, vlby, vdest>>
-
-WLateDie ==
-    /\ wl # "none"
-    /\ wl' = "none"
-    /\ wlby' = 0
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Concurrency 24: a leg makes no planned call, so once its calls have answered it holds the section over nothing.
-WRelease ==
-    /\ wp \in {"fin", "read", "hold"}
-    /\ win = "none"
-    /\ holder' = (IF holder = "w" THEN "none" ELSE holder)
-    /\ exp' = (IF holder = "w" THEN 0 ELSE exp)
-    /\ wp' = "done"
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
-
-\* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
-\* store write still in flight (Execution Contract Database 2).
-VTake ==
-    /\ VOn /\ LegTakes /\ vp = "idle" /\ AnyOpen
-    /\ Free
-    /\ holder' = "v"
-    /\ exp' = (now + Dur)
-    /\ vp' = "held"
-    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
-    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
-    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fr, fd, gp, gin, gby, gr, gd, wp, wo,
-                   wc, win, wby, wdest, vo, vc, vin, vby, vl,
-                   vlby, vdest>>
-
-\* Reconciliation 9, 23 and 30: the request's events, the disclosure store and the plan's store, read under the section.
-VReadF ==
-    /\ (vp = "held" \/ (VOn /\ ~LegTakes /\ vp = "idle" /\ AnyOpen))
-    /\ intF = "open"
-    /\ vo' = "f"
-    /\ vc' = (IF disc > 0 THEN "comp" ELSE IF (HasPlan /\ ~AbandonPlanned) \/ dest THEN "complete" ELSE "aband")
-    /\ vdest' = dest
-    /\ vp' = "read"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vin, vby, vl, vlby>>
-
-VReadG ==
-    /\ (vp = "held" \/ (VOn /\ ~LegTakes /\ vp = "idle" /\ AnyOpen))
-    /\ intG = "open"
-    /\ vo' = "g"
-    /\ vc' = (IF disc > 0 THEN "comp" ELSE IF (HasPlan /\ ~AbandonPlanned) \/ dest THEN "complete" ELSE "aband")
-    /\ vdest' = dest
-    /\ vp' = "read"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vin, vby, vl, vlby>>
-
-VReadNone ==
-    /\ vp = "held"
-    /\ ~AnyOpen
-    /\ vp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vo, vc, vin, vby, vl, vlby,
-                   vdest>>
-
-\* Reconciliation 12: a disclosure exists, so the leg seals.
-VCompensate ==
-    /\ vp = "read" /\ vin = "none" /\ vl = "none"
-    /\ vc = "comp"
-    /\ (~LegTakes \/ (holder = "v" /\ exp > now + Lat))
-    /\ vin' = "seal"
-    /\ vby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vp, vo, vc, vl, vlby, vdest>>
-
-\* Reconciliation 13: no disclosure and a destruction planned, so the leg discloses and then seals.
-VComplete ==
-    /\ vp = "read" /\ vin = "none" /\ vl = "none"
-    /\ vc = "complete"
-    /\ (~LegTakes \/ (holder = "v" /\ exp > now + Pause))
-    /\ vin' = "disc"
-    /\ vby' = (now + Pause)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vp, vo, vc, vl, vlby, vdest>>
-
-\* Reconciliation 15: no disclosure and nothing planned, so the leg abandons.
-VAbandon ==
-    /\ vp = "read" /\ vin = "none" /\ vl = "none"
-    /\ vc = "aband"
-    /\ (~LegTakes \/ (holder = "v" /\ exp > now + Lat))
-    /\ vin' = "aband"
-    /\ vby' = (now + Lat)
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vp, vo, vc, vl, vlby, vdest>>
-
-\* Reconciliation 14, 16 and 24: the planned record sealed from the store's word, the settled one from the intent.
-VLandSeal ==
-    /\ vin = "seal" /\ now <= vby
-    /\ vin' = "none"
-    /\ vby' = 0
+SplitSeal(c) ==
+    /\ BindSplit /\ ph[c] = "bind2"
+    /\ \E x \in Calls :
+        /\ int[x] = "executed"
+        /\ sealedR' = IF seals = 0 THEN BindR(x) ELSE sealedR
+        /\ sealAct' = IF seals = 0 THEN x ELSE sealAct
     /\ seals' = Inc(seals)
-    /\ clF' = (IF vo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF vo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF vo = "f" /\ intF = "open" THEN "sealed" ELSE intF)
-    /\ intG' = (IF vo = "g" /\ intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN (IF vdest THEN "erased" ELSE IF HasPlan THEN "unsettled" ELSE "none") ELSE sealedR)
-    /\ badCover' = (badCover \/ ~FromIntent)
     /\ rec' = TRUE
-    /\ vp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, disc, dest, legdisc, late, gone, legab,
-                   fp, fin, fby, fl, flby, fr, fd, gp, gin,
-                   gby, gl, glby, gr, gd, wp, wo, wc, win,
-                   wby, wl, wlby, wdest, vo, vc, vl, vlby, vdest>>
+    /\ sealBy' = IF seals = 0 THEN c ELSE sealBy
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, badCover, late, gap>>
 
-VLandDisc ==
-    /\ vin = "disc" /\ now <= vby
-    /\ vin' = "none"
-    /\ vby' = 0
-    /\ disc' = Inc(disc)
-    /\ vc' = "comp"
-    /\ legdisc' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vl, vlby, vdest>>
-
-VLandAband ==
-    /\ vin = "aband" /\ now <= vby
-    /\ vin' = "none"
-    /\ vby' = 0
-    /\ clF' = (IF vo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF vo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF vo = "f" /\ intF = "open" THEN "aband" ELSE intF)
-    /\ intG' = (IF vo = "g" /\ intG = "open" THEN "aband" ELSE intG)
-    /\ vp' = "fin"
-    /\ legab' = TRUE
-    /\ UNCHANGED <<now, holder, exp, disc, seals, dest, sealedR, badCover, rec,
-                   legdisc, late, gone, fp, fin, fby, fl, flby, fr,
-                   fd, gp, gin, gby, gl, glby, gr, gd, wp,
-                   wo, wc, win, wby, wl, wlby, wdest, vo, vc,
-                   vl, vlby, vdest>>
-
-\* Reconciliation 28: a call that refuses leaves the leg's remaining work to the next run.
-VFail ==
-    /\ vin # "none"
-    /\ vin' = "none"
-    /\ vby' = 0
-    /\ vp' = "fin"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vo, vc, vl, vlby, vdest>>
-
-VRefuse ==
-    /\ vin # "none" /\ vl = "none"
-    /\ vl' = vin
-    /\ vlby' = vby
-    /\ vin' = "none"
-    /\ vby' = 0
-    /\ vp' = "hold"
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vo, vc, vdest>>
-
-VLateSeal ==
-    /\ vl = "seal" /\ now <= vlby
-    /\ vl' = "none"
-    /\ vlby' = 0
+FirstSeal(c) ==
+    /\ SealFirst /\ ph[c] = "bind" /\ BindRoute
+    /\ \E x \in Calls :
+        /\ int[x] = "executed"
+        /\ sealedR' = BindR(x)
+        /\ sealAct' = x
     /\ seals' = Inc(seals)
-    /\ clF' = (IF vo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF vo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF vo = "f" /\ intF = "open" THEN "sealed" ELSE intF)
-    /\ intG' = (IF vo = "g" /\ intG = "open" THEN "sealed" ELSE intG)
-    /\ sealedR' = (IF seals = 0 THEN (IF vdest THEN "erased" ELSE IF HasPlan THEN "unsettled" ELSE "none") ELSE sealedR)
-    /\ badCover' = (badCover \/ ~FromIntent)
     /\ rec' = TRUE
-    /\ UNCHANGED <<now, holder, exp, disc, dest, legdisc, late, gone, legab,
-                   fp, fin, fby, fl, flby, fr, fd, gp, gin,
-                   gby, gl, glby, gr, gd, wp, wo, wc, win,
-                   wby, wl, wlby, wdest, vp, vo, vc, vin, vby,
-                   vdest>>
+    /\ sealBy' = c
+    /\ ph' = [ph EXCEPT ![c] = "bind2"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, badCover, late, gap>>
 
-VLateDisc ==
-    /\ vl = "disc" /\ now <= vlby
-    /\ vl' = "none"
-    /\ vlby' = 0
+FirstDisc(c) ==
+    /\ SealFirst /\ ph[c] = "bind2"
     /\ disc' = Inc(disc)
-    /\ legdisc' = TRUE
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, seals, dest,
-                   sealedR, badCover, rec, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vp, vo, vc, vin, vby, vdest>>
+    /\ ph' = [ph EXCEPT ![c] = "done"]
+    /\ UNCHANGED <<int, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-VLateAband ==
-    /\ vl = "aband" /\ now <= vlby
-    /\ vl' = "none"
-    /\ vlby' = 0
-    /\ clF' = (IF vo = "f" THEN Inc(clF) ELSE clF)
-    /\ clG' = (IF vo = "g" THEN Inc(clG) ELSE clG)
-    /\ intF' = (IF vo = "f" /\ intF = "open" THEN "aband" ELSE intF)
-    /\ intG' = (IF vo = "g" /\ intG = "open" THEN "aband" ELSE intG)
-    /\ UNCHANGED <<now, holder, exp, disc, seals, dest, sealedR, badCover, rec,
-                   legdisc, late, gone, legab, fp, fin, fby, fl, flby,
-                   fr, fd, gp, gin, gby, gl, glby, gr, gd,
-                   wp, wo, wc, win, wby, wl, wlby, wdest, vp,
-                   vo, vc, vin, vby, vdest>>
+\* Recoverable Invocation's sweep, under the act section, over an open intent whose call has stopped: the
+\* erasure probe (Term erasure probe) — committed where R reads purged under the intent's now, the outcome
+\* carrying R erased; not-committed where R does not and no gate record names it; otherwise escalated.
+Probe(c) == WOn /\ int[c] = "open" /\ ph[c] \in {"dead", "done"} /\ holder = "none"
 
-VLateDie ==
-    /\ vl # "none"
-    /\ vl' = "none"
-    /\ vlby' = 0
-    /\ UNCHANGED <<now, holder, exp, intF, intG, clF, clG, disc, seals,
-                   dest, sealedR, badCover, rec, legdisc, late, gone, legab, fp,
-                   fin, fby, fl, flby, fr, fd, gp, gin, gby,
-                   gl, glby, gr, gd, wp, wo, wc, win, wby,
-                   wl, wlby, wdest, vp, vo, vc, vin, vby, vdest>>
+SweepCommitted(c) ==
+    /\ Probe(c) /\ (retR = c \/ (ProbeErased /\ gateR))
+    /\ int' = [int EXCEPT ![c] = "executed"]
+    /\ exR' = [exR EXCEPT ![c] = "erased"]
+    /\ probed' = [probed EXCEPT ![c] = TRUE]
+    /\ UNCHANGED <<ph, plan, rset, r, cs, issued, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
-\* Concurrency 24: a leg makes no planned call, so once its calls have answered it holds the section over nothing.
-VRelease ==
-    /\ vp \in {"fin", "read", "hold"}
-    /\ vin = "none"
-    /\ holder' = (IF holder = "v" THEN "none" ELSE holder)
-    /\ exp' = (IF holder = "v" THEN 0 ELSE exp)
-    /\ vp' = "done"
-    /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
-                   badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vo, vc, vin, vby, vl, vlby, vdest>>
+SweepNotCommitted(c) ==
+    /\ Probe(c) /\ retR # c /\ ~gateR
+    /\ int' = [int EXCEPT ![c] = "escalated"]
+    /\ probed' = [probed EXCEPT ![c] = TRUE]
+    /\ UNCHANGED <<ph, plan, rset, r, cs, issued, exR, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
+
+\* R does not read purged under the intent's now and a gate record names it: none of the page's four answers
+\* names this state (gap); the sweep escalates it, as it escalates an undecidable act.
+SweepUndecidable(c) ==
+    /\ Probe(c) /\ retR # c /\ gateR
+    /\ int' = [int EXCEPT ![c] = "escalated"]
+    /\ probed' = [probed EXCEPT ![c] = TRUE]
+    /\ gap' = TRUE
+    /\ UNCHANGED <<ph, plan, rset, r, cs, issued, exR, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late>>
+
+\* The operator's resolve of an escalated act, once no purge of it is in flight.
+OpReady(c) == OpOn /\ int[c] = "escalated" /\ cs[c] = "none" /\ holder = "none"
+
+OpExecuted(c) ==
+    /\ OpReady(c) /\ (retR = c \/ issued[c])
+    /\ int' = [int EXCEPT ![c] = "executed"]
+    /\ exR' = [exR EXCEPT ![c] = IF retR = c THEN "erased" ELSE "none"]
+    /\ UNCHANGED <<ph, plan, rset, r, cs, issued, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
+
+OpAbandoned(c) ==
+    /\ OpReady(c) /\ retR # c /\ ~issued[c]
+    /\ int' = [int EXCEPT ![c] = "abandoned"]
+    /\ UNCHANGED <<ph, plan, rset, r, cs, issued, exR, probed, holder, retR, goneR, gateR, destBy,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
 Next ==
-    \/ Tick \/ FPre \/ FTake \/ FRead \/ FIntent \/ FPurge
-    \/ FNoPlan \/ FSkip \/ FDisc \/ FSeal \/ FAband \/ FGiveUp
-    \/ FLandIntent \/ FLandPurge \/ FLandDisc \/ FLandSeal \/ FLandAband \/ FFailIntent
-    \/ FFailPurge \/ FStorPurge \/ FStorPurgeGone \/ FFailDisc \/ FFailSeal \/ FFailAband
-    \/ FRefuseIntent \/ FRefusePurge \/ FRefuseDisc \/ FRefuseSeal \/ FRefuseAband \/ FLateIntent
-    \/ FLatePurge \/ FLateDisc \/ FLateSeal \/ FLateAband \/ FLateDie \/ FRelease
-    \/ GPre \/ GTake \/ GRead \/ GIntent \/ GPurge \/ GNoPlan
-    \/ GSkip \/ GDisc \/ GSeal \/ GAband \/ GGiveUp \/ GLandIntent
-    \/ GLandPurge \/ GLandDisc \/ GLandSeal \/ GLandAband \/ GFailIntent \/ GFailPurge
-    \/ GStorPurge \/ GStorPurgeGone \/ GFailDisc \/ GFailSeal \/ GFailAband \/ GRefuseIntent
-    \/ GRefusePurge \/ GRefuseDisc \/ GRefuseSeal \/ GRefuseAband \/ GLateIntent \/ GLatePurge
-    \/ GLateDisc \/ GLateSeal \/ GLateAband \/ GLateDie \/ GRelease \/ WTake
-    \/ WReadF \/ WReadG \/ WReadNone \/ WCompensate \/ WComplete \/ WAbandon
-    \/ WLandSeal \/ WLandDisc \/ WLandAband \/ WFail \/ WRefuse \/ WLateSeal
-    \/ WLateDisc \/ WLateAband \/ WLateDie \/ WRelease \/ VTake \/ VReadF
-    \/ VReadG \/ VReadNone \/ VCompensate \/ VComplete \/ VAbandon \/ VLandSeal
-    \/ VLandDisc \/ VLandAband \/ VFail \/ VRefuse \/ VLateSeal \/ VLateDisc
-    \/ VLateAband \/ VLateDie \/ VRelease
+    \/ \E c \in Calls : Read(c)
+    \/ \E c \in Calls : OpenInFlight(c)
+    \/ \E c \in Calls : OpenLanded(c)
+    \/ \E c \in Calls : Open(c)
+    \/ \E c \in Calls : GuardRefuse(c)
+    \/ \E c \in Calls : GuardPass(c)
+    \/ \E c \in Calls : AnsOk(c)
+    \/ \E c \in Calls : AnsHeld(c)
+    \/ \E c \in Calls, g \in BOOLEAN : AnsStor(c, g)
+    \/ \E c \in Calls : AnsNone(c)
+    \/ \E c \in Calls : LateLand(c)
+    \/ \E c \in Calls : NeverLand(c)
+    \/ \E c \in Calls : RefuseAfter(c)
+    \/ \E c \in Calls : Close(c)
+    \/ \E c \in Calls : CloseFail(c)
+    \/ \E c \in Calls : Stop(c)
+    \/ \E c \in Calls : BindTx(c)
+    \/ \E c \in Calls : BindAnswer(c)
+    \/ \E c \in Calls : Reissue(c)
+    \/ \E c \in Calls : BindFail(c)
+    \/ \E c \in Calls : SplitDisc(c)
+    \/ \E c \in Calls : SplitSeal(c)
+    \/ \E c \in Calls : FirstSeal(c)
+    \/ \E c \in Calls : FirstDisc(c)
+    \/ \E c \in Calls : SweepCommitted(c)
+    \/ \E c \in Calls : SweepNotCommitted(c)
+    \/ \E c \in Calls : SweepUndecidable(c)
+    \/ \E c \in Calls : OpExecuted(c)
+    \/ \E c \in Calls : OpAbandoned(c)
 
 Spec == Init /\ [][Next]_vars
 
-\* Invariant 1.2: a request is sealed once.
 Inv_OneSeal == seals <= 1
-\* Invariant 1.1: no fulfilled event without its response disclosure.
+
 Inv_NoOrphanEvent == (seals > 0) => (disc > 0)
-\* Invariant 5.1: one response disclosure for a request.
+
 Inv_OneDisclosure == disc <= 1
-\* Invariant 1.5, the safety half: an intent is closed at most once.
-Inv_OneClose == clF <= 1 /\ clG <= 1
-\* Reconciliation 8: a request carries at most one open intent.
-Inv_OneOpen == ~(intF = "open" /\ intG = "open")
-\* Invariant 1.4: a disclosure with no fulfilled event has an open intent behind it.
-Inv_OrphanOpen == (disc > 0 /\ seals = 0) => AnyOpen
-\* A destruction a fulfillment made, seen by the store or not, is under an open intent or a sealed set, never under an abandoned one (Action wiring 19, Reconciliation 13 and 15).
-Inv_Accounted == (dest \/ gone) => (AnyOpen \/ seals > 0)
-\* Invariant 3.1: erased is sealed only on destruction evidence.
-Inv_Evidence == (sealedR = "erased") => dest
-\* Disposition 42: a planned record whose call did not settle it is never sealed retained.
-Inv_Truth == ~(sealedR = "retained" /\ (dest \/ gone))
-\* Invariant 2.1 and Reconciliation 16: a sealed set carries the settled record.
+
+Inv_NoOrphanDisclosure == (disc > 0) => (seals > 0)
+
+Inv_Accounted == (destBy # "none") => (int[destBy] \notin {"refused", "abandoned"})
+
+Inv_Evidence ==
+    /\ (sealedR = "erased") => (retR # "retained")
+    /\ \A c \in Calls : (exR[c] = "erased") => (retR = c)
+
+Inv_Truth == ~(sealedR = "retained" /\ destBy # "none" /\ destBy = sealAct)
+
 Inv_Cover == ~badCover
 
-Probe_NeverRecover == ~(seals = 1 /\ rec)
-Probe_NeverComplete == ~(seals = 1 /\ legdisc)
-Probe_NeverAgain == ~(intF = "aband" /\ intG = "sealed")
-Probe_NeverLate == ~(seals = 1 /\ late)
-Probe_NeverLegAbandon == ~legab
-Probe_NeverClean == ~(seals = 1 /\ ~rec /\ ~late /\ sealedR = "erased")
+Probe_NeverRecover == ~(seals = 1 /\ rec /\ \E c \in Calls : probed[c] /\ int[c] = "executed" /\ sealAct = c)
+Probe_NeverLate == ~(seals = 1 /\ late /\ sealedR = "erased")
+Probe_NeverGap == ~gap
+Probe_NeverAgain == ~(\E c \in Calls : int[c] = "refused" /\ sealAct # "none" /\ sealAct # c)
 ====

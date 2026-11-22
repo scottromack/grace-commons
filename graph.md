@@ -80,7 +80,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | Substrate | Named by | Composers |
 |---|---|---|
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, immutable-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 8 | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 9 | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
 
@@ -105,7 +105,7 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 8"]
+  recoverable_invocation["Recoverable Invocation · 9"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
@@ -130,6 +130,7 @@ flowchart LR
   propagate_consent_revocation_downstream -.-> recoverable_invocation
   recoverable_invocation -.-> audit_trail
   resolve_a_persons_data_rights -.-> defensible_retention
+  resolve_a_persons_data_rights -.-> recoverable_invocation
   verified_repair -.-> audit_trail
   verified_repair -.-> recoverable_invocation
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
@@ -310,6 +311,7 @@ flowchart LR
   c_propagate_consent_revocation_downstream -.-> c_recoverable_invocation
   c_recoverable_invocation -.-> c_audit_trail
   c_resolve_a_persons_data_rights -.-> c_defensible_retention
+  c_resolve_a_persons_data_rights -.-> c_recoverable_invocation
   c_verified_repair -.-> c_audit_trail
   c_verified_repair -.-> c_recoverable_invocation
   classDef atom fill:#16394a,stroke:#85c1e9,color:#eaf6fc;

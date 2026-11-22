@@ -1539,6 +1539,7 @@
    "immutable-ledger",
    "multi-party-approval",
    "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
    "verified-repair"
   ],
   "substrates": [
@@ -1601,7 +1602,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 27
+   "twins": 22
   },
   "regulated": true,
   "standards": [
@@ -1614,7 +1615,8 @@
   ],
   "status": "doing",
   "substrates": [
-   "defensible-retention"
+   "defensible-retention",
+   "recoverable-invocation"
   ],
   "title": "Resolve a Person's Data Rights"
  },
