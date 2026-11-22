@@ -1573,7 +1573,7 @@
    "event-log",
    "actor-identity"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -1585,7 +1585,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "substrates": [],
   "title": "Reserve from Pool"
  },
