@@ -520,7 +520,7 @@ Term terms: reaction, reactions, triple, pair, person reference, item reference,
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`done — 2026-11-22` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -528,9 +528,9 @@ Term terms: reaction, reactions, triple, pair, person reference, item reference,
 </summary>
 
 ```
-status: done — 2026-11-20
+status: done — 2026-11-22
 formal: verified — reaction.als + 8 twins (the static data model: State 1 and 2, Identity 3, 5 and 7, Operation 4 through 7, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Invariant 1.1 check, Identity 2, 4 and 6 by the Operation 5 check); reaction.tla + 30 twins (across steps, under either holding rule and a reaction set the deployment may change between calls: State 3, Invariant 2.1 through 2.4, Operation 1 through 5 and 8 through 30, the other half of Operation 17 and 20 read from the terms Look Up and Count); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed, 2026-11-15
-last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus claude-haiku-5-5), frozen at 907afb19 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refuted (F1, the holding rule moved to one-per-item over two held reactions, which the page's Edge cases section owns, with Operation 10 and Execution Contract Database 4) and refining B (F2, the reaction name's "never a picture", which Operation 4 and Capability requirement 9 leave to the deployment) by both triages; 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-22 — Final Critique 4, a delta round, one reader (Linus minimax-m3), frozen at 417e4ebb — foundational count 0 after the blind second triage, clean, one sample (Linus reported no foundational finding and one refining item, Capability requirement 10 read as leaving "the string cap" ambiguous between the default and a deployment's override, refuted by both triages: Term string cap is the declared cap, or 1,024 code points where a deployment declares none, so the rule bars declaring a cap a reaction set member exceeds, Capability requirement 9 bars the reaction set in every state where a member exceeds the cap in force, and Execution Contract Input 2 bars a declared cap a held value exceeds; the three questions it pressed, concurrent [React] on one triple, one-per-item committing the new hold with the rival's withdrawal, and a re-React of a withdrawn reaction, held by Operation 9, Operation 10 with Execution Contract Database 1, and Operation 6 with Invariant 2.1; no cure); 2026-11-20 — Final Critique 3, a delta round, one reader (Linus claude-haiku-5-5), frozen at 907afb19 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refuted (F1, the holding rule moved to one-per-item over two held reactions, which the page's Edge cases section owns, with Operation 10 and Execution Contract Database 4) and refining B (F2, the reaction name's "never a picture", which Operation 4 and Capability requirement 9 leave to the deployment) by both triages; 2026-11-17 — Final Critique 2, a delta round, frozen at 9bb9b4a — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
