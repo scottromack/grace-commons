@@ -50,6 +50,7 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 
 ```
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Identity 4. Execution Contract Logic confinement 14 owns it.
 ```
 
 ### Structure › State
