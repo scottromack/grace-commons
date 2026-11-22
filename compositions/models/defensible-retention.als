@@ -33,10 +33,10 @@
 --                   under-active-retention.
 --   Invariant 1.3 — a refused gate read answers hold-check-unavailable, never an empty result.
 --   Invariant 3.1, 3.2 — a committed hold placement and a committed hold release within the
---                   audit horizon carry their outcome naming the hold.
+--                   payload horizon carry their outcome naming the hold.
 --   Invariant 3.3 — a hold placed outcome carries the hold id, the record reference and the
 --                   placing actor.
---   Invariant 4.1, 4.2 — a committed placement and a committed purge within the audit horizon
+--   Invariant 4.1, 4.2 — a committed placement and a committed purge within the payload horizon
 --                   carry their outcome naming the retention.
 --   Invariant 4.3 — a purge answering under-legal-hold carries a gate record.
 --   Invariant 4.4 — a record purged outcome carries the hold check result the gate read met.
@@ -234,7 +234,7 @@ sig PurgeRefused in Purge {}
 -- commits nothing (Action wiring 84, 99) — an input.
 sig OutcomeOwed in Purge {}
 
--- Within: the acts that stand within the audit horizon (Term within the audit horizon) — the
+-- Within: the acts that stand within the payload horizon (Term within the payload horizon) — the
 -- clock's, an input.
 sig Within in Inv {}
 
@@ -353,9 +353,9 @@ fact EventLog {
     all disj e1, e2 : Event | e1.pos != e2.pos
 }
 
--- The audit horizon: one audit retention policy for every event (Capability requirement 57),
+-- The payload horizon: one audit retention policy for every event (Capability requirement 57),
 -- so the substrate destroys payloads oldest first in log order, and an act within the audit
--- horizon has none of its audit records destroyed (Term within the audit horizon, Term horizon
+-- horizon has none of its audit records destroyed (Term within the payload horizon, Term horizon
 -- margin).
 fact AuditHorizon {
     all d : Destroyed, e : Event | lt[e.pos, d.pos] implies e in Destroyed
@@ -560,7 +560,7 @@ assert A_Invariant_1_6 {
 }
 check A_Invariant_1_6 for 3 but 6 Event, 4 Int
 
--- A_Invariant_3_1: every committed hold placement within the audit horizon carries a hold
+-- A_Invariant_3_1: every committed hold placement within the payload horizon carries a hold
 -- placed outcome naming its hold.
 assert A_Invariant_3_1 {
     built implies all p : HoldPlacement & Within |
@@ -568,7 +568,7 @@ assert A_Invariant_3_1 {
 }
 check A_Invariant_3_1 for 3 but 6 Event, 4 Int
 
--- A_Invariant_3_2: every committed hold release within the audit horizon carries a hold
+-- A_Invariant_3_2: every committed hold release within the payload horizon carries a hold
 -- released outcome naming its hold.
 assert A_Invariant_3_2 {
     built implies all r : Release & Within |
@@ -584,7 +584,7 @@ assert A_Invariant_3_3 {
 }
 check A_Invariant_3_3 for 3 but 6 Event, 4 Int
 
--- A_Invariant_4_1: every committed placement within the audit horizon carries a retention
+-- A_Invariant_4_1: every committed placement within the payload horizon carries a retention
 -- placed outcome naming its retention.
 assert A_Invariant_4_1 {
     built implies all p : Placement & Within |
@@ -592,7 +592,7 @@ assert A_Invariant_4_1 {
 }
 check A_Invariant_4_1 for 3 but 6 Event, 4 Int
 
--- A_Invariant_4_2: every committed purge within the audit horizon carries a record purged
+-- A_Invariant_4_2: every committed purge within the payload horizon carries a record purged
 -- outcome naming its retention, whatever the instant of the check (Execution Contract Database 1).
 assert A_Invariant_4_2 {
     built implies all p : Purge & Within |
@@ -673,7 +673,7 @@ assert A_Invariant_7_3 {
 }
 check A_Invariant_7_3 for 3 but 6 Event, 4 Int
 
--- A_Invariant_8_1: every destruction within the audit horizon carries a record purged outcome
+-- A_Invariant_8_1: every destruction within the payload horizon carries a record purged outcome
 -- naming the hold check result its gate read met.
 assert A_Invariant_8_1 {
     built implies all p : Purge & Within |
@@ -751,7 +751,7 @@ run ShowOutcomeOwed {
     built and some p : Purge | p in OutcomeOwed and p.ans = ARecFailOutcome and no intentOf[p]
 } for 3 but 6 Event, 4 Int
 
--- ShowPlacementsCommitted: a placement and a hold placement within the audit horizon, each
+-- ShowPlacementsCommitted: a placement and a hold placement within the payload horizon, each
 -- with its outcome.
 run ShowPlacementsCommitted {
     built and some p : Placement & Within | some p.placed
