@@ -35,6 +35,7 @@ pattern count hides.
 | [Capability](./atoms/capability.html) | 2 | capability-backed-sharing, privileged-access-provisioning |
 | [Consent](./atoms/consent.html) | 2 | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
 | [Duplicate Prevention](./atoms/duplicate-prevention.html) | 2 | idempotent-reservation, reserve-from-pool |
+| [Lease](./atoms/lease.html) | 2 | preference-aware-notification-fanout, recoverable-invocation |
 | [Notification](./atoms/notification.html) | 2 | notification-fanout, preference-aware-notification-fanout |
 | [Party Identity](./atoms/party-identity.html) | 2 | customer-onboarding, external-onboarding |
 | [Provisional Commitment](./atoms/provisional-commitment.html) | 2 | idempotent-reservation, reserve-from-pool |
@@ -43,7 +44,6 @@ pattern count hides.
 | [Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.html) | 1 | reserve-from-pool |
 | [Cart](./atoms/cart.html) | 1 | shared-cart |
 | [Invitation](./atoms/invitation.html) | 1 | external-onboarding |
-| [Lease](./atoms/lease.html) | 1 | recoverable-invocation |
 | [Legal Hold](./atoms/legal-hold.html) | 1 | defensible-retention |
 | [Message Preference](./atoms/message-preference.html) | 1 | preference-aware-notification-fanout |
 | [Personal Todo](./atoms/personal-todo.html) | 1 | shared-todo |
@@ -142,7 +142,7 @@ flowchart LR
 ## The full graph
 
 <details markdown="block">
-<summary>Every composition → atom edge (64 edges — expand)</summary>
+<summary>Every composition → atom edge (65 edges — expand)</summary>
 
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
@@ -167,7 +167,7 @@ flowchart LR
     a_favorite["Favorite"]
     a_gift_card["Gift Card"]
     a_invitation["Invitation · 1"]
-    a_lease["Lease · 1"]
+    a_lease["Lease · 2"]
     a_legal_hold["Legal Hold · 1"]
     a_medication_order["Medication Order"]
     a_message_preference["Message Preference · 1"]
@@ -266,6 +266,7 @@ flowchart LR
   c_preference_aware_notification_fanout --> a_notification
   c_preference_aware_notification_fanout --> a_message_preference
   c_preference_aware_notification_fanout --> a_event_log
+  c_preference_aware_notification_fanout --> a_lease
   c_privileged_access_provisioning --> a_credential
   c_privileged_access_provisioning --> a_session
   c_privileged_access_provisioning --> a_permissions

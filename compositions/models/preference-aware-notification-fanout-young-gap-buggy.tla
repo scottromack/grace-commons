@@ -16,6 +16,18 @@
 \* invocation's loop over several subscribers is the second model, beside this one:
 \* preference-aware-notification-fanout-batch.tla.
 \*
+\* Re-derived 2026-11-22 (the page composes Lease, unit `compositions/preference-aware-
+\* notification-fanout.md composes Lease`): the per-disposition exclusion is a Lease lease on the
+\* disposition pair, taken by Lease's try_take carrying the invocation duration bound as duration
+\* (Capability requirement 31, 35; Composes 14 to 17), answered held while another holder's grant
+\* stands (Action wiring 42, 60; Reconciliation 39) and read as expired once it lapses (Action
+\* wiring 13, Lease Sizing 2a, 2b). A [Fanout Shaped] take whose take age exceeds the invocation
+\* duration bound is read as expired (Capability requirement 57): the invocation takes at any
+\* instant and yields there, where the 2026-11-09 model let it take only inside the bound. The gap
+\* leg's lower edge counts the bound twice (Term young invocation, Final Critique 23). The gap run's
+\* carry and the at-risk record (Reconciliation 40 to 42, Composition state 12) are the batch
+\* model's, which follows several principals through repeated runs.
+\*
 \* WHAT THIS MODEL CHECKS
 \* One disposition pair of one fanout, whatever the invocation, the redisposer, the gap run, the
 \* transport, the clock and another fanout to the same principal do:
@@ -31,7 +43,9 @@
 \*                     initiation entry's (Action wiring 40, Reconciliation 7).
 \*   - Invariant 10.1, 10.2   one initiation entry per fanout id; no disposition before it.
 \*   - Invariant 2.1   a suppressed or failed pair gets no create in the pass.
-\*   - Action wiring 45   no disposition lands on a pair an abandonment record covers.
+\*   - Action wiring 45   no disposition lands on a pair an abandonment record covers (with
+\*                     Capability requirement 57: an invocation that resumes past the gap leg's
+\*                     lower edge and takes a pair the gap run abandoned reads its lease as expired).
 \*   - Reconciliation 3, 4   the gap run writes nothing for a young invocation.
 \*   - Reconciliation 8   the gap run repairs and abandons nothing before its intent lands.
 \*   - Reconciliation 20   the gap run abandons only a gap principal (a pair with no disposition
@@ -39,13 +53,13 @@
 \*
 \* BOUND
 \* Two subscribers, Cap = 2 (a delivery, a retry and another fanout's delivery are not all admitted),
-\* lease and invocation duration bound D = 2, create latency Cr = 1 (the gap leg's lower edge is
-\* 3). Exhaustive. The clock counts to the lower edge and holds there, and each lease counts down
-\* to expiry, so the space is finite without a clock bound. Two subscribers passed the old
-\* checker's 200,000-state cap (the writers' states multiply over each pair); on TLC they take
-\* 11,564,902 states and 64 s and hold, and the .cfg takes two. The loop over several subscribers
-\* has its own model, preference-aware-notification-fanout-batch.tla. The state counts and the
-\* bound-bump runs are in the .cfg.
+\* lease and invocation duration bound D = 2, create latency Cr = 1 (the first instant past the
+\* young edge is 2D + Cr + 1 = 6). Exhaustive. The clock counts to the lower edge and holds there,
+\* and each lease counts down to expiry, so the space is finite without a clock bound. Two
+\* subscribers passed the old checker's 200,000-state cap (the writers' states multiply over each
+\* pair); TLC takes them, and the .cfg takes two. The loop over several subscribers, and the gap
+\* run's repeated runs, have their own model, preference-aware-notification-fanout-batch.tla. The
+\* state counts and the bound-bump runs are in the .cfg.
 \*
 \* HOW AN INVARIANT IS READ
 \* The journal is the page's only truth, and a pair's reads derive from it (Composition state 13:
@@ -58,18 +72,24 @@
 \* not hold their name. A step reads the world, never the rule it is checked against, so a rule a
 \* step gets wrong is caught.
 \*
-\* THE TWO WRITERS AND THE EXCLUSION
+\* THE TWO WRITERS AND THE EXCLUSION (Lease)
 \* A writer is the invocation (`inv`) or the redisposer (`rd`: a [Redispose] caller, or the gap
-\* run calling [Redispose] as the holder). Each takes the pair's exclusion with a lease of length D
-\* (Capability requirement 31 to 35), reads the pair's latest disposition event, runs the gate and
-\* commits; those are separate steps, so the clock can run between them and a lease can lapse. A
-\* writer whose lease lapsed writes nothing; the invocation answers the pair and every subscriber
-\* it has not reached as yielded (Action wiring 13, 43, 44; Reconciliation 25). The exclusion is
-\* the lease: a pair whose holder's lease has not expired admits no other holder (Capability
-\* requirement 38), and one whose lease has expired admits any (Capability requirement 36).
-\* The invocation takes a new pair only inside its invocation duration bound (Term invocation
-\* duration bound); a stall after the take is the lease's case. A stalled writer that never wakes
-\* is the model's death, so no separate death step is kept.
+\* run calling [Redispose] as the holder). Each takes the pair's lease by Lease's try_take, keyed
+\* by the disposition pair and carrying the invocation duration bound D as duration (Capability
+\* requirement 31, 35), under a fresh holder value (Composes 17), reads the pair's latest
+\* disposition event, runs the gate and commits; those are separate steps, so the clock can run
+\* between them and a lease can lapse. `wl` is the grant's remaining term on the Lease host's one
+\* clock. try_take answers held while another holder's grant has not passed its expires_at (Lease
+\* Operation 4, 6b), and taken otherwise (Lease Invariant 2: a grant ends at its instant, so a
+\* holder that died frees the key by expiry). A writer that reads its lease expired (the remaining
+\* term at zero: Lease Sizing 2a, 2b, the write margin taken below one tick) writes nothing; the
+\* invocation answers the pair and every subscriber it has not reached as yielded (Action wiring
+\* 13, 43, 44; Reconciliation 25). A writer releases on its return (the reading this model takes
+\* of Lease Composition note 5b: the page names release among the calls it makes, Composes 15,
+\* and no longer says when; see the coverage matrix). The invocation's take whose take age
+\* exceeds D is read as expired at once (Capability requirement 57, `InvTakeLate`); a stall after
+\* a take inside the bound is the lease's case. A stalled writer that never wakes is the model's
+\* death, so no separate death step is kept.
 \*
 \* SCOPE (named)
 \* - Quiet windows, channel selection, the suspended and no-record rules, and the replay of a
@@ -86,7 +106,11 @@
 \*   (Composition state 12, Check 1.1) are arithmetic over time and a promise about repeated runs;
 \*   the model checks that every run's writes are safe and leaves the arithmetic to the page's
 \*   start refusal. A principal a run carries to the next run stays a gap principal here, so the
-\*   next run is the same step again.
+\*   next run is the same step again; the carry's at-risk record and the accounting of every
+\*   queried subscriber once the window has passed (Reconciliation 40 to 42, Composition state
+\*   12, Check 1.1) are the batch model's.
+\* - Lease's own guarantees (one holder per key, the grant ending at its instant, the host's one
+\*   clock, the fence) are Lease's and its models'; this model takes them as the host's answers.
 \* - The best-effort arm of Invariant 4 (Invariant 4.3, Check 2.4, Reconciliation 30 to 32, 35,
 \*   38) is a recount over the journal with a deadline; the model takes the serialized arm and the
 \*   twin that splits the observation from the commit.
@@ -111,9 +135,11 @@ CONSTANTS Subs,             \* the queried subscribers
 
 Writers == {"inv", "rd"}
 
-\* The gap leg's lower edge: nothing younger than the invocation duration bound and the create
-\* latency is examined (Reconciliation 3, Term young invocation).
-Lower == D + Cr
+\* The gap leg's lower edge: the first instant past the young edge. An invocation is young while
+\* `fired instant + D + D + Cr` does not precede now (Term young invocation: a take at the bound's
+\* last instant holds its lease to twice the bound), so the gap run examines it from 2D + Cr + 1
+\* on (Reconciliation 3).
+Lower == 2 * D + Cr + 1
 
 VARIABLES
     now,        \* the clock since the fanout fired, counted up to the lower edge and held there
@@ -161,18 +187,19 @@ ResOf(v) == IF v = "deliver" THEN "created"
             ELSE IF v = "fail" THEN "failed"
             ELSE "suppressed"
 
-\* A retryable disposition (Term retryable disposition; Action wiring 46, 47): a failure event, a
-\* retry-eligible suppression, a delivery event whose record is failed or expired, or a queried
-\* pair with no disposition event.
+\* A retryable disposition (Term retryable disposition; Action wiring 46, 47): a failure event
+\* where the pair's latest record is not live, a retry-eligible suppression, a delivery event whose
+\* record is failed or expired, or a queried pair with no disposition event.
 Retryable(e, s) == \/ e = "none"
-                   \/ e = "failed"
+                   \/ (e = "failed" /\ ~Live(s))
                    \/ e = "suppH"
                    \/ (e = "created" /\ s \in {"failed", "expired"})
 
-\* Writer w holds pair p: it took the pair and its lease has not expired.
+\* Writer w holds pair p: its grant on the pair's key has not passed its expires_at.
 HeldBy(P, Lv, w, p) == P[w] = p /\ Lv[w] > 0
 
-\* No writer but w holds pair p (Capability requirement 36 to 38).
+\* Lease's try_take for w on pair p answers taken: no other holder's grant on the key stands
+\* (Lease Operation 4, 6b; Invariant 2). Otherwise it answers held.
 FreeFor(P, Lv, w, p) == \A v \in Writers : (v = w) \/ ~HeldBy(P, Lv, v, p)
 
 \* The per-principal exclusion is held over a cap evaluation and the delivery commit after it
@@ -260,13 +287,13 @@ Initiate ==
     /\ UNCHANGED <<now, wp, wl, wv, wo, wk, wq, res, iw, ev, rs, old, cnt, abn,
                    intent, mode, badrec, viol>>
 
-\* The invocation takes a subscriber's per-disposition exclusion with a lease of length D
-\* (Action wiring 10; Capability requirement 31, 34, 35). It takes a new pair only inside its
-\* invocation duration bound, the longest a [Fanout Shaped] may run (Term invocation duration
-\* bound); a stall after the take is the lease's case.
+\* The invocation's try_take of a subscriber's per-disposition exclusion answers taken, carrying D
+\* as duration (Action wiring 10; Capability requirement 31, 35), and its take age does not exceed
+\* the invocation duration bound, so the lease is live (Capability requirement 57); a stall after
+\* the take is the lease's case.
 InvTake(p) ==
     /\ inv = "loop"
-    /\ now < D
+    /\ now <= D
     /\ wp["inv"] = "none"
     /\ res[p] = "none"
     /\ FreeFor(wp, wl, "inv", p)
@@ -276,8 +303,23 @@ InvTake(p) ==
     /\ UNCHANGED <<now, ninit, inv, wo, wk, wq, res, iw, ev, rs, old, cnt, abn,
                    intent, mode, badrec, viol>>
 
-\* A foreign holder holds the pair at the read: the subscriber is yielded and nothing is written
-\* (Action wiring 60, 14).
+\* The invocation's try_take answers taken but its take age exceeds the invocation duration bound:
+\* the composition reads the lease as expired (Capability requirement 57, Lease Sizing 2a), so the
+\* subscriber and every subscriber not yet answered are yielded, nothing is written, and the
+\* invocation returns (Action wiring 13, 14), releasing the grant on its return.
+InvTakeLate(p) ==
+    /\ inv = "loop"
+    /\ now > D
+    /\ wp["inv"] = "none"
+    /\ res[p] = "none"
+    /\ FreeFor(wp, wl, "inv", p)
+    /\ res' = [q \in Subs |-> IF res[q] = "none" THEN "yielded" ELSE res[q]]
+    /\ inv' = "done"
+    /\ UNCHANGED <<now, ninit, wp, wl, wv, wo, wk, wq, iw, ev, rs, old, cnt, abn,
+                   intent, mode, badrec, viol>>
+
+\* Lease's try_take answers held at the read (another holder's grant stands): the subscriber is
+\* yielded and nothing is written (Action wiring 60, 14).
 InvYield(p) ==
     /\ inv = "loop"
     /\ wp["inv"] = "none"
@@ -468,6 +510,7 @@ Next ==
     \/ \E w \in Writers : Lapse(w)
     \/ \E p \in Subs :
         \/ InvTake(p)
+        \/ InvTakeLate(p)
         \/ InvYield(p)
         \/ RdTake(p)
         \/ GapAbandon(p)

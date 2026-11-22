@@ -4,6 +4,10 @@
 -- Alloy structural model for the Preference-Aware Notification Fanout composition
 -- (Grace Commons compositions/preference-aware-notification-fanout.md)
 -- Grounded on Final Critique 18, 2026-11-06 at a342d5e — Alloy layer authored 2026-11-12.
+-- Re-derived 2026-11-22 (unit `compositions/preference-aware-notification-fanout.md composes
+-- Lease`): the at-risk record (Reconciliation 40 to 42, Check 1.1a), the start's Lease sizing
+-- (Capability requirement 60) and the liveness sum counting the invocation duration bound twice
+-- (Term liveness sum, Final Critique 23).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -45,14 +49,24 @@
 --   Action wiring 33, 34 — the retry eligibility is true only under a hold policy, and false
 --                   for an action-relented reason.
 --   Capability requirement 29 — the composition starts only where the reconciliation window
---                   exceeds the liveness sum.
+--                   exceeds the liveness sum (the invocation duration bound counted twice).
+--   Capability requirement 60 — an instance starts only where the invocation duration bound
+--                   exceeds the work's bound and the work's bound exceeds twice the call pause
+--                   bound (Lease Sizing 4, 4a).
+--   Reconciliation 40, 41 — an at-risk record carries the fanout id, the principal, exactly one
+--                   carry cause and a decided instant at which the reconciliation window has
+--                   passed from the fired instant.
+--   Reconciliation 42 — no two at-risk records under one fanout id name one principal.
+--   Check 1.1a — every open obligation (a principal an at-risk record names, carrying no
+--                   disposition event under the fanout id) is a principal of the initiation
+--                   entry's queried list, named once.
 --   The gate's walk (Shaping gate 1 through 9, 11 through 18, 20, 21) is the writer's rule
 --   these checks read; Verdict replay 1 through 4 define the replay of Invariant 7.1.
 --
 -- NOT CHECKED HERE
 --   Nothing testable in Alloy: Invariant 4.3 and Composition state 12 with Check 1.1 (each
 --   an eventuality inside the reconciliation window, counted from an instant: a property
---   across steps, the TLA+ model's to state); Verdict replay 5 (an auditor's attribution of
+--   across steps; Composition state 12 is the TLA+ batch model's since 2026-11-22); Verdict replay 5 (an auditor's attribution of
 --   a divergence, not a record); Primitive policy 1 through 13 (a refused call writes
 --   nothing, Execution Contract Read 4, so no state holds one; byte-exact comparison and
 --   the payload cap are below the model's atoms); Shaping gate 22 (a record change the read
@@ -98,8 +112,10 @@
 --     6), taken here as a relation, one answer per stored value and now.
 --   - The derived indexes' upkeep (Composition state 4 through 9): the gate's history input
 --     is the principal's delivery count entries as the gate read them.
---   - The reconciliation records (reconcile intent, abandonment, overshoot): their order and
---     their window are the TLA+ model's, and no check here reads them.
+--   - The reconciliation records other than the at-risk record (reconcile intent, abandonment,
+--     overshoot): their order and their window are the TLA+ models', and no check here reads
+--     them. Which instants stand past an initiation entry's reconciliation window is the
+--     deployment's clock arithmetic, taken here as a relation (Init.pastWindow).
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
@@ -196,13 +212,15 @@ sig NRec {
 
 -- Init: one initiation entry — the configuration version, the payload digest, the queried
 -- list and the fired instant it journals (Action wiring 5); content is the invocation's
--- payload content, which the journal does not hold (Non-goal 10).
+-- payload content, which the journal does not hold (Non-goal 10); pastWindow, the instants at
+-- which the reconciliation window has passed from its fired instant (the deployment's clock).
 sig Init {
     cfg : one Config,
     digest : one Digest,
     queried : set Principal,
     fired : one Instant,
-    content : one Content
+    content : one Content,
+    pastWindow : set Instant
 }
 
 -- Obs: the observed record status (Term observed record status).
@@ -220,6 +238,11 @@ one sig RSuspended, RNoRecord, RQuiet, RCap, ROptOut, RUnsub extends Reason {}
 -- Cause: the failure causes (Term failure cause).
 abstract sig Cause {}
 one sig CPrefUnreadable, CAcctUnreadable, CUndeclared, CCreateFailed extends Cause {}
+
+-- CarryCause: why a gap run carried a principal to the next run (Term carry cause):
+-- lease-expired (Reconciliation 25), held (Reconciliation 39), redispose-refused (Reconciliation 18).
+abstract sig CarryCause {}
+one sig CLeaseExpired, CHeld, CRedisposeRefused extends CarryCause {}
 
 -- EType: the three disposition event types (Term disposition event).
 abstract sig EType {}
@@ -270,16 +293,30 @@ sig Disp {
     echans : set Channel
 }
 
+-- AtRisk: one at-risk record, the fanout.carry-at-risk event (Term at-risk record): the
+-- fanout id (named by the initiation entry it resolves to), the principal, the carry causes it
+-- journals and the decided instant (Reconciliation 41). It discharges nothing and writes no
+-- disposition.
+sig AtRisk {
+    arFanout : one Init,
+    arWho : one Principal,
+    arCause : set CarryCause,
+    arDecided : one Instant
+}
+
 -- Deploy: the deployment's start — whether the composition started, and the durations the
 -- start compares: the reconciliation window, the invocation duration bound, the
--- notification create latency, the reconciliation cadence and the reconciliation run bound.
+-- notification create latency, the reconciliation cadence, the reconciliation run bound, the
+-- work's bound under one lease and the call pause bound (Capability requirement 59, 60).
 one sig Deploy {
     started : lone Yes,
     window : one Int,
     invBound : one Int,
     createLat : one Int,
     cadence : one Int,
-    runBound : one Int
+    runBound : one Int,
+    workBound : one Int,
+    callPause : one Int
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -308,14 +345,17 @@ fact InterpretedCaps {
     all p : Pair | p.cap >= 0
 }
 
--- The deployment's durations are not negative; the scope bounds the four addends of the
--- liveness sum to 0 or 1 so the sum stays inside 4-bit Int.
+-- The deployment's durations are not negative; the scope bounds the invocation duration bound
+-- to 2 and the other addends of the liveness sum, the work's bound and the call pause bound to
+-- 0, 1 or 2 so every sum stays inside 4-bit Int (the liveness sum at most 7).
 fact DeploymentDurations {
     Deploy.window >= 0
-    Deploy.invBound >= 0 and Deploy.invBound <= 1
+    Deploy.invBound >= 0 and Deploy.invBound <= 2
     Deploy.createLat >= 0 and Deploy.createLat <= 1
     Deploy.cadence >= 0 and Deploy.cadence <= 1
     Deploy.runBound >= 0 and Deploy.runBound <= 1
+    Deploy.workBound >= 0 and Deploy.workBound <= 2
+    Deploy.callPause >= 0 and Deploy.callPause <= 1
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -417,9 +457,9 @@ fun retryFor[rs : lone Reason, c : Config] : Bool {
     ((rs = RQuiet and some c.quietHold) or (rs = RCap and some c.capHold)) => True else False
 }
 
--- liveSum: the liveness sum (Term liveness sum).
+-- liveSum: the liveness sum (Term liveness sum), the invocation duration bound counted twice.
 fun liveSum : Int {
-    plus[plus[Deploy.invBound, Deploy.createLat], Deploy.cadence]   -- BUG: the run bound left out
+    plus[plus[plus[Deploy.invBound, Deploy.invBound], Deploy.createLat], Deploy.cadence]   -- BUG: the run bound left out
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -427,12 +467,14 @@ fun liveSum : Int {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- startWrites: the composition starts only where the reconciliation window exceeds the
--- liveness sum and the default shape's channel set is not blank (Capability requirement 5,
--- 29), and nothing is written before it starts.
+-- liveness sum, the default shape's channel set is not blank, and the lease covers the work
+-- (Capability requirement 5, 29, 60), and nothing is written before it starts.
 pred startWrites {
     some Deploy.started implies {
         Deploy.window > liveSum                                     -- Capability requirement 29
         all c : Config | some c.defChans                            -- Capability requirement 5
+        Deploy.invBound > Deploy.workBound                          -- Capability requirement 60 (Lease Sizing 4a)
+        Deploy.workBound > plus[Deploy.callPause, Deploy.callPause] -- Capability requirement 60 (Lease Sizing 4)
     }
     some Init implies some Deploy.started
 }
@@ -516,11 +558,35 @@ pred dispWrites[d : Disp] {
     }
 }
 
+-- atRiskWrites: one at-risk record, which a gap run records for a principal it carries to the
+-- next run once the reconciliation window has passed from the fired instant: a gap principal,
+-- so a queried subscriber (Term gap principal), with exactly one carry cause (Reconciliation
+-- 40, 41).
+pred atRiskWrites[a : AtRisk] {
+    a.arWho in a.arFanout.queried                                   -- Term gap principal
+    one a.arCause                                                   -- Reconciliation 40
+    a.arDecided in a.arFanout.pastWindow                            -- Reconciliation 41
+}
+
+-- atRiskOnce: the gap run records no at-risk record for a principal one under the fanout id
+-- already names (Reconciliation 42).
+pred atRiskOnce {
+    all a1, a2 : AtRisk | (a1.arFanout = a2.arFanout and a1.arWho = a2.arWho) implies a1 = a2
+}
+
 -- conforms: every record in the state is one its writer's rules let it write.
 pred conforms {
     startWrites
     all i : Init | initWrites[i]
     all d : Disp | dispWrites[d]
+    all a : AtRisk | atRiskWrites[a]
+    atRiskOnce
+}
+
+-- openObligations: the principals an at-risk record under the initiation entry names that
+-- carry no disposition event under it (Check 1.1a's open obligations).
+fun openObligations[i : Init] : set Principal {
+    (arFanout.i).arWho - (fanout.i).who
 }
 
 -- firstReason: the reason of the first precedence rule that fires on the gate's inputs —
@@ -679,13 +745,43 @@ assert A_Action_wiring_33_34 {
 check A_Action_wiring_33_34 for 3 but 4 Int
 
 -- A_Capability_requirement_29: the composition started only where the reconciliation window
--- exceeds the invocation duration bound, the create latency, the cadence and the run bound
--- summed.
+-- exceeds the invocation duration bound twice, the create latency, the cadence and the run
+-- bound summed.
 assert A_Capability_requirement_29 {
     conforms implies (some Deploy.started implies
-        Deploy.window > plus[plus[plus[Deploy.invBound, Deploy.createLat], Deploy.cadence], Deploy.runBound])
+        Deploy.window > plus[plus[plus[plus[Deploy.invBound, Deploy.invBound], Deploy.createLat], Deploy.cadence], Deploy.runBound])
 }
 check A_Capability_requirement_29 for 3 but 4 Int
+
+-- A_Capability_requirement_60: an instance started only where the invocation duration bound
+-- exceeds the work's bound and the work's bound exceeds twice the call pause bound.
+assert A_Capability_requirement_60 {
+    conforms implies (some Deploy.started implies
+        (Deploy.invBound > Deploy.workBound and Deploy.workBound > plus[Deploy.callPause, Deploy.callPause]))
+}
+check A_Capability_requirement_60 for 3 but 4 Int
+
+-- A_Reconciliation_40_41: every at-risk record carries exactly one carry cause and a decided
+-- instant at which the reconciliation window has passed from its initiation entry's fired
+-- instant.
+assert A_Reconciliation_40_41 {
+    conforms implies all a : AtRisk | one a.arCause and a.arDecided in a.arFanout.pastWindow
+}
+check A_Reconciliation_40_41 for 3 but 4 Int
+
+-- A_Reconciliation_42: no two at-risk records under one fanout id name one principal.
+assert A_Reconciliation_42 {
+    conforms implies all i : Init, p : Principal | lone (arFanout.i & arWho.p)
+}
+check A_Reconciliation_42 for 3 but 4 Int
+
+-- A_Check_1_1a: every open obligation under an initiation entry is a principal of its queried
+-- list, named by exactly one at-risk record, so an auditor reads it against Check 1.1's list.
+assert A_Check_1_1a {
+    conforms implies all i : Init, p : openObligations[i] |
+        p in i.queried and one (arFanout.i & arWho.p)
+}
+check A_Check_1_1a for 3 but 4 Int
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
@@ -809,6 +905,26 @@ run ShowScopedPair {
 run ShowFailCauseUnordered {
     conforms
     some d : Disp | d.cause = CAcctUnreadable and no d.gCfg.freqDecl and some d.histUnavail
+} for 3 but 4 Int
+
+-- ShowOpenObligation: a gap run carried a principal past the window — an at-risk record names
+-- it and no disposition event under the fanout id does: an open obligation (Check 1.1a).
+run ShowOpenObligation {
+    conforms
+    some i : Init | some openObligations[i]
+} for 3 but 4 Int
+
+-- ShowAtRiskThenDisposed: an at-risk record names a principal a later redisposition disposed;
+-- the obligation is closed and the record stands (it discharges nothing).
+run ShowAtRiskThenDisposed {
+    conforms
+    some a : AtRisk, d : Disp | d.fanout = a.arFanout and d.who = a.arWho and some d.redispo
+} for 3 but 4 Int
+
+-- ShowCarryCauses: three at-risk records, one per carry cause, under one fanout id.
+run ShowCarryCauses {
+    conforms
+    some i : Init | arFanout.i.arCause = CarryCause
 } for 3 but 4 Int
 
 -- ShowRedisposeAfterNewVersion: (FOUND 2) a redisposition whose gate runs under the

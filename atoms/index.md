@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 48 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 48 atoms · 65 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -48,7 +48,7 @@ _26 compositions (26 regulated) · 48 atoms · 64 composition→atom edges. Gene
 | [Favorite](./favorite.md) | — | — | — | *(none yet)* |
 | [Gift Card](./gift-card.md) | — | — | — | *(none yet)* |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
-| [Lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
+| [Lease](./lease.md) | — | yes (2) | — | preference-aware-notification-fanout, recoverable-invocation |
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
 | [Medication Order](./medication-order.md) | healthcare | — | — | *(none yet)* |
 | [Message Preference](./message-preference.md) | — | yes (1) | — | preference-aware-notification-fanout |
@@ -93,7 +93,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Duplicate Prevention](./duplicate-prevention.md) — via idempotent-reservation, reserve-from-pool
 - [Event Log](./event-log.md) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart
 - [Invitation](./invitation.md) — via external-onboarding
-- [Lease](./lease.md) — via recoverable-invocation
+- [Lease](./lease.md) — via preference-aware-notification-fanout, recoverable-invocation
 - [Legal Hold](./legal-hold.md) — via defensible-retention
 - [Message Preference](./message-preference.md) — via preference-aware-notification-fanout
 - [Notification](./notification.md) — via notification-fanout, preference-aware-notification-fanout
