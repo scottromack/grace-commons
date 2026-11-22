@@ -19,13 +19,7 @@ toc: true
 
 ## Summary
 
-Resolve a Person's Data Rights is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: when a person exercises their legal right to see or to delete the personal data an organization holds about them, the organization must work out, for *every* record, what to do — and prove afterward that it did the lawful thing, using only the records it kept. The difficulty is that the request collides with other rules: some records are under a legal hold that forbids deletion, some must be kept for a legally mandated period, and some were collected under a consent that may since have been withdrawn. This composition resolves this one record at a time. It assigns every record in the person's data a single **disposition** — a recorded verdict — and the set of allowed verdicts is fixed: for an access request, a record is [Included] (handed over) or [Withheld] with a stated reason (it implicates a third party, or a legal exemption applies); for an erasure request, a record is [Erased], or [Retained] with a stated reason (a legal hold blocks deletion, a retention period has not elapsed, or another lawful basis still applies) — and a record whose fate or basis could not be settled is an [Anomaly], carrying its reason, rather than silently either.
-
-It wires four constituents; the fourth, Recoverable Invocation, is the open, commit and close protocol an erasure follows around its planned calls. Selective Disclosure is the running log of every time the person's data was shared and with whom — read to answer the access right's "who has my data been disclosed to?" and written to record the act of responding to the request itself. Defensible Retention is the substrate (a composition this one is built on, used through its declared surface) that supplies the deletion gate: its built-in rule that "a record under an active legal hold cannot be purged" *is* the structural answer to the erasure-versus-preservation collision, and through it this composition reaches Legal Hold, Retention Window, and the tamper-evident Audit Trail without maintaining duplicates. Consent is consulted as a read-only oracle (a source asked for an answer and never written to) — this composition asks it "was consent the basis for processing this, and is that consent still in force?" to decide whether erasure is actually due, but this composition never changes a consent record.
-
-The composition's defining emergent guarantee (a property that appears only when the atoms are combined — no single atom carries it) has two halves. **No-silent-omission:** every record in the person's enumerated data universe carries exactly one disposition, so nothing is quietly left out of a response — the completeness an auditor checks. **Binding bijection** (a one-to-one binding, with nothing unmatched on either side): a fulfillment binds the complete set of dispositions, the record of the disclosure to the requester, and the sealed Audit Trail event — so there is never a fulfilled request whose disposition record is missing or incomplete. The sealed event is written last and cannot be withdrawn once written, so an event always has its disclosure behind it; a disclosure with no sealed event behind it cannot stand, since the two commit together, and an erasure stopped after its destructions is closed by Recoverable Invocation and sealed on the caller's next call (Invariant 1). This composition enforces the structural gate (an active hold blocks erasure) and records each disposition with an auditable reason; it does not rule on the legal fine print of whether a particular exemption truly applies — that is named as counsel's and a composing pattern's job, not absorbed here.
-
- Its most common uses are GDPR (the EU General Data Protection Regulation) Article 15 access and Article 17 erasure fulfillment, CCPA/CPRA (the California Consumer Privacy Act, as amended by the California Privacy Rights Act) consumer access and deletion requests, and HIPAA (the US Health Insurance Portability and Accountability Act) section 164.524 access to a designated record set. Any system that must answer a data subject's access or deletion request *and* make it provable that every record was dispositioned and that legal holds and retention obligations were honored throughout, is a candidate for this composition.
+Resolve a Person's Data Rights is a regulated composition (a spec that wires two or more freestanding, self-contained pattern specs together) that answers a person who exercises their legal right to see, or to delete, the personal data an organization holds about them, and lets the organization prove afterward that it did the lawful thing using only the records it kept. The hard part is that the request collides with other rules, since a record may be under a legal hold that forbids deletion, may have to be kept for a legally required period, or may have been collected under a consent since withdrawn, so the composition gives every record in the person's data exactly one recorded verdict, called a disposition: handed over, or withheld with a reason, for an access request, and erased, retained with a reason, or flagged as an anomaly (a record whose fate could not be settled) for an erasure request. It wires four constituents: Selective Disclosure (the running log of every time the person's data was shared and with whom, read to answer who has had it and written to record the response itself), Defensible Retention (the substrate that refuses to destroy a record under a legal hold, which is the structural answer to erasure against preservation, and through which the composition reaches the tamper-evident Audit Trail, a log whose entries are sealed so that any later change shows), Consent (a read-only source asked whether consent was the basis for processing a record and is still in force), and Recoverable Invocation (the open, commit and close protocol an erasure follows, so an erasure that stops partway is closed and sealed on a later call). The guarantee that appears only when they are combined has two halves: nothing is silently omitted, because every record in the person's enumerated data carries one disposition, and the dispositions, the record of the disclosure to the requester and the sealed Audit Trail event are bound together, so no fulfilled request lacks its dispositions and no disclosure stands without its sealed event. The composition enforces the structural hold gate and records each reason, and leaves to counsel and to composing patterns the legal question whether an exemption truly applies. It serves GDPR (the EU General Data Protection Regulation) Article 15 access and Article 17 erasure fulfillment, CCPA/CPRA (the California Consumer Privacy Act, as amended by the California Privacy Rights Act) access and deletion requests, and HIPAA (the US Health Insurance Portability and Accountability Act) section 164.524 access to a designated record set.
 
 ---
 
@@ -56,7 +50,7 @@ What the composition is *not*: it is not the identity-verification surface that 
 Composes 1: EXACTLY ONE Selective Disclosure instance MUST serve the composition.
 Composes 2: EXACTLY ONE Defensible Retention instance MUST serve the composition.
 Composes 3: EXACTLY ONE Consent instance MUST serve the composition.
-Composes 4: The composition MUST reach a transitive pattern other than Lease ONLY through Defensible Retention AND MUST reach Lease ONLY through Recoverable Invocation.
+Composes 4: The composition MUST reach a transitive pattern other than Lease ONLY on an instance Defensible Retention carries, through Defensible Retention's purge, the audit write, the trail read AND the retention read, AND MUST reach Lease ONLY through Recoverable Invocation.
 Composes 5: The composition MUST NOT compose an instance of a transitive pattern.
 Composes 6: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 7: The composition MUST NOT change a constituent's spec.
@@ -94,6 +88,8 @@ Term disclosure write: Selective Disclosure's record.
 
 Term disclosure read: Selective Disclosure's read.
 
+Term source enumeration: the subject-scoped read a registered source exposes, answering the record reference, the source, the creation instant and the route of each of a subject's records (Capability requirement 2); the universe enumeration reads one for every registered source and fails where one fails (Action wiring 12).
+
 Term universe enumeration: the composition-introduced surface that enumerates a subject's in-scope records over the record source registry — the Defensible Retention-managed records being the registered records a source answers a retention id for — each with its record reference, its source and its creation instant — the eventual home of a Completeness Model atom *(forthcoming)*.
 
 Term act kind: erasure execution — `dsar.erasure_execution`, the one act kind this composition binds on its Recoverable Invocation instance: an erasure's planned calls, the purge of each purge plan pair and the host delete of each host delete plan record.
@@ -104,7 +100,7 @@ Term act key: the request id [Receive Request] injects at its seam, known before
 
 Term execution commit: the erasure's planned calls in plan order, under one invocation, each answer landing its record's disposition — in order, a guard read of the request's fulfilled events and fulfillment entry that refuses already-fulfilled where one stands; the retention re-read of each host delete plan record; then Defensible Retention's purge for each purge plan pair and the host delete for each host delete plan record, up to the plan cap.
 
-Term commit partition: pre-commit where the guard read answers already-fulfilled or state-unavailable (Execution Contract Constituent failure 3), each before any planned call; committed where the planned calls ran, each answer landing a disposition and a no answer landing unsettled (Term purge reading); unknown where the execution commit has not returned when the commit round trip has elapsed since its issue (Recoverable Invocation commit 6, commit 7).
+Term commit partition: pre-commit where the guard read answers already-fulfilled or state-unavailable (Execution Contract Constituent failure 3), or the retention read of Action wiring 53 fails or answers no answer (Action wiring 56), each before any planned call; committed where the planned calls ran, each answer landing a disposition and a no answer landing unsettled (Term purge reading); unknown where the execution commit has not returned when the commit round trip has elapsed since its issue (Recoverable Invocation commit 6, commit 7).
 
 Term erasure probe: the read that answers whether an open intent's erasure committed: the retention read for every purge plan pair and the trail's Defensible Retention gate records for the plan's retention ids within the plan span (Composes 12, Composes 13). It answers committed, carrying the request id and the one pair read purged under the intent's now with its retention id and purge instant, where the host delete plan is empty and exactly one pair reads purged under it and every other reads retained; not-committed where no pair reads purged under it, no gate record names a pair within the plan span and the host delete plan is empty; undecidable, carrying the planned record references the stores do not tie to this act, where any host delete plan record stands, two or more pairs read purged under it, or no pair reads purged under it while a gate record names a pair within the plan span; unavailable where a read refuses or the store is out (Recoverable Invocation act probe 4).
 
@@ -119,14 +115,13 @@ Composition state 1: The composition MUST store the request index.
 Composition state 2: The composition MUST key the request index by request id.
 Composition state 3: A request entry MUST carry the subject reference, the right type, the requester, the regulatory reference AND the received instant.
 Composition state 4: The composition MUST write a request entry ONLY AFTER the intake event lands.
-Composition state 5: The composition MUST NOT change a request entry, the stall mark of Reconciliation 38 excepted.
+Composition state 5: The composition MUST NOT change a request entry.
 Composition state 6: The composition MUST store the fulfillment index.
 Composition state 7: The composition MUST key the fulfillment index by request id.
 Composition state 8: A fulfillment entry MUST carry the right type, the fulfilled instant, the dispositions, the response disclosure id AND the fulfillment event id.
-Composition state 9: The composition MUST write a fulfillment entry ONLY AFTER the fulfilled event lands.
 Composition state 10: A fulfillment entry MUST carry the dispositions the fulfilled event carries.
 Composition state 11: The composition MUST NOT change a fulfillment entry.
-Composition state 12: The composition MUST classify a live entry as a derived index, the entry's stall mark excepted.
+Composition state 12: The composition MUST classify a live entry as a derived index.
 Composition state 13: The composition MUST rebuild a missing live entry from the entry's event.
 Composition state 14: The composition MUST classify an aged entry as extraction-pending against Erasure Tombstone.
 Composition state 15: The composition MUST derive a request's state from the request's events, the request entry, the fulfillment index, the request-scoped disclosures AND the act kind's records, read through Recoverable Invocation's read of an invocation (Recoverable Invocation Non-goal 4).
@@ -144,13 +139,15 @@ Composition state 28: The composition MUST NOT clear a stall mark.
 Composition state 29: The composition MUST NOT store a record of the Recoverable Invocation instance.
 Composition state 30: IF an intent of the act kind EXISTS for the request AND the standing closing of the intent is `.escalated` THEN the request's state MUST carry Committing.
 Composition state 31: IF an intent of the act kind EXISTS for the request AND the standing closing of the intent is `.executed` AND no fulfilled event names the request THEN the request's state MUST carry Committing.
+Composition state 32: The composition MUST retain an aged entry AND a stall mark until the extraction Composition state 14 AND Composition state 27 name lands (Execution Contract Composition state).
+Composition state 33: The composition MUST store the stall mark in the stall index, keyed by request id, apart from the request entry AND the fulfillment entry.
 ```
 
 Term request id: the opaque id the host injects at [Receive Request]'s seam — never reused.
 
 Term request index: the composition's map from a request id to the request's intake — `request_to_subject` in an implementation.
 
-Term request entry: one request id's subject reference, right type, requester, regulatory reference and received instant — and the stall mark, where a run wrote one.
+Term request entry: one request id's subject reference, right type, requester, regulatory reference and received instant.
 
 Term fulfillment index: the composition's map from a request id to the request's fulfillment — `request_to_fulfillment` in an implementation; the queryable mirror of the sealed fulfilled event.
 
@@ -162,7 +159,9 @@ Term aged entry: an index entry whose event's payload the audit horizon has dest
 
 Term request's events: the composition's events carrying one request id, selected over the trail read.
 
-Term stall mark: a request entry's record of the invocation id of an intent of the act kind that a run read as open past the completion bound (Reconciliation 38, restated as the index leg), on a request that carries no fulfilled event and no fulfillment entry. A run writes it, to the one value, each time it reads the intent as overdue, and it does not lapse as the intent ages: past the audit horizon it is the one carrier of a destruction that was planned and never sealed.
+Term stall index: the composition's map from a request id to the request's stall mark, kept apart from the request index and no derived index: no event carries a stall, so nothing rebuilds it, and the rebuild of a missing request entry (Composition state 13) neither writes nor drops a mark.
+
+Term stall mark: the stall index's record, keyed by the request id, of the invocation id of an intent of the act kind that a run read as open past the completion bound (Reconciliation 38, restated as the index leg), on a request that carries no fulfilled event and no fulfillment entry. A run writes it, to the one value, each time it reads the intent as overdue, and it does not lapse as the intent ages: past the audit horizon it is the one carrier of a destruction that was planned and never sealed.
 
 Term state read: the reads a fulfillment or [Disposition Report] derives the request's state from — the request's events, the request entry, the disclosure read of the request's subject reference, and the rebuild of a missing index entry. The state read fails where one of them fails and neither a fulfillment entry nor a fulfilled event already read settles the state as Fulfilled.
 
@@ -177,28 +176,26 @@ Term request state: Received | Committing | Fulfilled — derived, never stored:
 ### Capability requirement
 
 ```
-Capability requirement 1: A deployment MUST declare the record source registry.
-Capability requirement 2: EVERY registered source MUST expose a subject-scoped enumeration answering the record reference, the source, the creation instant AND the route PER record.
+Capability requirement 1: A deployment MUST declare the record source registry, carrying the registration instant in the host's data inventory of EVERY registered source.
+Capability requirement 2: EVERY registered source MUST expose the source enumeration answering the record reference, the source, the creation instant AND the route PER record.
 Capability requirement 3: EVERY registered source MUST expose the declared basis PER record.
 Capability requirement 4: EVERY registered source MUST expose the host determinations PER record.
 Capability requirement 5: EVERY route MUST carry EXACTLY ONE OF a retention id, the host delete.
 Capability requirement 6: The host delete MUST verify the presented credential at the host's own boundary.
 Capability requirement 7: The universe enumeration MUST NOT enumerate accounting records.
-Capability requirement 8: The composition MUST NOT pass a retention input to the audit write.
 Capability requirement 9: A deployment MUST set an audit retention policy whose horizon EXCEEDS the longest retention obligation a registered record carries.
 Capability requirement 10: The Defensible Retention instance MUST run strict as the hold check mode.
 Capability requirement 11: The composition MUST NOT claim the hold guarantee over a Defensible Retention instance running advisory.
 Capability requirement 12: A deployment MUST provision the service identity, the service identity of Recoverable Invocation's binding for the act kind.
 Capability requirement 20: A deployment MUST declare the clock offset allowance on the Recoverable Invocation instance (Execution Contract Logic confinement 18).
 Capability requirement 21: The host MUST inject now at the seam once per invocation.
-Capability requirement 22: The host MUST inject a request id that names no other request at [Receive Request]'s seam.
+Capability requirement 22: The host MUST inject a request id that DOES NOT EQUAL blank AND names no other request at [Receive Request]'s seam.
 Capability requirement 23: The composition MUST stamp EVERY instant one invocation writes from the invocation's now.
 Capability requirement 25: The host MUST inject one invocation id that names no other invocation at the seam PER state-changing invocation, the act kind's invocation id being Recoverable Invocation's.
 Capability requirement 26: The composition MUST NOT take an invocation id as an input.
 Capability requirement 27: A deployment MUST supply the act section Recoverable Invocation takes (Recoverable Invocation Capability requirement 11).
 Capability requirement 35: A deployment MUST disclose the planned call latency.
 Capability requirement 37: A deployment MUST supply the alerting surface.
-Capability requirement 40: A deployment MUST set the text cap.
 Capability requirement 41: A deployment MUST route EVERY disclosure write carrying a request scope through the composition alone.
 Capability requirement 42: A deployment MUST route EVERY audit write carrying a composition action reference through the composition alone.
 Capability requirement 44: EVERY registered record MUST carry a record reference no other registered record carries.
@@ -211,8 +208,8 @@ Capability requirement 53: A deployment MUST NOT serve two instances of the comp
 Capability requirement 54: A deployment MUST NOT change the audit retention policy for the life of the instance.
 Capability requirement 57: A deployment MUST NOT admit another writer of a composition action reference on the audit instance.
 Capability requirement 59: A deployment MUST declare the id cap.
-Capability requirement 60: A deployment MUST NOT place a retention bound on a record of the Selective Disclosure instance.
-Capability requirement 61: A deployment MUST NOT place a retention bound on a record of the Consent instance.
+Capability requirement 60: A deployment MUST place EVERY record of the Selective Disclosure instance under the retention of the Defensible Retention instance (Selective Disclosure Composition note 6).
+Capability requirement 61: A deployment MUST place EVERY record of the Consent instance under the retention of the Defensible Retention instance (Consent Composition note 6).
 Capability requirement 63: The alerting surface MUST retain EVERY alert AND the id the alert names for the audit horizon.
 Capability requirement 64: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Database 7, Execution Contract Read 1 through 3 AND Execution Contract Refusal 1.
 Capability requirement 65: EVERY string the composition forwards to a constituent MUST NOT EXCEED the string cap the deployment declares for the constituent (Selective Disclosure Capability requirement 8, Consent Capability requirement 6).
@@ -220,6 +217,8 @@ Capability requirement 66: A deployment MUST disclose the commit round trip, the
 Capability requirement 67: A deployment MUST NOT admit two invocations of one request id carrying one now at Retention Window's time resolution (Recoverable Invocation pairing datum 4).
 Capability requirement 68: A deployment MUST NOT destroy a Retention Window record a purge plan names BEFORE the audit horizon has run past the act's outcome (Recoverable Invocation Binding 9).
 Capability requirement 69: A deployment MUST declare the plan cap, the largest number of planned calls one execution commit makes.
+Capability requirement 71: A deployment MUST answer EVERY alert of Reconciliation 35 WITHIN the audit horizon less the entry bound of the recording instant of the fulfilled event the alert names.
+Capability requirement 70: A deployment MUST set the payload cap of the audit instance PER Audit Trail payload cap 1 (Defensible Retention Capability requirement 75).
 ```
 
 Term record source registry: the deployment-declared list of the business-record sources over which the no-silent-omission guarantee holds, with the per-record surfaces each exposes.
@@ -238,6 +237,8 @@ Term host-managed record: a registered record whose route carries the host delet
 
 Term accounting records: the Selective Disclosure records or the Consent records — the composition's accounting of the subject, read as response content and never enumerated.
 
+Term audit retention policy: the retention policy of the Audit Trail instance Defensible Retention carries — the one policy the instance answers for every event it holds (Capability requirement 49, Defensible Retention Capability requirement 57), `audit_trail_retention_policy` in configuration.
+
 Term audit horizon: the horizon of the one policy the audit retention policy answers for every event of the audit instance (Capability requirement 49) — the Audit Trail instance Defensible Retention carries.
 
 Term hold guarantee: Defensible Retention Invariant 1 read over the records this composition's fulfillments purge — no record an active hold covers at the gate is destroyed through a fulfillment.
@@ -252,17 +253,17 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 Term invocation id: the id the host injects at the seam for one state-changing invocation — a [Receive Request] call or a fulfillment; for the act kind it is Recoverable Invocation's invocation id (Recoverable Invocation Term invocation id). Every record the invocation writes carries the id, and a record Recoverable Invocation's sweep writes carries the id of the intent the record closes.
 
-Term planned call latency: the deployment's disclosed longest time from issuing a planned call to the landing of the call's last write, an abandoned call's included, and to the answer of the retention read a not-known obliges. It is the commit's unit and the plan span's (Check 6.3); a planned call that has not answered within it answers no answer.
+Term planned call latency: the deployment's disclosed longest time from issuing a planned call to the landing of the call's last write, an abandoned call's included, and to the answer of the retention read a not-known obliges, from the call's issue, the origin Recoverable Invocation's commit round trip takes (Recoverable Invocation commit 6). It is the commit's unit and the plan span's (Check 6.3); a planned call that has not answered within it answers no answer.
 
 Term entry bound: `((sweep_cadence + run_bound) + clock_offset_allowance)` — the age by which a Recoverable Invocation run has read a fulfilled event carrying no fulfillment entry and the index leg has written the entry, as an auditor reads it: a cadence to the next run, that run's bound, and the offset between the auditor's seam and the log's.
 
 Term source text: a string a registered source or the host delete supplies and a reason carries whole — a purpose, a non-consent ground, a determination's reference, a host's basis or an attestation reference.
 
-Term text cap: text_cap — the deployment's declared maximum size of one source text.
+Term text cap: text_cap — the maximum size of one source text, counted in code points as Selective Disclosure's string cap counts them (Selective Disclosure Term string cap); 1,024 code points where a deployment declares none (Execution Contract Input 2). The largest record is sized in bytes (Term largest record).
 
 Term id cap: id_cap — the deployment's declared longest id a record carries: a request id, an invocation id, a retention id, a hold id, a disclosure id or an event id.
 
-Term reason bound: the size of the largest reason a disposition can carry — its ids at the id cap, its answers and its instants at their longest, EVERY source text at the text cap, and the hold ids at Defensible Retention's hold ids cap. No reason is truncated.
+Term reason bound: the size of the largest reason a disposition can carry — its ids at the id cap, its answers and its instants at their longest, EVERY source text at the text cap, each at its longest encoding, and, for an erasure disposition alone, the hold ids at Defensible Retention's hold ids cap. No reason is truncated.
 
 Term alerting surface: the deployment's surface on which the composition and the deployment alert. An alert names what it rests on — an intent's invocation id, an event's id, a request id or a run — and the surface keeps it for the audit horizon (Capability requirement 63), so an auditor reads an alert as a record, with its instant. An alert is answered when what it names no longer holds: the intent closed, the entry or the mark written, a later run's end.
 
@@ -283,7 +284,10 @@ Primitive policy 11: The composition MUST pass the actor reference AND the crede
 Primitive policy 12: An enumerated fulfillment MUST NOT record the intent BEFORE sizing the largest record against the payload cap.
 Primitive policy 13: IF the largest record EXCEEDS the payload cap THEN the fulfillment MUST answer invalid-request.
 Primitive policy 14: A fulfillment Primitive policy 13 refuses MUST NOT record an event.
+Primitive policy 15: IF the request id EQUALS blank THEN a fulfillment AND [Disposition Report] MUST answer not-known AND MUST NOT write.
 ```
+
+Term invalid-request: the one refusal of an input or a configuration no retry cures, committing nothing in every case (Execution Contract Database 1): a blank input or a right type outside access and erasure (Primitive policy 1 through 5), a largest record over the payload cap (Primitive policy 13), a plan over the plan cap (Action wiring 54), a disclosure fault (Action wiring 21) and Audit Trail's refusal below step-4 (Audit arm 20). A caller's fault and a deployment's differ in who repairs it, not in what the call did, so one code carries both and the deployment alerts on each a fulfillment answers (Audit arm 19).
 
 Term subject reference: the opaque reference to the data subject whose records are the universe.
 
@@ -303,7 +307,7 @@ Term retention id: the opaque Defensible Retention handle of a record under Defe
 
 Term caller string: a subject reference, a requester, a regulatory reference, an actor reference or a record reference.
 
-Term largest record: the larger of a fulfillment's intent and the executed outcome or fulfilled event the fulfillment closes with, each sized whole — every field the record carries, every id at the id cap — with every disposition's reason at the reason bound.
+Term largest record: the larger of a fulfillment's intent and the executed outcome or fulfilled event the fulfillment closes with, each sized whole in bytes of the serialized envelope Audit Trail measures (Audit Trail payload cap 2) — every field the record carries, every id at the id cap — with every disposition's reason at the reason bound.
 
 ### Audit arm
 
@@ -316,7 +320,7 @@ Audit arm 19: The deployment MUST alert on an invalid-request a fulfillment answ
 Audit arm 20: IF Audit Trail answers invalid-request carrying a step below step-4 at a pre-effect record THEN the action MUST answer invalid-request.
 Audit arm 21: A writer MUST NOT issue an audit write a second time.
 Audit arm 25: A recording-failure [Receive Request] answers MUST carry the request id.
-Audit arm 26: A caller MUST read a recording-failure from [Receive Request] as a request possibly Received under the carried request id.
+Audit arm 26: A caller MUST read a recording-failure from [Receive Request] as a request possibly Received under the carried request id, AND MUST read [Disposition Report]'s not-known of the carried request id as final only once the audit write latency has elapsed since the call (Capability requirement 45).
 ```
 
 Term writer: one invocation — what issues an audit write once. For the act kind the close follows Recoverable Invocation Primitive policy 29 and 33.
@@ -365,7 +369,6 @@ Action wiring 10: A refusal under Action wiring 4 through 9 MUST NOT record an e
 Action wiring 11: An admitted fulfillment MUST enumerate the subject's universe through the universe enumeration.
 Action wiring 12: IF a registered source fails to enumerate OR answers no answer to the enumeration THEN the fulfillment MUST answer incomplete-enumeration.
 Action wiring 13: A fulfillment answering incomplete-enumeration MUST NOT record an event.
-Action wiring 14: An enumerated fulfillment MUST disposition EVERY enumerated record PER Disposition 1 through 47.
 Action wiring 15: An enumerated access MUST read the disclosure read AND Consent's read for the subject.
 Action wiring 16: An enumerated access MUST record the access intent carrying the request id, the invocation id, the subject reference, the requester, the dispositions, the universe cardinality, the recipients read, the consents read AND now as the intended instant.
 Action wiring 17: The composition MUST NOT call the disclosure write BEFORE the fulfillment's intent lands.
@@ -386,7 +389,7 @@ Action wiring 37: IF the disclosure read OR Consent's read fails, answers invali
 Action wiring 38: IF the retention read of Action wiring 41 fails OR answers no answer THEN [Fulfill Erasure Request] MUST answer incomplete-enumeration.
 Action wiring 40: An intended erasure MUST make the planned calls in the purge plan's order AND the host delete plan's order.
 Action wiring 41: An enumerated erasure MUST read the retention read.
-Action wiring 42: IF a planned purge answers not-known THEN the fulfillment MUST read the retention read.
+Action wiring 42: IF a planned purge answers not-known THEN the fulfillment MUST read the retention read filtered by the record reference (Retention Window Operation 37).
 Action wiring 43: IF the request's state EQUALS Committing AND no intent of the act kind stands open AND the standing closing of the act kind's intent is `.escalated` THEN [Fulfill Erasure Request] MUST answer compensation-pending.
 Action wiring 44: IF the request's state EQUALS Committing AND no intent of the act kind stands open AND the standing closing of the act kind's intent is `.executed` AND no fulfilled event names the request THEN [Fulfill Erasure Request] MUST run the re-entry bind.
 Action wiring 45: An enumerated erasure MUST NOT issue the execution commit BEFORE the open of the act kind returns.
@@ -400,6 +403,7 @@ Action wiring 52: The re-entry bind MUST write the disclosure, the erasure fulfi
 Action wiring 53: The execution commit MUST NOT make the first planned call BEFORE the retention read of EVERY host delete plan record.
 Action wiring 54: IF the purge plan AND the host delete plan together EXCEED the plan cap THEN [Fulfill Erasure Request] MUST answer invalid-request, nothing written.
 Action wiring 55: An enumerated erasure MUST issue the execution commit WITHIN Recoverable Invocation's pause bound of the open's return (Recoverable Invocation commit 15).
+Action wiring 56: IF the retention read of Action wiring 53 fails OR answers no answer THEN the execution commit MUST make no planned call AND MUST answer pre-commit carrying incomplete-enumeration.
 ```
 
 Term validated intake: a [Receive Request] call whose inputs cleared Primitive policy.
@@ -476,7 +480,8 @@ Every input an action takes and every answer a call of the four actions can meet
 
 | Action | Input | Lands | Owner |
 |---|---|---|---|
-| every action | a blank required input, or a right type outside access and erasure | invalid-request, nothing written | Primitive policy 1 through 6 |
+| every action | a blank required input other than the request id, or a right type outside access and erasure | invalid-request, nothing written | Primitive policy 1 through 6 |
+| a fulfillment, [Disposition Report] | a blank request id | not-known, nothing written | Primitive policy 15 |
 | [Fulfill Erasure Request] | a purge plan and a host delete plan together over the plan cap | invalid-request, nothing written | Action wiring 54 |
 | a fulfillment | the largest record over the payload cap | invalid-request, nothing written | Primitive policy 12 through 14 |
 
@@ -504,6 +509,8 @@ Every input an action takes and every answer a call of the four actions can meet
 | Answer | Lands | Owner |
 |---|---|---|
 | a failure, invalid-query or no answer | incomplete-enumeration | Action wiring 37, 38 |
+| Consent's check of a record's basis (an erasure): a failure, state-unavailable or no answer | the record anomaly carrying determination-unavailable | Disposition 40 |
+| the retention re-read of a host delete plan record, inside the execution commit: a failure or no answer | pre-commit, the act refused, incomplete-enumeration answered | Action wiring 56 |
 | a failed state read | state-unavailable | Composition state 22 |
 
 **Defensible Retention's purge** (a purge plan pair, inside the execution commit).
@@ -542,8 +549,7 @@ Every input an action takes and every answer a call of the four actions can meet
 ### Wiring decision
 
 ```
-Wiring decision 1: A fulfillment MUST disposition EVERY record of the subject's enumerated universe.
-Wiring decision 2: The composition MUST bind the dispositions, the response disclosure AND the fulfilled event as one fulfillment.
+Wiring decision 2: The composition MUST bind the dispositions, the response disclosure AND the fulfilled event as one landed fulfillment.
 Wiring decision 4: The composition MUST read an erasure's preservation dispositions off Defensible Retention's purge.
 Wiring decision 5: The composition MUST NOT evaluate a hold.
 ```
@@ -555,7 +561,7 @@ Wiring decision 5: The composition MUST NOT evaluate a hold.
 
 *Likely objection.* Why not let each constituent answer for its own records and union the answers?
 
-*Mechanism.* No constituent enumerates the *universe*, and a union of per-constituent answers has no completeness guarantee — a record in a host database no constituent governs is simply absent, and absence is invisible to a reader who sees only what *was* returned. The composition computes the universe once over the declared registry, dispositions every record (Wiring decision 1), and binds the set, the response disclosure and the sealed event as one fulfillment (Wiring decision 2); a response disclosure with no sealed event behind it cannot stand, since the disclosure and the sealed event commit together (Invariant 1).
+*Mechanism.* No constituent enumerates the *universe*, and a union of per-constituent answers has no completeness guarantee — a record in a host database no constituent governs is simply absent, and absence is invisible to a reader who sees only what *was* returned. The composition computes the universe once over the declared registry, dispositions every record (Disposition 1), and binds the set, the response disclosure and the sealed event as one fulfillment (Wiring decision 2); a response disclosure with no sealed event behind it cannot stand, since the disclosure and the sealed event commit together (Invariant 1).
 
 *Result.* An auditor reads one fulfillment and sees a verdict for every record the declared universe contains — no-silent-omission — non-repudiable and tamper-evident, which no constituent provides alone.
 
@@ -589,7 +595,7 @@ Term request-scoped disclosure: a Selective Disclosure record whose scope is a r
 
 Term destruction record: Defensible Retention's record_purged outcome.
 
-Term destroyed planned record: a purge plan pair whose retention reading EQUALS purged. A host delete plan record is never one: no declared surface says a host-managed record is gone, so the re-entry bind seals it unsettled.
+Term destroyed planned record: a purge plan pair whose retention reading EQUALS purged. A host delete plan record is never one: no declared surface says a host-managed record is gone, so the re-entry bind seals it unsettled, and a second request racing on a host-managed record another request deleted lands host-record-not-found (Disposition 34) where the gated twin lands erased (Disposition 43).
 
 ### Disposition
 
@@ -624,7 +630,7 @@ Disposition 36: IF the host delete answers outside the host delete's contract TH
 Disposition 38: The composition MUST read a fulfillment carrying an anomaly as Fulfilled.
 Disposition 39: IF an erasure-due record's retention reading EQUALS purged THEN the record MUST carry erased carrying the retention id AND the purge instant.
 Disposition 40: IF a record's basis reading EQUALS unread THEN the record MUST carry anomaly carrying determination-unavailable.
-Disposition 41: IF a purge's first answer IS IN the retry answers AND the plan cap admits a further planned call THEN the composition MUST re-invoke the purge once, ahead of the next planned call.
+Disposition 41: IF a purge's first answer IS IN the retry answers AND the plan cap admits a further planned call THEN the composition MUST re-invoke the purge once, straight away and ahead of the next planned call, without waiting for the substrate's section term, which the invocation completion bound does not admit (Term erasure binding); a retry that meets a retry answer is the purge's last answer and is not repeated (Term purge reading).
 Disposition 42: IF a planned record's purge reading EQUALS unsettled THEN the record MUST carry anomaly carrying unsettled.
 Disposition 43: IF a planned record's purge reading EQUALS gone THEN the record MUST carry erased carrying the retention id AND the purge instant.
 Disposition 44: IF a planned record's purge reading EQUALS unknown THEN the record MUST carry anomaly carrying unknown-retention.
@@ -632,29 +638,31 @@ Disposition 45: IF the plan cap admits no further planned call THEN EVERY planne
 Disposition 46: A disposition a planned call's answer settles MUST carry the answer in the reason.
 Disposition 47: The deployment MUST alert on a fulfilled event carrying an anomaly.
 Disposition 48: A deployment MUST settle EVERY record carrying unsettled in a fulfilled event.
+Disposition 49: IF a record's basis reading IS IN ground AND granted THEN the composition MUST NOT take the record's retention reading.
 ```
 
 Term disposition: a record's verdict — [Included] or [Withheld] for access; [Erased], [Retained] or [Anomaly] for erasure, [Anomaly] for access too.
 
-Term verdict: included | withheld | erased | retained | anomaly.
+Term verdict: included | withheld | erased | retained | anomaly. The planned of Disposition 19 is the provisional marker of a planned record and no verdict: a planned call's answer settles it (Action wiring 27), the plan cap's lack of a call or the re-entry bind seals it unsettled (Disposition 45, Action wiring 51), and no fulfilled event carries it.
+
+Term anomaly reason: the one meaning each anomaly reason names, the cause the answer it carries gives (Disposition 46). determination-unavailable: a read that should have settled the record answered nothing (Disposition 5, Disposition 40). consent-basis-not-known: Consent's check does not know the subject and purpose (Disposition 11). mis-paired: the retention read and the registry disagree on the pairing of record and retention (Disposition 14). unknown-retention: the retention the record names is not borne out by the database (Disposition 15, Disposition 44). host-record-not-found: the host delete answers not-known (Disposition 34). unsettled: a planned call's fate is unsaid, or the plan cap admitted no call (Disposition 35, 36, 42, 45).
 
 Term withdrawn answer: revoked | expired — Article 17(1)(b)'s consent withdrawn, or lapsed.
 
 Term determination reading: failed | third-party-confidentiality | legal-exemption | no-bar — what the host determinations say of a record of an access, exactly one of the four and the first that holds in this order: failed where the surface fails for the record, answers no answer or answers a source text over the text cap or equal to blank; third-party-confidentiality where the determinations name that bar, alone or beside a legal exemption; legal-exemption where the determinations name a legal exemption and no third-party confidentiality; no-bar everywhere else.
 
-Term basis reading: unread | ground | granted | not-known | withdrawn | none — what a record's declared basis and Consent's check say of a record of an erasure, exactly one of the six and the first that holds in this order: unread where the declared basis fails or carries a source text over the text cap, or names consent and Consent's check answers no answer; ground where the declared basis names a non-consent ground; granted, not-known or withdrawn where the declared basis names consent and Consent's check answers granted, not-known or a withdrawn answer; none where the record declares no basis.
+Term basis reading: unread | ground | granted | not-known | withdrawn | none — what a record's declared basis and Consent's check say of a record of an erasure, an unread one sealing anomaly and destroying nothing where an access answers incomplete-enumeration to a failed Consent read (Action wiring 37), since an access reads Consent whole as response content and an erasure judges one record by its check, exactly one of the six and the first that holds in this order: unread where the declared basis fails or carries a source text over the text cap, or names consent and Consent's check fails, answers state-unavailable (Execution Contract Read 1) or answers no answer; ground where the declared basis names a non-consent ground; granted, not-known or withdrawn where the declared basis names consent and Consent's check answers granted, not-known or a withdrawn answer; none where the record declares no basis.
 
 Term erasure-due record: an enumerated record of an erasure whose basis reading EQUALS withdrawn or none — a record no basis preserves and no failed read holds back.
 
-Term retention reading: unread | clear | absent | mis-paired | purged | retained — what the retention read says of a registered record and the record's route, exactly one of the six and the first that holds in this order: unread where the read gave no answer; for a host-managed record, mis-paired where the read answers a retention over the record reference, and clear where the read answers none; for a record whose route carries a retention id, absent where the read answers no retention carrying the id; mis-paired where the read pairs the id with another record reference; purged where the record stands as a destroyed record in Defensible Retention's own sense — the read answers a purged retention over the record reference, the named retention or a sibling; and retained everywhere else. An erased disposition sealed on a purged reading carries the retention id and the purge instant of the retention the reading rests on — the named retention's where the database answers it purged, and otherwise those of the purged sibling whose retention id stands lowest, bytewise; the substrate's destruction record of the record names that id among its purged retention ids, marked purged or pending.
+Term retention reading: unread | clear | absent | mis-paired | purged | retained — what the retention read says of a registered record and the record's route, exactly one of the six and the first that holds in this order: unread where the read gave no answer; for a host-managed record, mis-paired where the read answers a retention over the record reference, and clear where the read answers none; for a record whose route carries a retention id, absent where the read answers no retention carrying the id; mis-paired where the read pairs the id with another record reference; purged where the record stands as a destroyed record in Defensible Retention's own sense — the read answers a purged retention over the record reference, the named retention or a sibling; and retained everywhere else. A host-managed record whose reference a purged retention covers reads mis-paired and is sealed anomaly (Disposition 14), and a record sealed erased on a purged reading is no anomaly and raises no alert (Disposition 47); a record a basis preserves takes no reading (Disposition 49), so one that stands destroyed is sealed retained on its basis. An erased disposition sealed on a purged reading carries the retention id and the purge instant of the retention the reading rests on — the named retention's where the database answers it purged, and otherwise those of the purged sibling whose retention id stands lowest, bytewise; the substrate's destruction record of the record names that id among its purged retention ids, each marked purged (Defensible Retention's sibling disposition value set holds purged alone).
 NOTE: open 2026-11-18-a — the order puts absent ahead of purged, so a record whose route's retention id no retention carries and whose sibling the read answers purged reads absent and carries unknown-retention (Disposition 15) where a destroyed record reads purged and carries erased (Disposition 39); whether a destroyed record outranks an unregistered id stays the open decision.
-NOTE: open 2026-11-18-b — the mark of a purged sibling's retention id reads "purged or pending", where Defensible Retention's sibling disposition value set holds purged alone and its Defensible Retention Action wiring 81 commits nothing on a refused sibling; whether a pending mark exists stays the open decision, Defensible Retention's to settle.
 
 Term settled record: a record Disposition 7, 10, 11, 14, 15, 39 or 40 dispositions before any planned call — every record of an erasure that Disposition 17 and Disposition 18 add to no plan.
 
 Term planned: the provisional marker of a record in the purge plan or the host delete plan, settled by the planned call's answer.
 
-Term retry answers: section-unavailable | hold-check-unavailable | storage-failure | recording-failure carrying intent | recording-failure carrying gate | recording-failure carrying outcome — the purge answers under which the call reports no destruction and a later call can answer otherwise. The intent, gate and outcome positions are Defensible Retention's own, of its purge's records, and not this composition's position.
+Term retry answers: section-unavailable | hold-check-unavailable | storage-failure | state-unavailable | recording-failure carrying intent | recording-failure carrying gate | recording-failure carrying outcome — the purge answers under which the call reports no destruction and a later call can answer otherwise. The intent, gate and outcome positions are Defensible Retention's own, of its purge's records, and not this composition's position. state-unavailable is the failed read of Execution Contract Read 1 (Execution Contract Constituent failure 3); Defensible Retention lands each read its purge makes as storage-failure or recording-failure carrying outcome (Defensible Retention Action wiring 98, 99 and 109), so a conforming purge never answers it, and one that does is read beside storage-failure: a failed read says nothing of the record.
 
 Term unsettling answers: the retry answers | invalid-credential | invalid-request | no answer — the purge answers that leave a record's fate unsaid.
 
@@ -663,9 +671,8 @@ Term purge's first answer: the answer of the one call Action wiring 25 makes for
 Term purge's last answer: the re-invoked purge's answer where the composition re-invoked the purge, and the purge's first answer everywhere else.
 
 Term purge reading: destroyed | gone | unsettled | held | obliged | unknown — what the answers of a purge plan pair's calls say of the pair's record, exactly one of the six and the first that holds in this order: destroyed where the last answer EQUALS ok; gone where the last answer EQUALS not-known and the retention reading taken after the answer EQUALS purged; unsettled where the first answer or the last EQUALS storage-failure or no answer, where the last answer is any other unsettling answer, or where the last answer EQUALS not-known and the retention reading taken after the answer EQUALS unread; held where the last answer EQUALS under-legal-hold; obliged where the last answer EQUALS not-eligible or under-active-retention; unknown everywhere else — a not-known the database does not bear out. Every answer of Defensible Retention's purge falls under one of the six, so Disposition 20 through 22 and 42 through 44 settle a called record once.
-NOTE: open 2026-11-19-a — a purge answering state-unavailable (Execution Contract Read 1) is no answer this term lists, so the reading falls to unknown; Defensible Retention lands each read its purge makes as another answer (Defensible Retention Action wiring 75, Defensible Retention Action wiring 98, Defensible Retention Action wiring 99, Defensible Retention Action wiring 109) and its closure rows for the five actions are owed (open 2026-11-02-b), so whether its purge answers it stays Defensible Retention's to state.
 
-Term outside the host delete's contract: said of a host delete that answers no answer, an answer that is no arm of the host delete's contract, or an arm carrying a source text over the text cap or equal to blank.
+Term outside the host delete's contract: said of a host delete that answers no answer, an answer that is no arm of the host delete's contract, or an arm carrying a source text over the text cap or equal to blank. Such an answer says nothing the composition can rest on, not even that the record survives under the arm it names, a retained carrying a basis over the text cap included: Disposition 36 seals the record unsettled and Disposition 47 alerts.
 
 ## Composition-level invariants
 
@@ -728,7 +735,7 @@ A SaaS (Software-as-a-Service) company deploys this composition over its custome
 2. **Fulfillment.** The officer calls `fulfill_access_request("dsar-3001", "dsr_officer_k", <cred>)`. The composition:
   - **Enumerates** `user-5521`'s in-scope universe over the registry → five records: `r1` (profile, CRM), `r2` (an open support ticket), `r3` (a support ticket that quotes a *second* customer's account details), `r4` (a billing dispute record flagged by the host as attorney-client privileged), `r5` (the marketing-preferences record in the CRM). Both sources enumerate successfully — no [Incomplete Enumeration]. The recipients limb is read from the Selective Disclosure records (two prior disclosures) and the consent-history limb from the Consent records, each bound into the sealed event as the ids read.
   - **Dispositions** each record (read-only determinations): `r1 → included`; `r2 → included`; `r3 → withheld(third-party-confidentiality)` (Article 15(4) — releasing it would expose the second customer's data), reason carrying the host's `15(4)` determination reference; `r4 → withheld(legal-exemption)`, reason carrying the privilege citation; `r5 → included`. It also reads `SelectiveDisclosure.read({subject_ref: "user-5521"})` → two prior third-party disclosures (an analytics vendor, a payment processor), which become the Article 15(1)(c) *recipients* portion of the response.
-  - **Records the intent, then binds the fulfillment (disclosure next, sealed event last):** one transaction on `dsar-3001`: `dsar.access_fulfillment_intended` lands carrying `inv-71`, the five dispositions and the ids read; then `SelectiveDisclosure.record(subject_ref = "user-5521", recipient = "user-5521 (verified via privacy portal)", scope = "dsar:access:designated-record-set:dsar-3001", authority = {type: regulatory, reference: "GDPR Article 15"})` → `disc-9001`; then `AuditTrail.record_action(action_ref = dsar.access_fulfilled, actor_ref = "dsr_officer_k", <cred>, data = {request_id: "dsar-3001", invocation_id: "inv-71", dispositions: <the complete five-record set, summary: 3 included / 2 withheld>, universe_cardinality: 5, recipients: <the two disclosure ids read>, consents: <the consent ids read>, response_disclosure_id: "disc-9001", fulfilled_at})` → `ev-7001`; then `request_to_fulfillment["dsar-3001"] = {access, fulfilled_at, dispositions (all five), response_disclosure_id: "disc-9001", fulfillment_event_id: "ev-7001"}`. The request is now **Fulfilled**.
+  - **Records the intent, then binds the fulfillment (disclosure next, sealed event last):** one transaction on `dsar-3001`: `dsar.access_fulfillment_intended` lands carrying `inv-71`, the five dispositions and the ids read; then `SelectiveDisclosure.record(subject_ref = "user-5521", recipient = "user-5521 (verified via privacy portal)", scope = "dsar:access:designated-record-set:dsar-3001", authority = {type: regulatory, reference: "GDPR Article 15"})` → `disc-9001`; then `AuditTrail.record_action(action_ref = dsar.access_fulfilled, actor_ref = "dsr_officer_k", <cred>, data = {request_id: "dsar-3001", invocation_id: "inv-71", subject_ref: "user-5521", requester: "user-5521 (verified via privacy portal)", dispositions: <the complete five-record set, summary: 3 included / 2 withheld>, universe_cardinality: 5, recipients: <the two disclosure ids read>, consents: <the consent ids read>, response_disclosure_id: "disc-9001", fulfilled_at})` → `ev-7001`; then `request_to_fulfillment["dsar-3001"] = {access, fulfilled_at, dispositions (all five), response_disclosure_id: "disc-9001", fulfillment_event_id: "ev-7001"}`. The request is now **Fulfilled**.
   - Returns the five dispositions, `disc-9001`, and `ev-7001`.
 
 3. **The auditor reads the outcome.** `disposition_report("dsar-3001")` returns one verdict for each of the five enumerated records — Invariant 2 (no-silent-omission): nothing was quietly dropped, and the two withheld records carry a stated reason rather than vanishing from the response. The host then assembles and transmits the actual export for the three included records (the export bytes are the host's job; this composition recorded *what was decided and disclosed*).
@@ -744,15 +751,17 @@ A bank deploys this composition over its customer records; the Defensible Retent
   - `r2` — a transaction record under `ret-r2`, covered by an Active litigation hold. Other-lawful-basis: none. `purge_record(ret-r2, …)` → `under-legal-hold` → **`retained(legal-hold)`** (Article 17(3)(e)), reason carrying the blocking `hold_id`. **The hold gate fires** — this is the collision this composition exists to resolve, read directly off Defensible Retention's gate. (Defensible Retention records a `purge_blocked_by_hold` event.)
   - `r3` — a Customer Due Diligence identity record under `ret-r3`, a 5-year retention obligation not yet elapsed. Other-lawful-basis: none asserted. `purge_record(ret-r3, …)` → `not-eligible` → **`retained(retention-obligation)`** (Article 17(3)(b)).
   - `r4` — a fraud-monitoring record whose declared basis is `legal-obligation` (AML — Anti-Money-Laundering — monitoring), a non-consent lawful ground still in force. Other-lawful-basis probe matches first → **`retained(other-lawful-basis)`** (Article 17(1)(b) — a ground for processing persists); **no `purge_record` call is made** for `r4`.
-  - **Binds the fulfillment (disclosure first, sealed event last):** `SelectiveDisclosure.record(subject_ref = "cust-8830", recipient = "cust-8830", scope = "dsar:erasure:outcome:dsar-4002", authority = {type: regulatory, reference: "GDPR Article 17"})` → `disc-9002`; then `AuditTrail.record_action(action_ref = dsar.erasure_fulfilled, …, data = {request_id: "dsar-4002", invocation_id: "inv-88", dispositions: <the complete four-record set, summary: 1 erased / 3 retained>, response_disclosure_id: "disc-9002", fulfilled_at})` → `ev-7002`; then `request_to_fulfillment["dsar-4002"]` is populated. **Fulfilled.**
+  - **Binds the fulfillment (disclosure first, sealed event last):** `SelectiveDisclosure.record(subject_ref = "cust-8830", recipient = "cust-8830", scope = "dsar:erasure:outcome:dsar-4002", authority = {type: regulatory, reference: "GDPR Article 17"})` → `disc-9002`; then `AuditTrail.record_action(action_ref = dsar.erasure_fulfilled, …, data = {request_id: "dsar-4002", invocation_id: "inv-88", subject_ref: "cust-8830", requester: "cust-8830", dispositions: <the complete four-record set, summary: 1 erased / 3 retained>, universe_cardinality: 4, response_disclosure_id: "disc-9002", closing_event_id: <the act's executed closing>, fulfilled_at})` → `ev-7002`; then `request_to_fulfillment["dsar-4002"]` is populated. **Fulfilled.**
 
 3. **The outcome is provably defensible.** `disposition_report("dsar-4002")` shows all four records dispositioned (Invariant 2): one erased, three retained with three *different* reasons, each traceable (Invariant 4) — `r2` and `r3` to their Defensible Retention `purge_record` outcomes, `r4` to the host-declared AML basis, `r1`'s erasure to a `record_purged` event whose `hold_check_result: empty` proves the gate passed. No held or retention-bound record was erased (Invariant 3). The customer is told, in the response disclosure, exactly what was deleted and what was kept and why.
 
 ### Rejection path — re-fulfillment, wrong right type, incomplete enumeration
 
-- **Already fulfilled (terminal).** A retry: `fulfill_erasure_request("dsar-4002", …)` → `rejected(already-fulfilled)`. No second purge, no second disclosure, no second event — `r1` is not erased twice (it is already gone); the single fulfillment from the first call stands (Invariant 6).
-- **Wrong right type.** For a *Received, not-yet-fulfilled* erasure request — say `dsar-4003`, intake recorded but no fulfillment yet — `fulfill_access_request("dsar-4003", …)` → `rejected(wrong-right-type)`; the access sibling refuses to fulfill an erasure request. Nothing is recorded. (Against an *already-fulfilled* request the state check answers [Already Fulfilled] *before* the right type is read (Action wiring 7) — terminality dominates wrong-right-type — so the wrong-right-type path is exercised only by a still-Received request.)
-- **Incomplete enumeration (the no-silent-omission guard).** During an access fulfillment, one registered source — the support-ticket records — is unreachable. The enumeration cannot be completed over the declared universe → `rejected(incomplete-enumeration)`. **No disposition is recorded, no response-disclosure is written, the request stays Received.** A partial universe is never fulfilled as if whole — the exact silent omission the composition forbids. The officer retries once the database recovers.
+- **Already fulfilled (terminal).** A retry: `fulfill_erasure_request("dsar-4002", …)` → already-fulfilled. No second purge, no second disclosure, no second event — `r1` is not erased twice (it is already gone); the single fulfillment from the first call stands (Invariant 6).
+- **Wrong right type.** For a *Received, not-yet-fulfilled* erasure request — say `dsar-4003`, intake recorded but no fulfillment yet — `fulfill_access_request("dsar-4003", …)` → wrong-right-type; the access sibling refuses to fulfill an erasure request. Nothing is recorded. (Against an *already-fulfilled* request the state check answers [Already Fulfilled] *before* the right type is read (Action wiring 7) — terminality dominates wrong-right-type — so the wrong-right-type path is exercised only by a still-Received request.)
+- **Incomplete enumeration (the no-silent-omission guard).** During an access fulfillment, one registered source — the support-ticket records — is unreachable. The enumeration cannot be completed over the declared universe → incomplete-enumeration. **No disposition is recorded, no response-disclosure is written, the request stays Received.** A partial universe is never fulfilled as if whole — the exact silent omission the composition forbids. The officer retries once the database recovers.
+- **The other refusals.** A request id no index carries, or a blank one, answers [Not Known]; a request whose act stands open answers [Act In Flight] carrying the invocation id; a request whose act closed escalated and awaits an operator answers [Compensation Pending]; a state read that fails answers [State Unavailable]. Each records nothing (Action wiring 10).
+- **A host-managed record.** `r8`, held by the host and not by Defensible Retention, enters the host delete plan only where its retention reading is clear. The host delete answering deleted seals it **erased** carrying the attestation reference, and answering delete-failed seals it **anomaly(unsettled)** with the deployment alerted (Disposition 32, Disposition 35, Disposition 47).
 
 ### Rejection path — the reply is lost after the purges commit (the orphan)
 
@@ -782,7 +791,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 **Regulator audit — "prove every record in the subject's universe was dispositioned, and that no held or retention-bound record was erased."** A DPA (Data Protection Authority — a national GDPR regulator) examines a fulfilled erasure request. It calls `disposition_report(request_id)`: by Invariant 2 (no-silent-omission), every enumerated record carries exactly one disposition — there is no record the response silently dropped. For every gated erased disposition, the auditor cross-reads the Defensible Retention substrate's `record_purged` event and confirms `hold_check_result: empty` (Invariant 3, resting on Defensible Retention Invariant 1 — hold-blocks-purge); a host-managed erased is the host's attested outcome and carries no gate record (Host-managed records 1). For every `retained(legal-hold)` / `retained(retention-obligation)`, it confirms the then-Active hold or the unelapsed retention via Defensible Retention's records. `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition set was not altered after the fact. Every claim is provable, by virtue of Invariants 2, 3, and 4.
 
-**Disputed erasure — the data subject challenges a retention.** A subject's representative challenges: *"you claim you could not delete record `r2` — prove a hold actually existed."* The system presents the `retained(legal-hold)` disposition with its reason (the blocking `hold_id`) and, via the Defensible Retention substrate, `LegalHold.read({record_ref: r2})` — the Active hold with `placed_by`, `hold_reason`, `placed_at`, and `case_ref`, all immutable by Legal Hold's Invariant 1. `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition was not fabricated or back-filled. The challenge cannot be sustained without claiming the entire hold records were fabricated, at which point the Tamper Evidence seal (via the Defensible Retention substrate) is the structural rebuttal — the same rebuttal chain Defensible Retention's own disputed-destruction scenario establishes, with this composition adding the disposition binding (Invariant 4) that ties the retention claim to a specific recorded hold. The symmetric challenge — *"you erased a record you should have kept"* — is answered by the `dsar.erasure_fulfilled` event plus the Defensible Retention `record_purged` event whose `hold_check_result: empty` proves the gate passed at purge time.
+**Disputed erasure — the data subject challenges a retention.** A subject's representative challenges: *"you claim you could not delete record `r2` — prove a hold actually existed."* The system presents the `retained(legal-hold)` disposition with its reason (the blocking `hold_id`) and, via the Defensible Retention substrate, the hold placed outcome Defensible Retention recorded for that hold id (Defensible Retention Check 2.1) — the Active hold's placing actor, reason and placement instant, standing on Legal Hold's immutable hold record (Legal Hold Invariant 1). `AuditTrail.verify_record` on the `dsar.erasure_fulfilled` event confirms the disposition was not fabricated or back-filled. The challenge cannot be sustained without claiming the entire hold records were fabricated, at which point the Tamper Evidence seal (via the Defensible Retention substrate) is the structural rebuttal — the same rebuttal chain Defensible Retention's own disputed-destruction scenario establishes, with this composition adding the disposition binding (Invariant 4) that ties the retention claim to a specific recorded hold. The symmetric challenge — *"you erased a record you should have kept"* — is answered by the `dsar.erasure_fulfilled` event plus the Defensible Retention `record_purged` event whose `hold_check_result: empty` proves the gate passed at purge time.
 
 **Breach or incident investigation — "during the compromise window, was any held record erased under cover of a DSAR?"** An investigator suspects an attacker used forged erasure requests to destroy records under legal hold. They query `dsar.erasure_fulfilled` events in the window (reached through the substrate Audit Trail in Event Log insertion order) and, for each gated erased disposition, cross-read the corresponding Defensible Retention `record_purged` event's `hold_check_result`. A held record showing erased would be the smoking gun — but for a record under a Defensible Retention retention Invariant 3 forecloses it structurally: the gate would have returned `under-legal-hold` and yielded `retained(legal-hold)`, never erased. A host-managed record passes no gate, and a hold over one is outside the guarantee (Host-managed records 1). Because the disposition set is part of the hashed `dsar.erasure_fulfilled` payload, an attempt to *silently shrink* the set (to hide an improperly-erased record) breaks the seal — the same append-only, sealed-log rebuttal Propagate Consent Revocation Downstream and Immutable Ledger rely on. The forensic window is bounded by the substrate's seal cadence; the newest fulfillments in the unsealed tail carry per-event immutability but become seal-verifiable only at the next cadence.
 
@@ -795,24 +804,26 @@ An implementation is acceptable — in the regulator-acceptance sense — when t
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EXACTLY ONE fulfilled event carrying the request id of EVERY fulfillment entry (Invariant 1.2).
+Check 1.1: An auditor MUST find EXACTLY ONE fulfilled event carrying the request id of EVERY fulfillment entry, an entry whose fulfilled event's payload the audit instance has destroyed excepted (Invariant 1.2, Invariant 6.1).
 Check 1.2: An auditor MUST find EVERY fulfillment entry's response disclosure id resolving to a Selective Disclosure record (Invariant 1.1).
 Check 1.3: An auditor MUST find the request id of EVERY fulfilled event older than the entry bound carried by a fulfillment entry, an event Check 1.6 covers excepted (Invariant 1.3).
 Check 1.4: An auditor MUST report a request-scoped disclosure no fulfilled event names as a write outside the composition (Capability requirement 41, Invariant 1.4).
 Check 1.5: An auditor MUST read a fulfilled event carrying no fulfillment entry within the entry bound of the event's recording instant as an open obligation (Reconciliation 25, Reconciliation 36).
 Check 1.6: An auditor MUST read a fulfilled event carrying no fulfillment entry that the deployment's alerting surface carries an alert for as an open obligation (Reconciliation 35).
-Check 2.1: An auditor MUST find EVERY disposition's verdict IS IN the right type's vocabulary (Disposition 1).
+Check 1.7: An auditor MUST find EVERY alert of Reconciliation 35 answered by a fulfillment entry written before the fulfilled event the alert names reached the audit horizon less the entry bound (Capability requirement 71, Invariant 6.1).
+Check 2.1: An auditor MUST find EVERY disposition's verdict a fulfilled event carries IS IN the right type's vocabulary (Disposition 1).
 Check 2.2: An auditor MUST find no record reference twice in one disposition set (Invariant 2.1).
 Check 2.3: An auditor MUST find each disposition set's cardinality matching the fulfilled event's universe cardinality (Invariant 2.1).
-Check 2.4: An auditor MUST re-enumerate an access fulfillment's universe AND find EVERY record whose creation instant PRECEDES the enumeration instant in the disposition set (Invariant 2.1).
+Check 2.4: An auditor MUST re-enumerate an access fulfillment's universe from the host's data inventory (External check 1) AND find EVERY record whose creation instant PRECEDES the enumeration instant in the disposition set (Invariant 2.1, Invariant 2.2).
 Check 2.5: An auditor MUST read a re-enumerated record whose creation instant falls within the clock offset allowance of the enumeration instant as inconclusive (Capability requirement 20).
-Check 2.6: An auditor MUST NOT re-enumerate an erasure fulfillment's universe (Invariant 2.1).
+Check 2.6: An auditor MUST re-enumerate an erasure fulfillment's universe from the host's data inventory (External check 1) AND find EVERY surviving record whose creation instant PRECEDES the enumeration instant in the disposition set, a record the erasure destroyed being read by Check 3.5 (Invariant 2.1).
 Check 2.7: An auditor MUST read a re-enumerated record as outside the fulfillment's universe where the enumeration instant PRECEDES the registration of the record's source in the host's data inventory (Completeness boundary 1, External check 1).
-Check 3.1: An auditor MUST find EVERY gated erased disposition's destruction record carrying an empty hold check result AND no hold override (Capability requirement 10).
-Check 3.2: An auditor MUST find EVERY retained legal-hold disposition's gate record naming a hold active at the gate record's position (Invariant 4.1).
+Check 3.1: An auditor MUST clear Defensible Retention Check 1.1 AND Defensible Retention Check 1.2 over EVERY gated erased disposition's destruction record (Capability requirement 10).
+Check 3.2: An auditor MUST clear Defensible Retention Check 1.5 AND Defensible Retention Check 1.6 over EVERY retained legal-hold disposition's gate record (Invariant 4.1).
 Check 3.3: An auditor MUST find a retention over the record of EVERY retained retention-obligation disposition whose retention deadline DOES NOT PRECEDE the enumeration instant (Disposition 22).
 Check 3.4: An auditor MUST read a retention deadline within twice the clock offset allowance of the enumeration instant as inconclusive (Capability requirement 20).
 Check 3.5: An auditor MUST find destruction evidence for EVERY erased disposition (Invariant 3.1).
+Check 3.7: An auditor MUST find no retention of the business retention instance over the reference of a host-managed record the erasure intent names in the host delete plan, a retention placed before the intended instant of the intent (Invariant 3.2).
 Check 4.1: An auditor MUST find EVERY non-anomaly disposition's reason naming a recoverable authority (Invariant 4.1).
 Check 5.1: An auditor MUST find EVERY response disclosure naming the requester as the recipient, the request's regulatory reference as the authority AND the request id in the scope (Invariant 5.1).
 Check 5.2: An auditor MUST find EXACTLY ONE request-scoped disclosure carrying the request id of EVERY Fulfilled request (Invariant 5.1).
@@ -821,6 +832,8 @@ Check 6.2: An auditor MUST find EVERY erasure fulfilled event preceded by an era
 Check 6.3: An auditor MUST attribute EVERY purge intent of Defensible Retention to the nearest preceding purge plan that names the purge's retention id AND whose plan span holds the purge intent (Action wiring 24).
 Check 6.4: An auditor MUST report a purge intent Check 6.3 attributes to no purge plan as a direct purge (Action wiring 24).
 Check 6.5: An auditor MUST report an attribution to a plan whose fulfillment carries no fulfilled event as presumptive (Action wiring 24).
+Check 6.10: An auditor MUST find EVERY response disclosure whose own recorded instant DOES NOT PRECEDE the instant of the intent of the fulfillment the disclosure answers (Action wiring 17).
+Check 6.11: An auditor MUST find the actor reference of EVERY purge intent Check 6.3 attributes to a plan EQUAL to the actor reference of the plan's intent, AND MUST report one that differs as a purge by another caller inside the plan's span (Action wiring 25).
 Check 6.9: An auditor MUST find no intent of a request later in the log than the request's fulfilled event (Invariant 6.2).
 Check 7.1: An auditor MUST find no consent record whose granting actor EQUALS the service identity (Invariant 7.1).
 Check 7.2: An auditor MUST find no consent record whose revoking actor EQUALS the service identity (Invariant 7.1).
@@ -840,7 +853,7 @@ Check 9.4: An auditor MUST clear Recoverable Invocation's Generation acceptance 
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: open 2026-11-04-e (Check 2.4's re-enumeration) and 2026-11-04-h (Check 8.9's stall mark).
+NOTE: Check 7.1 and Check 7.2 read the actor fields Consent records and does not attest; External check 6 confirms beyond them.
 
 Term gated erased disposition: an erased disposition whose record carried a retention id.
 
@@ -852,12 +865,12 @@ Term horizon event: an event whose age on the auditor's now is no less than the 
 
 Term plan span: the stretch of the log from an intent of the act kind carrying a purge plan to the intent's closing record and on past it by the planned call latency, read on recording instants — open-ended while the intent carries none. A purge made under a plan falls inside the plan's span: a planned call is issued ahead of the closing record and its last write lands within the planned call latency of its issue, a write that answered no answer included. A purge later in the log than the span is no planned call of that fulfillment, whatever retention it names.
 
-Term enumeration instant: the intended instant of the intent a fulfilled event closes — the now under which the universe was enumerated and every verdict made; equal to the fulfilled instant except on the fulfilled event of a re-entry bind, which carries it as a field of its own (Action wiring 31) and so keeps it where the intent is destroyed ahead of the event.
+Term enumeration instant: the intended instant of the intent a fulfilled event closes — the invocation's one reading of now at the seam (Capability requirement 21), taken ahead of the open's take, so every verdict was made no earlier than it and the universe may have been enumerated later by any stall of the call, which the clock offset allowance of Check 2.5 and Check 3.4 does not bound; equal to the fulfilled instant except on the fulfilled event of a re-entry bind, which carries it as a field of its own (Action wiring 31) and so keeps it where the intent is destroyed ahead of the event.
 
 <details markdown="block">
 <summary>WHY</summary>
 
-A purge intent's attribution (Check 6.3) is to a plan that named the retention, and no proof of which invocation called: where two requests plan one retention id inside overlapping spans, or another caller purges inside an open span, the nearer plan is credited and may not be the caller's. The purge intent's own actor and invocation id say who called, and reading them against the plan's operator is the auditor's next step.
+A purge intent's attribution (Check 6.3) is to a plan that named the retention, and no proof of which invocation called: where two requests plan one retention id inside overlapping spans, or another caller purges inside an open span, the nearer plan is credited and may not be the caller's. The purge intent's own actor says who called, and Check 6.11 reads it against the plan's: the purge carries its own invocation id, so the plan's operator is the one thing the two share.
 
 For a closing record the service identity attested the unknown reading of Check 8.11 does not come back once the log is older than the horizon; what the trail still shows beside a compensating event is the leg's own recovery intent, naming the intent it resolved (Reconciliation 11). A destruction record or a gate record destroyed ahead of the fulfilled event that rests on it is a horizon event too: the disposition's purge instant, or the event's enumeration instant, says how old the missing record is, and at that age Check 3.1 and Check 3.2 read unknown (Check 8.5).
 
@@ -870,13 +883,17 @@ External check 1: An auditor needing the registry's completeness confirmed MUST 
 External check 2: An auditor needing a host-asserted determination's legitimacy confirmed MUST read the legal analysis behind the determination (Invariant 4.1).
 External check 3: An auditor needing the requester's identity confirmed MUST read the identity verification wired ahead of [Receive Request] (Non-goal 1).
 External check 4: An auditor needing the operator's authorization confirmed MUST read the deployment's Permissions records (Non-goal 2).
-External check 5: An auditor needing the statutory deadline confirmed MUST compute the deadline from the received instant AND the fulfilled instant (Non-goal 3).
+External check 5: An auditor needing the statutory deadline confirmed MUST compute the deadline from the recording instants of the intake event AND the fulfilled event, a seam instant being a stalled host's early stamp (Term recording instant, Non-goal 3).
 External check 6: An auditor needing consent non-mutation confirmed beyond the records MUST read the generated code's Consent calls (Invariant 7.2).
 External check 7: An auditor needing every hold-bearing record placed under Defensible Retention confirmed MUST read the host's hold inventory (Host-managed records 1).
 External check 8: An auditor needing an alert confirmed MUST read the deployment's alerting surface (Reconciliation 38, Audit arm 18).
 External check 10: An auditor needing the fate of a gated record sealed unsettled under a record purged outcome confirmed MUST read the deployment's own destruction records (Defensible Retention External check 8).
 External check 12: An auditor needing the pairing datum's resolution confirmed MUST clear Recoverable Invocation External check 12 (Capability requirement 67).
 External check 13: An auditor needing a repeated erasure's refusal confirmed MUST clear Recoverable Invocation External check 9 (Recoverable Invocation repeatable 2).
+External check 14: An auditor needing the fate of a host-managed record sealed unsettled confirmed MUST read the host's own record of the delete (Disposition 35, Disposition 36).
+External check 15: An auditor needing the deployment's topology confirmed MUST read the deployment's configuration AND the deployment's change record: one instance of the composition per Defensible Retention instance AND per Selective Disclosure instance, no other writer of a composition action reference, an audit retention policy unchanged for the life of the instance, the accounting records under Defensible Retention's retention, AND the alerts kept for the audit horizon (Capability requirement 42, 49, 52, 53, 54, 57, 60, 61, 63).
+External check 16: An auditor needing a stall mark never cleared, a host-managed record's retention placed no later than the fulfillment's retention read, AND EVERY record sealed unsettled settled confirmed MUST read the generated code's index writes, the host's retention placements AND the deployment's settlement record (Composition state 28, Host-managed records 3, Disposition 48).
+External check 17: An auditor needing a consent answer a disposition rests on confirmed MUST read Consent's check again as of the enumeration instant (Concurrency 2, Disposition 9).
 ```
 
 ---
@@ -895,13 +912,14 @@ Non-goal 8: A deployment exposing [Disposition Report] MUST gate the report on t
 Non-goal 9: The composition MUST NOT own the tamper seal over the Selective Disclosure records; a deployment needing the seal MUST supply the seal (Selective Disclosure Composition note 5).
 Non-goal 10: The composition MUST NOT own the propagation of a consent withdrawal; a deployment needing propagation MUST compose Propagate Consent Revocation Downstream (Consent Composition note 4).
 Non-goal 11: The composition MUST NOT claim the open, the execution commit AND the close atomic (Recoverable Invocation Non-goal 1).
+Non-goal 12: The composition MUST NOT own the legitimacy of an authority reference; the response authority is the request's regulatory reference, kept opaque (Selective Disclosure Composition note 4).
+Non-goal 13: The composition MUST NOT gate a processing act (Consent Composition note 3).
+Non-goal 14: The composition MUST NOT own the purpose taxonomy; a purpose is passed unchanged (Primitive policy 10, Consent Composition note 5).
 ```
 
-NOTE: the owners — [Permissions](../atoms/permissions.md) (Non-goal 2, External check 4); a Regulatory Deadline pattern *(forthcoming)* or a host dashboard (Non-goal 3, External check 5); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (Non-goal 10); the deployment (Non-goal 9).
+NOTE: the owners — [Permissions](../atoms/permissions.md) (Non-goal 2, External check 4); a Regulatory Deadline pattern *(forthcoming)* or a host dashboard (Non-goal 3, External check 5); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (Non-goal 10); the deployment (Non-goal 9, Non-goal 12 through 14); [Defensible Retention](./defensible-retention.md) (the retention of the disclosure and consent records, Capability requirement 60 and 61).
 
 NOTE: watch the adopter's policy note (Non-goal 9, Non-goal 10).
-
-NOTE: open 2026-11-04-k (the other adopter notes, and who owns the retention of the disclosure and consent records).
 
 ---
 
@@ -965,6 +983,8 @@ Snapshot 1: A fulfilled event MUST NOT carry a disposition for a record outside 
 
 ## Composition notes
 
+**Selective Disclosure's and Consent's composition notes, each met or declined.** Selective Disclosure's note 2 (the authorization of a call) is declined by Non-goal 2; note 3 (the attestation binding the recording actor) is met, the audit write binding the actor of every fulfillment (Primitive policy 11) beside the response disclosure the same invocation writes (Action wiring 18 and 28); note 4 (the legitimacy of an authority reference) is declined by Non-goal 12; note 5 (the tamper seal) is declined by Non-goal 9; note 6 (the retention of the disclosure records) is Defensible Retention's (Capability requirement 60); note 7 (at-most-once recording) is met by one response disclosure per request (Invariant 1.4, Invariant 5.1); note 8 does not apply, the composition leaving Selective Disclosure's own surface to its other callers (Capability requirement 41). Consent's note 1 (the deployment declares its composing patterns) is the deployment's; note 2 is met, Consent's check made ahead of any planned call (Disposition 9, Action wiring 24); note 3 (the suppression of a processing act) is declined by Non-goal 13; note 4 (the propagation of a withdrawal) is declined by Non-goal 10; note 5 (the purpose taxonomy) is declined by Non-goal 14; note 6 (the retention of the consent records) is Defensible Retention's (Capability requirement 61); note 7 (the authority to grant for a data subject) is declined, the composition writing no consent (Invariant 7.1); note 9 is met, the composition polling no consent record.
+
 **Recoverable Invocation's commit is one call.** The execution commit makes several planned calls under one invocation, and a conforming implementation of the protocol can answer for it only once, at its end. A planned call that answers no answer lands its record unsettled and the partition stays committed (Term commit partition); the partition is unknown, and the act yielded, only where the commit itself has not returned within the commit round trip, and nothing finer is carried (Recoverable Invocation commit 6 and 7). Recorded as evidence for Recoverable Invocation's next revision (Recoverable Invocation Deviation 2).
 
 **Recoverable Invocation's probe counts one record.** The erasure probe can certify a committed act only where exactly one pair reads purged under the pairing datum and the host delete plan is empty (Recoverable Invocation act probe 2, 3a and 7); an erasure with two or more destructions, or any host delete, is undecidable and escalates to an operator, where the leg this page had sealed such an erasure itself. Recorded as evidence for Recoverable Invocation's next revision (Recoverable Invocation Deviation 2).
@@ -991,7 +1011,7 @@ Term cadences: sweep cadence (Recoverable Invocation's sweep cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-24).
 
-Term terms: composition, constituents, transitive pattern, audit write, trail, trail read, recording instant, retention read, disclosure write, disclosure read, universe enumeration, request id, request index, request entry, fulfillment index, fulfillment entry, live entry, aged entry, request's events, stall mark, state read, intake event, intent, fulfilled event, plan span, request state, record source registry, creation instant, declared basis, host determinations, host delete, route, host-managed record, accounting records, audit horizon, hold guarantee, service identity, clock offset allowance, seam, now, invocation id, planned call latency, entry bound, id cap, source text, text cap, reason bound, alerting surface, subject reference, right type, requester, regulatory reference, actor reference, credential, record reference, retention id, caller string, largest record, writer, pre-effect record, intake result, fulfillment result, report, validated intake, landed intake, fulfillment, admitted fulfillment, enumerated fulfillment, enumerated access, enumerated erasure, universe cardinality, recipients read, consents read, access intent, intended fulfillment, intended access, access scope, request scope, response authority, disclosure fault, refused disclosure write, disclosed access, erasure intent, provisional dispositions, purge plan, host delete plan, destroying surface, planned call, planned record, intended erasure, executed erasure, erasure scope, disclosed erasure, landed fulfillment, reconciliation, request-scoped disclosure, destruction record, destroyed planned record, disposition, verdict, withdrawn answer, determination reading, basis reading, erasure-due record, retention reading, settled record, planned, retry answers, unsettling answers, purge's first answer, purge's last answer, purge reading, outside the host delete's contract, destruction evidence, gated erased disposition, closing record, lost run, horizon event, enumeration instant, act kind, erasure binding, act key, execution commit, commit partition, erasure probe, re-entry bind, plan cap.
+Term terms: composition, constituents, transitive pattern, audit write, trail, trail read, recording instant, retention read, disclosure write, disclosure read, source enumeration, universe enumeration, request id, request index, request entry, fulfillment index, fulfillment entry, live entry, aged entry, request's events, stall index, stall mark, state read, intake event, intent, fulfilled event, plan span, request state, record source registry, creation instant, declared basis, host determinations, host delete, route, host-managed record, accounting records, audit retention policy, audit horizon, hold guarantee, service identity, clock offset allowance, seam, now, invocation id, planned call latency, entry bound, id cap, source text, text cap, reason bound, alerting surface, invalid-request, subject reference, right type, requester, regulatory reference, actor reference, credential, record reference, retention id, caller string, largest record, writer, pre-effect record, intake result, fulfillment result, report, validated intake, landed intake, fulfillment, admitted fulfillment, enumerated fulfillment, enumerated access, enumerated erasure, universe cardinality, recipients read, consents read, access intent, intended fulfillment, intended access, access scope, request scope, response authority, disclosure fault, refused disclosure write, disclosed access, erasure intent, provisional dispositions, purge plan, host delete plan, destroying surface, planned call, planned record, intended erasure, executed erasure, erasure scope, disclosed erasure, landed fulfillment, reconciliation, request-scoped disclosure, destruction record, destroyed planned record, disposition, verdict, anomaly reason, withdrawn answer, determination reading, basis reading, erasure-due record, retention reading, settled record, planned, retry answers, unsettling answers, purge's first answer, purge's last answer, purge reading, outside the host delete's contract, destruction evidence, gated erased disposition, closing record, lost run, horizon event, enumeration instant, act kind, erasure binding, act key, execution commit, commit partition, erasure probe, re-entry bind, plan cap.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the substrate. record, read, disclosure id, scope, authority, recipient, invalid-request, unknown-authority-type, storage-failure: Selective Disclosure. check, read, grant, revoke, consent id, purpose, granted, revoked, expired, not-known, granting actor, revoking actor: Consent. purge_record, ok, not-known, not-eligible, under-active-retention, under-legal-hold, hold-check-unavailable, section-unavailable, storage-failure, gate, hold ids, count, hold check mode, strict, advisory, hold check result, hold override, gate record, record_purged, purge_intended, business retention instance, landed record, owed record, audit write latency: Defensible Retention. record_action, verify_record, payload cap, step-2, step-3, step-4, invalid-credential, recording-failure, Erasure Tombstone: Audit Trail. read, retention state, retained, purged, retention deadline, purge instant: Retention Window. read, sequence, recording instant: Event Log. open, close, refuse, yield, act-in-flight, act-landed, journal-unavailable, invocation id, closing, escalated, executed, critical section, pause bound: Recoverable Invocation.
 
@@ -1102,6 +1122,42 @@ Member of:  the fulfillment rejection
 Role:       Rejection
 Projection: incomplete-enumeration
 
+#### Not Known
+
+The fulfillment and report rejection when no request carries the request id: the rebuilt index answers no request entry (Action wiring 4, Action wiring 34), or the id is blank (Primitive policy 15). Nothing is recorded.
+
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: not-known
+
+#### Compensation Pending
+
+The [Fulfill Erasure Request] rejection when the request's act closed escalated and no operator has closed it: the destructions it made are unsettled until an operator closes the act (Action wiring 43).
+
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: compensation-pending
+
+#### Act In Flight
+
+The [Fulfill Erasure Request] rejection, carrying the invocation id, when an intent of the request's act kind stands open: another call's execution commit may be mid-plan (Action wiring 6).
+
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: act-in-flight
+
+#### State Unavailable
+
+The fulfillment and report rejection when the state read fails: no state is answered and nothing is written, so a request is never read as unknown for want of a read (Composition state 22).
+
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: state-unavailable
+
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -1120,6 +1176,10 @@ Projection: incomplete-enumeration
 [Wrong Right Type]: #wrong-right-type
 [Already Fulfilled]: #already-fulfilled
 [Incomplete Enumeration]: #incomplete-enumeration
+[Not Known]: #not-known
+[Compensation Pending]: #compensation-pending
+[Act In Flight]: #act-in-flight
+[State Unavailable]: #state-unavailable
 
 
 ## Standards references
@@ -1159,39 +1219,8 @@ formal: verified — re-derived for the unit `composes Recoverable Invocation` o
 last gate: 2026-11-22 — composes Recoverable Invocation (not a round): the erasure binds one act kind on a Recoverable Invocation instance and the access and intake stay one transaction each; 90 rules tombstoned to Recoverable Invocation and Execution Contract Database 1, about 25 restated, 12 new; the next round is a full round; 13 open lines closed, 15 narrowed; — Final Critique 5, a delta round, one reader (Linus beam-free), frozen at e74a1c0d — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 2 foundational and none held (both refuted: Concurrency 10 and Concurrency 14 bound a reading of Lease's remaining, taken only after the request's state read answered, since Concurrency 7 and Composition state 22 put a failed state read ahead of every enumeration, intent and write, and Execution Contract Read 2 and Read 4 hold a rule on what an action writes to a call whose read answered and which the action admits; the cures would restate them); the blind second triage's press found one refining beside them, opened: the state-unavailable of a failed read as an answer of Defensible Retention's purge (2026-11-19-a); refining already open: Capability requirement 31's arithmetic (2026-11-18-c); the round read the reach of Final Critique 4's cures and Defensible Retention Capability requirement 75 by their diff; 2026-11-18 — Final Critique 4, a delta round, one reader (Linus minimax-m3), frozen at d474e88 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 2 foundational, placed refining by both triages: the order of absent and purged in Term retention reading (every build reads the explicit order one way, and whether a destroyed record outranks an unregistered id is a decision no rule makes: the open line 2026-11-18-a) and Concurrency 10's interval (refuted: Concurrency 9 and Term bind floor already hold the ask-to-effect interval to two call pause bounds, and Linus's old text misquoted the page); the blind second triage's press found one foundational beside them, the settle's own, cured: Term purge reading and Term destruction evidence read Defensible Retention's recording-failure carrying outcome as a destruction, where Defensible Retention Action wiring 84 and Defensible Retention Action wiring 99 commit nothing and answer it (Defensible Retention Atomic writes 5, Defensible Retention Action wiring 112), so an erased disposition could be sealed on a purge that destroyed nothing and Check 3.1 would find no destruction; the answer is now a retry answer; refining opened: the pending mark (2026-11-18-b), Capability requirement 31's arithmetic (2026-11-18-c), Check 6.6's missing finding (2026-11-18-d); refuted or no edit: Check 8.4 (Execution Contract Logic confinement 17), Reconciliation 14, the alert floor's second window, External check 9, three rhetorical; 2026-11-18 — Final Critique 3, a delta round, frozen at b1ad0d6 — foundational count 0 after the blind second triage, clean, no sample (Linus's one report claimed none: the hold check result's "empty" is Defensible Retention's own value, so the proposed `EQUALS blank` would pass a destruction record carrying no result at all and both triages placed it refuted; External check 10's citation was written in the cited rule's own words and its number made plural, the first triage placing that refining and the second refuted; the settle's own cures, where Defensible Retention's recovery retired to Database 1 left three places on this page naming it: Term destruction record's "a recovered one included", Term recovery marker's Defensible Retention arm and the Regulator audit example's pointer to the retired Check 3.6); the round read the reach of Defensible Retention's retirement of its recovery (b1ad0d66), Check 3.1 and External check 10, by their diff; 2026-11-05 — Final Critique 2, a delta round, frozen at 776c44e — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 1, a full round of three fresh passes over the page and its three constituents — 9 foundational after merging, cured in the settle, 3 reports refuted on the page's own text; not clean: the cures are unread, and the next round is a delta round.
 
 open:
-- 2026-11-19-a · refining · Term purge reading; Term retry answers · the page lands no answer for the state-unavailable of a failed read as an answer of Defensible Retention's purge (Execution Contract Read 1, Constituent failure 3): the reading falls to unknown where Defensible Retention's own answers for the reads its purge makes (Defensible Retention Action wiring 75, Defensible Retention Action wiring 98, Defensible Retention Action wiring 99, Defensible Retention Action wiring 109) land each as another answer, and the closure rows of its five actions are owed (open 2026-11-02-b) → land state-unavailable beside storage-failure in the retry answers; Defensible Retention's rows say its purge answers it (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-18-b · refining · Term retention reading · the mark of a purged sibling reads "purged or pending" where Defensible Retention's sibling disposition value set holds purged alone → no pending mark; purged alone, as Defensible Retention's value set holds (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-18-a · refining · Term retention reading; Disposition 15, 39 · absent precedes purged, so an unregistered named id beside a purged sibling reads absent and carries unknown-retention where a destroyed record reads purged and is sealed erased → every comparison of a stored stamp with now carries a named clock-offset allowance; floors and horizons are named deployment capabilities; whether an aged record is read is said once and every reconciliation and check obeys it; a young entry inside its closure window is exempt, not flagged (decided 2026-11-19, group 2 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-04-b · refining · Capability requirement 9, 49, 54; Term audit horizon · "audit retention policy" is used as a term and declared nowhere in Terms → declare it once, citing Capability requirement 49
-- 2026-11-04-c · refining · Capability requirement 2; Term universe enumeration · "subject-scoped enumeration" is no declared term; the declared surface is the universe enumeration → name the declared term
-- 2026-11-04-e · refining · Check 2.4; External check 1 · the auditor is sent to re-enumerate through the composition-introduced universe enumeration, which an external auditor cannot call; External check 1 names the host's data inventory → re-point Check 2.4 at the inventory
-- 2026-11-04-f · refining · Disposition 19; Term verdict · the "planned" marker stands outside the verdict value set → say it is a provisional marker, no verdict
-- 2026-11-04-g · refining · Composes 4; Term trail read; Term retention reading · Composes 4's reach through Defensible Retention only sits beside reads that invoke Event Log's and Retention Window's own declared reads → pin the reach as declared instance topology or reword Composes 4
-- 2026-11-04-h · refining · Check 8.9; Composition state 13, 28 · the stall mark is read off the request index whose entry the rebuild of Composition state 13 writes, a derived index over the intake event, and the drop the rebuild cannot avoid is what Composition state 28 forbids → the stall mark is read from the intake event itself, not the derived index (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-04-j · refining · Disposition 36; Term possibly destroyed record · an over-cap host basis is sealed anomaly(unsettled) although the host answered retained, and the record the host said survived counts as a possible destruction → seal retained or state why not
-- 2026-11-04-k · refining · Selective Disclosure Composition note 3, 4, 6; Consent Composition note 3, 5, 6; Capability requirement 60, 61 · the notes are met only implicitly (the audit write binds the actor, purposes and authority references stay opaque) and the retention of the disclosure and consent records is forbidden a bound, owned by nothing; the seal and withdrawal notes are declined by Non-goal 9 and 10 → Defensible Retention owns the retention of the disclosure and consent records; each note is stated met or declined (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-10-05-c · refining · Disposition 41, 45; Reconciliation 13 through 15 · the one retry of a purge that answered storage-failure, made straight after the substrate's own step-3 refusal, meets its unreleased record section, and a leg never retries; the receiver of what is still owed is now named (Disposition 48) → order the retry Narrowed 2026-11-22 (composes Recoverable Invocation): a leg never retries dissolves; the order of Disposition 41's retry inside the execution commit survives.
-- 2026-10-05-e · refining · Primitive policy 5, 13; Audit arm 19, 20; Action wiring 21 · invalid-request lands a caller's blank input and three deployment faults, before an intent and after one, with no position; and a blank request id has no policy and reaches a take on a blank key → one code per meaning; a policy Narrowed 2026-11-22: the act kind's positions are Recoverable Invocation's (Recoverable Invocation Primitive policy 41); the access codes, Primitive policy 5 and the blank request id survive.
-- 2026-10-05-f · refining · Term text cap; Capability requirement 40, 51; Term largest record · the text cap's unit is unstated, Audit Trail's payload cap defaults to none, and the largest record does not name Audit Trail's serialized envelope, which differs for a compensating event attested under the service identity → declare each Narrowed 2026-11-22: the largest-record envelope clause goes to Recoverable Invocation's measure of a payload; the text cap's unit and the payload cap default survive.
-- 2026-10-05-g · refining · Composition state 14, 27; Capability requirement 50 · an aged entry is a whole verdict set, and a stall mark a planned destruction's only carrier, each kept for the life of the instance with no retention, seal or owner beyond a forthcoming pattern → an owner
-- 2026-10-05-h · refining · Accounting stores 1, 2; Selective Disclosure Composition note 3 through 6; Consent Composition note 6 · the seal of the accounting records, the attestation of a disclosure's writer and the legitimacy of the response authority are neither met nor declined with a named receiver; their retention is now forbidden a bound (Capability requirement 60, 61) → state each
-- 2026-10-05-i · refining · Check 3.1 through 3.4, 8.5; Capability requirement 9 · four checks re-derive what Defensible Retention's own checks own, and the horizon reading of a destruction record or a gate record destroyed ahead of its fulfilled event is stated in a WHY under Check 8.5 and by no check of its own → cite; a check Narrowed 2026-11-22: Check 8.5's horizon reading for the act kind's intents goes to Recoverable Invocation Check 7.1 through 7.3; Check 3.1 through 3.4's citation of Defensible Retention survives.
-- 2026-10-05-j · refining · Invariant 1.3, 1.6, 2.2, 3.2, 5.1, 6.1; Term Already Fulfilled · invariants beside Invariant 1.2 and 1.5 lack the past-horizon qualifier, and Invariant 1.6 and 3.2 among others are named by no check → qualify; a check each Narrowed 2026-11-22: Invariant 1.6 retires (Recoverable Invocation Check 2.5); the rest survive.
-- 2026-10-05-k · refining · Disposition 7, 39; Term retention reading · an enumerated record that reads purged is sealed erased with no alert, one whose basis reads a ground is sealed retained though destroyed, and a host-managed record under a purged retention reads mis-paired → state each
-- 2026-10-05-n · refining · Check 7.1, 7.2; Disposition 9, 40 · the two checks read actor fields Consent does not attest; a consent judged on Consent's clock alone leaves the auditor no instant to ask again as of; and a Consent check that gives no answer seals an anomaly on erasure where the same outage refuses an access ahead of its intent → state; an external check
-- 2026-10-05-o · refining · Wiring decision 1, 3; Action wiring 14; Disposition 1; Invariant 1.1, 2.1, 7.1, 7.2; Capability requirement 8, 13, 33; Reconciliation 5, 18; Composition state 9 · one proposition under two rules in six places, and two requirements that hold by construction → tombstone the second owner Narrowed 2026-11-22: Reconciliation 5 and 18 and Capability requirement 13 and 33 go; Wiring decision 1, Action wiring 14, Disposition 1, Invariant 1.1, 2.1, 7.1, 7.2, Capability requirement 8 and Composition state 9 survive.
-- 2026-10-05-q · rhetorical · Summary; Examples; Terms; Composition-level invariants · sealed, compensated and tamper-evident are unglossed in the Summary; the walkthrough payloads omit fields the rules require and nothing walks the host delete, the invocation's own abandonment or state-unavailable; four refusals have no term entry; the examples write rejected where the rules say answers; the Invariant 9 tombstone sits in Invariant 8's block → rewrite on the next load-bearing touch Narrowed 2026-11-22: the examples' abandonment and orphan walk is rewritten; the Summary glosses, term entries, rejected wording and the tombstone placement survive.
-- 2026-10-05-r · refining · Capability requirement 34, 41, 42, 49, 50, 52 through 61, 63; Reconciliation 10, 11, 29, 37, 41; Composition state 28; Host-managed records 3; Disposition 48 · no check and no external check reads them → a check each, or name them external Narrowed 2026-11-22: Capability requirement 34, 58 and 62 and Reconciliation 10, 11, 29 and 37 go; Capability requirement 41, 42, 49, 52 through 57, 59 through 61 and 63, Reconciliation 41, Composition state 28, Host-managed records 3 and Disposition 48 survive.
-- 2026-10-05-s · refining · Check 2.4, 2.6, 2.7; Capability requirement 1 · the registry is not obliged to carry a source's registration instant, an erasure that omits a surviving record is tested nowhere, and Check 2.6's stated reason is not the one Check 2.4's direction gives → oblige the instant; restate the reason
-- 2026-10-05-z · rhetorical · Term fulfillment; Term reconciliation; Term leg; the reason value sets · fulfillment names the call and the bound triple, reconciliation is defined as the leg and run is undeclared, and three reasons each cover two causes → one name each Narrowed 2026-11-22: the reconciliation, leg and run half closes; Term fulfillment and the reason value sets survive.
-- 2026-10-06-b · refining · Invariant 3.2; Disposition 18, 35; Host-managed records 3; External check 10 · a host delete rests on a retention reading up to a section term old; the window is stated and is the deployment's, and a reading taken again ahead of each host delete would shorten it to a call; and no external check names the evidence for a host-managed record sealed unsettled → the second reading; name the evidence Narrowed 2026-11-22: the execution commit's retention re-read ahead of each host delete (Action wiring 53) cures the first half; the external check for a host-managed record sealed unsettled survives.
-- 2026-10-06-c · refining · Check 6.3, 6.4; Term plan span · the attribution's limit is stated — the nearer plan is credited and may not be the caller's — and no check compares a purge intent's actor and invocation id with the plan's → the comparison as a check
-- 2026-10-06-f · refining · Audit arm 24, 26; External check 5 · a caller told recording-failure carrying intent has no bound past which the report's not-known is final; a leg re-issues an event refused invalid-request at step-3, which Audit Trail record action step 7.13 forbids; and the statutory deadline is computed from seam instants a stalled host stamps early, with the log's recording instant unnamed → state each Narrowed 2026-11-22: Audit arm 24 and the leg's re-issue close (Recoverable Invocation Primitive policy 43); Audit arm 26 and External check 5 survive.
-- 2026-10-06-g · refining · Term retention read; Term record start floor; Term plan floor; Reconciliation 9, 30 · the retention read is whole-database and is made again inside the planned call latency for each not-known; a leg's retention readings are not pinned ahead of its first write; and the two latencies run from the call's issue where Lease's unit runs from the reading, leaving one pause of margin where the Terms say two → a filtered read; pin; one origin Narrowed 2026-11-22: the leg's unpinned readings close; the whole-database retention read and the latency origin (planned call latency) survive.
-- 2026-10-06-h · refining · Term purge plan; Disposition 17, 45; Concurrency 7; Reconciliation 26 · a record that answers held or obliged stands first in every later plan, so a subject with enough of them never reaches the rest, which the page names as the deployment's sizing; and a caller retrying compensation-pending takes the section ahead of its read and can keep a leg answered held, with the alert the only cover → order the plan by what a call can still settle; read ahead of the take Narrowed 2026-11-22: the compensation-pending caller taking the section ahead of its read closes (Recoverable Invocation open step 1.6 and 1.7); the plan-order half survives.
-- 2026-10-06-j · rhetorical · Capability requirement 31, 33; Check 1.1, 2.1; Summary; Examples · two requirements hold by the Terms' own formulas and one cites Lease Sizing 9 for a comparison Lease makes against the write margin; Check 1.1 leans on Check 8.5 for its aged exception and Check 2.1 read to the letter catches an intent's provisional marker; the Summary runs past the format's length and carries no blockquote; the disputed-erasure example reads Legal Hold through the substrate, a reach Composes says does not exist; and spec-format's edge-case headings for cross-record consistency and identity are absent → rewrite on the next load-bearing touch Narrowed 2026-11-22: Capability requirement 31 and 33 go and the Cross-record consistency heading is added; Check 1.1, 2.1, the Summary, the disputed-erasure example and the identity heading survive.
-- 2026-10-06-k · refining · Disposition 34, 43; Term reason bound; Check 6.1, 6.2 · a second request racing on a host-managed record lands host-record-not-found where the gated twin lands erased; the reason bound sizes an access set as if every reason carried hold ids at the cap; and the two checks order the intent against the fulfilled event alone, so a disclosure or a host delete issued ahead of its intent passes → state or leave; read the disclosure's own instant
-- 2026-10-07-a · rhetorical · Term enumeration instant; Capability requirement 33 · the intended instant is called the now under which the universe was enumerated, where it is the reading ahead of the take and stale by any stall; and the requirement holds by the floors' own formulas → rewrite on the next load-bearing touch Narrowed 2026-11-22: Capability requirement 33 goes; the intended instant's staleness survives, still the reading ahead of the open's take.
+- 2026-11-18-a · refining · Term retention reading; Disposition 15, 39 · absent precedes purged, so an unregistered named id beside a purged sibling reads absent and carries unknown-retention where a destroyed record reads purged and is sealed erased → decide whether a destroyed record outranks an unregistered named id (asked of Scott, with the recommendation that it does)
+- 2026-10-06-h · refining · Term purge plan; Disposition 17, 45; Concurrency 7 · a record that answers held or obliged stands first in every later plan, so a subject with more of them than the plan cap never reaches the rest, which the page names as the deployment's sizing → order the plan by what a call can still settle (asked of Scott: no rule orders it, and Wiring decision 5 bars the composition from reading a hold)
 ```
 
 </details>

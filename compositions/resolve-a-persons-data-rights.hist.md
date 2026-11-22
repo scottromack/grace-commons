@@ -12,6 +12,10 @@ The dated record of how [Resolve a Person's Data Rights](./resolve-a-persons-dat
 
 Entries that record a round or a migration rather than a turn the pattern took.
 
+- **2026-11-22 — The stall mark leaves the derived request entry for a store of its own.** *Chose:* the stall mark lives in the stall index, keyed by request id and kept apart from the request entry, still extraction-pending against Owed Record, so the rebuild of a missing request entry from its intake event neither writes nor drops it. *Over:* Scott's direction of 2026-11-19 (rounds/open-line-choices-directions-2.md, item 75), that the mark is read from the intake event itself: no event carries a stall, and the intake event predates it and is immutable, so past the audit horizon the mark is the one carrier of a destruction planned and never sealed. *Because:* a derived index is droppable and regenerated (Execution Contract Composition state), and a mark held in one was cleared by a rebuild that Composition state 28 forbids; the mark was never derivable, so it stands where nothing rebuilds it.
+
+- **2026-11-22 — Defensible Retention owns the retention of the disclosure and consent records, and an erasure's re-enumeration is read both ways.** *Chose:* Capability requirement 60 and 61 place every record of the Selective Disclosure and Consent instances under the Defensible Retention instance's retention (Scott, 2026-11-19, item 76), and each constituent composition note is stated met or declined in the Composition notes; Check 2.6 re-enumerates an erasure's universe from the host's data inventory and finds every surviving record in the disposition set. *Over:* a forbidden bound owned by nothing, and a check that barred the one re-enumeration that finds an erasure omitting a survivor. *Because:* a retention nothing owns is a hold nothing can see, and an omission a re-enumeration can find is the no-silent-omission guarantee's own test.
+
 - **2026-11-18 — Check 3.6 retires: Defensible Retention commits a purge's destruction record with the purge, so no record stands owed under an open marker.** *Chose:* the check goes, and Check 3.1 loses its exception for it; the check's one citation, Defensible Retention Check 5.9, retired under Execution Contract Database 1 and Read 4 (Scott's ruling of 2026-11-17 9:19 PM Central, the Login ruling, applied to Defensible Retention by the unit that retires its recovery). *Over:* repointing the check to another Defensible Retention rule. *Because:* the state it read, a destruction record owed under an open marker, is no state any more: the purge, its intent and its outcome commit together or the call commits nothing. The page returns to `doing` for a delta round, since a check of the conformance section changed.
 
 - **2026-08-26 — The erasure intent record carries a `purge_plan`, and authentication is not inherited across the substrate boundary.** *Chose:* the plan names the retentions a rights fulfillment will attempt, so a purge occasioned by an authorized fulfillment is distinguishable in the shared Audit Trail from a direct call that bypassed the rights process; Defensible Retention verifies the same credential independently at its own boundary. *Over:* treating the outer authentication as covering the nested purges. *Because:* the substrate's surface is independently callable, so what the plan records is provenance, not authority.
@@ -53,6 +57,7 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 ### Composition logic › Composition state
 
 ```
+Deleted: Composition state 9. Action wiring 33 owns it: a landed fulfillment is the one that writes the fulfillment entry.
 Deleted: Composition state 23. Execution Contract Read 3 owns it.
 Deleted: Composition state 24. Execution Contract Database 1 owns it: a disclosure and its fulfilled event commit together or neither does, so no unbound disclosure can stand.
 ```
@@ -60,6 +65,7 @@ Deleted: Composition state 24. Execution Contract Database 1 owns it: a disclosu
 ### Composition logic › Capability requirement
 
 ```
+Deleted: Capability requirement 8. Capability requirement 49 owns it: one policy answers for every event of the audit instance, so no write of the composition carries a retention input.
 Deleted: Capability requirement 13. Recoverable Invocation Invariant 5.2 and Sweep never 2 own it: no page write outside an invocation remains an audit write.
 Deleted: Capability requirement 14. Capability requirement 37 owns it.
 Deleted: Capability requirement 15. Capability requirement 37 owns it.
@@ -78,6 +84,7 @@ Deleted: Capability requirement 34. Recoverable Invocation act section 16 and In
 Deleted: Capability requirement 36. Recoverable Invocation act section 19 owns it.
 Deleted: Capability requirement 38. Execution Contract Scheduled leg 1 owns it.
 Deleted: Capability requirement 39. Recoverable Invocation Instance start 4 owns it: the closure window exceeds the worst closure.
+Deleted: Capability requirement 40. Execution Contract Input 2 owns it: a bound is a default cap, and the text cap's default is 1,024 code points (Term text cap).
 Deleted: Capability requirement 43. Execution Contract Scheduled leg 1 owns it.
 Deleted: Capability requirement 46. Recoverable Invocation Primitive policy 18 owns it: the run's now.
 Deleted: Capability requirement 48. Recoverable Invocation Instance start 5 owns it: the retention floor.
@@ -114,6 +121,7 @@ Deleted: Audit arm 27. Recoverable Invocation Reconcile step 3.18 and Recoverabl
 ### Composition logic › Action wiring
 
 ```
+Deleted: Action wiring 14. Disposition 1 and Invariant 2.1 own it: every enumerated record carries exactly one disposition.
 Deleted: Action wiring 19. Execution Contract Database 1 owns it for the access: a refused disclosure write commits nothing. Recoverable Invocation's refuse owns it for the act kind (commit 2).
 Deleted: Action wiring 20. Recoverable Invocation's position table owns it for the act kind; Audit arm 7 owns it for the access.
 Deleted: Action wiring 23. Recoverable Invocation Invariant 1.1 and Action wiring 4 own it: an act kind's intent lands before its commit.
@@ -126,6 +134,7 @@ Deleted: Action wiring 39. Execution Contract Database 1 owns it: a disclosure w
 ### Composition logic › Wiring decision
 
 ```
+Deleted: Wiring decision 1. Disposition 1 and Invariant 2.1 own it.
 Deleted: Wiring decision 3. Execution Contract Database 1 owns it.
 ```
 
