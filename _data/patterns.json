@@ -1812,7 +1812,7 @@
    "permissions",
    "event-log"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -1822,7 +1822,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "substrates": [],
   "title": "Shared Cart"
  },

@@ -564,7 +564,7 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-22` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -572,9 +572,9 @@ Shared Cart is a wiring of three primitives and not a regulated pattern, so it c
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-22
 formal: verified — shared-cart.als + 27 twins (the static data model: Invariant 2.1 and 3.1, Scope vocabulary 2 and 3 through 7, Action wiring 1 through 22, 24 through 27, 29 and 30, Wiring decision 1 and 2 and Non-goal 3 and 10 checked on every call's permitted check, constituent calls, cart event and answer and on the carts, lines, grants and events they leave, with Composes 7 through 11, Composition state 2 and 3 and Scope vocabulary 1 checked through them); shared-cart.tla + 4 twins (across steps, while an opener and a friend share, unshare, add, change, remove, clear, view and read back: Invariant 1.1, 3.2 and 4.1 and Action wiring 28, with Action wiring 23 checked through them); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Action wiring 30 checked as Action wiring 2, 13, 17 and 19 read it (its condition does not exclude the composition's own refusals); owed rows: none, 2026-11-12; Action wiring 8 re-derived in Alloy (the cart id and the five grant ids Action wiring 7's grants answered; shared-cart-buggy-open-answers-no-grants.als), 2026-11-20
-last gate: 2026-11-22 — Final Critique 3, frozen at d64fdba8 — foundational count 3 (a view's two reads had no order, so a concurrent add could leave a line without its adder; a friend reference could be read as a field of a cart event; an over-length actor reference and an invalid currency in one [Open Cart] answered by two builds differently), not clean, no sample (cured: Action wiring 31 orders the reads, Action wiring 32 writes the event as one object, Action wiring 33 and 34 refuse an over-long reference); 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-22 — Final Critique 4, a delta round, frozen at ea996ecd — foundational count 0, clean, one sample (Linus reported 1 foundational, refuted on the page's text: Capability requirement 1 binds the deployment to Execution Contract Database 1, and Constituent failure 1 fails the whole [Add Line] when Event Log.append refuses, so no Line stands without its add event; the blind second triage, one cold subagent, placed it refuted on the same rules); 2026-11-22 — Final Critique 3, frozen at d64fdba8 — foundational count 3 (a view's two reads had no order, so a concurrent add could leave a line without its adder; a friend reference could be read as a field of a cart event; an over-length actor reference and an invalid currency in one [Open Cart] answered by two builds differently), not clean, no sample (cured: Action wiring 31 orders the reads, Action wiring 32 writes the event as one object, Action wiring 33 and 34 refuse an over-long reference); 2026-11-05 — Final Critique 2, delta, frozen at b430bcf — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 1, frozen at d7d3b7a — foundational count 5, cured, not clean, no sample
 
 open: none
 ```
