@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Capacity Constraint Enforcement holds one number against another. A pool declares a maximum, tracks a running total, and refuses any allocation that would push the total past the bound. Units are fungible — five units allocated is one event carrying the count, not five records — so this atom (a small building-block pattern that owns one obligation) owns the arithmetic and nothing else.
+Capacity Constraint Enforcement holds one number against another. A pool declares a maximum, tracks a running total, and refuses any allocation that would push the total past the bound. Units are fungible (interchangeable: no unit is told apart from another) — five units allocated is one event carrying the count, not five records — so this atom (a small building-block pattern that owns one obligation) owns the arithmetic and nothing else.
 
 A pool is [Open], [Suspended] or [Closed]. Suspending halts new allocations without unwinding the existing ones; closing is terminal. [Release] is admitted in every state, including [Closed], so a composing pattern (another pattern built on top of this one) can unwind in-flight allocations after the pool is shut.
 
@@ -128,7 +128,7 @@ Term resuming actor reference: the [Resume Pool] input the state-change event ke
 
 Term closing actor reference: the [Close Pool] input the state-change event keeps as acting actor reference — a [Closing Actor Reference].
 
-Term state: the pool's lifecycle state held as a field of the pool — a [State]; open, suspended or closed (pool state).
+Term state: the pool state the pool holds as a field — a [State].
 
 Term declaration instant: the instant a pool was declared — a [Declaration Instant]; stamped from the injected now at [Declare Pool] (Operation 5).
 
@@ -164,8 +164,8 @@ Term reason: the caller-supplied reason an adjustment event, a state-change even
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
-Capability requirement 6: The deployment MAY declare the actor reference cap PER Execution Contract Input 2.
+Capability requirement 5: The deployment MUST supply the pool records PER Execution Contract Database 1 through 6, Execution Contract Order 1, Execution Contract Read 1 through 3, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 6: The deployment MAY declare the actor reference cap and the reason cap PER Execution Contract Input 2.
 Capability requirement 7: IF a composed retention pattern purges an audit event THEN the deployment MUST retain an anchor carrying the capacity, the allocated and the pool state at the purge boundary (Invariant 9.4, Check 2.2).
 Capability requirement 8: The deployment MUST supply the pool records refusing a colliding write (Identity 14, Operation 57).
 ```
@@ -342,14 +342,14 @@ The case space, and the rule that owns each case:
 - **Invariant 3 — Closed is absorbing for state and for new allocation.**
   ```
   Invariant 3.1: A closed pool MUST NOT leave closed.
-  Invariant 3.2: A pool's audit log MUST NOT carry a state-change event whose new state EQUALS closed BEFORE an allocation event.
-  Invariant 3.3: A pool's audit log MUST NOT carry a state-change event whose new state EQUALS closed BEFORE an adjustment event.
+  Invariant 3.2: A pool's audit log MUST NOT carry an allocation event later in insertion order than a state-change event whose new state EQUALS closed.
+  Invariant 3.3: A pool's audit log MUST NOT carry an adjustment event later in insertion order than a state-change event whose new state EQUALS closed.
   Invariant 3.4: [Release] MUST stand as the one mutating action a closed pool admits.
   ```
 - **Invariant 4 — Capacity constraint.**
   ```
   Invariant 4.1: EVERY pool's allocated MUST NOT EXCEED the capacity.
-  Invariant 4.4: Invariant 4.1 MUST rest on the deployment obligations Capability requirement 5 and Arithmetic 1 name.
+  Invariant 4.4: Invariant 4.1 MUST rest on the deployment obligations Capability requirement 5 and Execution Contract Logic confinement 9 name.
   ```
 - **Invariant 5 — Non-negativity.**
   ```
@@ -371,6 +371,7 @@ The case space, and the rule that owns each case:
   Invariant 8.3: An audit-identifier surface MUST stand for as long as the audit event stands.
   Invariant 8.4: A composed erasure mechanism MAY scrub an attribution surface.
   Invariant 8.5: An arithmetic reconstruction MUST NOT rest on an attribution surface.
+  Invariant 8.6: An attribution surface a composed erasure mechanism scrubbed MUST stand as carried by EVERY rule that obliges a pool or an audit event to carry the attribution surface.
   ```
 - **Invariant 9 — Audit log append-only under this atom's actions.**
   ```
@@ -398,9 +399,9 @@ The case space, and the rule that owns each case:
   ```
   Invariant 13.1: Two pools MUST NOT share a pool id.
   Invariant 13.2: Two audit events MUST NOT share an event id.
-  Invariant 13.3: Invariant 13.2 MUST rest on the generator the deployment declares.
+  Invariant 13.3: Invariant 13.2 MUST rest on the deployment obligations Identity 16 and Identity 17 name.
   ```
-- **Invariant 14 — Action atomicity.**
+- **Invariant 14 — Action atomicity.** Execution Contract Database 1 holds it, cited by Capability requirement 5.
 
 Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the deployment obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariant 8 through 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
 
@@ -444,30 +445,33 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the pool record set and its audit log.
+This atom's acceptance is provable: an external auditor clears it from the pool record set, with its earlier versions (Execution Contract Database 5), and its audit log.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY pool's pool id, capacity, allocated, pool state and declaration fields present (State 2).
-Check 2.1: IF no purged audit event EXISTS THEN an auditor MUST reconstruct a pool's capacity, allocated and pool state at an audit event by replaying the pool's audit log forward from the declaration (Invariant 9.1, State 11).
+Check 2.1: IF no purged audit event EXISTS THEN an auditor MUST reconstruct a pool's capacity, allocated and pool state at an audit event by replaying the pool's audit log forward from the pool's first committed version (Execution Contract Database 5, Invariant 9.1, State 11).
 Check 2.2: An auditor MUST read a purged audit event as a break in the replay (Invariant 9.4).
 Check 2.4: IF no purged audit event EXISTS THEN an auditor MUST find EVERY allocation event's opening balance AND EVERY release event's opening balance equal to the allocated the replay holds on reaching the audit event (Check 2.1, State 15, State 16, Operation 3).
 Check 2.5: IF no purged audit event EXISTS THEN an auditor MUST find EVERY pool's capacity, allocated and pool state equal to what the replay holds at the end of the pool's audit log (Check 2.1, Invariant 10.1, Invariant 11.1).
 Check 3.1: An auditor MUST find EVERY allocation event's closing balance equal to the requested total (Operation 15).
 Check 3.2: An auditor MUST find the closing balance of EVERY allocation event the replay reaches no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
+Check 3.3: An auditor MUST find no allocation event later in insertion order than a state-change event whose new state EQUALS closed on a pool's audit log (State 11, Invariant 3.2, Operation 11).
+Check 3.4: IF no purged audit event EXISTS THEN an auditor MUST find the pool state the replay holds on reaching EVERY allocation event equal to open (Check 2.1, Operation 10, Operation 11).
 Check 4.1: An auditor MUST find EVERY release event's closing balance equal to the released total (Operation 23).
 Check 4.2: An auditor MUST find no release event's closing balance below zero (Invariant 5.1).
 Check 7.1: An auditor MUST find prior capacity, new capacity, adjusting actor reference and a reason on EVERY adjustment event, AND a new capacity that DOES NOT EQUAL the prior capacity (State 17, Operation 31).
 Check 7.2: IF no purged audit event EXISTS THEN an auditor MUST find EVERY adjustment event's prior capacity equal to the capacity the replay holds on reaching the audit event (Check 2.1, Operation 33).
 Check 7.3: IF no purged audit event EXISTS THEN an auditor MUST find the allocated the replay holds at EVERY adjustment event no higher than the new capacity (Check 2.1, Operation 32).
+Check 7.4: An auditor MUST find no adjustment event later in insertion order than a state-change event whose new state EQUALS closed on a pool's audit log (State 11, Invariant 3.3, Operation 29).
 Check 8.1: An auditor MUST find prior state, new state, acting actor reference and a reason on EVERY state-change event, the prior state and the new state standing as a state change pair (State 18).
 Check 8.2: IF no purged audit event EXISTS THEN an auditor MUST find EVERY state-change event's prior state equal to the pool state the replay holds on reaching the audit event (Check 2.1, Operation 41, Operation 44, Operation 46).
 ```
 
-NOTE: EVERY check names the rule the check tests. Check 1.1 reads a declaring actor reference or a declaration reason a composed erasure mechanism scrubbed as scrubbed, not as absent (Invariant 8.4). The capacity at a purge boundary is read beside the pool records, from the deployment's anchor (External check 6).
+NOTE: EVERY check names the rule the check tests. A check reads an attribution surface a composed erasure mechanism scrubbed as carried (Invariant 8.6, Execution Contract Database 6). The capacity at a purge boundary is read beside the pool records, from the deployment's anchor (External check 6).
 
-NOTE: Check 3.1 and Check 3.2 read one event, as the Summary says; Check 2.4, Check 2.5, Check 7.2, Check 7.3 and Check 8.2 chain an event to the replay, which costs a walk of the pool's audit log from the declaration, and a record set written by a store that broke Execution Contract Database 2 fails one of them (a chain check and a per-event check fail in different directions: a lost or reordered event breaks the chain, an altered event breaks its own arithmetic).
+NOTE: Check 3.1, Check 4.1 and Check 4.2 read one event, as the Summary says; Check 2.4, Check 2.5, Check 3.2, Check 3.4, Check 7.2, Check 7.3 and Check 8.2 chain an event to the replay, which costs a walk of the pool's audit log from the declaration, and a record set written by a store that broke Execution Contract Database 2 fails one of them (a chain check and a per-event check fail in different directions: a lost or reordered event breaks the chain, an altered event breaks its own arithmetic).
 
 #### External checks
 
@@ -548,16 +552,16 @@ String 7: IF a string field carries a zero-width character THEN the action MUST 
 String 8: IF a string field carries a bidi-override character THEN the action MUST answer invalid-request.
 String 9: The atom MUST NOT normalize a string field.
 String 10: The atom MUST NOT case-fold a string field.
-String 11: The atom MUST store a string field as the call supplied the string field.
+String 11: The atom MUST store a string field PER Execution Contract Input 4.
 ```
 
 Term integer width: the largest count the deployment's integers carry without loss.
 
-Term actor reference cap: 1000 codepoints where a deployment declares none — the ceiling an actor reference is measured against, counted in codepoints as the call carries it.
+Term actor reference: the declaring, allocating, releasing, adjusting, suspending, resuming or closing actor reference a call carries — a reference the deployment canonicalizes at the seam (Execution Contract Logic confinement 13).
 
-NOTE: watch the unset setting (String 3).
+Term actor reference cap: 1000 codepoints where a deployment declares none — the ceiling an actor reference is measured against, counted as Execution Contract Input 2 counts a cap.
 
-Term reason cap: 2000 codepoints — the ceiling a reason is measured against, counted in codepoints rather than bytes so a multi-byte script is not penalized against a single-byte one.
+Term reason cap: 2000 codepoints where a deployment declares none — the ceiling a reason is measured against, counted in codepoints rather than bytes so a multi-byte script is not penalized against a single-byte one.
 
 Term control character: a codepoint in Unicode's `Cc` category.
 
@@ -568,14 +572,11 @@ Term bidi-override character: a codepoint in `U+202A` to `U+202E`, or `U+2066` t
 ### Arithmetic
 
 ```
-Arithmetic 1: The deployment MUST compute the requested total without loss.
 Arithmetic 2: The deployment MUST own the integer width.
 Arithmetic 3: IF the requested total EXCEEDS the integer width THEN [Allocate] MUST answer invalid-request.
 Arithmetic 4: IF capacity EXCEEDS the integer width THEN [Declare Pool] MUST answer invalid-request.
 Arithmetic 5: IF new capacity EXCEEDS the integer width THEN [Adjust Capacity] MUST answer invalid-request.
 ```
-
-### Crash atomicity
 
 ## Composition notes
 
@@ -594,7 +595,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the database; a pool; a pool state; an audit event; an audit log; a write; an action; a rejection; a string field; the pool count.
+Term actors: the atom; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the database; a pool; a pool state; an audit event; an audit log; a write; an action; a rejection; a string field; the count of pools.
 
 Term records: pool — one bounded resource, carrying pool id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool id, an event class, a recording instant and the fields the event's class names.
 
@@ -602,13 +603,13 @@ Term record verbs: identify, offer, share, re-order, retain, allocate, change, m
 
 Term value sets: pool state and event class are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: reason cap (2000 codepoints); actor reference cap (1000 codepoints where a deployment declares none); maximum length (the cap a string field is measured against: the reason cap for a reason, the actor reference cap for an actor reference); whole count and positive count (the integer floors); integer width (the deployment's ceiling on capacity, new capacity, count and the requested total); capacity (the pool's own declared bound).
+Term bounds: reason cap (2000 codepoints where a deployment declares none); actor reference cap (1000 codepoints where a deployment declares none); maximum length (the cap a string field is measured against: the reason cap for a reason, the actor reference cap for an actor reference); whole count and positive count (the integer floors); integer width (the deployment's ceiling on capacity, new capacity, count and the requested total); capacity (the pool's own declared bound).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.36 (2026-09-12).
 
-Term terms: state, declaration instant, declaring actor reference, declaration reason, allocation event id, release event id, adjustment event id, state change id, prior capacity, prior state, new state, allocating actor reference, releasing actor reference, adjusting actor reference, acting actor reference, suspending actor reference, resuming actor reference, closing actor reference, reason, purge boundary, state change pair, audit-log read, pool, pool id, event id, event class, seam, transition, now, business caller, capacity, allocated, available, count, whole count, positive count, requested total, released total, new capacity, pool state, addressed action, state-changing action, writing action, pool snapshot, audit event, declaration field, opening balance, closing balance, recording instant, colliding write, integer width, audit-identifier surface, attribution surface, reason cap, actor reference cap, control character, zero-width character, bidi-override character, maximum length.
+Term terms: actor reference, state, declaration instant, declaring actor reference, declaration reason, allocation event id, release event id, adjustment event id, state change id, prior capacity, prior state, new state, allocating actor reference, releasing actor reference, adjusting actor reference, acting actor reference, suspending actor reference, resuming actor reference, closing actor reference, reason, purge boundary, state change pair, audit-log read, pool, pool id, event id, event class, seam, transition, now, business caller, capacity, allocated, available, count, whole count, positive count, requested total, released total, new capacity, pool state, addressed action, state-changing action, writing action, pool snapshot, audit event, declaration field, opening balance, closing balance, recording instant, colliding write, integer width, audit-identifier surface, attribution surface, reason cap, actor reference cap, control character, zero-width character, bidi-override character, maximum length.
 
 #### Declare Pool
 
@@ -658,6 +659,24 @@ The read-only behavior that returns a pool's current { [Capacity], [Allocated], 
 
 Kind: Operation
 
+#### Pool
+
+One bounded resource with a declared capacity and a running total, carrying the declaration fields and an audit log of [Audit Event]s.
+
+Kind: Type
+
+#### Audit Event
+
+One entry on a pool's audit log: an allocation, a release, an adjustment or a state change.
+
+Kind: Type
+
+#### Pool Snapshot
+
+What a query answers: the capacity, the allocated, the available and the pool state together.
+
+Kind: Type
+
 #### Pool Id
 
 The opaque, immutable identity of a pool, deployment-allocated at the I/O seam on [Declare Pool] and never reused. The declaration metadata, [Capacity], [Allocated], and [State] are properties of the pool, not its identity.
@@ -684,10 +703,10 @@ Projection: allocated
 
 #### Available
 
-The derived headroom, [Capacity] − [Allocated], reported by [Query]. Recomputed from [Capacity] and [Allocated]; not stored independently.
+The derived headroom, [Capacity] − [Allocated], of a [Pool] reported by [Query] in the [Pool Snapshot]. Recomputed from [Capacity] and [Allocated]; not stored independently.
 
 Kind:       Field
-Field of:   Pool
+Field of:   Pool Snapshot
 Projection: available
 
 #### State
@@ -727,7 +746,7 @@ Projection: declaration_reason
 The opaque, immutable id of an allocation event, deployment-allocated at the I/O seam on each [Allocate] and individually addressable on the pool's audit log. Composing patterns key against it.
 
 Kind:       Field
-Field of:   the allocation event
+Field of:   Audit Event
 Projection: allocation_event_id
 
 #### Release Event Id
@@ -735,7 +754,7 @@ Projection: allocation_event_id
 The opaque, immutable id of a release event, deployment-allocated at the I/O seam on each [Release].
 
 Kind:       Field
-Field of:   the release event
+Field of:   Audit Event
 Projection: release_event_id
 
 #### Adjustment Event Id
@@ -743,7 +762,7 @@ Projection: release_event_id
 The opaque, immutable id of a capacity-adjustment event, deployment-allocated at the I/O seam on each [Adjust Capacity].
 
 Kind:       Field
-Field of:   the capacity-adjustment event
+Field of:   Audit Event
 Projection: adjustment_event_id
 
 #### State Change Id
@@ -751,7 +770,7 @@ Projection: adjustment_event_id
 The opaque, immutable id of a state-change event, deployment-allocated at the I/O seam on each [Suspend Pool], [Resume Pool], or [Close Pool].
 
 Kind:       Field
-Field of:   the state-change event
+Field of:   Audit Event
 Projection: state_change_id
 
 #### Count
@@ -759,7 +778,7 @@ Projection: state_change_id
 The positive-integer number of units an [Allocate] or [Release] operates on, within the deployment's integer width, recorded on the resulting event. Zero is not a legitimate count.
 
 Kind:       Field
-Field of:   the allocation/release event
+Field of:   Audit Event
 Projection: count
 
 #### Opening Balance
@@ -767,7 +786,7 @@ Projection: count
 The pool's [Allocated] value immediately before an allocation or release event — the before half of the event's symmetric snapshot.
 
 Kind:       Field
-Field of:   the allocation/release event
+Field of:   Audit Event
 Projection: allocated_before
 
 #### Closing Balance
@@ -775,7 +794,7 @@ Projection: allocated_before
 The pool's [Allocated] value immediately after an allocation or release event ([Opening Balance] + [Count] for allocate, − [Count] for release) — the witness that lets an auditor verify Invariant 5 per event, and Invariant 4 against the capacity in effect at the event (Check 3.2).
 
 Kind:       Field
-Field of:   the allocation/release event
+Field of:   Audit Event
 Projection: allocated_after
 
 #### Prior Capacity
@@ -783,7 +802,7 @@ Projection: allocated_after
 The pool's [Capacity] immediately before a capacity-adjustment event.
 
 Kind:       Field
-Field of:   the capacity-adjustment event
+Field of:   Audit Event
 Projection: prior_capacity
 
 #### New Capacity
@@ -791,7 +810,7 @@ Projection: prior_capacity
 The revised [Capacity] supplied to [Adjust Capacity] and recorded on the adjustment event. Must be non-negative and within the deployment's integer width, differ from the current [Capacity], and be ≥ [Allocated].
 
 Kind:       Field
-Field of:   the capacity-adjustment event
+Field of:   Audit Event
 Projection: new_capacity
 
 #### Prior State
@@ -799,7 +818,7 @@ Projection: new_capacity
 The pool's [State] immediately before a state-change event.
 
 Kind:       Field
-Field of:   the state-change event
+Field of:   Audit Event
 Projection: prior_state
 
 #### New State
@@ -807,7 +826,7 @@ Projection: prior_state
 The pool's [State] immediately after a state-change event.
 
 Kind:       Field
-Field of:   the state-change event
+Field of:   Audit Event
 Projection: new_state
 
 #### Recording Instant
@@ -815,7 +834,7 @@ Projection: new_state
 The wall-time an event was appended to the audit log, stamped from the seam-injected [Now]. Best-effort metadata; insertion order, not timestamp order, is authoritative.
 
 Kind:       Field
-Field of:   the audit-log event
+Field of:   Audit Event
 Projection: recorded_at
 
 #### Allocating Actor Reference
@@ -823,7 +842,7 @@ Projection: recorded_at
 The opaque reference to the actor performing an [Allocate], recorded on the allocation event.
 
 Kind:       Field
-Field of:   the allocation event
+Field of:   Audit Event
 Projection: allocating_actor_ref
 
 #### Releasing Actor Reference
@@ -831,7 +850,7 @@ Projection: allocating_actor_ref
 The opaque reference to the actor performing a [Release], recorded on the release event.
 
 Kind:       Field
-Field of:   the release event
+Field of:   Audit Event
 Projection: releasing_actor_ref
 
 #### Adjusting Actor Reference
@@ -839,7 +858,7 @@ Projection: releasing_actor_ref
 The opaque reference to the actor performing an [Adjust Capacity], recorded on the adjustment event.
 
 Kind:       Field
-Field of:   the capacity-adjustment event
+Field of:   Audit Event
 Projection: adjusting_actor_ref
 
 #### Acting Actor Reference
@@ -847,7 +866,7 @@ Projection: adjusting_actor_ref
 The opaque reference to the actor performing a state transition, recorded on the state-change event.
 
 Kind:       Field
-Field of:   the state-change event
+Field of:   Audit Event
 Projection: acting_actor_ref
 
 #### Suspending Actor Reference
@@ -879,7 +898,7 @@ Projection:   closing_actor_ref
 The caller-supplied reason string recorded on a capacity-adjustment or state-change event (and, as [Declaration Reason], on the pool). Required on [Declare Pool], [Adjust Capacity], [Suspend Pool], [Resume Pool], [Close Pool]; not required on the routine [Allocate]/[Release].
 
 Kind:       Field
-Field of:   the audit-log event
+Field of:   Audit Event
 Projection: reason
 
 #### Now
@@ -1010,7 +1029,10 @@ Projection: storage-failure
 [Resume Pool]: #resume-pool
 [Close Pool]: #close-pool
 [Query]: #query
+[Pool]: #pool
 [Pool Id]: #pool-id
+[Audit Event]: #audit-event
+[Pool Snapshot]: #pool-snapshot
 [Capacity]: #capacity
 [Allocated]: #allocated
 [Available]: #available
@@ -1088,7 +1110,7 @@ The atom inherits from:
 ```
 status: doing
 formal: verified — capacity-constraint-enforcement.tla + 2 twins (2026-06-04); capacity-constraint-enforcement.als + 14 twins (the static data model, 2026-11-11: Invariant 2.1, 3.1 through 3.4, 4.1, 5.1, 6.1, 10.1, 10.2, 11.1, 11.2, 13.1 and 13.2 checked on every pool record and audit log an admitted action leaves, Invariant 4.1 and 5.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 7, 8, 9 and 12: each compares a record or a log with a later version of it and the change appends no event, so a single state cannot show it, and 8.4, 8.5 and 9.4 are a permission or an auditor's procedure, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1, 7, 8, 9 and 12 (across steps); owed rows: Invariant 1; Invariant 7; Invariant 8; Invariant 9; Invariant 12, 2026-11-11
-last gate: 2026-11-04 — Final Critique 11, a delta round, frozen at 5506e77 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10, a full round, frozen at 383178a — foundational count 3, cured, not clean, no sample; 2026-10-22 — Final Critique 9, the council's first round on the page and the first on its Store-contract rewrite (ec7ffec) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 973e2e3); the round rests on three counted passes — foundational count 5 after triage (9 reports: 5 standing; 3 sent down; 1 rejected), Kind A: conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits, and a capacity past the integer width and a reason past its cap, which every build had to refuse with no refusal named; 12 refining reports, 5 rhetorical reports; not clean; every foundational and refining finding cured in place; 2026-08-26 — Final Critique 8, fresh reader — clean
+last gate: 2026-11-22 — Final Critique 12, a full round, frozen at 3fb2f381 — foundational count 3 (a scrubbed attribution surface against the rules that oblige a pool or an audit event to carry it; String 11's stored form against the seam's canonical form; Invariant 3.2 and Invariant 3.3 forbidding the close of a pool no allocation or adjustment had touched, which Operation 46 admits), not clean, no sample; GRID's three foundational claims (an id source, a released total, an empty Invariant 14) and EOS's declared-capacity claim were placed refining or false, and their tombstoned labels read as absent were refuted; 2026-11-04 — Final Critique 11, a delta round, frozen at 5506e77 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 10, a full round, frozen at 383178a — foundational count 3, cured, not clean, no sample; 2026-10-22 — Final Critique 9, the council's first round on the page and the first on its Store-contract rewrite (ec7ffec) and the refusal-order sweep (c2f4e9a), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 973e2e3); the round rests on three counted passes — foundational count 5 after triage (9 reports: 5 standing; 3 sent down; 1 rejected), Kind A: conformance checks no pool record could clear once a deployment wired in, scrubbed or purged what the page admits, and a capacity past the integer width and a reason past its cap, which every build had to refuse with no refusal named; 12 refining reports, 5 rhetorical reports; not clean; every foundational and refining finding cured in place; 2026-08-26 — Final Critique 8, fresh reader — clean
 
 open: none
 ```
