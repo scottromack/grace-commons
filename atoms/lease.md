@@ -119,11 +119,11 @@ Operation 1b: [Take] MUST answer EXACTLY ONE OF expires_at, unavailable, a [Take
 Operation 2: The [Take] of the waiter first in arrival order MUST succeed at the first host reading at which the key is free.
 Operation 2a: A successful take MUST stand the key in held by the asking holder.
 Operation 2b: A successful take MUST set expires_at from the host's reading at the success.
-Operation 3: [Take] MUST NOT wait longer than the arrival term.
+Operation 3: [Take] MUST NOT wait past the waiter's last reading.
 Operation 4: IF a waiter's bound DOES NOT EXCEED the host's reading AND another holder holds the key THEN [Take] MUST answer unavailable.
 Operation 5: The host MUST NOT extend a waiter's bound.
 Operation 5a: The host MUST admit waiters in arrival order.
-Operation 5b: IF a waiter's bound PRECEDES the host's reading THEN the host MUST NOT carry forward the waiter.
+Operation 5b: The host MUST NOT carry forward a waiter past the waiter's last reading.
 Operation 5c: The host MUST NOT admit a waiter that stood across a host restart.
 Operation 5d: The host MUST NOT answer a [Take] that waited across a host restart.
 Operation 6: [Try Take] MUST NOT wait.
@@ -146,6 +146,8 @@ Term remaining term: the part of a holder's term not yet elapsed, as the host re
 Term waiting term: the term a waiter has stood at [Take], as the host reads the term.
 
 Term waiter's bound: the instant a waiter stops standing at [Take] — the expires_at of the grant that held the key at the waiter's arrival, which is the waiter's arrival reading plus the arrival term (Invariant 4.1).
+
+Term waiter's last reading: the first host reading at which a waiter's bound DOES NOT EXCEED the host's reading, the reading at which the host admits the waiter (Operation 2) or answers the waiter unavailable (Operation 4); a bound between two readings of the host's clock is reached by the later one (Execution Contract Logic confinement 9), so the waiter's last reading may follow the bound.
 
 Term arrival term: the remaining term of the holder that held the key at the moment the waiter arrived; zero where the key is free at arrival.
 
@@ -240,6 +242,7 @@ Sizing 5: A holder MAY start a unit of work ONLY IF the remaining term the host 
 Sizing 5b: A holder MUST take one [Remaining] reading for EVERY unit of work.
 Sizing 5c: A holder MUST start a unit of work WITHIN the [Call Pause Bound] of asking for the unit's reading.
 Sizing 5a: IF a unit's elapsed time EXCEEDS the unit's issue limit THEN the holder MUST NOT issue a write of the unit.
+Sizing 5d: IF the call pause bound EXCEEDS a unit's bound the pattern declares THEN a pattern MUST refuse to start.
 Sizing 6: A lease taken by [Try Take] for a share of a budget MUST carry the share term as duration.
 Sizing 6a: A holder MUST NOT take a share of a budget by a blocking [Take].
 Sizing 7: IF unanswered EQUALS yes THEN the holder MUST read the lease as expired for the rest of the grant.
@@ -321,7 +324,7 @@ Check 3.2: An auditor MUST fail a host that frees the key of a killed holder ear
 Check 4.1: An auditor MUST confirm that [Take] answers a waiter by the first host reading that reaches the waiter's bound, and at the first host reading at which the key is free where the holder releases sooner (Invariant 4.1, Operation 2, Operation 3, Operation 4).
 Check 4.2: An auditor MUST confirm that [Take] answers a second waiter by the first host reading that reaches the second waiter's own bound, a release by the admitted earlier waiter answering the second waiter sooner (Invariant 4.2, Operation 2, Operation 5).
 Check 4.3: An auditor MUST confirm that a waiter standing at a host restart is neither admitted nor answered once the host restarts, and that a grant standing at the restart reads held at EVERY host reading that PRECEDES the grant's instant (Operation 1b, Operation 5c, Operation 5d, Capability requirement 5).
-Check 4.4: An auditor MUST confirm that two waiters on one key are admitted in arrival order, that no waiter whose bound PRECEDES the host's reading is admitted, and that a [Try Take] on a free key with a waiter standing answers held (Operation 1a, Operation 5a, Operation 5b, Operation 6c).
+Check 4.4: An auditor MUST confirm that two waiters on one key are admitted in arrival order, that no waiter is admitted past the waiter's last reading, and that a [Try Take] on a free key with a waiter standing answers held (Operation 1a, Operation 5a, Operation 5b, Operation 6c).
 Check 5.1: An auditor MUST confirm that [Remaining] answers none and [Release] answers not-held to every party that is not the current holder, a former holder whose term has passed included (Invariant 5.1, Operation 9, Operation 12).
 Check 5.2: An auditor MUST confirm that neither answer changes the lease state (Operation 13, State 3).
 Check 5.3: An auditor MUST confirm that a release carrying the holder value of an ended grant answers not-held and leaves a later grant on the key standing (Identity 6, Operation 12).
@@ -332,7 +335,7 @@ Check 7.1: An auditor MUST confirm that a holder issues no unfenced write outsid
 Check 7.2: An auditor MUST confirm that every lease term set for unfenced work exceeds the work's bound and that the bound includes twice the call pause bound (Sizing 4, Sizing 4a).
 Check 7.3: An auditor MUST confirm that no unit of work starts on a remaining term that does not exceed the unit's bound plus twice the call pause bound (Sizing 5).
 Check 7.4: An auditor MUST confirm that a no answer is treated as expired, that the holder issues no unfenced write after a no answer and that the call is not re-issued within the lease (Sizing 7, Sizing 7a, Sizing 8).
-Check 7.5: An auditor MUST confirm that the pattern refuses to start where a declared work bound does not exceed twice the call pause bound (Sizing 9).
+Check 7.5: An auditor MUST confirm that the pattern refuses to start where a declared work bound does not exceed twice the call pause bound and where the call pause bound exceeds a declared unit's bound (Sizing 9, Sizing 5d).
 Check 7.6: An auditor MUST confirm that a lease taken for a share of a budget is taken by [Try Take], never by a blocking [Take], with the share term as duration (Sizing 6, Sizing 6a).
 Check 7.7: An auditor MUST confirm that every unit of work has one [Remaining] reading of the unit's own and starts within one call pause bound of asking for the reading (Sizing 5b, Sizing 5c).
 Check 7.8: An auditor MUST confirm that a holder issues no [Release] of a grant with a call in flight under the grant, and no write under a grant the holder has released (Composition note 5c, Composition note 5f).
@@ -383,7 +386,7 @@ Composition note 6: A pattern fencing a downstream system MUST carry a fence per
 Composition note 7: A pattern MUST NOT invent a second deadline concept for a fence.
 Composition note 8: A pattern that issues an unfenced write under a lease MUST state Sizing 1 through 9 as the pattern's own obligations.
 Composition note 8a: A pattern that issues an unfenced write under a lease MUST name which declared bound is each unit's bound.
-Composition note 9: IF a grant a process took on a key stands THEN the process MUST NOT take the key.
+Composition note 9: IF a grant a process took on a key stands THEN the process MUST NOT take the key, a take of a process whose earlier take answered no answer excepted (Composition note 9a).
 Composition note 9a: A process MAY take a key again, under a fresh holder value (Identity 6), after a take of the process answered no answer.
 Composition note 10: A pattern that must prove a critical section was held MUST record the critical section.
 Composition note 11: A pattern that needs the term to cover the pattern's work MUST state that obligation by Sizing 4a.
@@ -411,7 +414,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: fresh holder value, call in flight, unfenced write, key, holder, take, process, grant, waiter's bound, lease state, passed instant, host's reading, question, lease call, host, waiting term, remaining term, arrival term, arrival order, successful take, asking party, the holder, unit of work, unit's start, unit's bound, work's bound, budget, write margin, unanswered, start floor, unit's elapsed time, share term, work item, taken effect, holder's span, fence, fence ceiling, effect instant, allowance, fenced party, bare, fence margin, call pause bound ([Call Pause Bound]), live, expired, no answer, and expires_at ([Expiry Instant]).
+Term terms: fresh holder value, call in flight, unfenced write, key, holder, take, process, grant, waiter's bound, waiter's last reading, lease state, passed instant, host's reading, question, lease call, host, waiting term, remaining term, arrival term, arrival order, successful take, asking party, the holder, unit of work, unit's start, unit's bound, work's bound, budget, write margin, unanswered, start floor, unit's elapsed time, share term, work item, taken effect, holder's span, fence, fence ceiling, effect instant, allowance, fenced party, bare, fence margin, call pause bound ([Call Pause Bound]), live, expired, no answer, and expires_at ([Expiry Instant]).
 
 #### Lease
 
@@ -433,7 +436,7 @@ Kind: Parameter
 
 #### Take
 
-The blocking acquisition. Waits at most the arrival term, and answers unavailable if the key is held again when that term has elapsed — an earlier waiter took it.
+The blocking acquisition. Waits at most until the waiter's last reading, and answers unavailable if the key is held again at that reading — an earlier waiter took it.
 
 Kind: Operation
 
@@ -500,7 +503,7 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 ```
 status: doing
 formal: verified — lease.tla + 6 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12; 2026-10-04); lease.als + 9 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 5.1, 6.1 and 6.2 checked on every lease state a successful take or a release answered released leaves, on what the host derives from it at one reading (State 2) and answers there whatever is believed about a holder's death, and on every instant a holder mints and hands a fenced party; Invariant 1, 2, 3.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.2, 2.1's release arm, 4.1 and 4.2: 1.2 orders two takes and a release is a step that stores free, and 4.1 and 4.2 compare a waiter's bound with the one its arrival set, which the host does not keep beside the bound (State 4), so one state cannot show them and they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 4.2 (a second waiter, across steps); owed rows: Invariant 4.2; 2a: Sizing 3a — held as an invariant: the model clock and Pause bound it (Inv_NoLateWrite, twin lease-buggy-margin); no row owed, 2026-11-12; Capability requirement 12 (a holder clock measures no span short) — the model's one clock holds it, twin lease-buggy-drift breaks Inv_NoLateWrite, 2026-11-21
-last gate: 2026-11-22 — Final Critique 5, full, three fresh readers (GRID, EOS, Linus) — not clean, 4 foundational (EOS reported 7, GRID 0, Linus 0; EOS's host-adapter finding refuted on Term host, its share-term and take-again findings placed refining), cured in the patch (the next round is a delta round); 2026-10-04 — Final Critique 4, fresh reader, three passes, frozen at 46804b7 — 0 foundational, 44 refining reports, 13 rhetorical reports
+last gate: 2026-11-22 — Final Critique 6, a delta round, frozen at 132f19c9 — foundational count 1 (a waiter's bound can fall between two readings of the host's clock, so at the first reading at which the key is free Operation 2 admitted the first waiter, Operation 5b barred it and Operation 3 left no build conforming; Linus's second foundational, a take again leaving two grants or a revoked one, refuted on Invariant 1 and Invariant 2), not clean, no sample (cured: Term waiter's last reading, which Operation 3 and Operation 5b now name; the refining cures are Sizing 5d, which refuses a unit's bound under the call pause bound, and Composition note 9, which now carries the exception Composition note 9a lifts); 2026-11-22 — Final Critique 5, full, three fresh readers (GRID, EOS, Linus) — not clean, 4 foundational (EOS reported 7, GRID 0, Linus 0; EOS's host-adapter finding refuted on Term host, its share-term and take-again findings placed refining), cured in the patch (the next round is a delta round); 2026-10-04 — Final Critique 4, fresh reader, three passes, frozen at 46804b7 — 0 foundational, 44 refining reports, 13 rhetorical reports
 
 open: none
 ```
