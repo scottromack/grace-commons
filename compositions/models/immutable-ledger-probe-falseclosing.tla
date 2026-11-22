@@ -1,5 +1,5 @@
----- MODULE immutable-ledger-buggy-split ----
-\* BUGGY TWIN: an invocation's accounting write may be in flight past its step and apply at any later one, after an operator's abandonment included (Execution Contract Database 1 dropped: open line 2026-10-19-e's false closing).
+---- MODULE immutable-ledger-probe-falseclosing ----
+\* EXPECT: violation — reachability probe: no invocation stands closed by an abandonment over a record the store carries.
 \* Grace Commons — Immutable Ledger with Selective Disclosure, the binding.
 \* Spec-level formal sibling of compositions/immutable-ledger.md. Derived
 \* validator; the English spec is the single source of truth. On any disagreement,
@@ -16,10 +16,13 @@
 \* (Capability requirement 23 through 25, Action wiring 3 and 6). A record's disclosure
 \* id is written here as the invocation whose commit wrote it.
 \*
-\* ONE TRANSACTION PER INVOCATION (Execution Contract Database 1, Capability requirement 36;
-\* re-derived 2026-10-21). The intent, the accounting record and the outcome are store
-\* writes of one composition action, so an invocation is one step here, and a reader sees
-\* all of its writes or none. What the step commits is what the page answers:
+\* THE INTENT AHEAD OF THE WRITE (Execution Contract Database 3, Capability requirement 36;
+\* re-derived 2026-11-22, in place of the one transaction of 2026-10-21). The intent commits
+\* at the open, ahead of the disclosure write, and cannot be rolled back (the page's
+\* Cross-record consistency under partial failure): an invocation is one step here, and
+\* what the step leaves is what the page answers, its accounting write possibly still in
+\* flight past it (StoreOneTxn = FALSE), applying at any later step, before or after any
+\* closing. What the step commits:
 \*   landed       the intent, the record and the outcome (Action wiring 20, 53);
 \*   refused      the intent and the refusal record, where Selective Disclosure refuses
 \*                the record (Action wiring 48, 49), the refused attempt kept as evidence;
@@ -31,9 +34,9 @@
 \*   yields       the intent, with the record or without it, where Selective Disclosure
 \*                answers a code it does not declare (Action wiring 51, 52).
 \* A step that commits nothing (a refused open, a storage failure, a crash) changes
-\* nothing and is not a step. With StoreOneTxn = FALSE an invocation may also end with
-\* its accounting write in flight, applying at any later step: the split Database 1 forbids,
-\* and the model of 2026-10-19 (-buggy-split).
+\* nothing and is not a step. With StoreOneTxn = FALSE (the page's reading) an invocation
+\* may also yield with its accounting write in flight, applying at any later step; with
+\* TRUE every write commits in the step, the reading of 2026-10-21 (Database 1).
 \*
 \* THE CONSTITUENTS, as contracts. Nothing of their protocols is re-modelled.
 \*   Selective Disclosure — record answers a disclosure id for a record it persisted; a
@@ -68,12 +71,6 @@
 \*                   disclosure id has landed over a record that has landed (Capability
 \*                   requirement 34; Invariant 4's closure of Selective Disclosure
 \*                   Invariant 5), read off the stores at the disclosure.
-\*   Inv_NoFalseClosing  no invocation stands closed by an abandonment over a record the
-\*                   store carries: an operator abandons only where the probe shows no
-\*                   record (Term settling closing), and under Database 1 no record lands
-\*                   after its invocation's step. The case of open line 2026-10-19-e, a
-\*                   write still in flight applying after the abandonment, is the
-\*                   -buggy-split twin, rejected.
 \*
 \* WHAT CARRIES THEM  Inv1_3 and Inv1_Bijection rest on three things this page binds and
 \* nothing of the protocol's: the host never gives two invocations of one act key one now
@@ -86,7 +83,12 @@
 \* accounting store never losing a record (Retention asymmetry 1, Selective Disclosure
 \* Invariant 6.1). Inv4_1 rests on Action wiring 20 answering a landed disclosure, and
 \* CR34 on the caller who holds recording-failure carrying outcome waiting for the outcome
-\* by invocation id. Inv_NoFalseClosing rests on Database 1 (-buggy-split).
+\* by invocation id. Each holds with the write in flight past the invocation's step.
+\*
+\* WHAT THE MODEL SHOWS BESIDE  A false closing is reached (-probe-falseclosing): an
+\* operator abandons an escalation where the probe shows no record, and the write in
+\* flight applies after it. The page resolves it in the reconciliation (Reconciliation 33,
+\* 38; immutable-ledger-reconcile.tla); this model writes no reconciliation.
 \*
 \* THE PROBE'S FOUR ANSWERS  committed and not-committed are each reached here
 \* (Probe_NeverRecovered and Probe_NeverSettled are rejected; an operator settles an
@@ -114,15 +116,15 @@
 \* before it with any key and instant the host may give it, which breaks the symmetry
 \* between them and loses no behaviour up to renaming. MaxResolves operator resolutions,
 \* two by default, so a resolution of each invocation, or an abandonment and the outcome
-\* that supersedes it, fit. N = 3 is the .cfg's size: 211,083 states, 5 s on TLC, holds. The old
-\* checker's cap of 200,000 states left N = 3 out; at N = 2 the model has 1,475 states (the split
-\* model of 2026-10-19 took 3,956).
+\* that supersedes it, fit. N = 3 is the .cfg's size: 383,929 states, 12 s on TLC, holds
+\* (211,083 under the one transaction of 2026-10-21).
 \*
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one
 \* constant or one invariant changed in its .cfg: -buggy-equalnow, -buggy-probekey,
 \* -buggy-probewindow, -buggy-bounded, -buggy-earlyanswer, -buggy-sendfirst,
-\* -buggy-split; -probe-recovered, -probe-settled, -probe-sharedinstant,
-\* -probe-recoveredsent.
+\* -probe-recovered, -probe-settled, -probe-sharedinstant, -probe-recoveredsent,
+\* -probe-falseclosing. Retired 2026-11-22: -buggy-split, the write in flight it carried
+\* now the page's reading (Database 3).
 EXTENDS Naturals, FiniteSets
 
 \* EqualNowBarred     TRUE: the host gives no two invocations of one act key one now
@@ -139,9 +141,9 @@ EXTENDS Naturals, FiniteSets
 \* SendAfterOutcome   TRUE: a caller holding recording-failure carrying outcome discloses
 \*                    only once an outcome event carrying the disclosure id has landed
 \*                    (Capability requirement 34). FALSE: on the code.
-\* StoreOneTxn        TRUE: an invocation's writes commit in its one step (Execution
-\*                    Contract Database 1). FALSE: its accounting write may also be in flight
-\*                    at the step and apply at any later one.
+\* StoreOneTxn        FALSE: the intent commits ahead of the write, which may be in flight
+\*                    at the step and apply at any later one (Execution Contract Database 3,
+\*                    the page's reading). TRUE: every write commits in the one step.
 \* N                  invocations. MaxResolves: operator resolutions in all.
 CONSTANTS EqualNowBarred, ProbeKeyFields, ProbeOneInstant, StoreNeverRemoves,
           AnswerAfterClose, SendAfterOutcome, StoreOneTxn, N, MaxResolves
@@ -457,11 +459,6 @@ Inv4_1 ==
 CR34 ==
     \A i \in Inv : sentSt[i] # "bad"
 
-\* No invocation stands closed by an abandonment over a record the store carries (the
-\* false closing of open line 2026-10-19-e, dissolved by Database 1).
-Inv_NoFalseClosing ==
-    ~(\E i \in Inv : cl[i] = "aband" /\ InStore(i))
-
 \* --- reachability probes: deliberate falsehoods the checker must reject ---
 
 \* The sweep never recovers an outcome. Rejected: the committed answer is reached.
@@ -482,6 +479,12 @@ Probe_NeverSharedInstant ==
 \* caller finds the sweep's or the operator's outcome by its invocation id.
 Probe_NeverRecoveredSent ==
     ~(\E i \in Inv : sentSt[i] = "ok" /\ ph[i] \in {"yield", "cfail"})
+
+\* No invocation stands closed by an abandonment over a record the store carries.
+\* Rejected: the write in flight applies after the operator's abandonment, a false
+\* closing (Term false closing), which the reconciliation resolves (Reconciliation 33).
+Probe_NeverFalseClosing ==
+    ~(\E i \in Inv : cl[i] = "aband" /\ InStore(i))
 
 \* The probe never answers undecidable. HOLDS at the main constants (see the header);
 \* rejected with EqualNowBarred = FALSE. Not a probe file.

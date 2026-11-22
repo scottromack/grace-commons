@@ -1,10 +1,156 @@
--- immutable-ledger-buggy-bind-intent.als
--- DELIBERATELY WRONG twin of immutable-ledger.als (unit: compositions/immutable-ledger.md formal layer).
+-- immutable-ledger.als
+-- Alloy structural model for the Immutable Ledger with Selective Disclosure composition (Grace Commons compositions/immutable-ledger.md)
+-- Grounded on Final Critique 20, 2026-11-06 at 13edae6 — Alloy layer authored 2026-11-12;
+-- re-derived 2026-11-22 for Scott's rulings of that day (a purged binding's linked outcome
+-- event; Reconciliation 33's resolve of a false closing).
+-- Derived validator; the English spec is the single source of truth. On any
+-- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
--- INJECTED DEFECT: a binding carries the intent event id of the outcome's invocation pair, not the outcome event id (Composition state 3; Action wiring 16).
+-- PURPOSE
+-- Verify, by bounded exhaustive search, the STATIC data model of the composition: what one
+-- state of its records must satisfy — the ledger's intents and the closings Recoverable
+-- Invocation writes for the act kind (outcome events, refusals, abandonments, escalations),
+-- the accounting records Selective Disclosure keeps, the binding index, and the
+-- reconciliation's write-ownership findings and alerts — whatever admitted writes left it,
+-- and what the page's reads answer over that state: the disclosure probe, [Verify Ledger]'s
+-- binding verdict, the disclosed set a reissue reads, the presentation a bound verification
+-- passes, and the class Check 1.2 puts each unbound record in. The order of the writes, the
+-- reconciliation's runs, the horizon arithmetic and every eventuality are the three TLA+
+-- models' (immutable-ledger.tla, -rebuild.tla, -reconcile.tla), which own the operation
+-- sequences.
 --
--- BREAKS: A_Verdict_3.
--- Everything else is immutable-ledger.als as written; read its comments there.
+-- The model has two parts.
+--   Part A, the records: every record is what an admitted write left — the invocation open's
+--   intent (Action wiring 3, Term intent data), the disclosure write's accounting record
+--   (Action wiring 6), the invocation close's outcome event (Action wiring 53, Term outcome
+--   data), the sweep's or an operator's recovered outcome (Recoverable Invocation's, through
+--   this page's disclosure probe and outcome data), a refusal, an abandonment, an escalation,
+--   the binding index's entries (Composition state 2 through 4, 18; Action wiring 16), the
+--   last reconciliation run's findings and alerts (Reconciliation 14, 38) and the outcome its
+--   resolve wrote over a false closing (Reconciliation 33). A record no
+--   intent's commit answered is one a deployment wrote outside the composition (against
+--   Composes 11), the shape Reconciliation 14 finds.
+--   Part B, the reads: what the page's reads answer over one state — the disclosure probe,
+--   the binding verdict (Verdict 1 through 5, 15; Action wiring 28 through 30), the
+--   reissue's disclosed set (Composition state 16; Action wiring 22, 23, 55, 62), a bound
+--   verification's presentation (Action wiring 33 through 37, 67, 71) and Check 1.2's
+--   classes.
+--
+-- RULES ENCODED (named by the page's own labels)
+--   Invariant 1.3        — no two live outcome events carry one disclosure id at act
+--                          quiescence.
+--   Invariant 1.4        — every outcome event carries a disclosure id the accounting
+--                          records carry.
+--   Invariant 1.7        — every outcome event carries the subject reference, recipient,
+--                          scope, authority and disclosure instant of the accounting record
+--                          its disclosure id names (Check 1.10).
+--   Composition state 16 — a disclosure's disclosed set is read from the intent its outcome
+--                          event names, and that is the disclosure's own intent (Check 5.6).
+--   Check 5.7            — a reissue builds only over its own disclosure's Retained intent;
+--                          a Purged one reads entry-set-purged (Action wiring 22, 23, 55, 62).
+--   Term disclosure probe — the probe of an intent whose disclosure write committed answers
+--                          committed with that record (the probe's committed answer).
+--   Verdict 1, 1a, 2     — bound on exactly one live outcome event with no purged binding, or
+--                          with a linked outcome event; binding-duplicate on more than one; read
+--                          through the ledger enumeration (Action wiring 29, 30).
+--   Verdict 1 through 5, 1a — the verdict rules give every disclosure id the accounting
+--                          records carry exactly one verdict, and [Verify Ledger]'s is it: a
+--                          purged binding beside one unlinked live outcome event reads
+--                          binding-purged, beside a linked one bound (Term linked outcome event).
+--   Verdict 3            — binding-purged only where the binding names a Purged outcome
+--                          event carrying the disclosure id.
+--   Verdict 4            — binding-escalated only where an escalation no settling closing
+--                          names stands for the record's invocation.
+--   Verdict 15           — binding-gap carries the state of the record's own invocation.
+--   Action wiring 33 through 37 — a bound verification's presentation lands on exactly one
+--                          arm of Action wiring 34, 35, 36, 37, 67 and 71.
+--   Reconciliation 14    — every examined orphan record no intent carries is found, and no
+--                          finding names a record the composition wrote.
+--   Reconciliation 33    — every outcome the reconciliation's resolve wrote carries the
+--                          disclosure id of an accounting record and names a false closing of
+--                          its intent in supersedes, which no longer stands (Recoverable
+--                          Invocation resolve 13, 16a).
+--   Reconciliation 38    — every examined orphan whose invocation still stands closed by an
+--                          abandonment or a refusal after the run (its resolve refused) is
+--                          alerted carrying its disclosure id.
+--   Check 1.2            — every accounting record with no live outcome event, a young
+--                          record excepted, resolves to exactly one of the check's classes.
+-- Invariant 1.3, 1.4 and the probe's committed answer are a cross-check with
+-- immutable-ledger.tla (Inv1_3, Inv1_4, -buggy-probekey, -buggy-probewindow); Reconciliation
+-- 14 with immutable-ledger-reconcile.tla (Inv_R14).
+--
+-- NOT CHECKED HERE
+--   Nothing testable in Alloy:
+--   Invariant 2.1 through 2.3 — a capability of the deployment's proof mechanism and what its
+--     bundle reveals; the bundle is an answer, no record keeps it, and [Verify Disclosure]
+--     reads no record (Action wiring 24 through 27; External check 6, 7).
+--   Action wiring 38, 39 — a relay of the verification's own answer, unchanged.
+--   Left to the TLA+ models, which check them over every sequence:
+--   Invariant 1.6 — a purged outcome's binding kept: it holds by the rebuild having run while
+--     the outcome was live (immutable-ledger-rebuild.tla, Inv1_6); here it is a premise of
+--     Check 1.2 (pred purgedOutcomesBound), not re-derived.
+--   Invariant 4.1, Capability requirement 34 — the order of an answer and the writes, which no
+--     record keeps (immutable-ledger.tla, Inv4_1, CR34).
+--   Composition state 5, 19, 20 — a binding's move: no record keeps the binding a rebuild
+--     replaced (immutable-ledger-rebuild.tla, Inv_CS19, Inv_CS20).
+--   Reconciliation 27 — the reconciliation's audit events: the model holds no record of the
+--     reconciliation's but the resolving outcome (immutable-ledger-reconcile.tla, Inv_R27);
+--     and whether a false closing standing after the run had its resolve refused or never
+--     tried, which no record keeps (Inv_R33 there).
+--   Elsewhere: Invariant 3.1 through 3.4 (Audit Trail's), Invariant 1.1, 1.2, 1.5
+--     (Recoverable Invocation's).
+--
+-- THE PAGE RELIES ON, AND DOES NOT STATE (each recorded on the page's Ledger already; the
+-- model reaches each one, recorded, not cured)
+--   (a) No record written outside the composition carries an intent's act key and disclosure
+--       instant (open 2026-10-19-d): where one copies an intent whose invocation stands
+--       closed by its own outcome, an intent carries it, so Reconciliation 14 finds nothing,
+--       and its invocation is closed by an outcome, so Reconciliation 33 alerts nothing — it
+--       falls in no class of Check 1.2 (pred noCopiedRecord, run ShowCopyUnclassed).
+--   (b) No false closing outlives its intent (open 2026-10-19-e): an abandonment over a record
+--       that exists, its intent Purged, leaves the aged record in no class — its record's
+--       invocation is none, so it is no false closing, and its intent had a closing (pred
+--       falseClosingKeepsIntent, run ShowFalseClosingPastIntent).
+--   (c) No outside record is aged on arrival (open 2026-10-19-g): Term aged record says Check
+--       1.2 is where one shows; no class of the check takes a record with no intent and no
+--       finding (pred agedOutsideFound, run ShowAgedOnArrival).
+--   (d) Invariant 1.6 (pred purgedOutcomesBound): a Purged outcome whose binding a failed
+--       write and a missed rebuild lost leaves its record in no class (run ShowLostBinding);
+--       immutable-ledger-rebuild.tla holds Invariant 1.6 in its own qualification.
+--   And an observation, no defect the page can cure: the disclosure probe pairs on the act
+--   key and the disclosure instant alone, so a record written outside the composition that
+--   copies an intent whose own write never applied is recovered as that intent's disclosure,
+--   bound, with the intent's disclosed set, and no rule surfaces it (run ShowCopyAdopted) —
+--   the pairing datum cannot tell the two writers apart, and Composes 11 is what holds it.
+--   Reconciliation 33's refusal arm is reached only through such a copy: a refused write
+--   leaves no record of its own (Selective Disclosure Operation 16, 17; run
+--   ShowRefusalOverCopy); and its resolve is then always refused, Recoverable Invocation
+--   resolve 9 landing already-accounted for an invocation a refusal names (fact
+--   RefusalNotSuperseded), so that arm is only ever Reconciliation 38's alert.
+--
+-- SCOPE
+-- for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation,
+-- 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant: three intents and three
+-- accounting records over two act keys (two scopes) and two instants, ten Event Log events.
+-- Five-bit integers for the Event Log sequence. Instants are compared for equality only (the
+-- probe's one-instant range, the act key's pairing datum); the clock's edges (young, aged,
+-- purged) are inputs. No trace, no `var`, no stepping: what a write read before it wrote stands
+-- as a ghost (Intent.answered, the disclosure id the intent's disclosure write answered), and
+-- nothing is checked across writes.
+--
+-- NOT MODELED HERE
+--   - Primitive policy, Audit arm, [Record Entry], the credential, the read passthrough: refusals
+--     that write nothing and a transcription of Audit Trail's arms.
+--   - The recovery intent, the escalation's cause, the closure window's three sub-classes of
+--     an open invocation (one class here: Recoverable Invocation's clock and Check 3.3).
+--   - Supersession read through a chain of payloads: a linked outcome event here names the
+--     purged binding's event directly (Term linked outcome event reads it transitively).
+--   - The verification bundle's content, the unsealed tail, the seal (Verdict 8 through 14).
+--
+-- HOW TO READ RESULTS
+-- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
+-- Every "run Show*" must return at least one instance (SAT) — confirms non-vacuity.
+-- A "check" returning a counterexample is a spec finding.
 
 module immutable_ledger_buggy_bind_intent
 
@@ -35,8 +181,9 @@ sig DiscId {}
 
 -- Writer: who wrote an outcome event: the invocation's close, the sweep under the recovery
 -- identity, or an operator settling an escalation (Term recovered outcome, settling closing).
+-- ByReconciliation: the reconciliation's resolve under the recovery identity (Reconciliation 33).
 abstract sig Writer {}
-one sig ByInvocation, BySweep, ByOperator extends Writer {}
+one sig ByInvocation, BySweep, ByOperator, ByReconciliation extends Writer {}
 
 -- Ev: one ledger event on the composition's Audit Trail instance, with its Event Log
 -- sequence number (Term ledger event).
@@ -70,8 +217,9 @@ abstract sig Closing extends Ev {
 
 -- Outcome: an outcome event (ledger.disclosure.disclosed), carrying the disclosure id and the
 -- accounting record's other fields (Term outcome data), who wrote it, the escalation it
--- settles where an operator wrote it, and the covering range the record read names for it
--- (Term covering range; empty: no covering range).
+-- settles where an operator wrote it, any other closing its payload names in supersedes
+-- (Recoverable Invocation resolve 13, 16a, 36a), and the covering range the record read names
+-- for it (Term covering range; empty: no covering range).
 sig Outcome extends Closing {
     did      : one DiscId,
     osubj    : one Subj,
@@ -81,6 +229,7 @@ sig Outcome extends Closing {
     oat      : one Instant,
     wr       : one Writer,
     osettles : lone Escalation,
+    osup     : lone Closing,
     cov      : set Ev
 }
 
@@ -127,8 +276,9 @@ one sig Idx {
 -- persisted (Capability requirement 30; Term write-ownership finding).
 sig WOFinding in DiscId {}
 
--- Alert33: the disclosure ids Reconciliation 33's alert carries.
-sig Alert33 in DiscId {}
+-- Alert38: the disclosure ids Reconciliation 38's alert carries — a false closing whose resolve
+-- answered a refusal.
+sig Alert38 in DiscId {}
 
 -- Map: the auditor's original event payloads at one [Verify Ledger] call — the sequence
 -- positions it supplies a payload for (Term original event payloads).
@@ -180,11 +330,13 @@ fun probe[i : Intent] : set Rec {
 fun recOf[d : DiscId] : set Rec { id.d }
 
 -- live: the live outcome events carrying a disclosure id — Retained, the ledger enumeration's
--- read of their payload (Term live outcome event).
-fun live[d : DiscId] : set Outcome { (Outcome - Purged) & did.d }
+-- read of their payload, and named in supersedes by no Retained outcome event's payload (Term
+-- live outcome event).
+fun live[d : DiscId] : set Outcome { ((Outcome - Purged) & did.d) - (Outcome - Purged).osup }
 
--- settled: the escalations a settling closing names (Term settling closing).
-fun settled : set Escalation { Outcome.osettles + Abandon.asettles }
+-- settled: the closings a later closing names in supersedes (Term settling closing; Recoverable
+-- Invocation Which closing stands 2).
+fun settled : set Closing { Outcome.osettles + Abandon.asettles + Outcome.osup }
 
 -- standing: the closings that stand for some intents — every closing naming one, an escalation
 -- a settling closing names excepted (Recoverable Invocation's which closing stands).
@@ -208,16 +360,43 @@ pred orphan[r : Rec] { examined[r] and no live[r.id] and no Idx.bind[r.id] }
 
 -- actQuiescent: act quiescence — every invocation of the act kind stands closed, by one
 -- outcome where by an outcome (Recoverable Invocation's late-appended duplicate resolved).
+-- A superseded closing does not stand.
 pred actQuiescent { all i : Intent | some standing[i] and lone (standing[i] & Outcome) }
+
+-- purgedBinding: a purged binding names the disclosure id — the index's binding names a Purged
+-- event (Term purged binding).
+pred purgedBinding[d : DiscId] { some Idx.bind[d] and Idx.bind[d] in Purged }
+
+-- linked: the linked outcome events for a disclosure id a purged binding names — live, their
+-- own payload naming the purged binding's event in supersedes (Term linked outcome event).
+fun linked[d : DiscId] : set Outcome {
+    { o : live[d] | purgedBinding[d] and o.osup = Idx.bind[d] }
+}
+
+-- The antecedents of Verdict 1, 1a, 2, 3, 4 and 5, as the page states them.
+pred r1[d : DiscId] { one live[d] and not purgedBinding[d] }
+pred r1a[d : DiscId] { some linked[d] and one live[d] }
+pred r2[d : DiscId] { some live[d] and not one live[d] }
+pred r3[d : DiscId] { purgedBinding[d] and no linked[d] and lone live[d] }
+pred r4[d : DiscId] { no live[d] and not purgedBinding[d]
+                      and some (standing[recInv[recOf[d]]] & Escalation) }
+pred r5[d : DiscId] { no live[d] and not purgedBinding[d]
+                      and no (standing[recInv[recOf[d]]] & Escalation) }
+
+-- ruled: the verdicts whose rule's antecedent holds for a disclosure id.
+fun ruled[d : DiscId] : set Verdict {
+    { v : Verdict | (v = VBound and (r1[d] or r1a[d])) or (v = VDup and r2[d])
+                    or (v = VPurged and r3[d]) or (v = VEsc and r4[d]) or (v = VGap and r5[d]) }
+}
 
 -- verdict: [Verify Ledger]'s binding verdict for a disclosure id the accounting records carry
 -- (Verdict 1 through 5): the ledger enumeration kept to the outcome events carrying the id first
 -- (Action wiring 29, 30), then the binding index read with the record read of the event it names,
 -- then the record's invocation and the closing that stands for it.
 fun verdict[d : DiscId] : one Verdict {
-    (one live[d]) => VBound else
-    ((some live[d]) => VDup else
-    ((some Idx.bind[d] and Idx.bind[d] in Purged) => VPurged else
+    (one live[d] and (not purgedBinding[d] or some linked[d])) => VBound else
+    ((some live[d] and not one live[d]) => VDup else
+    (purgedBinding[d] => VPurged else
     ((some (standing[recInv[recOf[d]]] & Escalation)) => VEsc else VGap)))
 }
 
@@ -287,6 +466,8 @@ fact ClosingsFollowIntent {
     all c : Closing | lt[c.of.sn, c.sn]
     all o : Outcome | some o.osettles implies (o.osettles.of = o.of and lt[o.osettles.sn, o.sn])
     all a : Abandon | a.asettles.of = a.of and lt[a.asettles.sn, a.sn]
+    all o : Outcome | some o.osup implies
+        (o.osup.of = o.of and lt[o.osup.sn, o.sn] and o.osup not in Escalation)
 }
 
 -- Recoverable Invocation's closings: one stands per invocation (its Invariant 2), but for the
@@ -297,8 +478,18 @@ fact OneClosingStands {
     all i : Intent | lone (standing[i] - Outcome)
     all i : Intent | some (standing[i] & Outcome) implies no (standing[i] - Outcome)
     all i : Intent, w : Writer | lone (of.i & Outcome & wr.w)
-    all o : Outcome | some o.osettles iff o.wr = ByOperator
+    all o : Outcome | some o.osettles implies o.wr = ByOperator
+    all o : Outcome | o.wr = ByOperator implies some (o.osettles + o.osup)
+    all o : Outcome | no o.osettles or no o.osup
+    all o : Outcome | o.wr in ByInvocation + BySweep implies no o.osup
     all e : Escalation | lone (osettles.e + asettles.e)
+    all c : Closing | lone osup.c
+}
+
+-- Recoverable Invocation's resolve lands already-accounted for an invocation a refusal names
+-- (its resolve 9): no outcome supersedes a refusal.
+fact RefusalNotSuperseded {
+    no Outcome.osup & Refusal
 }
 
 -- Selective Disclosure mints a fresh disclosure id for every record (two records never carry
@@ -363,7 +554,12 @@ pred outcomeWiring {
 -- indexWiring: a binding carries the outcome event id of an outcome event carrying its
 -- disclosure id (Composition state 2, 3, 4; Action wiring 16; the binding rebuild,
 -- Composition state 18). A write may fail (Action wiring 66), so a binding may be missing.
-pred indexWiring {
+pred indexWiring {-- immutable-ledger-buggy-bind-intent.als
+-- DELIBERATELY WRONG twin of immutable-ledger.als (unit: compositions/immutable-ledger.md formal layer).
+-- INJECTED DEFECT: a binding carries the intent event id of the outcome's invocation pair, not the outcome event id (Composition state 3; Action wiring 16).
+-- BREAKS: A_Verdict_3.
+-- Everything else is immutable-ledger.als as written; read its comments there.
+
     all d : DiscId, e : Idx.bind[d] | some o : Outcome | o.did = d and e = o.of
 }
 
@@ -371,16 +567,20 @@ pred indexWiring {
 -- 34: the database read first, so every record's intent is visible). It found every examined
 -- orphan no Retained intent carries (Reconciliation 14); a finding names an accounting record
 -- that is an orphan of no intent (Term write-ownership finding, standing while the record is an
--- orphan); it alerted every examined orphan whose record's invocation stands closed by an
--- abandonment or a refusal (Reconciliation 33); and an alert names a disclosure id the
--- accounting records carry.
+-- orphan); its resolve, under the recovery identity, wrote an outcome carrying the disclosure id
+-- of a record of the intent's act key and instant and naming the false closing in supersedes
+-- (Reconciliation 33); every examined orphan whose record's invocation still stands closed by an
+-- abandonment or a refusal, its resolve refused, it alerted (Reconciliation 38); and an alert
+-- names a disclosure id the accounting records carry.
 pred reconcileWiring {
     all r : Rec | (orphan[r] and no i : Intent - Purged | sameKI[r, i]) implies r.id in WOFinding
     all d : WOFinding | some r : recOf[d] |
         no live[d] and no Idx.bind[d] and no i : Intent | sameKI[r, i]
+    all o : Outcome | o.wr = ByReconciliation implies
+        (some o.osup and o.osup in Abandon + Refusal and some r : Rec | r.id = o.did and sameKI[r, o.of])
     all r : Rec | (orphan[r] and some i : recInv[r] | some (standing[i] & (Abandon + Refusal)))
-        implies r.id in Alert33
-    Alert33 in Rec.id
+        implies r.id in Alert38
+    Alert38 in Rec.id
 }
 
 -- built: every record in the state is what an admitted write left.
@@ -429,7 +629,7 @@ pred purgedOutcomesBound {
 
 -- A_Invariant_1_3: at act quiescence no two live outcome events carry one disclosure id.
 assert A_Invariant_1_3 {
-    (built and actQuiescent) implies all disj o1, o2 : Outcome - Purged | o1.did != o2.did
+    (built and actQuiescent) implies all d : DiscId | lone live[d]
 }
 check A_Invariant_1_3 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
@@ -475,11 +675,12 @@ assert A_Term_disclosure_probe {
 }
 check A_Term_disclosure_probe for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
--- A_Verdict_1_2: a disclosure reads bound exactly where one live outcome event carries its id,
--- and binding-duplicate exactly where more than one does.
+-- A_Verdict_1_2: a disclosure reads bound exactly where Verdict 1 or 1a's antecedent holds (one
+-- live outcome event, and no purged binding or a linked outcome event), and binding-duplicate
+-- exactly where more than one live outcome event carries its id.
 assert A_Verdict_1_2 {
     built implies all d : Rec.id | {
-        verdict[d] = VBound iff one live[d]
+        verdict[d] = VBound iff (one live[d] and (not purgedBinding[d] or some linked[d]))
         verdict[d] = VDup iff (some live[d] and not one live[d])
     }
 }
@@ -492,6 +693,15 @@ assert A_Verdict_3 {
         (Idx.bind[d] in Outcome & Purged and Idx.bind[d].did = d)
 }
 check A_Verdict_3 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
+
+-- A_Verdict_1a_3: the binding verdict rules, Verdict 1, 1a, 2, 3, 4 and 5 as the page states
+-- them, give every disclosure id the accounting records carry exactly one verdict, and
+-- [Verify Ledger]'s verdict is it — a purged binding beside one live outcome event reads bound
+-- where that event is linked and binding-purged where it is not.
+assert A_Verdict_1a_3 {
+    built implies all d : Rec.id | one ruled[d] and verdict[d] in ruled[d]
+}
+check A_Verdict_1a_3 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
 -- A_Verdict_4: a disclosure reads binding-escalated only where an escalation no settling
 -- closing names stands for the record's invocation.
@@ -528,13 +738,24 @@ assert A_Reconciliation_14 {
 }
 check A_Reconciliation_14 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
--- A_Reconciliation_33: every examined orphan record whose record's invocation stands closed by
--- an abandonment or a refusal is alerted carrying its disclosure id.
+-- A_Reconciliation_33: every outcome the reconciliation's resolve wrote carries the disclosure id
+-- of an accounting record, and names in supersedes an abandonment or a refusal of its own
+-- intent, which no longer stands (Recoverable Invocation resolve 13, 16a).
 assert A_Reconciliation_33 {
-    built implies all r : Rec |
-        (orphan[r] and some (standing[recInv[r]] & (Abandon + Refusal))) implies r.id in Alert33
+    built implies all o : Outcome | o.wr = ByReconciliation implies
+        (some recOf[o.did] and some o.osup and o.osup in Abandon + Refusal
+         and o.osup.of = o.of and o.osup not in standing[o.of])
 }
 check A_Reconciliation_33 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
+
+-- A_Reconciliation_38: every examined orphan record whose record's invocation still stands
+-- closed by an abandonment or a refusal after the run — its resolve refused — is alerted
+-- carrying its disclosure id.
+assert A_Reconciliation_38 {
+    built implies all r : Rec |
+        (orphan[r] and some (standing[recInv[r]] & (Abandon + Refusal))) implies r.id in Alert38
+}
+check A_Reconciliation_38 for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
 -- A_Check_1_2: every accounting record carrying no live outcome event, a young record excepted,
 -- resolves to exactly one of binding-purged, binding-escalated, an open invocation, an aged
@@ -607,10 +828,10 @@ run ShowOpenGap {
     built and some r : Rec - Young | verdict[r.id] = VGap and cOpen[r] and no gapState[r.id]
 } for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
--- ShowFalseClosing: an operator's abandonment over a record that exists, alerted
--- (Reconciliation 33), read binding-gap carrying the abandonment.
+-- ShowFalseClosing: an operator's abandonment over a record that exists, its resolve refused
+-- and alerted (Reconciliation 38), read binding-gap carrying the abandonment.
 run ShowFalseClosing {
-    built and some r : Rec | orphan[r] and cFalse[r] and r.id in Alert33
+    built and some r : Rec | orphan[r] and cFalse[r] and r.id in Alert38
         and some (gapState[r.id] & Abandon)
 } for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
@@ -679,7 +900,29 @@ run ShowCopyAdopted {
 } for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
 
 -- ShowRefusalOverCopy: Reconciliation 33's refusal arm, reached only through a record written
--- outside the composition copying a refused intent's act key and instant.
+-- outside the composition copying a refused intent's act key and instant, and alerted
+-- (Reconciliation 38), the resolve refused (Recoverable Invocation resolve 9).
 run ShowRefusalOverCopy {
-    built and some r : Rec | orphan[r] and some (standing[recInv[r]] & Refusal) and r.id in Alert33
+    built and some r : Rec | orphan[r] and some (standing[recInv[r]] & Refusal) and r.id in Alert38
+} for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
+
+-- ShowResolved: Reconciliation 33. An operator's abandonment over a record that exists,
+-- superseded by the outcome the reconciliation's resolve wrote, read bound.
+run ShowResolved {
+    built and some o : Outcome - Purged | o.wr = ByReconciliation and o.osup in Abandon
+        and verdict[o.did] = VBound
+} for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
+
+-- ShowLinkedOutcome: Verdict 1a. A purged binding and a live outcome event naming its event in
+-- supersedes (an operator's resolve over the bound outcome), read bound.
+run ShowLinkedOutcome {
+    built and some d : Rec.id | some linked[d] and verdict[d] = VBound
+} for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
+
+-- ShowDupBesidePurged: Verdict 3, Composition state 20. A purged binding beside one live
+-- outcome event no surviving payload links to it (the invocation's late-appended duplicate),
+-- read binding-purged.
+run ShowDupBesidePurged {
+    built and some d : Rec.id | purgedBinding[d] and one live[d] and no linked[d]
+        and verdict[d] = VPurged
 } for 3 but 5 Int, 10 Ev, 2 Entry, 3 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalation, 3 Rec, 3 DiscId, 1 Subj, 1 Recip, 2 Scope, 1 Auth, 2 Instant
