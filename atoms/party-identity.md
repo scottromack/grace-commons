@@ -16,8 +16,6 @@ toc: true
 {:toc}
 </details>
 
-NOTE: open 2026-11-04-h
-
 ## Summary
 
 Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company). It answers the question every regulated system settles before doing business: *who is this party, and has their identity been checked?*
@@ -116,11 +114,9 @@ Capability requirement 10: The deployment MUST supply the party records PER Exec
 Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
 Capability requirement 12: The deployment MUST NOT supply the same id material to two calls.
 Capability requirement 13: The deployment MUST NOT supply blank id material.
-Capability requirement 14: The deployment MUST supply id material whose assigned party id DOES NOT EXCEED the length bound.
+Capability requirement 14: The deployment MUST supply id material whose EVERY assigned id DOES NOT EXCEED the length bound.
 Capability requirement 15: The deployment MUST supply id material whose verification id DOES NOT EQUAL the state change id.
 ```
-
-NOTE: open 2026-11-04-e
 
 ### Operations
 
@@ -130,7 +126,7 @@ enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)
   refuses invalid-request | storage-failure
 
 verify(party_id, verifying_actor_ref, verification_method, verification_result, evidence_ref)
-  answers verify answer
+  answers verify_answer(verification_id, state_change_id)
   refuses not-known | already-closed | invalid-request | storage-failure
 
 suspend(party_id, suspending_actor_ref, reason)
@@ -150,9 +146,7 @@ read(query)
   refuses invalid-query
 ```
 
-NOTE: open 2026-11-04-f
-
-Term verify answer: verification id and an optional state change id — what verify answers.
+Term verify answer: verification id and an optional state change id — what verify answers, written `verify_answer(verification_id, state_change_id)` in the signature.
 
 ```
 Operation 1: IF a required string input EQUALS blank THEN a writing action MUST answer invalid-request.
@@ -290,9 +284,6 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
   Invariant 8.2: A party's state change log length MUST NOT fall.
   ```
 - **Invariant 11 — Action atomicity.**
-NOTE: open 2026-11-04-b
-
-NOTE: open 2026-11-04-d
 
 ### Ordering
 
@@ -342,7 +333,7 @@ This atom's acceptance is provable: an external auditor clears it from the party
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
+Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1, State 1).
 Check 1.2: An auditor MUST find no party leaving closed across two committed versions of the party (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
 Check 3.1: An auditor MUST find verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant on EVERY verification event (State 4).
@@ -359,12 +350,11 @@ Check 6.4: An auditor MUST find EVERY enrollment field unchanged across EVERY co
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
 Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
-Check 8.1: An auditor MUST partition the party records by state (State 1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: open 2026-11-04-g
+NOTE: Invariant 1.1 owes no check here: Execution Contract Database 6 binds the atom's own actions, and a purge another specification declares, [Retention Window](./retention-window.md)'s under Execution Contract Database 4, is answered by that specification's records (Capability requirement 10, Non-goal 13).
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
@@ -373,7 +363,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
-External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
+External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15, Composition note 4, Composition note 5).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
@@ -402,7 +392,7 @@ Non-goal 12: The atom MUST NOT scrub an enrollment field.
 Non-goal 13: The atom MUST NOT bound a party's retention.
 Non-goal 14: A deployment needing retention bounded MUST compose Retention Window.
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
-Non-goal 16: A deployment needing a non-repudiable transition MUST compose Actor Identity.
+Non-goal 16: A deployment needing a non-repudiable action MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT model a representative acting for a party.
 Non-goal 18: The atom MUST NOT link a party id across two trust domains.
 Non-goal 19: The atom MUST NOT record an answer the atom gave.
@@ -451,28 +441,24 @@ String 7: IF a string input EXCEEDS the length bound THEN a writing action MUST 
 
 Term string input: a required string input, date of birth, verification result OR a filter value — every caller-supplied string this atom accepts.
 
-Term length bound: the maximum length of a string input in Unicode code points; 1,024 code points where a deployment declares none.
+Term length bound: the maximum length of a string input and of an assigned id in Unicode code points; 1,024 code points where a deployment declares none.
 
 ---
 
 ## Composition notes
 
 ```
-Composition note 1: A composing Customer Onboarding MUST gate regulated activity on the party whose state EQUALS verified.
+Composition note 1: A composing Customer Onboarding MUST gate the activity opened to a party on the party whose state EQUALS verified.
 Composition note 2: A composing Customer Onboarding MUST own the verification workflow.
-Composition note 3: A composing External Onboarding MUST call [Enroll] ONLY AFTER an accepted invitation.
-Composition note 4: A composing Actor Identity MUST attest the actor behind EVERY transitioning action.
-Composition note 5: A composing Actor Identity MUST bind an attestation to a state change id.
+Composition note 3: A composing External Onboarding MUST call [Enroll] ONLY AFTER the invited party accepts.
+Composition note 4: A composing Actor Identity MUST attest the actor behind EVERY admitted enroll, EVERY admitted verify, EVERY admitted suspend, EVERY admitted reinstate AND EVERY admitted close.
+Composition note 5: A composing Actor Identity MUST bind an attestation to EVERY assigned id a writing action answers.
 Composition note 6: A composing Audit Trail MUST record EVERY verification event and EVERY state change event.
-Composition note 7: A composing Consent MUST name the party id as the data subject reference.
+Composition note 7: A composing Consent MUST name the party id as the data subject.
 Composition note 8: A composing pattern MUST NOT scrub an enrollment field.
 Composition note 11: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```
-
-NOTE: open 2026-10-21-j — the enrolling and verifying actor references have no route to attestation: Composition note 4 binds a composing Actor Identity to the transitioning actions alone, and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer (External check 4).
-
-NOTE: open 2026-11-04-c
 
 ---
 
@@ -494,11 +480,11 @@ Term bounds: length bound.
 
 Term cadences: empty.
 
-NOTE: open 2026-11-04-a
-
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
+
+Term cited: Execution Contract Database 1 through 7 — one transaction per action, guards read inside it, committed means kept, the database never edits, every committed version stays readable, an atom's no-removal rules bind its own actions, every call goes to one database instance. Execution Contract Error model 1 — a lost answer is none of the three. Execution Contract Generation acceptance 1 — a check comparing a record with an earlier state reads its committed versions. Execution Contract Input 2 — a bound is a default cap. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. Execution Contract Logic confinement 11 — now is the clock reading at the call. Execution Contract Order 1 — commits have one order. Execution Contract Query 1 through 4 — a filter carries one value of its axis or a range, a range holds both its ends, a record without the filtered value fails the filter, filters combine as all-of. Execution Contract Read 4 — a rule saying what an action does holds only for a call the action admits. Execution Contract Refusal 1 — the refusal listed first answers.
 
 Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, a trusted timestamping pattern, a document records pattern.
 
@@ -929,16 +915,7 @@ status: doing
 formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 5, 7, 8 and 9 checked on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Capability requirement 12, 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11
 last gate: 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 
-open:
-- 2026-10-21-j · refining · Composition note 4, 5; External check 4 · the enrolling and verifying actor references have no route to attestation, Composition note 4 binding Actor Identity only to transitioning actions and Composition note 5 an attestation to a state change id, which an enroll and a verify driving no transition never answer → an enrollment and a verification are attested, by the enrolling or verifying actor, through Actor Identity. Re-found three times and rated foundational each time: place it by what it is (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-04-a · refining · Term cited · no `Term cited:` line though rules of this page cite Execution Contract labels (Capability requirement 7 and 10, Term now, Term date of birth start, every Term admitted *, Indeterminate outcome 1 and 3, Checks 1.2, 3.2, 3.3, 4.4, 6.4) → add the line naming each cited label, or record that the page needs none; Closed vocabulary 2 reads every used category
-- 2026-11-04-b · refining · Invariant 8 · Deleted Invariant 9 and Deleted Invariant 10 sit inside Invariant 8's fence, which carries labels outside its own Invariant 8.M family → move each tombstone to a fence of its own or renumber
-- 2026-11-04-c · refining · Composition note 1, 3, 7 · each names an identifier this page declares nowhere (regulated activity, an accepted invitation, the data subject reference), each the composing pattern's own term → declare each as the composer's term with its citation, or word each without it
-- 2026-11-04-d · refining · Invariant 1.1 · no check tests party record permanence: Checks 6.1, 6.2, 6.3 and External checks 9 and 10 were tombstoned to Execution Contract Database 6, which supplies no check → name the check Invariant 1.1 takes, or record that none is owed because Database 6 binds the atom's own actions
-- 2026-11-04-e · refining · Capability requirement 14 · the length bound binds the assigned party id only; the verification id and the state change id ride no bound, so one build stores a 100,000-code-point id, another pads its own allocator → extend the bound to every assigned id, or state that seam id material owes none and why
-- 2026-11-04-f · refining · read signature · party_id, state_change_id and the verify answer mix Projection tokens with declared Term names in one block; Closed vocabulary 21 reads arms as declared names → write every arm as a declared name
-- 2026-11-04-g · refining · Check 8.1 · partition by state decides nothing Check 1.1 does not already decide and names State 1 alone, no invariant → fold it into Check 1.1, or name Invariant 2.1 as its target
-- 2026-11-04-h · refining · page head · the title-and-summary blockquote spec-format's atom shape item 2 requires is absent, and the frontmatter carries no nav_order; the sibling atoms share the same head, so the shape is the corpus's to settle → the corpus's practice stands, and spec-format's atom shape is amended once to match it. The `## Summary` section already is the one-paragraph summary, so a title-and-summary blockquote would say it twice ("make all things mean one thing"); `nav_order` is not required (the site lists patterns by its own index). The category lines GRACE-lang's Closed vocabulary 2 and 3 require (a composing-patterns line where a page names composing patterns, a cited line where it cites the Execution Contract) are the grammar, so they are added wherever owed, as one sweep with a check. One unit: `method: the atom head is the corpus's practice; the vocabulary's category lines added where owed` (decided 2026-11-19, rounds/open-line-choices-directions-3.md (Scott, 3:47 PM Central))
+open: none
 ```
 
 </details>
