@@ -408,7 +408,7 @@
   "composes": [
    "provenance"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -426,7 +426,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
