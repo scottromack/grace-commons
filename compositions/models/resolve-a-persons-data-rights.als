@@ -4,6 +4,10 @@
 -- Alloy layer authored 2026-11-12; re-derived 2026-11-22 for the page's unit `composes Recoverable
 -- Invocation`: [Fulfill Erasure Request] binds the act kind dsar.erasure_execution on a Recoverable
 -- Invocation instance, and [Receive Request] and [Fulfill Access Request] are one transaction each.
+-- Re-derived again 2026-11-22 for Scott's rulings of that day: Term retention reading is no longer an
+-- input but read off what the retention read answers, in the page's order mis-paired, then purged,
+-- then absent, so a record whose named retention id no retention carries, beside a purged sibling,
+-- reads purged and is sealed erased on the sibling (Disposition 39), with Audit arm 28's one alert.
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -43,6 +47,10 @@
 --   Invariant 7.1, 7.2 — the composition calls Consent's check and read only.
 --   Invariant 8.1 — every response disclosure follows a landed intent of the fulfillment it
 --                   answers, the act's own for a re-entry bind's.
+--   Disposition 39 with Term retention reading and Audit arm 28 — a record whose named retention
+--                   id no retention carries, beside a purged sibling over the record, is sealed
+--                   erased on the sibling's retention id, never anomaly unknown-retention, and
+--                   raises one alert, Audit arm 28's on the registry fault.
 --   Accounted — no act closed refused or abandoned made a planned call (Action wiring 47, Term
 --                   commit partition: the invocation refuse closes only the pre-commit arm).
 -- Invariant 1.1, 1.2, 1.4, 2.1, 3.1 and 5.1 are a cross-check with the TLA+ models
@@ -68,6 +76,11 @@
 --       operator's closing data are detected, not checked (Recoverable Invocation Check 6.1): so
 --       Invariant 3.1 holds over the re-entry bind only for an operator whose outcome data the
 --       stores bear out, which the fact Operator takes from outside. (2026-11-22.)
+--   (c) Term retention reading says a record sealed erased on a purged reading "raises no alert
+--       (Disposition 47)", and Audit arm 28 alerts on one whose named retention id no retention
+--       carries: the model reads the parenthesis as scoping the sentence to Disposition 47's
+--       alert, so such a record raises Audit arm 28's one alert, and a record read absent raises
+--       two, Disposition 47's and Audit arm 28's. (2026-11-22, rulings.)
 --
 -- SCOPE
 -- for 3 but 6 Event, 3 Ful, 1 Bind, 3 Closing, 4 Int: three requests, subjects, records,
@@ -83,8 +96,10 @@
 --   - The intake's own refusals, the credential's validation inside Audit Trail (a transaction
 --     that did not commit stands for it), the stall mark, the request index's rebuild (a request
 --     is known where its intake event exists), the payload and text caps, the plan cap's count,
---     the alerts, instants other than the order, the order of the planned calls and the
---     re-invoked purge (a purge reading is the answers already read).
+--     the alerts other than Disposition 47's and Audit arm 28's (read off the records, not
+--     raised), instants other than the order (a purge instant is its retention's: an id names one
+--     retention), the order of the planned calls and the re-invoked purge (a purge reading is the
+--     answers already read), and the plan cap with Non-goal 15's sizing.
 --   - Who is the requester, the response authority and the scopes' prefixes (Check 5.1).
 --
 -- HOW TO READ RESULTS
@@ -148,7 +163,8 @@ one sig DFailed, DThirdParty, DLegalEx, DNoBar extends Det {}
 abstract sig Basis {}
 one sig BUnread, BGround, BGranted, BNotKnown, BWithdrawn, BNone extends Basis {}
 
--- RRead: a record's retention reading (Term retention reading).
+-- RRead: a record's retention reading (Term retention reading), read off the retention read's
+-- answers by readOf.
 abstract sig RRead {}
 one sig RUnread, RClear, RAbsent, RMisPaired, RPurged, RRetained extends RRead {}
 
@@ -193,16 +209,22 @@ abstract sig Inv {
 -- Ful: a fulfillment — a [Fulfill Access Request] or [Fulfill Erasure Request] call that
 -- enumerates — named by its invocation id (Capability requirement 25). Its inputs: the request
 -- id it names, the sibling called (act), what the enumeration answered (seen), and per record
--- what its reads answered (det, basis, rread); what its planned calls answered (pread, hans, and
--- the hold ids a held purge answered); what its execution commit answered (part); and the purge
--- plan pairs Recoverable Invocation's sweep, probing its act, read purged under the intent's now
--- (probe). What it makes of them: the Consent operations it called (cops), and the records below.
+-- what its reads answered (det, basis); what its retention read answered (rans: the records it
+-- answered for; rover: every retention it answers, with the retention's record reference; rpurg:
+-- those standing purged); what its planned calls answered (pread, hans, and the hold ids a held
+-- purge answered); what its execution commit answered (part); and the purge plan pairs Recoverable
+-- Invocation's sweep, probing its act, read purged under the intent's now (probe). What it makes of
+-- them: each record's retention reading (rread), the Consent operations it called (cops), and the
+-- records below.
 sig Ful extends Inv {
     req   : one Request,
     act   : one RType,
     seen  : set Record,
     det   : Record -> lone Det,
     basis : Record -> lone Basis,
+    rans  : set Record,
+    rover : Retention -> lone Record,
+    rpurg : set Retention,
     rread : Record -> lone RRead,
     pread : Record -> lone PRead,
     hans  : Record -> lone HAns,
@@ -326,9 +348,58 @@ fun wposOf[i : Inv] : set Int {
 }
 
 -- sources: every datum a record's sources and the calls over it answered: what a reason can
--- name as a recoverable authority (Check 4.1).
+-- name as a recoverable authority (Check 4.1), a retention a retention read answers over the
+-- record included.
 fun sources[r : Record] : set Ref {
-    r.detRef + r.ground + r.hostBasis + r.attest + r.rid + r.(Ful.holds)
+    r.detRef + r.ground + r.hostBasis + r.attest + r.rid + r.(Ful.holds) + (Ful.rover).r
+}
+
+-- lowest: the retention ids of a set that no other of the set stands below, bytewise — one for a
+-- set that is not empty.
+fun lowest[s : set Retention] : set Retention {
+    { t : s | no u : s | u -> t in Bytes.below }
+}
+
+-- readOf: Term retention reading, the first that holds in the page's order: unread where the read
+-- gave no answer for the record; a host-managed record mis-paired where a retention stands over its
+-- reference, clear otherwise; a record whose route carries a retention id mis-paired where the read
+-- pairs the id with another record reference, purged where a purged retention stands over the
+-- record reference (the named one or a sibling, a named id no retention carries included), absent
+-- where no retention carries the id, and retained everywhere else.
+fun readOf[f : Ful, r : Record] : RRead {
+    r not in f.rans => RUnread
+    else (no r.rid =>
+        (some f.rover.r => RMisPaired else RClear)
+    else (some f.rover[r.rid] and f.rover[r.rid] != r => RMisPaired
+    else (some f.rpurg & f.rover.r => RPurged
+    else (no f.rover[r.rid] => RAbsent
+    else RRetained))))
+}
+
+-- restsOn: the retention a purged reading rests on: the named retention where the read answers it
+-- purged over the record, and otherwise the purged sibling whose retention id stands lowest,
+-- bytewise (Term retention reading; Disposition 39).
+fun restsOn[f : Ful, r : Record] : set Retention {
+    (some r.rid and r.rid in f.rpurg and f.rover[r.rid] = r) => r.rid
+    else lowest[f.rpurg & f.rover.r]
+}
+
+-- unregistered: the record's route names a retention id the fulfillment's retention read answers
+-- no retention carrying (Audit arm 28's registry fault).
+pred unregistered[f : Ful, r : Record] {
+    some r.rid and r in f.rans and no f.rover[r.rid]
+}
+
+-- Alarm: an alert the rules raise on a record: Disposition 47's on a fulfilled event carrying it
+-- anomaly, Audit arm 28's on the registry fault.
+abstract sig Alarm {}
+one sig AAnomaly, ARegistry extends Alarm {}
+
+-- alarms: the alerts a fulfillment's records raise, read off the fulfilled events carrying its
+-- enumeration and off its retention read.
+fun alarms[f : Ful, r : Record] : set Alarm {
+    ((some e : ekind.KFulfilled | f in evFul[e] and e.dv[r] = VAnomaly) => AAnomaly else none)
+    + (unregistered[f, r] => ARegistry else none)
 }
 
 -- standsAt: a closing record stands at p — it lies before p and no later closing of its act
@@ -454,7 +525,7 @@ fun provA[f : Ful, r : Record] : set Ref {
     f.act = Access =>
         (some f.det[r] & (DThirdParty + DLegalEx) => r.detRef else none)
     else (some f.basis[r] & (BGround + BGranted) => r.ground
-    else (f.rread[r] = RPurged => r.rid else none))
+    else (f.rread[r] = RPurged => restsOn[f, r] else none))
 }
 
 -- setV, setW, setA: the sealed disposition — a planned record settled from its planned call's
@@ -511,6 +582,18 @@ pred evidence[r : Record] {
 -- Facts: what the page takes from outside
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Bytes: the bytewise order of retention ids, which Term retention reading's "stands lowest" reads.
+one sig Bytes {
+    below : Retention -> Retention
+}
+
+-- Bytewise: the bytewise order is a strict total order over retention ids (taken from outside).
+fact Bytewise {
+    no iden & Bytes.below
+    Bytes.below.(Bytes.below) in Bytes.below
+    all disj a, b : Retention | a -> b in Bytes.below or b -> a in Bytes.below
+}
+
 -- One real-time order: every write lands at its own instant, and every call reads at an instant
 -- no write takes.
 fact Clock {
@@ -528,16 +611,16 @@ fact Clock {
 -- The registry and the sources: an enumeration answers records of the request's subject, and
 -- one that answered every registered source answers every registered record of the subject
 -- (Capability requirement 1, 2; Completeness boundary 1). Each enumerated record carries one
--- reading of each kind, as the Terms classify the sources' and Retention Window's answers: a
--- host-managed record reads unread, clear or mis-paired, a record carrying a retention id never
--- clear (Term retention reading); a bar reading carries the determination's reference (Term
--- determination reading); a ground or a granted consent carries its text (Term basis reading).
+-- reading of each kind, the retention reading as readOf reads it (fulWiring); a bar reading
+-- carries the determination's reference (Term determination reading); a ground or a granted
+-- consent carries its text (Term basis reading). Retention Window's read answers retentions, each
+-- over one record reference, and a purged one is a retention it answers (Term retention read); it
+-- answers for enumerated records.
 fact Sources {
     all f : Ful | f.seen in owner.(f.req.subj)
     all f : Ful - EnumFailed | f.seen = owner.(f.req.subj)
     all f : Ful | f.det.Det = f.seen and f.basis.Basis = f.seen and f.rread.RRead = f.seen
-    all f : Ful, r : f.seen | no r.rid implies f.rread[r] in RUnread + RClear + RMisPaired
-    all f : Ful, r : f.seen | some r.rid implies f.rread[r] in RUnread + RAbsent + RMisPaired + RPurged + RRetained
+    all f : Ful | f.rpurg in f.rover.Record and f.rans in f.seen
     all f : Ful, r : f.seen | some f.det[r] & (DThirdParty + DLegalEx) implies some r.detRef
     all f : Ful, r : f.seen | some f.basis[r] & (BGround + BGranted) implies some r.ground
 }
@@ -614,6 +697,7 @@ pred fulWiring[f : Ful] {
     lone discBy[f]
     all x : wposOf[f] | lt[f.at, x]
     consentWiring[f]
+    all r : f.seen | f.rread[r] = readOf[f, r]
     not go[f] implies (no ownOf[f] and no discBy[f] and no f.pread and no f.hans and no f.part)
     some intentOf[f] iff landed[f]
     all i : intentOf[f] | provisional[i, f]
@@ -863,6 +947,21 @@ assert A_Accounted {
 }
 check A_Accounted for 3 but 6 Event, 3 Ful, 1 Bind, 3 Closing, 4 Int
 
+-- A_Disposition_39: a record whose route names a retention id no retention carries, beside a
+-- sibling retention over the same record that the read answers purged, reads purged (Term
+-- retention reading: mis-paired, then purged, then absent): every fulfilled event carrying its
+-- enumeration seals it erased on the purged sibling's retention id, the lowest bytewise, never
+-- anomaly carrying unknown-retention (Disposition 15); and it raises one alert, Audit arm 28's on
+-- the registry fault, and no anomaly alert (Disposition 47).
+assert A_Disposition_39 {
+    built implies all e : ekind.KFulfilled, f : evFul[e], r : f.seen |
+        (f.act = Erasure and due[f, r] and unregistered[f, r] and some f.rpurg & f.rover.r) implies
+        (e.dv[r] = VErased and e.dwhy[r] = WDestroyed
+         and e.dauth[r] = lowest[f.rpurg & f.rover.r]
+         and alarms[f, r] = ARegistry)
+}
+check A_Disposition_39 for 3 but 6 Event, 3 Ful, 1 Bind, 3 Closing, 4 Int
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
 -- Each run must find at least one instance (SAT).
@@ -938,6 +1037,13 @@ run ShowIncompleteEnumeration {
 -- ShowYieldedOpen: an intended erasure whose commit answered unknown leaves its intent open.
 run ShowYieldedOpen {
     built and some f : Ful | f.part = PartUnknown and no closingsOf[f]
+} for 3 but 6 Event, 3 Ful, 1 Bind, 3 Closing, 4 Int
+
+-- ShowSiblingPurged: an erasure sealed with a record whose named retention id no retention
+-- carries, erased on a purged sibling's retention id (Disposition 39, Audit arm 28).
+run ShowSiblingPurged {
+    built and some e : ekind.KFulfilled, r : e.dv.VErased |
+        unregistered[evFul[e], r] and e.dauth[r] in evFul[e].rpurg
 } for 3 but 6 Event, 3 Ful, 1 Bind, 3 Closing, 4 Int
 
 -- ShowConsentChecked: an erasure calls Consent's check for a record whose basis names consent.
