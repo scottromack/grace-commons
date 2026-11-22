@@ -54,7 +54,7 @@ This composition is **not a new primitive.** State Machine and Event Log are unc
 ```
 Composes 1: EXACTLY ONE State Machine instance MUST serve the composition.
 Composes 2: EXACTLY ONE State Machine workflow MUST serve a compensable workflow.
-Composes 3: EXACTLY ONE Event Log instance MUST serve a compensable workflow.
+Composes 3: EXACTLY ONE Event Log instance MUST serve the composition.
 Composes 4: The composition MUST change the spine through State Machine's fire alone.
 Composes 5: The composition MUST record a compensable workflow's events through Event Log's append alone.
 Composes 6: The composition MUST NOT reverse a fired transition.
@@ -63,10 +63,9 @@ Composes 8: The composition MUST decide EVERY compensation at the composition's 
 Composes 9: The composition MUST NOT change a constituent's spec.
 Composes 10: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 11: A deployment MUST NOT fire a spine transition outside the composition.
-Composes 12: A deployment MUST NOT append an event to a step log outside the composition.
+Composes 12: A deployment MUST NOT append an event to the Event Log instance outside the composition.
+Composes 13: EVERY event the composition appends MUST carry the compensable workflow id.
 ```
-
-NOTE: open 2026-11-03-b — nothing names who provisions the per-run Event Log instance or maps the compensable workflow id to it, Event Log Capability requirement 6 begins every log instance a composing pattern owns at the first start, before any run exists, and Composes 3 does not bar one instance serving two runs (Composes 3; Event Log Identity 10).
 
 Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.md) and [Event Log](../atoms/event-log.md) — the step log, the five actions and the replay.
 
@@ -76,7 +75,7 @@ Term compensable workflow: one run of the composition, from [Start Compensable W
 
 Term spine: the State Machine workflow serving a compensable workflow — the progress's follower, never the progress's source.
 
-Term step log: the Event Log instance serving a compensable workflow — the compensable workflow's sole truth.
+Term step log: a compensable workflow's events in the Event Log instance serving the composition — the events that carry the compensable workflow id, and the compensable workflow's sole truth.
 
 Two neighbours, named here so the boundaries are explicit. [Execute Gated Workflow](./execute-gated-workflow.md) is the **sibling over the same spine**: it also wires State Machine, but for *human-approval gating of forward progress* (a transition fires only after a real Approval Step is Approved). This composition wires the same spine for *failure-compensation of completed steps*. The two are orthogonal — a regulated compensable workflow would compose both. The database's history is the **complement**, reversing a write inside the database by restoring the version before it (Execution Contract Database 5) where this composition reverses by compensating action (see Intent). The [Audit Trail](./audit-trail.md) regulated-audit substrate is deliberately *not* composed in this base shape (Non-goal 12).
 
@@ -109,7 +108,7 @@ Term compensable workflow records: every compensable workflow record the composi
 
 Term compensable workflow id: the State Machine instance id issued for the spine, which names the compensable workflow for the compensable workflow's whole life.
 
-Term definition: the deployment-declared step and compensation sequence a [Start Compensable Workflow] call carries and the start event records — for each step its name, whether it is an effect step, its step marker where it has one, and its compensating action with that action's input envelope where it has one.
+Term definition: the deployment-declared step and compensation sequence a [Start Compensable Workflow] call carries and the start event records — for each step its name, its target action and that action's inputs, whether it is an effect step, its step marker where it has one, and its compensating action with that action's input envelope where it has one.
 
 Term definition reference: the opaque reference to the definition the compensable workflow record keeps.
 
@@ -128,7 +127,7 @@ Term effect key: the at-most-once key an effect runs under; the same key on ever
 #### Replay
 
 ```
-Replay 1: The replay MUST read EVERY event of the step log in sequence number order.
+Replay 1: The replay MUST read EVERY event of the Event Log instance in sequence number order AND MUST derive the log projections from the events carrying the compensable workflow id alone.
 Replay 2: IF no compensation onset event EXISTS AND no standing halt EXISTS THEN the replay MUST derive forward as the phase.
 Replay 3: IF a compensation onset event EXISTS AND no standing halt EXISTS THEN the replay MUST derive compensating as the phase.
 Replay 4: IF a standing halt EXISTS THEN the replay MUST derive halted as the phase.
@@ -205,7 +204,7 @@ Term halt bound: the longest a compensable workflow may rest in the halted phase
 
 Term halt instant: the recording instant Event Log stamped on the standing halt.
 
-Term halt deadline: `((halt instant + halt bound) - clock allowance)`.
+Term halt deadline: `((halt instant + halt bound) - clock allowance)`, the allowance subtracted so that no resume follows a rest longer than the halt bound whichever of the two clocks reads the call (Capability requirement 17).
 
 Term lapsed halt: a standing halt whose halt deadline PRECEDES now — past it no resume can follow the halt, so no attempt opens across a rest longer than the halt bound.
 
@@ -265,7 +264,7 @@ Term effect step: a declared step whose result escapes the compensable workflow'
 
 Term step marker: read-only | pivot — read-only for a step with no external effect to reverse; pivot for the commit point past which the compensable workflow only rolls forward.
 
-Term unmarked irreversible step: an effect step declaring no compensating action and no step marker.
+Term unmarked irreversible step: an effect step declaring no compensating action and no step marker, a step following a step marked pivot excepted.
 
 Term roll-forward step: a step marked pivot, or a step following a step marked pivot.
 
@@ -314,6 +313,7 @@ Action wiring 3: An invocation whose critical section expired MUST NOT write.
 Action wiring 4: An invocation whose critical section expired MUST NOT take the critical section again.
 Action wiring 5: An invocation whose critical section expired MUST discard an effect reply still in flight.
 Action wiring 6: An invocation MUST read a critical section lost to a host fault as an expired critical section.
+Action wiring 93: IF now PRECEDES the start instant THEN [Advance] AND [Cancel] MUST answer invalid-request (State Machine Operation 20).
 Action wiring 89: [Advance] MUST answer storage-failure naming none for a refused take (the section titled Step 3 failure in `execution-contract.md`).
 Action wiring 90: [Cancel] MUST answer storage-failure naming none for a refused take (the section titled Step 3 failure in `execution-contract.md`).
 Action wiring 91: [Read Progress] MUST answer storage-failure for a refused take (the section titled Step 3 failure in `execution-contract.md`).
@@ -330,7 +330,7 @@ Action wiring 20: The composition MUST read a verdict as failed ONLY IF the targ
 Action wiring 21: The composition MUST append a step completion event ONLY IF the effect verdict EQUALS applied.
 Action wiring 22: A forward advance MUST append a step attempt event for the next step.
 Action wiring 23: A forward advance MUST run the next step's effect ONLY AFTER appending the step attempt event.
-Action wiring 24: A forward advance MUST run the next step's effect under the step's effect key.
+Action wiring 24: A forward advance MUST run the next step's target action with the target action's inputs under the step's effect key.
 Action wiring 25: IF the effect verdict EQUALS applied THEN a forward advance MUST append a step completion event.
 Action wiring 26: IF the effect verdict EQUALS failed AND the step IS NOT IN the roll-forward steps THEN a forward advance MUST append a compensation onset event naming the step.
 Action wiring 28: IF the effect verdict EQUALS failed AND the step IS IN the roll-forward steps AND the step's effect key IS IN the elapsed keys THEN a forward advance MUST append a halt event naming the forward phase AND the step.
@@ -355,11 +355,14 @@ Action wiring 47: IF the effect verdict EQUALS unknown AND the effect's effect k
 Action wiring 48: IF the effect verdict EQUALS unknown THEN the invocation MUST answer effect-indeterminate naming target-unknown.
 Action wiring 49: A halted advance MUST append a resume marker for EVERY named step.
 Action wiring 50: A halted advance MUST fire the transition back to the phase the halt event the halted advance found standing names ONLY AFTER appending the resume markers.
+Action wiring 94: A halted advance MUST write the resume markers AND the transition back as one transaction (Execution Contract Database 1).
 Action wiring 85: IF the halt event a halted advance finds standing names the forward phase THEN the halted advance MUST append each resume marker as a step attempt event carrying the named step's effect key.
 Action wiring 86: IF the halt event a halted advance finds standing names the compensating phase THEN the halted advance MUST append each resume marker as a compensation attempt event carrying the effect key of the named step's compensation.
 Action wiring 53: IF Event Log's append answers storage-failure for a completion record THEN the invocation MUST answer storage-failure naming effect-landed.
 Action wiring 54: IF Event Log's append answers storage-failure for a marker AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
 Action wiring 55: IF Event Log's append answers storage-failure for a marker AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed (Execution Contract Constituent failure 1).
+Action wiring 95: IF State Machine's fire answers storage-failure AND an unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming effect-landed (Execution Contract Constituent failure 1).
+Action wiring 96: IF State Machine's fire answers storage-failure AND no unrecorded effect EXISTS THEN the invocation MUST answer storage-failure naming none (Execution Contract Constituent failure 1).
 Action wiring 57: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST append a fault halt carrying the finding AND naming the phase AND the step of the landed event.
 Action wiring 58: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST NOT fire a further transition.
 Action wiring 59: IF State Machine's fire answers a spine refusal for a landed transition-bearing event THEN the invocation MUST answer spine-fault.
@@ -379,7 +382,7 @@ Action wiring 75: IF the phase EQUALS compensating THEN [Cancel] MUST answer com
 Action wiring 76: IF the phase EQUALS halted THEN [Cancel] MUST answer halted.
 Action wiring 77: An admitted cancel MUST answer compensating.
 Action wiring 78: [Read Progress] MUST derive the progress from the step log PER the replay.
-Action wiring 79: [Read Log] MUST answer Event Log's read for the query.
+Action wiring 79: [Read Log] MUST answer the events of Event Log's read for the query that carry the compensable workflow id.
 Action wiring 80: [Read Log] MUST NOT write.
 Action wiring 83: An advance landing a terminal marker MUST answer the advance result.
 Action wiring 84: A halted advance that answers no refusal MUST answer the advance result.
@@ -407,7 +410,7 @@ Term compensating advance: an [Advance] call finding the compensable workflow in
 
 Term next step: the first step the start event's definition declares that no step completion event names.
 
-Term pending compensation: a completed step no standing failure names.
+Term pending compensation: a completed step whose step completion event's compensation reference DOES NOT EQUAL blank and that no standing failure names.
 
 Term standing failure: a compensation failure event whose step no later compensation run event names.
 
@@ -462,15 +465,15 @@ The result: all-or-compensated (Invariant 4) falls out of the wiring as an emerg
 
 ```
 {type: "compensable_workflow_started",     event_id, recorded_at, compensable_workflow_id, definition, definition_ref, subject_ref}
-{type: "step_attempted",                   event_id, recorded_at, step, effect_key, within_horizon_asserted, compensation_arguments}
-{type: "compensation_attempted",           event_id, recorded_at, step, effect_key, within_horizon_asserted}
-{type: "step_completed",                   event_id, recorded_at, step, compensation_ref, captured_arguments, arguments_overflow, effect_key}
-{type: "compensation_run",                 event_id, recorded_at, step, effect_key, arguments_source}
-{type: "compensation_failed",              event_id, recorded_at, step, effect_key}
-{type: "compensation_begun",               event_id, recorded_at, step}
-{type: "compensable_workflow_halted",      event_id, recorded_at, phase, steps, finding}
-{type: "compensable_workflow_committed",   event_id, recorded_at}
-{type: "compensable_workflow_compensated", event_id, recorded_at}
+{type: "step_attempted",                   event_id, compensable_workflow_id, recorded_at, step, effect_key, within_horizon_asserted, compensation_arguments}
+{type: "compensation_attempted",           event_id, compensable_workflow_id, recorded_at, step, effect_key, within_horizon_asserted}
+{type: "step_completed",                   event_id, compensable_workflow_id, recorded_at, step, compensation_ref, captured_arguments, arguments_overflow, effect_key}
+{type: "compensation_run",                 event_id, compensable_workflow_id, recorded_at, step, effect_key, arguments_source}
+{type: "compensation_failed",              event_id, compensable_workflow_id, recorded_at, step, effect_key}
+{type: "compensation_begun",               event_id, compensable_workflow_id, recorded_at, step}
+{type: "compensable_workflow_halted",      event_id, compensable_workflow_id, recorded_at, phase, steps, finding}
+{type: "compensable_workflow_committed",   event_id, compensable_workflow_id, recorded_at}
+{type: "compensable_workflow_compensated", event_id, compensable_workflow_id, recorded_at}
 ```
 
 ```
@@ -487,6 +490,8 @@ Event schema 10: A halt event MUST carry the phase the halt event leaves AND the
 Event schema 11: A fault halt MUST carry the finding.
 Event schema 12: A resume marker for the overflowed step an overflow halt names MUST carry the compensation inputs.
 Event schema 13: A compensation onset event a [Cancel] appends MUST carry no step.
+Event schema 14: EVERY event MUST carry the compensable workflow id.
+Event schema 15: An attempt marker a halted advance does not append MUST carry a blank within_horizon_asserted.
 ```
 
 Term event type: start | step attempt | compensation attempt | step completion | compensation run | compensation failure | compensation onset | halt | commit | compensation close — the ten schemas, in the order the fence above writes the schemas' wire spellings.
@@ -497,7 +502,7 @@ Term phase marker: a compensation onset event or a halt event.
 
 Term terminal marker: a commit event or a compensation close event.
 
-Term resume marker: an attempt marker carrying the recorded horizon assertion — the event the halted arm appends for each named step.
+Term resume marker: an attempt marker a halted advance appends for a named step, the only attempt marker carrying the recorded horizon assertion.
 
 Term recorded horizon assertion: the horizon assertion the resuming [Advance] carried, kept on the resume marker.
 
@@ -524,13 +529,13 @@ These emerge from the composition; none belongs to a single constituent atom. Ea
   ```
 - **Invariant 4 — All-or-compensated.** *(The load-bearing claim.)*
   ```
-  Invariant 4.1: A compensable workflow carrying a compensation close event MUST carry a compensation run event for EVERY step completion event.
+  Invariant 4.1: A compensable workflow carrying a compensation close event MUST carry a compensation run event for EVERY step completion event whose compensation reference DOES NOT EQUAL blank.
   Invariant 4.2: A compensable workflow carrying a commit event MUST carry a step completion event for EVERY declared step.
   Invariant 4.3: A compensable workflow carrying a commit event MUST carry no compensation onset event.
   Invariant 4.4: The composition MUST carry EVERY open obligation in the step log.
   Invariant 4.5: The composition MUST append a terminal marker ONLY IF no unresolved attempt EXISTS.
   ```
-  Term open obligation: a completed step no compensation run event names after a compensation onset event, or an unresolved attempt — an escaped effect the step log still owes.
+  Term open obligation: a completed step whose compensation reference DOES NOT EQUAL blank and that no compensation run event names after a compensation onset event, or an unresolved attempt — an escaped effect the step log still owes.
 - **Invariant 5 — Reverse-order compensation.**
   ```
   Invariant 5.1: The composition MUST compensate the completed steps newest first.
@@ -606,7 +611,7 @@ Check 1.2: An auditor MUST find a recorded act behind EVERY event of the step lo
 Check 2.1: An auditor MUST find the spine's current state equal to the replayed state of a fresh replay of the step log at a quiescent point of a compensable workflow carrying no fault halt (Invariant 2.1).
 Check 2.2: An auditor MUST derive the progress from the step log AND NOT from the spine (Composes 7).
 Check 3.1: An auditor MUST find EXACTLY ONE compensation reference on EVERY step completion event of an effect step that IS NOT IN the roll-forward steps (Invariant 3.1).
-Check 4.1: An auditor MUST find a compensation run event for EVERY step completion event of a compensable workflow carrying a compensation close event (Invariant 4.1).
+Check 4.1: An auditor MUST find a compensation run event for EVERY step completion event whose compensation reference DOES NOT EQUAL blank, of a compensable workflow carrying a compensation close event (Invariant 4.1).
 Check 4.2: An auditor MUST find a step completion event for EVERY declared step of a compensable workflow carrying a commit event (Invariant 4.2).
 Check 4.3: An auditor MUST find no compensation onset event in a compensable workflow carrying a commit event (Invariant 4.3).
 Check 4.4: An auditor MUST find no terminal marker in a compensable workflow carrying an unresolved attempt (Invariant 4.5).
@@ -627,9 +632,9 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the target key discipline confirmed MUST read the deployment's own target declarations (Capability requirement 15).
-External check 2: An auditor needing the effect key horizon confirmed MUST read the deployment's own configuration (Capability requirement 17).
+External check 2: An auditor needing the longest attempt gap inside the effect key horizon confirmed MUST read the deployment's own effect key horizon AND halt bound (Capability requirement 17, Capability requirement 22).
 External check 3: An auditor needing the critical section's cross-node exclusion confirmed MUST read the deployment's own host (Capability requirement 6).
-External check 6: An auditor needing the at-most-once claim confirmed MUST read External check 1 AND External check 3 (Invariant 7.1).
+External check 6: An auditor needing the at-most-once claim confirmed MUST read External check 1, External check 2 AND External check 3 (Invariant 7.1, Capability requirement 17).
 External check 7: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 10).
 ```
 
@@ -953,7 +958,7 @@ This composition draws on:
 
 - **Sagas** (Hector Garcia-Molina and Kenneth Salem, *Sagas*, ACM SIGMOD — the Association for Computing Machinery's Special Interest Group on Management of Data — 1987) — the originating paper: a long-lived transaction expressed as a sequence of subtransactions, each with a compensating transaction that semantically undoes it, committing without holding locks for the whole duration.
 - **Compensating-transaction pattern** — the enterprise-integration and cloud design-pattern formulation of reversal-by-compensation for operations that cannot share one atomic transaction.
-- **Durable execution — Temporal** (`io.temporal.workflow.Saga`) — the crystallized SDK form: an in-memory list of compensating closures registered as steps complete, run in reverse order on failure, durable only through workflow replay. The Temporal *server* carries no compensable workflow concept — the engine is domain-blind durable execution — which is the source-grounded basis for placing the engine below the contract.
+- **Durable execution — Temporal** (`io.temporal.workflow.Saga`) — the crystallized software development kit form: an in-memory list of compensating closures registered as steps complete, run in reverse order on failure, durable only through workflow replay. The Temporal *server* carries no compensable workflow concept — the engine is domain-blind durable execution — which is the source-grounded basis for placing the engine below the contract.
 - **Microservices saga** (Chris Richardson, microservices.io) — the orchestration-versus-choreography framing and the compensatable / pivot / retriable step taxonomy, named here as realization detail rather than concept.
 
 It composes with, and is positioned against, [Idempotent Reservation](./idempotent-reservation.md) (the idempotency-key discipline behind Invariant 7), and it is positioned against the database's history (Execution Contract Database 5), the complement that reverses a write inside the database by restoring the version before it. The constituent atoms carry their own inheritance — State Machine (BPMN — Business Process Model and Notation; HL7 FHIR — Health Level Seven Fast Healthcare Interoperability Resources — Task lifecycle; 21 CFR Part 11 — US Code of Federal Regulations, Title 21, Part 11, electronic records) and Event Log (ISO/IEC 27001 — the international information-security standard; NIST SP 800-92 — National Institute of Standards and Technology log-management guidance).
@@ -971,11 +976,10 @@ It composes with, and is positioned against, [Idempotent Reservation](./idempote
 
 ```
 status: doing
-formal: verified — compensable-workflow.tla + 17 twins, re-derived 2026-11-08 (it was verified 2026-06-16 over a bare effect-then-record window): the attempt marker before every effect and the four-way verdict (applied, failed, indeterminate, unknown); the critical section as a second writer, with lease expiry as its terminus and the expired invocation's reply discarded; the halt that parks an attempt and the operator's resume under the horizon assertion, with the effect key lapsing while the run rests halted; both compensation failure policies; the pivot; the overflow landing; Invariants 2.1, 4, 4.1 to 4.5, 5.1, 6.3, 7.1, 7.2 and 8.1 checked, with Check 7.1, Replay 12, Primitive policy 23 through 25, Action wiring 30, 72 and 73 and Non-goal 9; the spine fault, the start and the reads are not modelled, and the bound is two steps because three run past the checker's depth cap; closes 2026-08-30-a; compensable-workflow.als + 17 twins (the static data model, 2026-11-12: Invariant 2.1, 3.1, 4.1 to 4.3, 4.5, 5.1, 6.1 to 6.3, 7.2 and 8.1, Action wiring 30, 72 and 73, Non-goal 9, Check 8.2, Composition state 13 and Replay 12 checked on every definition, spine and step log the writers can leave, each event as its writer's rules let it land over the replay of the events before it, all but Invariant 3.1, 6.1, 6.2 and Composition state 13 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1 and 1.2 (an act is no record), 4.4 (an escaped effect is no record) and 7.1 (the claim and the deployment's declarations are no records); the model found that Primitive policy 12 admits an effect step marked read-only with no compensating action, whose completion carries no compensation reference against Invariant 3.1 (checked over the steps not marked read-only), that no rule says what a compensating advance does with a completed step declaring no compensating action, which stays a pending compensation so the run can neither close nor halt, and that under the continue policy an operator's resume runs a failed newer step's compensation after the older steps', a conforming log against Check 5.1's run-event order); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owed rows: 2a: Action wiring 15 — owed: as a PROPERTY (the standing attempt of a failed roll-forward, indeterminate or unknown effect is eventually re-run by a later [Advance]) with weak fairness on the engine's re-delivery stated in the header; twin: a re-entry arm that never re-runs, 2026-11-08; the open lines closed 2026-11-20 (the parallel compensation order and Capability requirement 1 retired, an effect run once per invocation and re-run by the next [Advance], Action wiring 27, 42, 46 and 52 and Capability requirement 9 retired, the step completion bound and the halt bound read at a call's own now with the clock allowance, Primitive policy 28, Composes 11 and 12) change no rule the models check: each change narrows the behaviours the TLA+ model already admits (its in-invocation re-ask and an expiry at any step stand for the next call's re-run, its bound steps fire at any point, and its operator who resumes only while every parked key is honoured stands for the halt bound with Capability requirement 17), so the checks hold over the page as it now reads; the comments name the over-approximation, and no twin is owed, 2026-11-20
-last gate: 2026-11-18 — Final Critique 9, a delta round, one reader (Linus longcat-2.0), frozen at 28224918 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
+formal: verified — compensable-workflow.tla + 17 twins, re-derived 2026-11-08 (it was verified 2026-06-16 over a bare effect-then-record window): the attempt marker before every effect and the four-way verdict (applied, failed, indeterminate, unknown); the critical section as a second writer, with lease expiry as its terminus and the expired invocation's reply discarded; the halt that parks an attempt and the operator's resume under the horizon assertion, with the effect key lapsing while the run rests halted; both compensation failure policies; the pivot; the overflow landing; Invariants 2.1, 4, 4.1 to 4.5, 5.1, 6.3, 7.1, 7.2 and 8.1 checked, with Check 7.1, Replay 12, Primitive policy 23 through 25, Action wiring 30, 72 and 73 and Non-goal 9; the spine fault, the start and the reads are not modelled, and the bound is two steps because three run past the checker's depth cap; closes 2026-08-30-a; the cures of Final Critique 10 (Invariant 4.1 over a compensation reference that stands, every event carrying the compensable workflow id, Action wiring 93 through 96) are not modelled, 2026-11-22: the models read one compensable workflow, and a step declaring no compensating action is the state FoundNoCompensationToRun shows; compensable-workflow.als + 17 twins (the static data model, 2026-11-12: Invariant 2.1, 3.1, 4.1 to 4.3, 4.5, 5.1, 6.1 to 6.3, 7.2 and 8.1, Action wiring 30, 72 and 73, Non-goal 9, Check 8.2, Composition state 13 and Replay 12 checked on every definition, spine and step log the writers can leave, each event as its writer's rules let it land over the replay of the events before it, all but Invariant 3.1, 6.1, 6.2 and Composition state 13 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1 and 1.2 (an act is no record), 4.4 (an escaped effect is no record) and 7.1 (the claim and the deployment's declarations are no records); the model found that Primitive policy 12 admits an effect step marked read-only with no compensating action, whose completion carries no compensation reference against Invariant 3.1 (checked over the steps not marked read-only), that no rule says what a compensating advance does with a completed step declaring no compensating action, which stays a pending compensation so the run can neither close nor halt, and that under the continue policy an operator's resume runs a failed newer step's compensation after the older steps', a conforming log against Check 5.1's run-event order); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owed rows: 2a: Action wiring 15 — owed: as a PROPERTY (the standing attempt of a failed roll-forward, indeterminate or unknown effect is eventually re-run by a later [Advance]) with weak fairness on the engine's re-delivery stated in the header; twin: a re-entry arm that never re-runs, 2026-11-08; the open lines closed 2026-11-20 (the parallel compensation order and Capability requirement 1 retired, an effect run once per invocation and re-run by the next [Advance], Action wiring 27, 42, 46 and 52 and Capability requirement 9 retired, the step completion bound and the halt bound read at a call's own now with the clock allowance, Primitive policy 28, Composes 11 and 12) change no rule the models check: each change narrows the behaviours the TLA+ model already admits (its in-invocation re-ask and an expiry at any step stand for the next call's re-run, its bound steps fire at any point, and its operator who resumes only while every parked key is honoured stands for the halt bound with Capability requirement 17), so the checks hold over the page as it now reads; the comments name the over-approximation, and no twin is owed, 2026-11-20
+last gate: 2026-11-22 — Final Critique 10, full, three fresh readers (GRID glm-5.3-flash, EOS gpt-6-luna, Linus beam-free), frozen at fbd975b6 — foundational count 4 (every event now carries the compensable workflow id and one Event Log instance serves the composition, as Scott ruled on 2026-11-21, closing 2026-11-03-b; a compensable workflow whose completed step declares no compensating action could never close; a fire refused for a clock behind the start instant was read as a spine fault; the resume markers and the transition back could commit apart), not clean, no sample (cured: Composes 3 and 13, Event schema 14, Replay 1 and Action wiring 79; Invariant 4.1, Check 4.1, Term pending compensation and Term open obligation; Action wiring 93; Action wiring 94 through 96; the refining cures are External check 2 and 6, Term resume marker with Event schema 15, Term definition with Action wiring 24, Term unmarked irreversible step and the halt deadline's reason); 2026-11-18 — Final Critique 9, a delta round, one reader (Linus longcat-2.0), frozen at 28224918 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-06 — Final Critique 8, a delta round, frozen at ef1f25a — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 7, a delta round, frozen at 82d4603 — foundational count 1, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 6, a delta round, frozen at de92f1e — foundational count 1, cured by the settle, not clean, no sample; 2026-11-03 — Final Critique 5, frozen at f0729b8 — foundational count 12, cured, not clean, no sample; Final Critique 4, 2026-06-16, fresh reader — clean
 
-open:
-- 2026-11-03-b · foundational · Composes 3 · nothing provisions the per-run Event Log instance or maps the compensable workflow id to it; Event Log Identity 10 gives the count of log instances to the composing pattern and Event Log Capability requirement 6 has the deployment begin every one at the first start, before any run exists, and Composes 3 does not bar one instance serving every run, where [Read Log] answers other runs' events → waits for Scott: one Event Log instance serving the composition, every event carrying the compensable workflow id, or a log instance per run that the deployment begins at the run's start
+open: none
 ```
 
 </details>
