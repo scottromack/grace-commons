@@ -35,7 +35,7 @@
 --   Invariant 13.2 — two audit events do not share an event id.
 -- Invariant 4.1 and 5.1 are checked by the TLA+ model too (Inv4_CapacityConstraint,
 -- Inv5_NonNegativity), against a fixed capacity; here [Adjust Capacity] is in scope, so the
--- two models cross-check them and this one adds the adjust path (Invariant 4.3).
+-- two models cross-check them and this one adds the adjust path (Operation 32).
 --
 -- NOT CHECKED HERE (nothing testable in Alloy: a single state cannot show it)
 --   Invariant 1 (no pool removed; the pool count never falls), Invariant 7.1 (a declaration
@@ -45,8 +45,9 @@
 --   with a later version of itself, and the change leaves no event on the log, so one state
 --   cannot show it. Invariant 8.4 and 9.4 are permissions (MAY), with nothing to fail.
 --   Invariant 8.5 obliges an auditor's reconstruction, not a record. Invariant 14 is
---   deleted. Invariant 3.2, 3.3, 4.2, 4.3, 5.2, 6.2 and 6.3 also oblige a call's answer; a
---   refused call writes nothing (Operation 58, 59), so what they leave in a record is what
+--   deleted. Invariant 3.2, 3.3, 10.1 and 11.1 state where a pool's audit log stands, and the
+--   answers a call owes (Operation 7, 11, 13, 22, 29, 30 and 32) leave a refused call
+--   writing nothing (Operation 58, 59), so what they leave in a record is what
 --   Invariant 3.2 to 6.1 above check.
 --
 -- SCOPE
@@ -336,7 +337,7 @@ pred noStateFields[e : Event] {
 
 -- declareWrites: the pool an admitted [Declare Pool] records.
 pred declareWrites[c : DeclareCall, p : Pool] {
-    c.capacityIn >= 0                                  -- Operation 7, Invariant 6.2
+    c.capacityIn >= 0                                  -- Operation 7
     c.capacityIn <= Deployment.width                   -- Arithmetic 4
     p.poolId    = c.allocatedId                        -- Identity 3
     p.capacity  = c.capacityIn                         -- Operation 4
@@ -352,7 +353,7 @@ pred allocateWrites[pre : Pool, c : AllocateCall, p : Pool] {
     c.countIn > 0                                      -- Operation 12
     c.countIn <= Deployment.width                      -- the case table: count past the integer width
     plus[pre.allocated, c.countIn] <= Deployment.width -- Arithmetic 3
-    plus[pre.allocated, c.countIn] <= pre.capacity     -- Operation 13, Invariant 4.2
+    plus[pre.allocated, c.countIn] <= pre.capacity     -- Operation 13
     nonBlank[c.actorIn]                                -- String 2
     keepsIdentity[pre, p]
     p.capacity  = pre.capacity                         -- Operation 18
@@ -375,7 +376,7 @@ pred allocateWrites[pre : Pool, c : AllocateCall, p : Pool] {
 pred releaseWrites[pre : Pool, c : ReleaseCall, p : Pool] {
     c.countIn > 0                                      -- Operation 21
     c.countIn <= Deployment.width                      -- the case table: count past the integer width
-    c.countIn <= pre.allocated                         -- Operation 22, Invariant 5.2
+    c.countIn <= pre.allocated                         -- Operation 22
     nonBlank[c.actorIn]                                -- String 2
     keepsIdentity[pre, p]
     p.capacity  = pre.capacity                         -- Operation 26
@@ -397,10 +398,10 @@ pred releaseWrites[pre : Pool, c : ReleaseCall, p : Pool] {
 -- adjustWrites: the version an admitted [Adjust Capacity] leaves.
 pred adjustWrites[pre : Pool, c : AdjustCall, p : Pool] {
     Closed not in pre.state                            -- Operation 29, Invariant 3.3
-    c.newCapacityIn >= 0                               -- Operation 30, Invariant 6.3
+    c.newCapacityIn >= 0                               -- Operation 30
     c.newCapacityIn <= Deployment.width                -- Arithmetic 5
     c.newCapacityIn != pre.capacity                    -- Operation 31
-    not (pre.allocated > c.newCapacityIn)              -- Operation 32, Invariant 4.3
+    not (pre.allocated > c.newCapacityIn)              -- Operation 32
     nonBlank[c.actorIn]                                -- String 2
     nonBlank[c.reasonIn]                               -- String 2
     keepsIdentity[pre, p]

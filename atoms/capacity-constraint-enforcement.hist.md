@@ -22,6 +22,8 @@ Entries that record a migration rather than a turn the pattern took.
 
 - **2026-10-22 — The wiring and a composed scrub are read outside the pool records, as the Execution Contract says.** *Chose:* External check 4, the auditor reading which composing patterns a deployment wired in from the deployment's own declaration, deleted to Execution Contract Conformance 9, and External check 5, the attribution surface read outside the composed erasure mechanism's scrub records, deleted to Execution Contract Database 6, with the tombstones of Check 5.1 through 5.4 and Check 6.1, which named them, now naming the contract and the checks NOTE cut to External check 6; both labels cited on Capability requirement 5; rules 209 to 207. External check 6 is kept as the page's own: the capacity at a purge boundary is read from the anchor the page itself obliges (Check 2.3), not from the purging pattern's records. *Over:* the page stating for itself that the wiring is an external check and that a scrub another specification declares is answered outside the pool records. *Because:* the maintainer ruled on 2026-10-22 that five repeated cures are each stated once, the wiring declaration and the composed erasure among them; this page's ninth Final Critique had made both cures one specification at a time. What each action does and answers is unchanged.
 
+- **2026-11-21 — The eleven open lines of Final Critique 10 are closed.** *Chose:* one party draws the ids (the deployment, where the page said the host and the deployment); the pool records refuse a colliding write (Capability requirement 8, answered storage-failure by Operation 57); the anchor across a purge is Capability requirement 7, not an auditor's check; Check 2.4 and Check 2.5 chain every event and the pool's current record to the replay, and Check 7.1 through 7.3, 8.1 and 8.2 check the adjustment and state-change surfaces; the owners of the seven non-goals named, or stated to be none; sixteen names in the Terms registry each given a Term declaration; Invariant 3.2, 3.3, 10.1 and 11.1 written as where the audit log stands, and Invariant 4.2, 4.3, 5.2, 6.2 and 6.3 deleted to the Operation that owns each answer; the audit-log read named as the deployment's read of the pool records, not an action; a composed scrub may reach the declaring actor reference and the declaration reason; String 12 deleted to Execution Contract Logic confinement 13. *Over:* leaving the lines open until a round decided them, an audit-log read action, a scrub that stops at the audit events, and a normalization rule for fields the atom never compares. *Because:* a pattern done with its open lines in its text is not done (Scott, 2026-11-19), and a rule of the corpus decided each cure (Standard label 14, Logic confinement 3, 13 and 16, Database 6, Check 3.2's own form); the chain checks walk a pool's audit log from the declaration, which Check 3.1 and Check 3.2 do not, and where an event was purged they do not run and the anchor stands in (External check 6).
+
 ## Migration notes
 
 - **2026-09-15 — Clock dependence 1 and 2, cut out of Clock semantics.** Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated in its own family rather than among the rules about what the clock is and what a transition stamps from it. Both rules keep the words they carried as Clock semantics 4 and 5; only the heading changed.
@@ -71,6 +73,26 @@ Deleted: Operation 64. Clock dependence 1 owns it.
   Deleted: Invariant 1.3. Execution Contract Database 1 owns it.
 ```
 
+### Structure › Invariants › Invariant 4 — Capacity constraint
+
+```
+  Deleted: Invariant 4.2. Operation 13 owns it.
+  Deleted: Invariant 4.3. Operation 32 owns it.
+```
+
+### Structure › Invariants › Invariant 5 — Non-negativity
+
+```
+  Deleted: Invariant 5.2. Operation 22 owns it.
+```
+
+### Structure › Invariants › Invariant 6 — Capacity non-negativity
+
+```
+  Deleted: Invariant 6.2. Operation 7 and Arithmetic 4 own it.
+  Deleted: Invariant 6.3. Operation 30 and Arithmetic 5 own it.
+```
+
 ### Structure › Invariants › Invariant 14 — Action atomicity
 
 ```
@@ -82,6 +104,7 @@ Deleted: Operation 64. Clock dependence 1 owns it.
 ### Generation acceptance › Conformance checks
 
 ```
+Deleted: Check 2.3. Capability requirement 7 owns it.
 Deleted: Check 5.1. Execution Contract Database 6 owns it.
 Deleted: Check 5.2. Execution Contract Database 6 owns it.
 Deleted: Check 5.3. Execution Contract Database 6 owns it.
@@ -108,6 +131,7 @@ Deleted: Concurrency 3. Execution Contract Database 2 owns it: the arithmetic gu
 
 ```
 Deleted: String 3. Execution Contract Input 2 owns it, and Term actor reference cap supplies the default.
+Deleted: String 12. Execution Contract Logic confinement 13 owns it, and Identity 10 and Identity 11 own the one comparison the atom makes.
 ```
 
 ### Edge cases › Crash atomicity

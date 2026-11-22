@@ -263,7 +263,7 @@ pred noStateFields[e : Event] {
 
 -- declareWrites: the pool an admitted [Declare Pool] records.
 pred declareWrites[c : DeclareCall, p : Pool] {
-    c.capacityIn >= 0                                  -- Operation 7, Invariant 6.2
+    c.capacityIn >= 0                                  -- Operation 7
     c.capacityIn <= Deployment.width                   -- Arithmetic 4
     p.poolId    = c.allocatedId                        -- Identity 3
     p.capacity  = c.capacityIn                         -- Operation 4
@@ -279,7 +279,7 @@ pred allocateWrites[pre : Pool, c : AllocateCall, p : Pool] {
     c.countIn > 0                                      -- Operation 12
     c.countIn <= Deployment.width                      -- the case table: count past the integer width
     plus[pre.allocated, c.countIn] <= Deployment.width -- Arithmetic 3
-    plus[pre.allocated, c.countIn] <= pre.capacity     -- Operation 13, Invariant 4.2
+    plus[pre.allocated, c.countIn] <= pre.capacity     -- Operation 13
     nonBlank[c.actorIn]                                -- String 2
     keepsIdentity[pre, p]
     p.capacity  = pre.capacity                         -- Operation 18
@@ -302,7 +302,7 @@ pred allocateWrites[pre : Pool, c : AllocateCall, p : Pool] {
 pred releaseWrites[pre : Pool, c : ReleaseCall, p : Pool] {
     c.countIn > 0                                      -- Operation 21
     c.countIn <= Deployment.width                      -- the case table: count past the integer width
-    c.countIn <= pre.allocated                         -- Operation 22, Invariant 5.2
+    c.countIn <= pre.allocated                         -- Operation 22
     nonBlank[c.actorIn]                                -- String 2
     keepsIdentity[pre, p]
     p.capacity  = pre.capacity                         -- Operation 26
@@ -324,10 +324,10 @@ pred releaseWrites[pre : Pool, c : ReleaseCall, p : Pool] {
 -- adjustWrites: the version an admitted [Adjust Capacity] leaves.
 pred adjustWrites[pre : Pool, c : AdjustCall, p : Pool] {
     Closed not in pre.state                            -- Operation 29, Invariant 3.3
-    c.newCapacityIn >= 0                               -- Operation 30, Invariant 6.3
+    c.newCapacityIn >= 0                               -- Operation 30
     c.newCapacityIn <= Deployment.width                -- Arithmetic 5
     c.newCapacityIn != pre.capacity                    -- Operation 31
-    not (pre.allocated > c.newCapacityIn)              -- Operation 32, Invariant 4.3
+    not (pre.allocated > c.newCapacityIn)              -- Operation 32
     nonBlank[c.actorIn]                                -- String 2
     nonBlank[c.reasonIn]                               -- String 2
     keepsIdentity[pre, p]
