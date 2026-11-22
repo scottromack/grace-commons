@@ -42,6 +42,8 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 - **2026-10-24 — A retention is never placed over a destroyed record, and a record reference names every version the purge removes.** *Chose:* the deployment never supplying a placement the record reference of a destroyed record (Capability requirement 15), so a retention placed after a destruction inside the destruction's multiple of the time resolution, which Term retention in place at the destruction counts since the records cannot order the two, is a breach External check 5 reports, now citing the rule, rather than a lawful history it reports as one; and the deployment supplying a record reference that names every version of the record in the database (Capability requirement 16), so the removal Operation 13b obliges reaches the record the retention names. Smaller cures rode with them: State 1 and Operation 28, each an invariant's proposition, deleted to Invariant 1.1 and Invariant 11.2, whose numbers Composition note 5 keeps, with Check 3.2 and the case table citing Invariant 11.2; Term destruction, Term confirmation and Term undestroyed declared, so the rules that turn on them resolve (open line 2026-10-20-b closed); the Summary in six plain sentences that say what one retention holds, and the Healthcare and Legal examples saying the placing pattern picks each record's policy (Composition note 4), which closes two clauses of open line 2026-10-03-i; open line 2026-10-03-f narrowed to the two pairs worded apart, 2026-10-03-g widened to the record references no check reads, and a new open line, 2026-10-24-a, for the declared terms with no term entry; rules 144 to 144. *Over:* reading the tie inside one multiple the other way, which would hide a destruction made in the span after a placement (the 2026-10-22 entry on the retentions in place at a destruction); and a seam input mapping a reference to the record's versions at each purge, where the record reference already names what is retained. *Because:* Final Critique 12's blind second triage placed both foundational, where the settle's own triage had rejected the first on the cost that 2026-10-22 entry accepted and sent the second down as an obligation of the host's; settled against the text, both hold: the specification counts the late placement without saying that a conforming deployment then fails External check 5, and Operation 13b, which the 2026-10-23 entry wrote, has the atom remove a record it holds only by an opaque reference that no rule makes reach the record. What [Purge] guards, refuses and answers is unchanged. The count held at two, so the page waits under Needs Scott.
 
+- **2026-11-21 — Final Critique 14: a ban on refusing names its ground and Purge answers its own blank id; the duplicates and restatements the readers found are deleted.** *Chose:* Operation 18 naming retention-period-not-elapsed as the refusal it bars for a retention whose purge deadline has passed, where it named neither a refusal nor a ground and so, by Execution Contract Refusal 1, barred none; Operation 14 stating not-known for a retention id the records do not hold, a blank or malformed one among them, as Execution Contract Input 3 lets a specification state its own answer; a term entry for the Purge answer ok; Capability requirement 19 declaring the latest instant the database holds, which Operation 8c compares the deadlines with; Identity 3, Identity 9, Operation 17 and Non-goal 1 deleted, each owned by a rule that already states it (their tombstones below); Invariant 4.1 and Invariant 11.2 written as what a version carries and what a reader may not derive from, not as an act (Standard label 14); the deadline terms written in declared terms. *Over:* leaving Operation 18 a rule that binds nothing beside a case table and a Summary that say a late purge is not refused, and Operation 14 left to Input 3's default invalid-request. *Because:* an inert ban promises what no rule of the page keeps, and a blank or malformed id on the one terminal transition has two answers a build may take, invalid-request from Input 3 and not-known from Operation 14.
+
 ## Migration notes
 
 - **2026-09-15 — Capability requirement 1, moved from Operation.** What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
@@ -54,6 +56,8 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 
 ```
 Deleted: Identity 5. Invariant 9.1, Capability requirement 8 and Capability requirement 9 own it: the host supplies every retention id (Identity 2), and the atom has none of its own to reuse.
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it: a rule that its transition MUST NOT allocate an id restates it.
+Deleted: Identity 9. Invariant 9.1 owns it: two retentions never share a retention id.
 ```
 
 ### Structure › State
@@ -81,6 +85,7 @@ Deleted: Operation 6a. Execution Contract Refusal 1 owns it.
 Deleted: Operation 8a. Execution Contract Refusal 1 owns it.
 Deleted: Operation 9a. Execution Contract Refusal 1 owns it.
 Deleted: Operation 10. Execution Contract Database 1 owns it.
+Deleted: Operation 17. Execution Contract Read 4 owns it: a refused call writes nothing and answers its refusal.
 Deleted: Operation 19a. Execution Contract Refusal 1 owns it.
 Deleted: Operation 22. Operation 13 and Operation 21 own it: [Purge] judges against one injected now per call and stamps purge instant from the injected now.
 Deleted: Operation 23. Capability requirement 1 owns it.
@@ -149,6 +154,12 @@ Deleted: Record divergence 1a. The composing pattern that owns the destruction o
 Deleted: Record divergence 2. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
 Deleted: Record divergence 2a. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
 Deleted: Record divergence 2b. The composing pattern that owns the destruction owns it (Record divergence 4 through 6).
+```
+
+### Non-goals
+
+```
+Deleted: Non-goal 1. State 10 owns it: the atom holds no storage tier.
 ```
 
 ### Composition notes

@@ -18,7 +18,7 @@ toc: true
 
 ## Summary
 
-Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up. Two dates are fixed each time a record is placed under retention: the earliest date the retention may be purged, and the latest date the purge is expected. A purge ends the retention and removes the record from the database in the same step; where another pattern has taken on the destruction, as it must for a record kept outside the database, the purge only ends the retention and that pattern destroys the record. A purge after the latest date is not refused, since refusing it would only keep the record longer; instead the lateness, and any record still kept past that date, can be read from the retention records by an auditor or a compliance dashboard. This is the mechanism behind multi-year retention of financial and medical records, rules that keep payment-card data no longer than it is needed, and contract retention that outlasts the deal. It does not handle where records physically live, litigation holds, or privacy-law erasure — those are separate patterns.
+Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up. Two dates are fixed each time a record is placed under retention: the earliest date the retention may be purged, and the latest date the purge is expected. A purge ends the retention and removes the record from the database in the same step; where another pattern has taken on the destruction, as it must for a record kept outside the database, the purge only ends the retention and that pattern destroys the record. A purge is not refused for coming after the latest date, since refusing it would only keep the record longer; instead the lateness, and any record still kept past that date, can be read from the retention records by an auditor or a compliance dashboard. This is the mechanism behind multi-year retention of financial and medical records, rules that keep payment-card data no longer than it is needed, and contract retention that outlasts the deal. It does not handle where records physically live, litigation holds, or privacy-law erasure — those are separate patterns.
 
 ---
 
@@ -37,13 +37,11 @@ A regulated record has two deadlines and they point opposite ways: keep it long 
 
 ```
 Identity 1: The atom MUST identify a retention by the retention id.
-Identity 2: The host MUST allocate a retention id at the atom's seam.
-Identity 3: The transition MUST NOT allocate a retention id.
+Identity 2: The host MUST allocate a retention id at the atom's seam (Execution Contract Logic confinement 3).
 Identity 4: The business caller MUST NOT supply a retention id at a placement.
 Identity 6: The atom MUST NOT identify a retention by the record reference.
 Identity 7: The atom MUST NOT identify a retention by the policy reference.
 Identity 8: The atom MUST NOT identify a retention by retention instant.
-Identity 9: Two retentions over one record MUST carry two retention ids.
 Identity 10: The atom MUST compare two record references by exact value (Execution Contract Logic confinement 13).
 ```
 
@@ -55,7 +53,7 @@ Term record reference: the opaque reference naming what is retained, a string (E
 
 Term policy reference: the opaque reference naming which rules apply, a string (Execution Contract Input 3) — a [Policy Reference]; the policy registry is a separate concept.
 
-Term seam: the atom's I/O boundary as Execution Contract Logic confinement 14 declares it; the host injects here the clock reading and, at a placement, the retention id, the policy registry's answer for the policy reference — that the host could not read the registry, that the registry holds no policy under the reference, or the policy's duration and max purge delay as the host resolved them (Operation 24a) — and the instants the database holds.
+Term seam: the atom's I/O boundary as Execution Contract Logic confinement 14 declares it; the host injects here the clock reading and, at a placement, the retention id, the policy registry's answer for the policy reference — that the host could not read the registry, that the registry holds no policy under the reference, or the policy's duration and max purge delay as the host resolved them (Operation 24a) — and the latest instant the database holds (Capability requirement 19).
 
 Term transition: the atom's evaluation of one call against the retention records, as Execution Contract Logic confinement 14 declares it.
 
@@ -81,23 +79,25 @@ Term retention state: retained | purged — under obligation, or ended by a purg
 
 Term retention instant: the instant the retention was placed, stamped from the injected now — a [Retention Instant].
 
-Term retention deadline: `(retained_at + duration)`, rounded up to the time resolution — a [Retention Deadline]; the instant the obligation ends.
+Term retention deadline: `(retention instant + duration)`, rounded up to the time resolution — a [Retention Deadline]; the instant the obligation ends.
 
-Term purge deadline: `(retention_until + max_purge_delay)`, rounded up to the time resolution — a [Purge Deadline]; the latest the regulator expects destruction.
+Term purge deadline: `(retention deadline + max purge delay)`, rounded up to the time resolution — a [Purge Deadline]; the latest the regulator expects destruction.
 
 Term purge instant: the instant the purge was recorded, stamped from the injected now — a [Purge Instant].
 
-Term overshoot: `(purged_at - purge_deadline)` where positive, for a purged retention — an [Overshoot]; a reader derives it, the atom does not store it and [Read] does not answer it.
+Term overshoot: `(purge instant - purge deadline)` where positive, for a purged retention — an [Overshoot]; a reader derives it, the atom does not store it and [Read] does not answer it.
 
-Term active overdue: `(now - purge_deadline)` where positive, for a retained retention — an [Active Overdue]; a reader derives it, the atom does not store it and [Read] does not answer it.
+Term active overdue: `(now - purge deadline)` where positive, for a retained retention — an [Active Overdue]; a reader derives it, the atom does not store it and [Read] does not answer it.
 
 Term duration: the retention period the policy carries, resolved to an elapsed length at the seam (Operation 24a) — a [Duration]; positive. How a calendar period resolves to an elapsed length — the instant it counts from, the place whose calendar it counts in and where a month's end falls — is the policy's (Non-goal 7), and the host resolves it as the policy counts it (Operation 24a).
 
+Term latest database instant: the last instant the deployment's database can hold, a multiple of the time resolution (Capability requirement 5, Capability requirement 19) — a deadline later than it is invalid-policy (Operation 8c).
+
 Term zero duration: a duration of no length — the floor a policy's duration must exceed, and the floor a max purge delay must not fall below.
 
-Term degenerate duration: a duration the host could not resolve to an elapsed length (Operation 24a).
+Term degenerate duration: the value the host injects in place of a duration it resolved to no elapsed length (Operation 24a).
 
-Term degenerate max purge delay: a max purge delay the host could not resolve to an elapsed length (Operation 24a).
+Term degenerate max purge delay: the value the host injects in place of a max purge delay it resolved to no elapsed length (Operation 24a).
 
 Term max purge delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
@@ -121,11 +121,12 @@ Capability requirement 15: The deployment MUST NOT supply a placement the record
 Capability requirement 16: The deployment MUST supply a record reference that names EVERY version of the record in the database.
 Capability requirement 17: The deployment MUST supply the policy registry the host resolves a policy reference against (Operation 24).
 Capability requirement 18: IF the instance holds a retention THEN the deployment MUST NOT change whether a composing pattern owns the destruction.
+Capability requirement 19: The deployment MUST declare the latest instant the database holds.
 ```
 
 NOTE: a retention id the retention records already hold, supplied at a placement, breaks Capability requirement 8; the atom has no refusal for it.
 
-NOTE: the deployment's other obligations stand beside the rules that read them — the policy's duration and max purge delay resolved at the seam (Operation 24, Operation 24a, Operation 24b), the wiring of a pattern that owns the destruction (Record divergence 4, Composition note 1), the pattern that owns joint enforcement (Simultaneous retention 5 through 8) and a high-assurance deployment's alert (Purge persistence 3).
+NOTE: the deployment's other obligations stand beside the rules that read them — the policy's duration and max purge delay resolved at the seam (Operation 24, Operation 24a, Operation 24b), the wiring of a pattern that owns the destruction (Record divergence 4, Composition note 1), the pattern that owns joint enforcement (Simultaneous retention 5 through 8; [Defensible Retention](../compositions/defensible-retention.md) holds it today, its Invariant 9) and a high-assurance deployment's alert (Purge persistence 3).
 
 ### Operations
 
@@ -154,18 +155,17 @@ Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Pl
 Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8: IF the zero duration EXCEEDS the policy's max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8b: IF the policy's max purge delay EQUALS degenerate max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
-Operation 8c: IF retention deadline IS NOT IN the instants the database holds OR purge deadline IS NOT IN the instants the database holds THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 8c: IF the latest instant the database holds PRECEDES retention deadline OR the latest instant the database holds PRECEDES purge deadline THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the database refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Operation 11: [Place Under Retention] MUST NOT read the host's records.
 Operation 12: [Purge] MUST stand the retention in purged.
 Operation 13: [Purge] MUST stamp purge instant from the injected now.
 Operation 13a: [Purge] MUST round purge instant up to the time resolution.
 Operation 13b: IF no composing pattern owns the destruction THEN [Purge] MUST remove EVERY version of the record the retention names from the database.
-Operation 14: IF no retention EXISTS for the retention id THEN [Purge] MUST answer not-known.
+Operation 14: IF the retention id IS NOT IN the retention ids the retention records hold THEN [Purge] MUST answer not-known.
 Operation 15: IF the retention state EQUALS purged THEN [Purge] MUST answer not-retained.
 Operation 16: IF the retention state EQUALS retained AND purge eligible EQUALS no THEN [Purge] MUST answer retention-period-not-elapsed.
-Operation 17: [Purge] MUST NOT write on retention-period-not-elapsed.
-Operation 18: [Purge] MUST NOT refuse a retention whose purge deadline has passed.
+Operation 18: [Purge] MUST NOT answer retention-period-not-elapsed for a retention whose purge deadline has passed.
 Operation 19: IF the database refuses the write THEN [Purge] MUST answer storage-failure.
 Operation 20: [Purge] MUST leave the retention in retained on storage-failure.
 Operation 21: [Purge] MUST judge against one injected now per call.
@@ -181,10 +181,6 @@ Operation 37: IF a filter axis IS NOT IN the query axes THEN [Read] MUST answer 
 Operation 38: IF a filter value IS NOT IN the axis's admitted values THEN [Read] MUST answer invalid-query.
 Operation 39: [Read] MUST NOT answer a retention that is not a matching retention.
 ```
-
-NOTE: watch the unadmitted modal (Operation 8b).
-
-NOTE: watch the comparator written in English (Operation 8c).
 
 NOTE: watch the unreadable registry (Operation 24b).
 
@@ -206,13 +202,13 @@ The case space, and the rule that owns each case:
 | [Place Under Retention] | blank record reference or policy reference, or one that is not a string | [Invalid Request] | none (Operation 4, Operation 5, Execution Contract Input 3) |
 | [Place Under Retention] | policy reference resolves to nothing | [Policy Not Found] | none (Operation 6) |
 | [Place Under Retention] | the host cannot read the policy registry | [Registry Unavailable] | none — the well-formedness checks passed and no policy was read (Operation 24b, Execution Contract Refusal 1) |
-| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline outside the instants the database holds | [Invalid Policy] | none (Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c) |
+| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline later than the latest instant the database holds | [Invalid Policy] | none (Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c) |
 | [Place Under Retention] | database refuses the write | [Storage Failure] | none (Operation 9) |
-| [Purge] | no retention under that id | [Not Known] | none (Operation 14) |
+| [Purge] | no retention under that id, or a blank or malformed one | [Not Known] | none (Operation 14, Execution Contract Input 3) |
 | [Purge] | retention already purged | [Not Retained] | none (Operation 15) |
-| [Purge] | retention period not elapsed | [Retention Period Not Elapsed] | none — the guard writes nothing (Operation 16, Operation 17) |
+| [Purge] | retention period not elapsed | [Retention Period Not Elapsed] | none — the guard writes nothing (Operation 16, Execution Contract Read 4) |
 | [Purge] | eligible, no composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged], purge instant stamped, every version of the record removed from the database in the same write; the retention id, record reference, policy reference and the instants set earlier stand (Operation 12, Operation 13, Operation 13b, Invariant 4.2, Invariant 5.1, Invariant 5.2, Invariant 5.3) |
-| [Purge] | eligible, past purge deadline | ok | the same — lateness is observable, never refused (Operation 18) |
+| [Purge] | eligible, past purge deadline | ok | the same — lateness is observable, never a ground for refusal (Operation 18) |
 | [Purge] | eligible, database refuses the write | [Storage Failure] | none — the retention stays [Retained] (Operation 19, Operation 20) |
 | [Purge] | eligible, a composing pattern owns the destruction, database accepts | ok | [Retained] → [Purged]; the record stands until the pattern confirms the destruction; the retention id, record reference, policy reference and the instants set earlier stand (Record divergence 4, Record divergence 5, Invariant 4.2, Invariant 5.1, Invariant 5.2, Invariant 5.3) |
 | *a retention crossing retention deadline* | — | *nothing* | nothing is written; eligibility is read (Invariant 11.1, Invariant 11.2, Invariant 11.3) |
@@ -239,7 +235,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
   ```
 - **Invariant 4 — Id stability.**
   ```
-  Invariant 4.1: [Place Under Retention] MUST set the retention id.
+  Invariant 4.1: EVERY version of a retention MUST carry the retention id the host allocated for the retention's placement.
   Invariant 4.2: A retention id MUST NOT change.
   ```
 - **Invariant 5 — Record_ref and policy reference immutability.**
@@ -274,7 +270,7 @@ Where two cases of one action hold at once, the refusal listed first on the acti
 - **Invariant 11 — Purge-eligibility is derived, never stored.**
   ```
   Invariant 11.1: The atom MUST NOT store purge eligibility.
-  Invariant 11.2: A reader MUST derive purge eligible from the retention's state, retention deadline and the injected now.
+  Invariant 11.2: A reader MUST NOT derive purge eligible from a value other than the retention's state, retention deadline and the injected now.
   Invariant 11.3: The atom MUST NOT write when a retention crosses retention deadline.
   ```
 
@@ -286,7 +282,7 @@ The same atom, five regulated domains, identical mechanic.
 
 ### Banking — transaction-record retention under SOX
 
-A bank places every settled transaction under retention with a 7-year policy (`policy_sox_settled_txn`: duration = 7 years, max purge delay = 30 days) via [Place Under Retention]. At the seven-year mark, the records' [Purge Eligible] projection flips to yes (derived from the injected clock, not written); the bank's records-management system lists those records and invokes [Purge] within the 30-day purge window. Each purge is logged for SOX (Sarbanes-Oxley Act — US financial reporting law) section 802 audit. An external auditor querying *"any transaction record purged before its 7-year obligation?"* gets the empty set — Invariant 7 guarantees it.
+A bank places every settled transaction under retention with a 7-year policy (`policy_sox_settled_txn`: duration = 7 years, max purge delay = 30 days) via [Place Under Retention]. At the seven-year mark, the records' [Purge Eligible] projection flips to yes (derived from the injected clock, not written); the bank's records-management system lists those records and invokes [Purge] within the 30-day purge window. The bank's records-management system logs each purge for SOX (Sarbanes-Oxley Act — US financial reporting law) section 802 audit. An external auditor querying *"any transaction record purged before its 7-year obligation?"* gets the empty set — Invariant 7 guarantees it.
 
 ### Healthcare — medical-record retention under HIPAA and state law
 
@@ -329,7 +325,7 @@ No retention is created. The host system must supply a valid, resolvable policy 
 Four scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit — "show me every record purged before its retention period elapsed."** The auditor queries the [Purged] set for any record where [Purge Instant] < [Retention Deadline]. Invariant 7 makes this set structurally empty — the precondition on [Purge] prevents it. The auditor sees the empty result as a structural guarantee, not a procedural promise.
-- **Data minimization audit — "show me every record still Retained past its purge deadline."** Common under GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 5(1)(e) reviews. The auditor reads [Retained] with the injected [Now] and selects records where [Now] > [Purge Deadline] (the [Active Overdue] projection; these are necessarily [Purge Eligible] too, since [Purge Deadline] ≥ [Retention Deadline]). The atom does not refuse late purges (rejecting them would compound the [Overshoot]), so this query returns a non-empty set when the organization is behind on its purge schedule. The overdue set is the finding; the records themselves are the evidence; the remediation is to [Purge] the listed records and document the lateness.
+- **Data minimization audit — "show me every record still Retained past its purge deadline."** Common under GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 5(1)(e) reviews. The auditor reads [Retained] with the injected [Now] and selects records where [Now] > [Purge Deadline] (the [Active Overdue] projection; these are necessarily [Purge Eligible] too, since [Purge Deadline] ≥ [Retention Deadline]). The atom does not refuse a purge for lateness (rejecting it would compound the [Overshoot]), so this query returns a non-empty set when the organization is behind on its purge schedule. The overdue set is the finding; the records themselves are the evidence; the remediation is to [Purge] the listed records and document the lateness.
 - **Litigation discovery — "produce all records of type X from 2020-2022."** Counsel queries the host system, which keeps the records and says which of them still exist, since the atom never reads a record's existence (Record divergence 3); the retention records show, for each matching record, the policy each retention over it was placed under and whether that retention has been [Purged]. A [Purged] retention never returns to [Retained] — that is the atom's terminal-absorption invariant working as designed — and, where no composing pattern owns the destruction, the purge removed the record it named from the database; where a composing pattern owns the destruction, a standing record is not yet destroyed and is produced (Term standing record). A [Retained] retention does not show that its record still exists: once it is purge eligible, the purge of another retention over the same record may remove the record, or let the pattern that owns the destruction destroy it (Operation 13b, Simultaneous retention 4, Simultaneous retention 4a). The discovery response distinguishes *records retained and produced* from *records lawfully destroyed under the policy in effect at the time*, with the retention records themselves as the audit trail. Litigation hold should have been placed earlier — if it wasn't, that is a Legal Hold composition failure, not a retention failure.
 - **Incident investigation — "the deployment's clock ran ahead for six hours; what was destroyed that should not have been?"** The investigator reads every [Purged] retention whose [Purge Instant] falls in the incident window and recomputes eligibility from [Retention Deadline] against a trusted clock. A purge whose stamped instant meets its deadline only because the injected clock ran fast is in that set, and the records hand it over: the retention, its policy, its deadline and its stamped instant all still stand (Invariant 10), so the finding is a list of early destructions with the evidence for each. The atom could not have prevented them — the clock's honesty is the deployment's (Execution Contract Logic confinement 7) — and it does not hide them.
 
@@ -342,13 +338,13 @@ This atom's acceptance is provable: an external auditor clears it from the reten
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST read the policy applied to a record from the retention's policy reference (State 2).
+Check 1.1: An auditor MUST read the policy reference a record was placed under from the retention's policy reference (State 2).
 Check 2.1: An auditor MUST find the set of purged retentions whose purge instant PRECEDES retention deadline empty (Invariant 7.1, Invariant 8.1).
 Check 3.1: An auditor MUST confirm that the retention records store no purge eligibility (Invariant 11.1).
 Check 3.2: An auditor MUST derive purge eligible from the retention state, retention deadline and the auditor's own clock (Invariant 11.2).
 Check 4.1: An auditor MUST compute a purged retention's overshoot from purge instant and purge deadline (Invariant 8.3).
 Check 4.2: An auditor MUST compute a retained retention's active overdue from purge deadline and the auditor's own clock (State 2).
-Check 5.1: An auditor MUST reconstruct a record's policy history from the retentions sharing the record reference (Identity 9).
+Check 5.1: An auditor MUST reconstruct a record's policy history from the retentions sharing the record reference (Invariant 9.1).
 Check 7.1: An auditor MUST find EVERY retention standing in EXACTLY ONE OF retained, purged (Invariant 1.1).
 Check 7.2: An auditor MUST find EVERY retention carrying retention id, record reference, policy reference, retention instant, retention deadline and purge deadline (State 2, Invariant 4.1).
 Check 7.3: An auditor MUST find EVERY purged retention carrying purge instant (State 3, Invariant 2.2).
@@ -372,6 +368,7 @@ External check 4: An auditor MUST read EVERY standing record from the owning pat
 External check 5: An auditor MUST confirm from the deployment's own destruction records that no destruction instant PRECEDES the retention deadline of a retention in place at the destruction (Operation 13b, Capability requirement 6a, Capability requirement 7, Capability requirement 15, Simultaneous retention 4).
 External check 7: An auditor MUST confirm from the deployment's own records that EVERY record reference a retention names has named EXACTLY ONE record (Capability requirement 13).
 External check 8: An auditor MUST confirm from the deployment's own records that EVERY record a retention names has carried EXACTLY ONE record reference (Capability requirement 10).
+External check 9: An auditor needing the policy a policy reference named when a retention was placed MUST read the policy registry's own record of that policy at the retention instant (Non-goal 8).
 ```
 
 Term retention in place at the destruction: a retention over a destroyed record where the destruction instant, rounded up to the time resolution as State 4a rounds a retention instant, DOES NOT PRECEDE the retention's retention instant; every retention placed before the destruction is one, and so is a retention placed after the destruction whose retention instant rounds up to the same multiple of the time resolution, since the records cannot order the two.
@@ -383,7 +380,6 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 ## Non-goals
 
 ```
-Non-goal 1: The atom MUST NOT hold a record's storage tier.
 Non-goal 2: The atom MUST NOT suspend a purge under a legal hold.
 Non-goal 3: A deployment under litigation MUST compose a legal-hold pattern.
 Non-goal 4: The atom MUST NOT choose the destruction technique.
@@ -403,7 +399,7 @@ Non-goal 17: The atom MUST NOT destroy a record outside the database.
 Non-goal 18: A deployment that keeps a record a retention names outside the database MUST compose a pattern that owns the destruction.
 ```
 
-NOTE: the owners — a Storage Tier *(forthcoming)* (Non-goal 1); [Legal Hold](./legal-hold.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 2, Non-goal 3); Shred *(forthcoming)* (Non-goal 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); a Policy Registry *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11); the composing pattern that owns joint enforcement (Non-goal 12, Simultaneous retention 5); Trusted Timestamping *(forthcoming)* (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); the composing pattern that owns the destruction (Non-goal 16 through 18, Record divergence 6), which destroys, confirms and retries through Record Destruction *(forthcoming)*, as [Defensible Retention](../compositions/defensible-retention.md) names it — the destruction's lifecycle, a standing record, a withheld record and a confirmation, is that pattern's (Record divergence 4a through 6); [Erasure Tombstone](./erasure-tombstone.md) keeps the permanent record that a record was destroyed and confirms no destruction (Erasure Tombstone Non-goal 1).
+NOTE: the owners — a Storage Tier *(forthcoming)* (State 10); [Legal Hold](./legal-hold.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 2, Non-goal 3); Shred *(forthcoming)* (Non-goal 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); a Policy Registry *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11); the composing pattern that owns joint enforcement (Non-goal 12, Simultaneous retention 5); Trusted Timestamping *(forthcoming)* (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); the composing pattern that owns the destruction (Non-goal 16 through 18, Record divergence 6), which destroys, confirms and retries through Record Destruction *(forthcoming)*, as [Defensible Retention](../compositions/defensible-retention.md) names it — the destruction's lifecycle, a standing record, a withheld record and a confirmation, is that pattern's (Record divergence 4a through 6); [Erasure Tombstone](./erasure-tombstone.md) keeps the permanent record that a record was destroyed and confirms no destruction (Erasure Tombstone Non-goal 1).
 
 Where the atom breaks down: when the obligation is a function of the record's content — records about a minor retained until majority, which needs a policy lookup against the record itself; when the regulatory clock and the deployment's clock are far apart, which breaks every wall-time deadline at once.
 
@@ -426,6 +422,8 @@ Purge persistence 2: IF neither Simultaneous retention 4a nor a gate of a compos
 Purge persistence 2a: IF neither Simultaneous retention 4a nor a gate of a composing pattern's own forbids the purge THEN a caller MUST retry a purge that returned no answer.
 Purge persistence 3: A high-assurance deployment MUST alert on storage-failure from [Purge].
 ```
+
+Term high-assurance deployment: a deployment that declares itself so in the declaration of the composing patterns it wired in (Composition note 1).
 
 ### Record divergence
 
@@ -478,6 +476,8 @@ Composition note 4: A composing pattern MUST own the policy the pattern places a
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```
 
+Term regulated Event Log instance: an Event Log instance the deployment declares regulated in the declaration of the composing patterns it wired in (Composition note 1).
+
 NOTE: composing patterns — [Defensible Retention](../compositions/defensible-retention.md), [Audit Trail](../compositions/audit-trail.md). Forthcoming: Storage Tier, Shred, Erasure Coordination, Policy Registry, Trusted Timestamping, Record Destruction.
 
 ## Terms
@@ -500,7 +500,7 @@ Term cadences: empty — a purge cadence is the composing pattern's.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: zero duration, degenerate duration, degenerate max purge delay, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed, query axes, matching retention, restore surface.
+Term terms: latest database instant, high-assurance deployment, regulated Event Log instance, zero duration, degenerate duration, degenerate max purge delay, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed, query axes, matching retention, restore surface.
 
 #### Retention Window
 
@@ -516,7 +516,7 @@ Kind: Operation
 
 #### Purge
 
-The behavior the host invokes to transition a retention to [Purged], removing every version of the underlying record from the database in the same write — or, where a composing pattern owns the destruction (Record divergence 4), ending the obligation and leaving the destruction to that pattern. It destroys nothing outside the database (Non-goal 17). It is permitted only once the retention period has elapsed (the pure [Now] ≥ [Retention Deadline] guard, which writes nothing when it fails); on success it stamps [Purge Instant] from the same injected [Now]. It does not refuse late purges — the lateness is observed as [Overshoot], not rejected.
+The behavior the host invokes to transition a retention to [Purged], removing every version of the underlying record from the database in the same write — or, where a composing pattern owns the destruction (Record divergence 4), ending the obligation and leaving the destruction to that pattern. It destroys nothing outside the database (Non-goal 17). It is permitted only once the retention period has elapsed (the pure [Now] ≥ [Retention Deadline] guard, which writes nothing when it fails); on success it stamps [Purge Instant] from the same injected [Now] and answers [Ok]. It does not refuse a purge for lateness — the lateness is observed as [Overshoot], not rejected.
 
 Kind: Operation
 
@@ -654,6 +654,15 @@ Kind:      Member
 Member of: the retention state
 Role:      Outcome
 
+#### Ok
+
+The answer [Purge] returns on success: the retention stands in [Purged] and, where no composing pattern owns the destruction, every version of the record the retention names was removed from the database in the same write (Operation 12, Operation 13b).
+
+Kind:       Member
+Member of:  the Purge answer
+Role:       Outcome
+Projection: ok
+
 #### Invalid Request
 
 The refusal [Place Under Retention] returns when [Record Reference] or [Policy Reference] is blank, or is not a string (Execution Contract Input 3). A guard rejection that fails before any database write; no retention is recorded.
@@ -701,7 +710,7 @@ Projection: not-retained
 
 #### Not Known
 
-The refusal [Purge] returns when the supplied [Retention Id] references no recorded retention — a lookup miss. An identity/state rejection, checked before the time gate.
+The refusal [Purge] returns when the supplied [Retention Id] references no recorded retention, a blank or malformed value among them — a lookup miss. An identity/state rejection, checked before the time gate.
 
 Kind:       Member
 Member of:  the Purge rejection
@@ -759,6 +768,7 @@ Projection: invalid-query
 [Max Purge Delay]: #max-purge-delay
 [Retained]: #retained
 [Purged]: #purged
+[Ok]: #ok
 [Invalid Request]: #invalid-request
 [Policy Not Found]: #policy-not-found
 [Invalid Policy]: #invalid-policy
@@ -774,7 +784,7 @@ Projection: invalid-query
 
 ## Standards references
 
-Retention Window is one of the most heavily standardized concepts in compliance; its standards inheritance is correspondingly rich:
+Retention Window's standards inheritance:
 
 - **ISO 15489-1 (Information and documentation — Records management)** — the International Organization for Standardization's standard for records-management practice. Defines retention as a managed lifecycle with policy-governed start, retention period, and disposition. The atom's two-state model is the operational core of ISO 15489's lifecycle framing.
 - **GDPR Article 5(1)(e) — Storage limitation principle** — personal data must be kept *no longer than necessary*. The atom's [Overshoot] metric is the operational form of GDPR's data-minimization audit; persisting personal data past [Purge Deadline] is a violation surfaced by the record itself.
@@ -792,8 +802,6 @@ It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of composing storage tier, legal hold, shred, and policy registry as separate concepts.
 - **Eiffel's design-by-contract** — preconditions on [Purge]; named rejection reasons.
-- **Linear temporal logic** — retain-then-Retained persistence, terminal absorption, and the no-early-purge precondition expressed as temporal properties.
-- **Records management literature** — Ranganathan's principles applied to organizational records; Schellenberg's appraisal theory of which records merit which retention.
 
 ---
 
@@ -808,8 +816,8 @@ It inherits from:
 
 ```
 status: doing
-formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with Identity 6 and Operation 8 checked through them); retention-window.tla + 23 twins (across steps, while the clock moves and [Read] carries a query: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 9.1, 10.2, 11.2 and 11.3, Identity 10, Capability requirement 8 and 9, Operation 1, 13b, 15, 20, 29, 32, 37, 38 and 39, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 9, Identity 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Operation 11, 21 and 26, Record divergence 3, Capability requirement 17 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 8b, 14, 24b and 30, Capability requirement 18, 2026-11-12, re-derived 2026-11-21
-last gate: 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
+formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with Identity 6 and Operation 8 checked through them); retention-window.tla + 23 twins (across steps, while the clock moves and [Read] carries a query: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 9.1, 10.2, 11.2 and 11.3, Identity 10, Capability requirement 8 and 9, Operation 1, 13b, 15, 20, 29, 32, 37, 38 and 39, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Operation 11, 21 and 26, Record divergence 3, Capability requirement 17 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 8b, 14, 24b and 30, Capability requirement 18, 2026-11-12, re-derived 2026-11-21
+last gate: 2026-11-21 — Final Critique 14, frozen at c523cd3c — foundational count 1 (a blank or malformed retention id had two owners, Execution Contract Input 3's invalid-request and Operation 14's not-known; cured: Operation 14 states not-known for any id the records do not hold), not clean, no sample; the round's refining findings cured with it, among them Operation 18, which named neither a refusal nor its ground and so barred none, now naming retention-period-not-elapsed; 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
 
 open: none
 ```
