@@ -46,17 +46,21 @@ sig CompRef {}
 -- Key: an effect key (Term effect key).
 sig Key {}
 
+-- Run: a compensable workflow, named by its compensable workflow id (Term compensable
+-- workflow id).
+sig Run {}
+
 -- Step: one step the definition declares (Term definition): the steps declared before it,
 -- whether it is an effect step, its step marker and its compensating action where it has
--- them, and the effect keys derived for its effect and its compensation's (Composition
--- state 11, 12).
+-- them, and for each run the effect keys derived for its effect and its compensation's
+-- (Composition state 11, 12: from the compensable workflow id and the step).
 sig Step {
     ahead : set Step,
     effect : lone Yes,
     marker : lone Marker,
     comp : lone CompRef,
-    skey : one Key,
-    ckey : lone Key
+    skey : Run -> one Key,
+    ckey : Run -> lone Key
 }
 
 -- Deployment: the deployment's setting the model reads, the compensation failure policy
@@ -73,10 +77,13 @@ one sig Spine {
     terminal : set State
 }
 
--- Event: one event of the step log; earlier holds the events before it in sequence-number
--- order, and sp the spine's current state once the event and its fire committed.
+-- Event: one event of the Event Log instance; earlier holds the events before it in
+-- sequence-number order, wf the compensable workflow id it carries (Composes 13, Event schema
+-- 14: every event carries one, so the field is declared one), and sp the current state of its
+-- run's spine once the event and its fire committed.
 abstract sig Event {
     earlier : set Event,
+    wf : one Run,
     sp : one State
 }
 
@@ -159,12 +166,14 @@ fact DefinitionOrder {
 
 -- The key derivation (Composition state 11, 12): the page names its inputs, the run id and
 -- the step, and the compensation reference for a compensation's, and not the function; the
--- model takes one that tells effects apart: one key for each step's effect, one for each
--- declared compensation's and none for a step declaring none, no two alike.
+-- model takes one that tells effects apart: for each run one key for each step's effect, one
+-- for each declared compensation's and none for a step declaring none, no two alike across
+-- the runs.
 fact KeyDerivation {
-    all s : Step | some s.comp iff some s.ckey
-    all disj s, t : Step | s.skey != t.skey and no (s.ckey & t.ckey)
-    no (Step.skey & Step.ckey)
+    all s : Step, r : Run | (some s.comp implies one r.(s.ckey)) and (no s.comp implies no r.(s.ckey))
+    all s, t : Step, r, q : Run | (s != t or r != q) implies
+        (r.(s.skey) != q.(t.skey) and no (r.(s.ckey) & q.(t.ckey)))
+    no (Run.(Step.skey) & Run.(Step.ckey))
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -186,9 +195,30 @@ fun spineTrans : State -> Wire -> State {
     + Halted -> WCompAttempted -> Compensating
 }
 
--- prev: the event immediately before e.
+-- own: the events before e that carry e's compensable workflow id — the step log a writer of
+-- e's run reads, the replay keeping the events carrying the id alone (Replay 1; Term step log).
+fun own[e : Event] : set Event {
+    e.earlier & wf.(e.wf)
+}
+
+-- runLog: the step log of a run, the events carrying its id.
+fun runLog[r : Run] : set Event {
+    wf.r
+}
+
+-- prev: the event of e's run immediately before e.
 fun prev[e : Event] : set Event {
-    { p : e.earlier | e.earlier - p in p.earlier }
+    { p : own[e] | own[e] - p in p.earlier }
+}
+
+-- skeyOf: the key derived for a step's effect in a run.
+fun skeyOf[s : Step, r : Run] : set Key {
+    r.(s.skey)
+}
+
+-- ckeyOf: the key derived for a step's compensation in a run.
+fun ckeyOf[s : Step, r : Run] : set Key {
+    r.(s.ckey)
 }
 
 -- resumes: the resume markers, the attempt markers carrying a recorded horizon assertion.
@@ -269,9 +299,16 @@ fun standingFail[s : set Event] : set Step {
         and (no r : CompRun & s | r.step = st and f in r.earlier) }
 }
 
--- pending: the pending compensations, the completed steps no standing failure names.
+-- refStands: the completed steps whose step completion event's compensation reference does
+-- not equal blank.
+fun refStands[s : set Event] : set Step {
+    { c : StepCompleted & s | some c.compRef }.step
+}
+
+-- pending: the pending compensations, the completed steps whose compensation reference does
+-- not equal blank and that no standing failure names (Term pending compensation).
 fun pending[s : set Event] : set Step {
-    completed[s] - standingFail[s]
+    (completed[s] & refStands[s]) - standingFail[s]
 }
 
 -- newestPending: the pending compensation the reverse order takes first, the step declared
@@ -321,7 +358,7 @@ pred cancelOpen[p : set Event] {
 -- returns to (Action wiring 85, 86), only resume markers stand since it, and it names a step
 -- the halt names that no marker of the batch names yet (Action wiring 49).
 pred resumeWrites[a : Attempt, ph : State] {
-    let p = a.earlier, h = newestHalt[p] {
+    let p = own[a], h = newestHalt[p] {
         one h
         h.hphase = ph
         (p - h.earlier - h) in resumes
@@ -335,7 +372,7 @@ pred resumeWrites[a : Attempt, ph : State] {
 -- the operator's compensation inputs exactly where the step overflowed (Action wiring 85;
 -- Primitive policy 9, 11; Event schema 12).
 pred writesStepAttempt[a : StepAttempt] {
-    let p = a.earlier {
+    let p = own[a] {
         advanceOpen[p]
         no a.asserted implies {
             phaseOf[p] = Forward
@@ -347,7 +384,7 @@ pred writesStepAttempt[a : StepAttempt] {
             resumeWrites[a, Forward]
             some a.inputs iff a.step in overflowed[p]
         }
-        a.key = a.step.skey
+        a.key = skeyOf[a.step, a.wf]
     }
 }
 
@@ -356,7 +393,7 @@ pred writesStepAttempt[a : StepAttempt] {
 -- halted advance's resume marker after a halt naming the compensating phase (Action wiring
 -- 86).
 pred writesCompAttempt[a : CompAttempt] {
-    let p = a.earlier {
+    let p = own[a] {
         advanceOpen[p]
         no a.asserted implies {
             phaseOf[p] = Compensating
@@ -365,7 +402,7 @@ pred writesCompAttempt[a : CompAttempt] {
             some a.step.comp
         }
         some a.asserted implies resumeWrites[a, Compensating]
-        a.key = a.step.ckey
+        a.key = ckeyOf[a.step, a.wf]
     }
 }
 
@@ -374,11 +411,11 @@ pred writesCompAttempt[a : CompAttempt] {
 -- than the envelope, the truncation mark (Action wiring 21, 25; Event schema 5; Primitive
 -- policy 19, 20).
 pred writesStepCompleted[c : StepCompleted] {
-    let p = c.earlier {
+    let p = own[c] {
         advanceOpen[p]
         phaseOf[p] = Forward
         some a : StepAttempt & unresolved[p] | a.step = c.step
-        c.key = c.step.skey
+        c.key = skeyOf[c.step, c.wf]
         c.compRef = c.step.comp
         some c.overflow implies some c.step.comp
     }
@@ -388,11 +425,11 @@ pred writesStepCompleted[c : StepCompleted] {
 -- under the compensation's key, with operator as the input source exactly for an overflowed
 -- step (Action wiring 36; Primitive policy 23, 24).
 pred writesCompRun[r : CompRun] {
-    let p = r.earlier {
+    let p = own[r] {
         advanceOpen[p]
         phaseOf[p] = Compensating
         some a : CompAttempt & unresolved[p] | a.step = r.step
-        r.key = r.step.ckey
+        r.key = ckeyOf[r.step, r.wf]
         r.step in overflowed[p] implies r.source = Operator else r.source = Recorded
     }
 }
@@ -400,12 +437,12 @@ pred writesCompRun[r : CompRun] {
 -- writesCompFailed: under the continue policy, a definitely failed compensation attempt is
 -- recorded (Action wiring 38).
 pred writesCompFailed[f : CompFailed] {
-    let p = f.earlier {
+    let p = own[f] {
         advanceOpen[p]
         phaseOf[p] = Compensating
         Deployment.policy = Continue
         some a : CompAttempt & unresolved[p] | a.step = f.step
-        f.key = f.step.ckey
+        f.key = ckeyOf[f.step, f.wf]
     }
 }
 
@@ -414,7 +451,7 @@ pred writesCompFailed[f : CompFailed] {
 -- cancel names none and lands only with no unresolved attempt and no roll-forward step
 -- completed (Action wiring 71 to 74, 87; Event schema 13).
 pred writesOnset[o : Onset] {
-    let p = o.earlier {
+    let p = own[o] {
         phaseOf[p] = Forward
         some o.ostep implies {
             advanceOpen[p]
@@ -435,7 +472,7 @@ pred writesOnset[o : Onset] {
 -- standing failure names once nothing else is owed (Action wiring 41), or the step whose
 -- completion just landed overflowed (Primitive policy 21).
 pred writesHalt[h : Halt] {
-    let p = h.earlier, ph = phaseOf[p] {
+    let p = own[h], ph = phaseOf[p] {
         advanceOpen[p]
         ph in Forward + Compensating
         h.hphase = ph
@@ -450,7 +487,7 @@ pred writesHalt[h : Halt] {
 
 -- writesCommit: a forward advance with no next step commits (Action wiring 31).
 pred writesCommit[t : Commit] {
-    let p = t.earlier {
+    let p = own[t] {
         advanceOpen[p]
         phaseOf[p] = Forward
         no unresolved[p]
@@ -458,16 +495,19 @@ pred writesCommit[t : Commit] {
     }
 }
 
--- writesClose: a compensating advance closes with no pending compensation, no unresolved
--- attempt and no standing failure (Action wiring 40).
+-- closeAdmits: a compensating advance over a run's step log p may close: no pending
+-- compensation, no unresolved attempt and no standing failure (Action wiring 40).
+pred closeAdmits[p : set Event] {
+    advanceOpen[p]
+    phaseOf[p] = Compensating
+    no pending[p]
+    no unresolved[p]
+    no standingFail[p]
+}
+
+-- writesClose: the close lands where its run's step log admits it.
 pred writesClose[t : Close] {
-    let p = t.earlier {
-        advanceOpen[p]
-        phaseOf[p] = Compensating
-        no pending[p]
-        no unresolved[p]
-        no standingFail[p]
-    }
+    closeAdmits[own[t]]
 }
 
 -- overflowHalts: whatever follows an overflowed step's completion is the halt naming the
@@ -478,10 +518,10 @@ pred overflowHalts {
 }
 
 -- resumesComplete: a halted advance appends a resume marker for every named step before
--- anything else lands (Action wiring 49, 50).
+-- anything else of its run lands (Action wiring 49, 50).
 pred resumesComplete {
-    all e : Event - resumes | let h = newestHalt[e.earlier] |
-        some h implies (all st : h.hsteps | some r : resumes & e.earlier | h in r.earlier and r.step = st)
+    all e : Event - resumes | let h = newestHalt[own[e]] |
+        some h implies (all st : h.hsteps | some r : resumes & own[e] | h in r.earlier and r.step = st)
 }
 
 -- wireOf: the wire spelling a transition-bearing event fires under; none for an event that
@@ -499,7 +539,7 @@ fun wireOf[e : Event] : set Wire {
     else none
 }
 
--- spBefore: the spine's state before an event's fire.
+-- spBefore: the state of the event's run's spine before the event's fire.
 fun spBefore[e : Event] : State {
     some prev[e] => prev[e].sp else Spine.initial
 }
@@ -511,7 +551,8 @@ fun fireTo[from : State, w : set Wire] : set State {
 }
 
 -- fires: the composition fires each transition-bearing event's declared transition with the
--- event (Action wiring 8; Composes 4); a refused fire leaves the spine where it was.
+-- event, in one transaction (Action wiring 8, 94; Composes 4; Execution Contract Database 1:
+-- an event whose fire failed is not in the log); a refused fire leaves the spine where it was.
 pred fires[e : Event] {
     let to = fireTo[spBefore[e], wireOf[e]] |
         one to implies e.sp = to else e.sp = spBefore[e]
@@ -545,9 +586,9 @@ pred conforms {
 -- A_Invariant_2_1: after every event the spine's current state equals the replayed state of
 -- the log up to it.
 assert A_Invariant_2_1 {
-    conforms implies all e : Event | e.sp = replayed[e.earlier + e]
+    conforms implies all e : Event | e.sp = replayed[own[e] + e]
 }
-check A_Invariant_2_1 for 2 but 8 Event, 5 Key
+check A_Invariant_2_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_3_1: every step completion event of an effect step outside the roll-forward
 -- steps carries exactly one compensation reference — over the steps not marked read-only,
@@ -557,135 +598,163 @@ assert A_Invariant_3_1 {
         (some c.step.effect and c.step not in rollForward and c.step.marker != ReadOnly)
             implies one c.compRef
 }
-check A_Invariant_3_1 for 2 but 8 Event, 5 Key
+check A_Invariant_3_1 for 2 but 8 Event, 8 Key
 
--- A_Invariant_4_1: a log carrying a compensation close event carries a compensation run
--- event for every step completion event.
+-- A_Invariant_4_1: a run carrying a compensation close event carries a compensation run
+-- event for every step completion event whose compensation reference does not equal blank.
 assert A_Invariant_4_1 {
-    conforms implies (some Close implies
-        all c : StepCompleted | some r : CompRun | r.step = c.step)
+    conforms implies all w : Run | some (Close & runLog[w]) implies
+        all c : StepCompleted & runLog[w] | some c.compRef implies
+            some r : CompRun & runLog[w] | r.step = c.step
 }
-check A_Invariant_4_1 for 2 but 8 Event, 5 Key
+check A_Invariant_4_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_4_2: a log carrying a commit event carries a step completion event for every
 -- declared step.
 assert A_Invariant_4_2 {
-    conforms implies (some Commit implies all st : Step | some completionOf[st])
+    conforms implies all w : Run | some (Commit & runLog[w]) implies
+        all st : Step | some (completionOf[st] & runLog[w])
 }
-check A_Invariant_4_2 for 2 but 8 Event, 5 Key
+check A_Invariant_4_2 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_4_3: a log carrying a commit event carries no compensation onset event.
 assert A_Invariant_4_3 {
-    conforms implies (some Commit implies no Onset)
+    conforms implies all w : Run | some (Commit & runLog[w]) implies no (Onset & runLog[w])
 }
-check A_Invariant_4_3 for 2 but 8 Event, 5 Key
+check A_Invariant_4_3 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_4_5: no terminal marker lands while an attempt stands unresolved before it.
 assert A_Invariant_4_5 {
-    conforms implies all t : Commit + Close | no unresolved[t.earlier]
+    conforms implies all t : Commit + Close | no unresolved[own[t]]
 }
-check A_Invariant_4_5 for 2 but 8 Event, 5 Key
+check A_Invariant_4_5 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_5_1: newest first — when a compensating advance attempts a step's compensating
 -- action, every newer completed step with a compensating action has had its own attempted.
 assert A_Invariant_5_1 {
     conforms implies all a : CompAttempt - resumes, y : Step |
-        (some y.comp and some completionOf[y]
-            and completionOf[a.step] in completionOf[y].earlier)
-        implies some (CompAttempt & step.y & a.earlier)
+        let cy = completionOf[y] & runLog[a.wf], ca = completionOf[a.step] & runLog[a.wf] |
+        (some y.comp and some cy and ca in cy.earlier)
+        implies some (CompAttempt & step.y & own[a])
 }
-check A_Invariant_5_1 for 2 but 8 Event, 5 Key
+check A_Invariant_5_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_6_1: no log carries two terminal markers.
 assert A_Invariant_6_1 {
-    conforms implies lone (Commit + Close)
+    conforms implies all w : Run | lone ((Commit + Close) & runLog[w])
 }
-check A_Invariant_6_1 for 2 but 8 Event, 5 Key
+check A_Invariant_6_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_6_2: halted is never an outcome — not among the spine's terminal states, and
 -- never an outcome the replay derives.
 assert A_Invariant_6_2 {
     conforms implies {
         Halted not in Spine.terminal
-        all e : Event | Halted not in outcomeOf[e.earlier + e]
+        all e : Event | Halted not in outcomeOf[own[e] + e]
     }
 }
-check A_Invariant_6_2 for 2 but 8 Event, 5 Key
+check A_Invariant_6_2 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_6_3: a resume marker returns the run to the phase the newest halt before it
 -- names — the replay's phase and the spine's state both.
 assert A_Invariant_6_3 {
-    conforms implies all r : resumes | let h = newestHalt[r.earlier] |
-        r.sp = h.hphase and phaseOf[r.earlier + r] = h.hphase
+    conforms implies all r : resumes | let h = newestHalt[own[r]] |
+        r.sp = h.hphase and phaseOf[own[r] + r] = h.hphase
 }
-check A_Invariant_6_3 for 2 but 8 Event, 5 Key
+check A_Invariant_6_3 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_7_2: no effect runs twice under a recorded key — no two completion records
--- carry one key (Check 7.1), and no attempt marker an advance opens to run an effect (a resume
--- marker re-runs nothing whose key is applied) carries a key already applied before it.
+-- carry one key (Check 7.1), the two runs' included, and no attempt marker an advance opens to
+-- run an effect (a resume marker re-runs nothing whose key is applied) carries a key its run
+-- already applied before it.
 assert A_Invariant_7_2 {
     conforms implies {
         all disj x, y : StepCompleted + CompRun | x.key != y.key
-        all a : Attempt - resumes | a.key not in applied[a.earlier]
+        all a : Attempt - resumes | a.key not in applied[own[a]]
     }
 }
-check A_Invariant_7_2 for 2 but 8 Event, 5 Key
+check A_Invariant_7_2 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_8_1: no step completion event follows a compensation onset event.
 assert A_Invariant_8_1 {
-    conforms implies no c : StepCompleted, o : Onset | o in c.earlier
+    conforms implies no c : StepCompleted, o : Onset | o in own[c]
 }
-check A_Invariant_8_1 for 2 but 8 Event, 5 Key
+check A_Invariant_8_1 for 2 but 8 Event, 8 Key
 
 -- A_Action_wiring_30: no compensation onset event names a roll-forward step.
 assert A_Action_wiring_30 {
     conforms implies no (Onset.ostep & rollForward)
 }
-check A_Action_wiring_30 for 2 but 8 Event, 5 Key
+check A_Action_wiring_30 for 2 but 8 Event, 8 Key
 
 -- A_Action_wiring_72: no cancel's onset (one naming no step) lands over an unresolved attempt.
 assert A_Action_wiring_72 {
-    conforms implies all o : Onset | no o.ostep implies no unresolved[o.earlier]
+    conforms implies all o : Onset | no o.ostep implies no unresolved[own[o]]
 }
-check A_Action_wiring_72 for 2 but 8 Event, 5 Key
+check A_Action_wiring_72 for 2 but 8 Event, 8 Key
 
 -- A_Action_wiring_73: no cancel's onset lands after a roll-forward step completed.
 assert A_Action_wiring_73 {
     conforms implies all o : Onset | no o.ostep implies
-        no ((StepCompleted & o.earlier).step & rollForward)
+        no ((StepCompleted & own[o]).step & rollForward)
 }
-check A_Action_wiring_73 for 2 but 8 Event, 5 Key
+check A_Action_wiring_73 for 2 but 8 Event, 8 Key
 
 -- A_Non_goal_9: no compensating action is attempted or run for a roll-forward step.
 assert A_Non_goal_9 {
     conforms implies no ((CompAttempt + CompRun).step & rollForward)
 }
-check A_Non_goal_9 for 2 but 8 Event, 5 Key
+check A_Non_goal_9 for 2 but 8 Event, 8 Key
 
 -- A_Check_8_2: every compensation run event for an overflowed step carries operator as the
 -- input source.
 assert A_Check_8_2 {
-    conforms implies all r : CompRun | r.step in overflowed[r.earlier] implies r.source = Operator
+    conforms implies all r : CompRun | r.step in overflowed[own[r]] implies r.source = Operator
 }
-check A_Check_8_2 for 2 but 8 Event, 5 Key
+check A_Check_8_2 for 2 but 8 Event, 8 Key
 
 -- A_Composition_state_13: every attempt marker and completion record carries the key derived
 -- for its effect — the step's for a step's effect, the compensation's for a compensation's —
 -- the same on every attempt, never one minted per attempt (Composition state 11, 12).
 assert A_Composition_state_13 {
     conforms implies {
-        all k : StepAttempt + StepCompleted | k.key = k.step.skey
-        all k : CompAttempt + CompRun + CompFailed | k.key = k.step.ckey
+        all k : StepAttempt + StepCompleted | k.key = skeyOf[k.step, k.wf]
+        all k : CompAttempt + CompRun + CompFailed | k.key = ckeyOf[k.step, k.wf]
     }
 }
-check A_Composition_state_13 for 2 but 8 Event, 5 Key
+check A_Composition_state_13 for 2 but 8 Event, 8 Key
 
 -- A_Replay_12: a halt event resolves no attempt — the unresolved attempts of the log before a
 -- halt and of the same log with the halt are the same (Check 4.5).
 assert A_Replay_12 {
-    conforms implies all h : Halt | unresolved[h.earlier] = unresolved[h.earlier + h]
+    conforms implies all h : Halt | unresolved[own[h]] = unresolved[own[h] + h]
 }
-check A_Replay_12 for 2 but 8 Event, 5 Key
+check A_Replay_12 for 2 but 8 Event, 8 Key
+
+-- A_Replay_1: a run's replay keeps the events carrying its own id — no step attempt a forward
+-- advance of a run opens passes over a declared step whose completion its own run has not
+-- recorded, whatever another run sharing the log has completed (Replay 1; Composes 13; Event
+-- schema 14).
+assert A_Replay_1 {
+    conforms implies all a : StepAttempt - resumes |
+        a.step.ahead in (StepCompleted & a.earlier & runLog[a.wf]).step
+}
+check A_Replay_1 for 2 but 8 Event, 8 Key
+
+-- A_Action_wiring_40: a compensating run whose every completion with a standing compensation
+-- reference has its compensation run event, with no attempt unresolved and no standing
+-- failure, is one the close may land on: a completion with a blank compensation reference owes
+-- no compensation run and holds no close back (Action wiring 40; Term pending compensation;
+-- Invariant 4.1).
+assert A_Action_wiring_40 {
+    conforms implies all w : Run | let s = runLog[w] |
+        (no terminals[s] and phaseOf[s] = Compensating and no unresolved[s]
+            and no standingFail[s]
+            and (all c : StepCompleted & s | some c.compRef implies
+                    some r : CompRun & s | r.step = c.step))
+        implies closeAdmits[s]
+}
+check A_Action_wiring_40 for 2 but 8 Event, 8 Key
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
@@ -698,7 +767,7 @@ run ShowCommitted {
     conforms
     #Step = 2
     some Commit
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowCompensatedOnFailure: the walkthrough's shape — a step definitely fails, its onset
 -- names it, the completed step is compensated and the run closes.
@@ -707,7 +776,7 @@ run ShowCompensatedOnFailure {
     some o : Onset | some o.ostep
     some CompRun
     some Close
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowCancelled: a cancel begins the compensating phase and the run closes compensated.
 run ShowCancelled {
@@ -715,7 +784,7 @@ run ShowCancelled {
     some o : Onset | no o.ostep
     some CompRun
     some Close
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowHaltResumeCompensating: under halt-and-surface a compensation halts the run, the
 -- operator's resume returns it to the compensating phase, and it closes.
@@ -725,15 +794,15 @@ run ShowHaltResumeCompensating {
     some h : Halt | h.hphase = Compensating
     some (resumes & CompAttempt)
     some Close
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowStandingFailureHalt: under continue a compensation failure is recorded and, nothing else
 -- owed, the run halts naming it (Action wiring 38, 41).
 run ShowStandingFailureHalt {
     conforms
-    some f : CompFailed, h : Halt | f in h.earlier and h.hsteps = f.step
-        and no (Attempt & h.earlier & unresolved[h.earlier])
-} for 2 but 8 Event, 5 Key
+    some f : CompFailed, h : Halt | f in own[h] and h.hsteps = f.step
+        and no (Attempt & own[h] & unresolved[own[h]])
+} for 2 but 8 Event, 8 Key
 
 -- ShowRollForwardHalt: a failed pivot step halts the run in the forward phase; the resume
 -- re-attempts it and the run commits.
@@ -742,7 +811,7 @@ run ShowRollForwardHalt {
     some h : Halt | h.hphase = Forward and h.hsteps in rollForward
     some (resumes & StepAttempt)
     some Commit
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowOverflow: a step's completion overflows its envelope, the run halts, the resume
 -- carries the operator's compensation inputs, and a later compensation runs from them.
@@ -751,7 +820,7 @@ run ShowOverflow {
     some c : StepCompleted | some c.overflow
     some a : resumes & StepAttempt | some a.inputs
     some r : CompRun | r.source = Operator
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- ShowUnresolvedStanding: an attempt marker nothing resolved stands in the forward phase (an
 -- indeterminate verdict at the bound), and the log carries no terminal marker.
@@ -759,29 +828,37 @@ run ShowUnresolvedStanding {
     conforms
     some unresolved[Event]
     phaseOf[Event] = Forward
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
 -- FoundReadOnlyEffectStep: FOUND (1) — an effect step marked read-only, declaring no
 -- compensating action, admitted and completed with no compensation reference.
 run FoundReadOnlyEffectStep {
     conforms
     some c : StepCompleted | some c.step.effect and c.step.marker = ReadOnly and no c.compRef
-} for 2 but 8 Event, 5 Key
+} for 2 but 8 Event, 8 Key
 
--- FoundNoCompensationToRun: FOUND (2) — the run compensating, nothing unresolved, and the
--- newest pending compensation a step with no compensating action to attempt.
-run FoundNoCompensationToRun {
+-- ShowBlankReferenceClose: a step declaring no compensating action completes with a blank
+-- compensation reference, the run is cancelled, and it closes compensated with no
+-- compensation run for that step (FOUND (2), cured).
+run ShowBlankReferenceClose {
     conforms
-    phaseOf[Event] = Compensating
-    no unresolved[Event]
-    some newestPending[Event]
-    no newestPending[Event].comp
-} for 2 but 8 Event, 5 Key
+    some c : StepCompleted | no c.compRef
+        and some t : Close | t.wf = c.wf and no (CompRun & runLog[c.wf] & step.(c.step))
+} for 2 but 8 Event, 8 Key
+
+-- ShowSharedLog: two runs' events interleave in the one Event Log instance, one run
+-- committing and the other compensated, each replay keeping its own (Composes 3, 13).
+run ShowSharedLog {
+    conforms
+    some disj w1, w2 : Run | some e1, e3 : runLog[w1], e2 : runLog[w2] |
+        e1 in e2.earlier and e2 in e3.earlier
+        and some (Commit & runLog[w1]) and some (Close & runLog[w2])
+} for 2 but 8 Event, 8 Key
 
 -- FoundContinueOrder: FOUND (3) — under continue, an older step's compensation run event
 -- lands before a newer step's, the newer one's run after the operator's resume.
 run FoundContinueOrder {
     conforms
-    some disj r1, r2 : CompRun | r1 in r2.earlier
-        and completionOf[r1.step] in completionOf[r2.step].earlier
-} for 2 but 12 Event, 5 Key
+    some disj r1, r2 : CompRun | r1 in own[r2]
+        and (completionOf[r1.step] & runLog[r1.wf]) in (completionOf[r2.step] & runLog[r2.wf]).earlier
+} for 2 but 12 Event, 8 Key

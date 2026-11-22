@@ -481,7 +481,7 @@
   "models": {
    "als": true,
    "tla": true,
-   "twins": 17
+   "twins": 20
   },
   "regulated": true,
   "standards": [
