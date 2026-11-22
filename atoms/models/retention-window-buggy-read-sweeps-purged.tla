@@ -19,6 +19,13 @@ CONSTANTS
 \* NONE: the value of a reference field not yet written.
 NONE == "none"
 
+\* ANY: what a query carries on an axis it puts no filter on.
+ANY == "any"
+
+\* BLANK: a blank filter value (GRACE-lang Term blank), which no query axis
+\* admits (Term query axes; Execution Contract Query 5).
+BLANK == ""
+
 \* Policies: the policy references the registry resolves; PolicyDuration and
 \* PolicyDelay: the duration and the max purge delay each resolves to at the
 \* seam (Operation 24a). p1's delay is the zero duration, which Operation 8
@@ -37,11 +44,27 @@ Slots == 1..MaxRet
 \* NoElig: the purge eligible a call that is no [Read] reports: none.
 NoElig == [s \in Slots |-> "none"]
 
+\* Queries: the queries a [Read] may carry. A query is a value or ANY on each
+\* of the two query axes, retention id and record reference (Term query
+\* axes), and a value or ANY on the policy reference, an axis outside them.
+\* The well-formed ones: r1, r2 or no filter on retention id, x1 or no
+\* filter on record reference, each pair of them, and no policy filter (the
+\* bound: see BOUNDS). The malformed ones: a blank value on either query
+\* axis (Operation 38), and a policy-reference filter (Operation 37).
+Queries ==
+    [rid : {"r1", "r2", ANY}, rec : {"x1", ANY}, pol : {ANY}]
+    \cup {[rid |-> BLANK, rec |-> ANY, pol |-> ANY],
+         [rid |-> ANY, rec |-> BLANK, pol |-> ANY],
+         [rid |-> ANY, rec |-> ANY, pol |-> "p1"]}
+
+\* NoQuery: the query a call that is no [Read] records: no filter.
+NoQuery == [rid |-> ANY, rec |-> ANY, pol |-> ANY]
+
 \* NoCall: the record of the last call before any call is made, and the shape
 \* of every such record: the action, the retention id it named, what it
-\* answered, and, for a [Read], the retentions it listed and the purge
-\* eligible it answered for each.
-NoCall == [op |-> "none", rid |-> NONE, ans |-> "none", listed |-> {}, elig |-> NoElig]
+\* answered, and, for a [Read], the query it carried, the retentions it
+\* listed and the purge eligible it answered for each.
+NoCall == [op |-> "none", rid |-> NONE, ans |-> "none", q |-> NoQuery, listed |-> {}, elig |-> NoElig]
 
 \* ---------------------------------------------------------------------------
 \* State
@@ -207,21 +230,42 @@ PurgeNotKnown(id) ==
     /\ last' = [NoCall EXCEPT !.op = "purge", !.rid = id, !.ans = "not-known"]
     /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, status, purgedAt, present>>
 
-\* Read: [Read] answers every retention, retained and purged (Operation 29),
-\* with purge eligible for each retained one (Operation 31), and writes nothing
+\* QueryAdmitted: the model's [Read] reading of whether it admits the query:
+\* no filter on an axis outside the query axes, and no blank value.
+QueryAdmitted(q) == q.pol = ANY /\ q.rid # BLANK /\ q.rec # BLANK
+
+\* ReadMatch: the model's [Read] reading of whether the slot's retention
+\* matches the query: on each query axis the query filters, the retention
+\* carries the filter's value.
+ReadMatch(q, s) ==
+    /\ (q.rid = ANY \/ rid[s] = q.rid)
+    /\ (q.rec = ANY \/ rec[s] = q.rec)
+
+\* ReadOk: [Read] of a query it admits answers every recorded retention the
+\* query matches, retained and purged (Operation 29), with purge eligible for
+\* each retained one it answers (Operation 31), and writes nothing
 \* (Operation 32).
-Read ==
-    /\ last' = [NoCall EXCEPT !.op = "read",
-                    !.listed = {s \in Slots : Recorded(s)},
+ReadOk(q) ==
+    LET L == {s \in Slots : Recorded(s) /\ ReadMatch(q, s)} IN
+    /\ QueryAdmitted(q)
+    /\ last' = [NoCall EXCEPT !.op = "read", !.ans = "ok", !.q = q,
+                    !.listed = L,
                     !.elig = [s \in Slots |->
-                                IF Recorded(s) /\ status[s] = "retained"
+                                IF s \in L /\ status[s] = "retained"
                                 THEN (IF Eligible(s) THEN "yes" ELSE "no")
                                 ELSE "none"]]
     /\ status' = [x \in Slots |-> IF status[x] = "purged" THEN "none" ELSE status[x]]   \* BUG: purged swept
     /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, purgedAt, present>>
 
+\* ReadInvalid: [Read] of a query it does not admit answers invalid-query,
+\* lists nothing and writes nothing (Operation 37, 38, 32).
+ReadInvalid(q) ==
+    /\ ~QueryAdmitted(q)
+    /\ last' = [NoCall EXCEPT !.op = "read", !.ans = "invalid-query", !.q = q]
+    /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, status, purgedAt, present>>
+
 \* Next: the clock moving, or any call: a placement of any id over any record
-\* under either policy, a [Purge] of any id, or a [Read].
+\* under either policy, a [Purge] of any id, or a [Read] of any query.
 Next ==
     \/ Tick
     \/ \E id \in Rids, r \in Records, p \in Policies : Place(id, r, p)
@@ -230,7 +274,8 @@ Next ==
     \/ \E id \in Rids : PurgeNotElapsed(id)
     \/ \E id \in Rids : PurgeNotRetained(id)
     \/ \E id \in Rids : PurgeNotKnown(id)
-    \/ Read
+    \/ \E q \in Queries : ReadOk(q)
+    \/ \E q \in Queries : ReadInvalid(q)
 
 \* Spec: every behaviour from Init by Next steps.
 Spec == Init /\ [][Next]_vars
@@ -262,7 +307,7 @@ Inv2_2_PurgedOnlyByPurge ==
           (IsPurge /\ last'.ans = "ok" /\ last'.rid = rid[s])]_vars
 
 \* Inv3_1_PurgedStaysPurged: no step moves a purged retention out of purged:
-\* there is no un-purge and no restore (Invariant 3.1, 3.2, State 8).
+\* there is no un-purge and no restore surface (Invariant 3.1, 3.2).
 Inv3_1_PurgedStaysPurged ==
     [][\A s \in Slots : status[s] = "purged" => status'[s] = "purged"]_vars
 
@@ -311,12 +356,12 @@ Inv10_2_SetNeverShrinks ==
     [][Cardinality(Live') >= Cardinality(Live)]_vars
 
 \* Inv11_2_EligibilityDerived: the purge eligible a [Read] answers for each
-\* retained retention is yes exactly where now does not precede its retention
-\* deadline, from the state, the deadline and now alone (Invariant 11.2,
-\* Operation 31, Check 3.2).
+\* retained retention it answers is yes exactly where now does not precede
+\* its retention deadline, from the state, the deadline and now alone
+\* (Invariant 11.2, Operation 31, Check 3.2).
 Inv11_2_EligibilityDerived ==
     [][last'.op = "read" =>
-          \A s \in Slots : (Recorded(s) /\ status[s] = "retained") =>
+          \A s \in last'.listed : (Recorded(s) /\ status[s] = "retained") =>
               last'.elig[s] = IF now >= until[s] THEN "yes" ELSE "no"]_vars
 
 \* Inv11_3_CrossingWritesNothing: the clock moving, and every deadline it
@@ -325,10 +370,12 @@ Inv11_2_EligibilityDerived ==
 Inv11_3_CrossingWritesNothing ==
     [][last'.op = "tick" => UNCHANGED retentions]_vars
 
-\* Id5_IdNeverReused: no placement records a retention id a retention already
-\* carries, a purged retention's included (Identity 5, Capability requirement
-\* 8, 9).
-Id5_IdNeverReused ==
+\* Inv9_1_HostIdFresh: no placement records a retention id a retention
+\* already carries, a purged retention's included, so no two retentions share
+\* one in any state the steps reach (Invariant 9.1 across steps; the host's
+\* duty, Capability requirement 8, 9 and Execution Contract Logic
+\* confinement 16).
+Inv9_1_HostIdFresh ==
     [][last'.op = "place" => last'.rid \notin Carried]_vars
 
 \* Op1_PlaceAddsOne: every placement that answers adds exactly one retention,
@@ -356,13 +403,55 @@ Op20_FailureLeavesRetained ==
     [][(IsPurge /\ last'.ans = "storage-failure") =>
           \A s \in Slots : Names(last'.rid, s) => status'[s] = "retained"]_vars
 
-\* Op29_ReadAnswersEvery: a [Read] lists every recorded retention, retained
-\* and purged (Operation 29).
-Op29_ReadAnswersEvery ==
-    [][last'.op = "read" => last'.listed = {s \in Slots : Recorded(s)}]_vars
+\* WellFormed: the page's reading of a query [Read] answers: every filter on
+\* a query axis (Operation 37), and no blank value (Operation 38).
+WellFormed(q) == q.pol = ANY /\ BLANK \notin {q.rid, q.rec}
 
-\* Op32_ReadWritesNothing: a [Read] step changes no retention and no record
-\* (Operation 32).
+\* PageMatch: whether the slot's retention is a matching retention, as the
+\* page says: its retention id EQUALS the filter's where the query carries
+\* that filter, its record reference EQUALS the filter's where it carries
+\* that one, and a query carrying no filter matches every retention (Term
+\* matching retention; Identity 10; Execution Contract Query 3, 4).
+PageMatch(q, s) ==
+    /\ q.rid # ANY => rid[s] = q.rid
+    /\ q.rec # ANY => rec[s] = q.rec
+
+\* Op29_ReadAnswersEveryMatch: a [Read] of a well-formed query answers, and
+\* lists every recorded retention the query matches, retained and purged
+\* (Operation 29; Term matching retention).
+Op29_ReadAnswersEveryMatch ==
+    [][(last'.op = "read" /\ WellFormed(last'.q)) =>
+          /\ last'.ans = "ok"
+          /\ \A s \in Slots : (Recorded(s) /\ PageMatch(last'.q, s)) => s \in last'.listed]_vars
+
+\* Read_OnlyMatches: a [Read] lists no retention its query does not match:
+\* Operation 39 (Term matching retention).
+Read_OnlyMatches ==
+    [][last'.op = "read" =>
+          \A s \in last'.listed : Recorded(s) /\ PageMatch(last'.q, s)]_vars
+
+\* Id10_RecordRefExact: a [Read] carrying a record-reference filter lists only
+\* retentions whose record reference is the filter's exact value: the atom
+\* compares the two record references by exact value (Identity 10; the
+\* deployment canonicalizes both at the seam, Execution Contract Logic
+\* confinement 13).
+Id10_RecordRefExact ==
+    [][(last'.op = "read" /\ last'.q.rec \notin {ANY, BLANK}) =>
+          \A s \in last'.listed : rec[s] = last'.q.rec]_vars
+
+\* Op37_OffAxisFilterRefused: a [Read] whose query filters on an axis outside
+\* the query axes, the policy reference, answers invalid-query (Operation 37).
+Op37_OffAxisFilterRefused ==
+    [][(last'.op = "read" /\ last'.q.pol # ANY) => last'.ans = "invalid-query"]_vars
+
+\* Op38_BlankValueRefused: a [Read] whose query carries a blank value on a
+\* query axis answers invalid-query: no axis admits a blank value (Operation
+\* 38; Term query axes).
+Op38_BlankValueRefused ==
+    [][(last'.op = "read" /\ BLANK \in {last'.q.rid, last'.q.rec}) => last'.ans = "invalid-query"]_vars
+
+\* Op32_ReadWritesNothing: a [Read] step, admitted or refused, changes no
+\* retention and no record (Operation 32).
 Op32_ReadWritesNothing ==
     [][last'.op = "read" => UNCHANGED retentions]_vars
 

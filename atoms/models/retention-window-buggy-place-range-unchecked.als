@@ -39,7 +39,7 @@ abstract sig RState {}
 one sig Retained, Purged extends RState {}
 
 -- Eligible: a stored purge-eligibility value, yes or no. The page forbids storing it
--- (Invariant 11.1, State 7): purge eligible is derived when asked. It is in the type so a
+-- (Invariant 11.1): purge eligible is derived when asked. It is in the type so a
 -- write that stored one would show; that none does is checked, never built in.
 abstract sig Eligible {}
 
@@ -88,7 +88,7 @@ sig PurgeCall extends Call {
 -- it. Every field the page names may be absent, and the state is a set, so a write that
 -- forgot a field or left two states would show; what the page promises (State 2 to 6a,
 -- Invariant 1.1) is checked, never built into the type. `eligible` and `tier` are the
--- fields State 7, Invariant 11.1 and State 10 forbid, in the type so a write that stored
+-- fields Invariant 11.1 and State 10 forbid, in the type so a write that stored
 -- one would show. The last two fields are the model's own: which call wrote this version,
 -- and which version a [Purge] found.
 sig Ret {
@@ -136,8 +136,8 @@ fact DeploymentDeclarations {
 }
 
 -- The host supplies each placement a retention id that names no retention of the records
--- before it (Capability requirement 8). The atom takes the id from outside; whether the
--- host keeps the duty across steps is checked in the TLA+ model (Id5_IdNeverReused).
+-- before it (Capability requirement 8, 9). The atom takes the id from outside; whether the
+-- host keeps the duty across steps is checked in the TLA+ model (Inv9_1_HostIdFresh).
 fact HostAllocatesAnUnusedId {
     all c : PlaceCall | no v : Ret |
         recorded[v] and C/lt[v.writtenBy, c] and v.rid = c.hostRid
@@ -357,8 +357,9 @@ assert A_Invariant_9_1 {
 }
 check A_Invariant_9_1 for 3 but 5 Int
 
--- A_Invariant_11_1: no retention record carries an eligibility flag: purge eligible is
--- derived when asked, never stored (Invariant 11.1, State 7, Check 3.1).
+-- A_Invariant_11_1: no retention record carries an eligibility flag, the one place the
+-- atom's records could store purge eligibility: it is derived when asked, never stored
+-- (Invariant 11.1, Check 3.1).
 assert A_Invariant_11_1 {
     all r : Ret | recorded[r] implies no r.eligible
 }

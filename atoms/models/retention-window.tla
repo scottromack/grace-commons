@@ -1,14 +1,16 @@
 ---- MODULE retention-window ----
 \* Grace Commons — Retention Window atom (atoms/retention-window.md).
-\* Grounded on Final Critique 13, 2026-10-24 at 142a72a — TLA+ layer authored 2026-11-12.
+\* Grounded on Final Critique 13, 2026-10-24 at 142a72a — TLA+ layer authored 2026-11-12;
+\* re-derived 2026-11-21 over the page's ten cured open lines ([Read] carries a query).
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* PURPOSE
 \* Check what happens across steps: the retentions [Place Under Retention] and
 \* [Purge] write over a sequence of calls while the host's clock moves, what
-\* [Purge] answers at each now, what [Read] answers, which records the database
-\* still holds, and what a deadline crossed, a refused purge and a [Read] leave.
+\* [Purge] answers at each now, what [Read] answers for each query it carries,
+\* which records the database still holds, and what a deadline crossed, a
+\* refused purge and a [Read] leave.
 \* What one state of the records must carry (Invariant 1.1, 4.1, 6.1, 6.2, 8.1,
 \* 9.1 and 11.1, State 2 to 6a and 10, Identity 1, Operation 4, 5, 7, 8c and
 \* 13) is the Alloy model's, retention-window.als; the two models spell the
@@ -21,7 +23,7 @@
 \*   Invariant 2.2  — a retention becomes purged only by a
 \*                    successful [Purge] of its own id              (Inv2_2_PurgedOnlyByPurge)
 \*   Invariant 3.1  — a purged retention never stands retained
-\*                    again (Invariant 3.2, State 8)                (Inv3_1_PurgedStaysPurged)
+\*                    again (Invariant 3.2: no restore surface)     (Inv3_1_PurgedStaysPurged)
 \*   Invariant 4.2  — a retention id never changes                  (Inv4_2_IdFixed)
 \*   Invariant 5.1  — a record reference never changes              (Inv5_1_RecordRefFixed)
 \*   Invariant 5.2  — a policy reference never changes (State 9)    (Inv5_2_PolicyRefFixed)
@@ -35,8 +37,10 @@
 \*   Invariant 11.2 — the purge eligible [Read] answers is derived
 \*                    from state, deadline and now (Operation 31)   (Inv11_2_EligibilityDerived)
 \*   Invariant 11.3 — crossing a retention deadline writes nothing  (Inv11_3_CrossingWritesNothing)
-\*   Identity 5     — no placement records an id a retention
-\*                    carries (Capability requirement 8, 9)         (Id5_IdNeverReused)
+\*   Invariant 9.1  — across steps: no placement records an id a
+\*                    retention carries, a purged one's included
+\*                    (Capability requirement 8, 9; Execution
+\*                    Contract Logic confinement 16)                (Inv9_1_HostIdFresh)
 \*   Operation 1    — a placement records exactly one retention,
 \*                    over a record already retained too
 \*                    (Simultaneous retention 1, Identity 9)        (Op1_PlaceAddsOne)
@@ -46,9 +50,17 @@
 \*                    not-retained and writes nothing               (Op15_PurgedAnswersNotRetained)
 \*   Operation 20   — a [Purge] that answers storage-failure leaves
 \*                    its retention retained                        (Op20_FailureLeavesRetained)
-\*   Operation 29   — [Read] answers every retention, retained and
-\*                    purged                                        (Op29_ReadAnswersEvery)
-\*   Operation 32   — [Read] writes nothing                         (Op32_ReadWritesNothing)
+\*   Operation 29   — [Read] of a well-formed query answers every
+\*                    matching retention, retained and purged
+\*                    (Term matching retention)                     (Op29_ReadAnswersEveryMatch)
+\*   Operation 39   — [Read] answers no
+\*                    retention its query does not match            (Read_OnlyMatches)
+\*   Identity 10    — the record-reference filter compares two
+\*                    record references by exact value              (Id10_RecordRefExact)
+\*   Operation 32   — [Read] writes nothing, a refused one too      (Op32_ReadWritesNothing)
+\*   Operation 37   — a filter on an axis outside the query axes
+\*                    answers invalid-query                         (Op37_OffAxisFilterRefused)
+\*   Operation 38   — a blank filter value answers invalid-query    (Op38_BlankValueRefused)
 \*   Simultaneous retention 2 — the gate reads the purging
 \*                    retention's own retention deadline
 \*                    (Simultaneous retention 3)                    (Sim2_OwnDeadlineGate)
@@ -61,8 +73,11 @@
 \*   reference at the seam to a duration and a max purge delay; the model's two
 \*   policies resolve, and both are valid (see BOUNDS).
 \* - The host allocates each placement's retention id at the seam (Identity 2);
-\*   the page binds it never to supply one a retention carries (Capability
-\*   requirement 8, 9), and that is the guard on Place and a check here.
+\*   the page binds it to supply one naming no retention, and one id to one
+\*   call (Capability requirement 8, 9; Logic confinement 16), and that is the
+\*   guard on Place and a check here (Invariant 9.1 across steps).
+\* - The query a [Read] carries is the caller's, supplied per call: the model
+\*   offers every query in Queries at every state (see BOUNDS).
 \* - The deployment never supplies a placement the record reference of a
 \*   destroyed record (Capability requirement 15): the guard on Place reads
 \*   which records the database still holds as the deployment's choice of
@@ -81,7 +96,14 @@
 \* deadlines; a time resolution of one tick (the rounding is the Alloy
 \* model's); the clock from 0 to 4. Every [Purge] answer is reached, a purge
 \* at the retention deadline, inside the purge window and past the purge
-\* deadline, and a [Read] at every now.
+\* deadline, and a [Read] at every now. A [Read] carries one of nine
+\* queries: no filter, a retention-id filter (r1 or r2, either of which may
+\* name no retention yet, so a well-formed value matching nothing is
+\* reached), a record-reference filter (x1, which an x2 retention fails),
+\* both together, and three malformed ones: a blank retention id, a blank
+\* record reference, and a filter on the policy reference, an axis outside
+\* the query axes (Operation 37). Fifteen queries, every id and both
+\* records, reach 317,831 states and no shape these nine do not.
 \*
 \* NOT MODELED HERE
 \* - Blank references, the policy registry's refusals and invalid policies
@@ -91,10 +113,16 @@
 \* - The instance where a composing pattern owns the destruction (Record
 \*   divergence 4 to 6, Capability requirement 6a): here none does, so [Purge]
 \*   removes the record (Operation 13b). The destruction records, joint
-\*   enforcement and the composing patterns' gates (Simultaneous retention 4
-\*   to 8, External check 1 to 5) are other patterns' and the deployment's.
+\*   enforcement, the composing patterns' gates and whether the ownership
+\*   changes (Simultaneous retention 4 to 8, Capability requirement 18,
+\*   External check 2 to 5, 7 and 8) are other patterns' and the deployment's.
 \* - What [Read] answers beyond the retentions it lists and purge eligible:
-\*   the stored fields (Operation 30) are the Alloy model's records.
+\*   the stored fields (Operation 30) are the Alloy model's records; the
+\*   order it answers them in (Execution Contract Read 5) and its pages (Read
+\*   6) are not modeled: the model's answer is a set.
+\* - A filter value that is not a string or exceeds its cap (Execution
+\*   Contract Query 1, 5, Input 1): the model's malformed values are the blank
+\*   one and the off-axis filter.
 
 EXTENDS Integers, FiniteSets
 
@@ -107,6 +135,13 @@ CONSTANTS
 
 \* NONE: the value of a reference field not yet written.
 NONE == "none"
+
+\* ANY: what a query carries on an axis it puts no filter on.
+ANY == "any"
+
+\* BLANK: a blank filter value (GRACE-lang Term blank), which no query axis
+\* admits (Term query axes; Execution Contract Query 5).
+BLANK == ""
 
 \* Policies: the policy references the registry resolves; PolicyDuration and
 \* PolicyDelay: the duration and the max purge delay each resolves to at the
@@ -126,11 +161,27 @@ Slots == 1..MaxRet
 \* NoElig: the purge eligible a call that is no [Read] reports: none.
 NoElig == [s \in Slots |-> "none"]
 
+\* Queries: the queries a [Read] may carry. A query is a value or ANY on each
+\* of the two query axes, retention id and record reference (Term query
+\* axes), and a value or ANY on the policy reference, an axis outside them.
+\* The well-formed ones: r1, r2 or no filter on retention id, x1 or no
+\* filter on record reference, each pair of them, and no policy filter (the
+\* bound: see BOUNDS). The malformed ones: a blank value on either query
+\* axis (Operation 38), and a policy-reference filter (Operation 37).
+Queries ==
+    [rid : {"r1", "r2", ANY}, rec : {"x1", ANY}, pol : {ANY}]
+    \cup {[rid |-> BLANK, rec |-> ANY, pol |-> ANY],
+         [rid |-> ANY, rec |-> BLANK, pol |-> ANY],
+         [rid |-> ANY, rec |-> ANY, pol |-> "p1"]}
+
+\* NoQuery: the query a call that is no [Read] records: no filter.
+NoQuery == [rid |-> ANY, rec |-> ANY, pol |-> ANY]
+
 \* NoCall: the record of the last call before any call is made, and the shape
 \* of every such record: the action, the retention id it named, what it
-\* answered, and, for a [Read], the retentions it listed and the purge
-\* eligible it answered for each.
-NoCall == [op |-> "none", rid |-> NONE, ans |-> "none", listed |-> {}, elig |-> NoElig]
+\* answered, and, for a [Read], the query it carried, the retentions it
+\* listed and the purge eligible it answered for each.
+NoCall == [op |-> "none", rid |-> NONE, ans |-> "none", q |-> NoQuery, listed |-> {}, elig |-> NoElig]
 
 \* ---------------------------------------------------------------------------
 \* State
@@ -296,20 +347,41 @@ PurgeNotKnown(id) ==
     /\ last' = [NoCall EXCEPT !.op = "purge", !.rid = id, !.ans = "not-known"]
     /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, status, purgedAt, present>>
 
-\* Read: [Read] answers every retention, retained and purged (Operation 29),
-\* with purge eligible for each retained one (Operation 31), and writes nothing
+\* QueryAdmitted: the model's [Read] reading of whether it admits the query:
+\* no filter on an axis outside the query axes, and no blank value.
+QueryAdmitted(q) == q.pol = ANY /\ q.rid # BLANK /\ q.rec # BLANK
+
+\* ReadMatch: the model's [Read] reading of whether the slot's retention
+\* matches the query: on each query axis the query filters, the retention
+\* carries the filter's value.
+ReadMatch(q, s) ==
+    /\ (q.rid = ANY \/ rid[s] = q.rid)
+    /\ (q.rec = ANY \/ rec[s] = q.rec)
+
+\* ReadOk: [Read] of a query it admits answers every recorded retention the
+\* query matches, retained and purged (Operation 29), with purge eligible for
+\* each retained one it answers (Operation 31), and writes nothing
 \* (Operation 32).
-Read ==
-    /\ last' = [NoCall EXCEPT !.op = "read",
-                    !.listed = {s \in Slots : Recorded(s)},
+ReadOk(q) ==
+    LET L == {s \in Slots : Recorded(s) /\ ReadMatch(q, s)} IN
+    /\ QueryAdmitted(q)
+    /\ last' = [NoCall EXCEPT !.op = "read", !.ans = "ok", !.q = q,
+                    !.listed = L,
                     !.elig = [s \in Slots |->
-                                IF Recorded(s) /\ status[s] = "retained"
+                                IF s \in L /\ status[s] = "retained"
                                 THEN (IF Eligible(s) THEN "yes" ELSE "no")
                                 ELSE "none"]]
     /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, status, purgedAt, present>>
 
+\* ReadInvalid: [Read] of a query it does not admit answers invalid-query,
+\* lists nothing and writes nothing (Operation 37, 38, 32).
+ReadInvalid(q) ==
+    /\ ~QueryAdmitted(q)
+    /\ last' = [NoCall EXCEPT !.op = "read", !.ans = "invalid-query", !.q = q]
+    /\ UNCHANGED <<now, n, rid, rec, pol, retAt, until, pdl, status, purgedAt, present>>
+
 \* Next: the clock moving, or any call: a placement of any id over any record
-\* under either policy, a [Purge] of any id, or a [Read].
+\* under either policy, a [Purge] of any id, or a [Read] of any query.
 Next ==
     \/ Tick
     \/ \E id \in Rids, r \in Records, p \in Policies : Place(id, r, p)
@@ -318,7 +390,8 @@ Next ==
     \/ \E id \in Rids : PurgeNotElapsed(id)
     \/ \E id \in Rids : PurgeNotRetained(id)
     \/ \E id \in Rids : PurgeNotKnown(id)
-    \/ Read
+    \/ \E q \in Queries : ReadOk(q)
+    \/ \E q \in Queries : ReadInvalid(q)
 
 \* Spec: every behaviour from Init by Next steps.
 Spec == Init /\ [][Next]_vars
@@ -350,7 +423,7 @@ Inv2_2_PurgedOnlyByPurge ==
           (IsPurge /\ last'.ans = "ok" /\ last'.rid = rid[s])]_vars
 
 \* Inv3_1_PurgedStaysPurged: no step moves a purged retention out of purged:
-\* there is no un-purge and no restore (Invariant 3.1, 3.2, State 8).
+\* there is no un-purge and no restore surface (Invariant 3.1, 3.2).
 Inv3_1_PurgedStaysPurged ==
     [][\A s \in Slots : status[s] = "purged" => status'[s] = "purged"]_vars
 
@@ -399,12 +472,12 @@ Inv10_2_SetNeverShrinks ==
     [][Cardinality(Live') >= Cardinality(Live)]_vars
 
 \* Inv11_2_EligibilityDerived: the purge eligible a [Read] answers for each
-\* retained retention is yes exactly where now does not precede its retention
-\* deadline, from the state, the deadline and now alone (Invariant 11.2,
-\* Operation 31, Check 3.2).
+\* retained retention it answers is yes exactly where now does not precede
+\* its retention deadline, from the state, the deadline and now alone
+\* (Invariant 11.2, Operation 31, Check 3.2).
 Inv11_2_EligibilityDerived ==
     [][last'.op = "read" =>
-          \A s \in Slots : (Recorded(s) /\ status[s] = "retained") =>
+          \A s \in last'.listed : (Recorded(s) /\ status[s] = "retained") =>
               last'.elig[s] = IF now >= until[s] THEN "yes" ELSE "no"]_vars
 
 \* Inv11_3_CrossingWritesNothing: the clock moving, and every deadline it
@@ -413,10 +486,12 @@ Inv11_2_EligibilityDerived ==
 Inv11_3_CrossingWritesNothing ==
     [][last'.op = "tick" => UNCHANGED retentions]_vars
 
-\* Id5_IdNeverReused: no placement records a retention id a retention already
-\* carries, a purged retention's included (Identity 5, Capability requirement
-\* 8, 9).
-Id5_IdNeverReused ==
+\* Inv9_1_HostIdFresh: no placement records a retention id a retention
+\* already carries, a purged retention's included, so no two retentions share
+\* one in any state the steps reach (Invariant 9.1 across steps; the host's
+\* duty, Capability requirement 8, 9 and Execution Contract Logic
+\* confinement 16).
+Inv9_1_HostIdFresh ==
     [][last'.op = "place" => last'.rid \notin Carried]_vars
 
 \* Op1_PlaceAddsOne: every placement that answers adds exactly one retention,
@@ -444,13 +519,55 @@ Op20_FailureLeavesRetained ==
     [][(IsPurge /\ last'.ans = "storage-failure") =>
           \A s \in Slots : Names(last'.rid, s) => status'[s] = "retained"]_vars
 
-\* Op29_ReadAnswersEvery: a [Read] lists every recorded retention, retained
-\* and purged (Operation 29).
-Op29_ReadAnswersEvery ==
-    [][last'.op = "read" => last'.listed = {s \in Slots : Recorded(s)}]_vars
+\* WellFormed: the page's reading of a query [Read] answers: every filter on
+\* a query axis (Operation 37), and no blank value (Operation 38).
+WellFormed(q) == q.pol = ANY /\ BLANK \notin {q.rid, q.rec}
 
-\* Op32_ReadWritesNothing: a [Read] step changes no retention and no record
-\* (Operation 32).
+\* PageMatch: whether the slot's retention is a matching retention, as the
+\* page says: its retention id EQUALS the filter's where the query carries
+\* that filter, its record reference EQUALS the filter's where it carries
+\* that one, and a query carrying no filter matches every retention (Term
+\* matching retention; Identity 10; Execution Contract Query 3, 4).
+PageMatch(q, s) ==
+    /\ q.rid # ANY => rid[s] = q.rid
+    /\ q.rec # ANY => rec[s] = q.rec
+
+\* Op29_ReadAnswersEveryMatch: a [Read] of a well-formed query answers, and
+\* lists every recorded retention the query matches, retained and purged
+\* (Operation 29; Term matching retention).
+Op29_ReadAnswersEveryMatch ==
+    [][(last'.op = "read" /\ WellFormed(last'.q)) =>
+          /\ last'.ans = "ok"
+          /\ \A s \in Slots : (Recorded(s) /\ PageMatch(last'.q, s)) => s \in last'.listed]_vars
+
+\* Read_OnlyMatches: a [Read] lists no retention its query does not match:
+\* Operation 39 (Term matching retention).
+Read_OnlyMatches ==
+    [][last'.op = "read" =>
+          \A s \in last'.listed : Recorded(s) /\ PageMatch(last'.q, s)]_vars
+
+\* Id10_RecordRefExact: a [Read] carrying a record-reference filter lists only
+\* retentions whose record reference is the filter's exact value: the atom
+\* compares the two record references by exact value (Identity 10; the
+\* deployment canonicalizes both at the seam, Execution Contract Logic
+\* confinement 13).
+Id10_RecordRefExact ==
+    [][(last'.op = "read" /\ last'.q.rec \notin {ANY, BLANK}) =>
+          \A s \in last'.listed : rec[s] = last'.q.rec]_vars
+
+\* Op37_OffAxisFilterRefused: a [Read] whose query filters on an axis outside
+\* the query axes, the policy reference, answers invalid-query (Operation 37).
+Op37_OffAxisFilterRefused ==
+    [][(last'.op = "read" /\ last'.q.pol # ANY) => last'.ans = "invalid-query"]_vars
+
+\* Op38_BlankValueRefused: a [Read] whose query carries a blank value on a
+\* query axis answers invalid-query: no axis admits a blank value (Operation
+\* 38; Term query axes).
+Op38_BlankValueRefused ==
+    [][(last'.op = "read" /\ BLANK \in {last'.q.rid, last'.q.rec}) => last'.ans = "invalid-query"]_vars
+
+\* Op32_ReadWritesNothing: a [Read] step, admitted or refused, changes no
+\* retention and no record (Operation 32).
 Op32_ReadWritesNothing ==
     [][last'.op = "read" => UNCHANGED retentions]_vars
 

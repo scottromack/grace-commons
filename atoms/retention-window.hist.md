@@ -50,10 +50,18 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Retention Window](./retention-window.md) may carry it again.
 
+### Structure › Identity model
+
+```
+Deleted: Identity 5. Invariant 9.1, Capability requirement 8 and Capability requirement 9 own it: the host supplies every retention id (Identity 2), and the atom has none of its own to reuse.
+```
+
 ### Structure › State
 
 ```
 Deleted: State 1. Invariant 1.1 owns it.
+Deleted: State 7. Invariant 11.1 owns it.
+Deleted: State 8. Invariant 3.2 owns it.
 ```
 
 ### Structure › Capability requirement
@@ -113,6 +121,7 @@ Deleted: Check 6.1. Execution Contract Conformance 9 owns it.
 ### Generation acceptance › External checks
 
 ```
+Deleted: External check 1. External check 5 owns it: a retained retention over the record whose purge eligible was no at the destruction is a retention in place at the destruction whose retention deadline the destruction instant precedes.
 Deleted: External check 6. Execution Contract Conformance 9 owns it.
 ```
 

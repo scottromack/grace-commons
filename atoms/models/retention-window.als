@@ -1,6 +1,7 @@
 -- retention-window.als
 -- Alloy structural model for the Retention Window atom (Grace Commons atoms/retention-window.md)
--- Grounded on Final Critique 13, 2026-10-24 at 142a72a — Alloy layer authored 2026-11-12.
+-- Grounded on Final Critique 13, 2026-10-24 at 142a72a — Alloy layer authored 2026-11-12;
+-- comments re-derived 2026-11-21 over the page's cured open lines (no check changed).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -34,7 +35,8 @@
 --   Invariant 8.1  — a purged retention's purge instant never precedes its retention
 --                    deadline (Check 2.1).
 --   Invariant 9.1  — two retentions never share a retention id.
---   Invariant 11.1 — no retention record carries an eligibility flag (State 7 with it).
+--   Invariant 11.1 — the atom stores no purge eligibility: no retention record carries
+--                    an eligibility flag.
 --   Operation 4, 5 — no retention carries a blank record reference or policy reference.
 --   Operation 7    — every retention deadline is later than its retention instant: the
 --                    policy's duration exceeds the zero duration and resolved (7a).
@@ -43,12 +45,13 @@
 --
 -- NOT CHECKED HERE (across steps or answers; the TLA+ model's)
 --   Invariant 2.1, 2.2 (retained until, and purged only by, a successful [Purge]), 3.1
---   and 3.2 (purged is terminal; State 8), 4.2, 5.1 to 5.3 (the fields never change; State
---   9), 7.1 (no early purge; Operation 16, 17), 8.3 (a late purge is not refused;
---   Operation 18), 10.1 and 10.2 (no retention removed), 11.2 (the purge eligible [Read]
---   answers), 11.3 (crossing a deadline writes nothing); Identity 5, Operation 1, 13b, 15,
---   20, 29, 32, Simultaneous retention 2: each compares a retention with a later state of
---   itself, or reads what a call answered at a moving now.
+--   and 3.2 (purged is terminal; no restore surface), 4.2, 5.1 to 5.3 (the fields never
+--   change; State 9), 7.1 (no early purge; Operation 16, 17), 8.3 (a late purge is not
+--   refused; Operation 18), 9.1 across steps (the host's fresh id, Capability requirement
+--   8, 9), 10.1 and 10.2 (no retention removed), 11.2 (the purge eligible [Read] answers),
+--   11.3 (crossing a deadline writes nothing); Identity 10 (the record-reference filter),
+--   Operation 1, 13b, 15, 20, 29, 32, 37, 38, Simultaneous retention 2: each compares a
+--   retention with a later state of itself, or reads what a call answered at a moving now.
 --
 -- SCOPE
 -- A state is what a sequence of admitted calls leaves. Each call is one atom, in the order
@@ -77,8 +80,10 @@
 --   - The record itself and its removal (Operation 13b, Record divergence 3 to 6): the
 --     TLA+ model holds which records the database still holds. The composing pattern that
 --     owns a destruction, joint enforcement and the destruction records (Simultaneous
---     retention 3 to 8, External check 1 to 5) are other patterns' and the deployment's.
---   - [Read] (Operation 29 to 32): it writes nothing; what it answers is the TLA+ model's.
+--     retention 3 to 8, External check 2 to 5, 7 and 8) are other patterns' and the
+--     deployment's.
+--   - [Read] (Operation 29 to 32, 37, 38): it writes nothing; what it answers for each
+--     query it carries is the TLA+ model's.
 --   - Instants past the model's span: the clock reads 0 to 3 and a policy length -2 to 2,
 --     so every sum the model rounds is an instant it can hold (the facts below). That is
 --     the model's bound, not a rule of the page.
@@ -120,7 +125,7 @@ abstract sig RState {}
 one sig Retained, Purged extends RState {}
 
 -- Eligible: a stored purge-eligibility value, yes or no. The page forbids storing it
--- (Invariant 11.1, State 7): purge eligible is derived when asked. It is in the type so a
+-- (Invariant 11.1): purge eligible is derived when asked. It is in the type so a
 -- write that stored one would show; that none does is checked, never built in.
 abstract sig Eligible {}
 
@@ -169,7 +174,7 @@ sig PurgeCall extends Call {
 -- it. Every field the page names may be absent, and the state is a set, so a write that
 -- forgot a field or left two states would show; what the page promises (State 2 to 6a,
 -- Invariant 1.1) is checked, never built into the type. `eligible` and `tier` are the
--- fields State 7, Invariant 11.1 and State 10 forbid, in the type so a write that stored
+-- fields Invariant 11.1 and State 10 forbid, in the type so a write that stored
 -- one would show. The last two fields are the model's own: which call wrote this version,
 -- and which version a [Purge] found.
 sig Ret {
@@ -217,8 +222,8 @@ fact DeploymentDeclarations {
 }
 
 -- The host supplies each placement a retention id that names no retention of the records
--- before it (Capability requirement 8). The atom takes the id from outside; whether the
--- host keeps the duty across steps is checked in the TLA+ model (Id5_IdNeverReused).
+-- before it (Capability requirement 8, 9). The atom takes the id from outside; whether the
+-- host keeps the duty across steps is checked in the TLA+ model (Inv9_1_HostIdFresh).
 fact HostAllocatesAnUnusedId {
     all c : PlaceCall | no v : Ret |
         recorded[v] and C/lt[v.writtenBy, c] and v.rid = c.hostRid
@@ -440,8 +445,9 @@ assert A_Invariant_9_1 {
 }
 check A_Invariant_9_1 for 3 but 5 Int
 
--- A_Invariant_11_1: no retention record carries an eligibility flag: purge eligible is
--- derived when asked, never stored (Invariant 11.1, State 7, Check 3.1).
+-- A_Invariant_11_1: no retention record carries an eligibility flag, the one place the
+-- atom's records could store purge eligibility: it is derived when asked, never stored
+-- (Invariant 11.1, Check 3.1).
 assert A_Invariant_11_1 {
     all r : Ret | recorded[r] implies no r.eligible
 }
