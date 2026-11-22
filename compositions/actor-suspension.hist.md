@@ -32,6 +32,8 @@ Entries that record a migration or an editorial rule rather than a turn the patt
 
 - **2026-11-18 — A composition action reads the clock once: Clock semantics 9 retires to Execution Contract Logic confinement 19.** *Chose:* Clock semantics 9 (the composition compares no constituent's stamp against a write) leaves its `Deleted:` tombstone naming Logic confinement 19 and the ruling, never renumbered or reused: a suspension's or a reinstatement's constituent calls read the call's one now. Citations found, by label: none on the page (`cites.py`: nothing rests on it); `actor-suspension.als`'s NOT CHECKED note cited Clock semantics 9 through 11 for Invariant 1.4's cross-seam order and now cites 10 and 11, a comment alone, the model otherwise unchanged; no twin or coverage row names it. Kept, each with its subject: Clock semantics 10 and 11, the Generation acceptance's standing rule for a cross-seam comparison, Capability requirement 38 and Term clock offset allowance, since a stamp this composition writes is still set against records other calls stamped, a resumed cascade and the sweep among them (Clock semantics 12; Execution Contract Logic confinement 7 and 18). Rules 1 fewer. *Over:* retiring Clock semantics 10 and 11 with it: a resume is a new call and reads a later clock, so two seams' stamps across calls still meet. *Because:* Scott, 2026-11-18 6:52 AM Central, "YYY" (rounds/escalations.md 2026-11-18 12:52Z, item 2, on the measure of 06:09Z): a composition action reads the clock once, and every constituent call it makes takes that reading as its now, from MIT's sync-engine (github.com/mit-sdg/sync-engine), which binds one instant per causal flow. The page takes a delta round.
 
+- **2026-11-21 — The page's thirteen open lines: twelve close (one by refutation: an act's two attests take the registry answer at the seam each, so a credential can be rotated between them), the closure table is drafted, the model checks the attests, one the model found waits for Scott.** *Chose:* Composition state 21 and 27 scoped to the miss the tail read resolves and to an entry that exists, Composition state 29 the one exception; the index below the mark classified extraction-pending (Composition state 9) and a rebuild setting the mark to the log's first position (Composition state 57); a reason cap at the boundary with room for the resume or completion prefix and an intent event id, declared by the deployment inside the shorter constituent bound (Primitive policy 24, Capability requirement 50 and 51); the log's classification renamed [Call Class]; Term aged-out outcome read by the event's age, as Term aged-out event is; Invariant 4.3 and Check 5.3 deleted to the Substrate composition invocation section; the audit horizon's knob named as Audit Trail names it; Composes 29 and 30 naming Credential's filter by principal reference and credential type; a suspending report naming a member a constituent no longer knows unresolved (Action wiring 71, 95); the plan carrying session token digests the host injects, never a token (Capability requirement 48 and 49, Composes 16, Primitive policy 23); the closure table; the model's attests and each revocation's named revoker (five twins). *Over:* a plan carrying live bearer tokens into the sealed record, and an index below the mark classified truth-bearing with no extraction named. *Because:* Scott's rulings of 2026-11-19 (the directions 53, 54 and 55 and groups 1 and 3) decide each; the model found that one transaction per act leaves a resume's and the sweep's revocations governing no reachable state, a question no rule decides, which is an open line asked of Scott.
+
 ## Ledger
 
 The gate record the Ledger's `last gate:` line carried behind its latest until 2026-10-20:
@@ -117,10 +119,17 @@ Deleted: Reconciliation 24. Execution Contract Database 1 and Execution Contract
 Deleted: Reconciliation 30. Execution Contract Database 2 owns it.
 ```
 
+### Composition-level invariants
+
+```
+Deleted: Invariant 4.3. Execution Contract's section titled Substrate composition invocation owns it: the audit substrate's constituent, Actor Identity, is held to its own invariants by reference.
+```
+
 ### Generation acceptance › Conformance checks
 
 ```
 Deleted: Check 3.3. Execution Contract Database 3 and Execution Contract Database 4 own it.
+Deleted: Check 5.3. Execution Contract's section titled Substrate composition invocation owns it: the audit substrate's constituent, Actor Identity, is held to its own invariants and checks by reference.
 Deleted: Check 6.9. Execution Contract Database 1 owns it.
 ```
 
