@@ -1213,7 +1213,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1237,7 +1237,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "title": "Party Identity"
  },
  "permissions": {
