@@ -475,7 +475,7 @@
    "state-machine",
    "event-log"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -489,7 +489,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "substrates": [],
   "title": "Compensable Workflow"
  },
