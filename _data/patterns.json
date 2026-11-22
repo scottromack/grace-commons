@@ -932,7 +932,7 @@
    "recoverable-invocation"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -951,7 +951,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-22",
   "title": "Lease"
  },
  "legal-hold": {
