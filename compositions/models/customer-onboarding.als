@@ -47,8 +47,11 @@
 --                   (Term closure transaction, Action wiring 123, 127, Composition state 30).
 --   Invariant 6.1 — a verified party under an active case is named by its case's
 --                   case-to-monitoring entry (Composition state 26).
---   Invariant 6.2 — every case-to-monitoring entry carries a next review due (Composition state
---                   28, Action wiring 8, Term schedule-bearing record).
+--   Invariant 6.2 — a case-to-monitoring entry of an active case carries a next review due
+--                   (Composition state 28, Action wiring 8, Term schedule-bearing record); a
+--                   closed case's entry owes none (Composition state 53; narrowed 2026-11-21).
+--                   No state here shows a closed case's entry without one: the due is lost only
+--                   when the schedule-bearing record ages out, and this model holds no aging.
 --
 -- NOTHING TESTABLE IN ALLOY (what the page states, and why no single state shows it)
 --   Invariant 1.3: it binds the activity systems, whose records the composition does not hold;
@@ -844,9 +847,10 @@ assert A_Invariant_6_1 {
 }
 check A_Invariant_6_1 for 3 but 6 PIEvent, 4 Placement, 4 Intent, 4 Closing
 
--- A_Invariant_6_2: every case-to-monitoring entry carries a next review due.
+-- A_Invariant_6_2: a case-to-monitoring entry of an active case carries a next review due; a
+-- closed case's entry owes none (Composition state 53).
 assert A_Invariant_6_2 {
-    conforms implies all c : c2mEntry | some c2mDue[c]
+    conforms implies all c : c2mEntry & activeCases | some c2mDue[c]
 }
 check A_Invariant_6_2 for 3 but 6 PIEvent, 4 Placement, 4 Intent, 4 Closing
 

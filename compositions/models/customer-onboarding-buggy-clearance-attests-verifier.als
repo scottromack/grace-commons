@@ -728,9 +728,10 @@ assert A_Invariant_6_1 {
 }
 check A_Invariant_6_1 for 3 but 6 PIEvent, 4 Placement, 4 Intent, 4 Closing
 
--- A_Invariant_6_2: every case-to-monitoring entry carries a next review due.
+-- A_Invariant_6_2: a case-to-monitoring entry of an active case carries a next review due; a
+-- closed case's entry owes none (Composition state 53).
 assert A_Invariant_6_2 {
-    conforms implies all c : c2mEntry | some c2mDue[c]
+    conforms implies all c : c2mEntry & activeCases | some c2mDue[c]
 }
 check A_Invariant_6_2 for 3 but 6 PIEvent, 4 Placement, 4 Intent, 4 Closing
 

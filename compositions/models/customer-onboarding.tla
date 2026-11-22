@@ -17,6 +17,16 @@
 \* trigger, the clearance (one act: verify and reinstate in one transaction) and the
 \* closure, each commit with the re-read the page puts inside it (Action wiring 162 to 167).
 \*
+\* Re-derived 2026-11-21 for the open trigger cap (Term open trigger cap, Capability
+\* requirement 58, 59): the suspension transaction re-reads the case's open triggers beside
+\* the party's state (Action wiring 162), the set read from the trail as the rebuild reads
+\* it (Action wiring 171), so the trigger's own live intent is counted; a set over the cap
+\* commits no write and closes through the refuse with open-trigger-cap-reached (Action
+\* wiring 173), a code other than already-suspended, so the rebuild drops that trigger
+\* (Composition state 32). The cap re-read comes before Party Identity's suspend is called,
+\* so it is ahead of already-suspended; against not-verified (Action wiring 163) the page
+\* names no order, and either refusal may answer (both drop the trigger).
+\*
 \* RECOVERABLE INVOCATION, AS A CONTRACT. Nothing of its mechanism is modelled: no lease, no
 \* examine edge, no horizon, no clock arithmetic. What this model takes from it, and
 \* recoverable-invocation.tla checks:
@@ -63,10 +73,18 @@
 \*                              intent carries, and for no other (Reconciliation 37, 38).
 \*   - False_closing_alert      it alerts exactly the state changes whose carrying intent an
 \*                              abandonment or a refusal closed (Reconciliation 39).
+\*   - Cap_bounded              the open triggers the suspension transaction carried into the
+\*                              set (its suspend wrote, or Party Identity answered
+\*                              already-suspended) never outnumber the open trigger cap,
+\*                              with no operator closing (Action wiring 173, Capability
+\*                              requirement 59). An adverse intent still in flight or
+\*                              escalated stands in the rebuilt set uncounted here: it has not
+\*                              passed its re-read.
 \*
 \* BOUND
 \* NT = 2 trigger ids, taken in order at an adverse trigger's open. N = 3 bound invocations,
-\* taken in slot order. MaxDirect = 1. Each invocation takes a fresh now from an ordinal
+\* taken in slot order. MaxDirect = 1. Cap = 1, the open trigger cap, so that a second
+\* trigger over an open first is refused open-trigger-cap-reached. Each invocation takes a fresh now from an ordinal
 \* clock as its pairing datum (Capability requirement 48, 49), which Party Identity stamps
 \* as the state change instant; an outside write reads the same clock. Exhaustive.
 \*
@@ -99,7 +117,7 @@
 
 EXTENDS Naturals, FiniteSets
 
-CONSTANTS NT, N, MaxDirect
+CONSTANTS NT, N, MaxDirect, Cap
 
 Is == 1..N
 Tr == 1..NT
@@ -165,7 +183,7 @@ TypeOK ==
     /\ st \in [Is -> {"none", "live", "committed", "dead", "closed", "refused",
                       "escalated", "abandoned"}]
     /\ cw \in [Is -> BOOLEAN]
-    /\ code \in [Is -> {"-", "as", "nv", "tc", "vf", "na"}]
+    /\ code \in [Is -> {"-", "as", "nv", "tc", "vf", "na", "cap"}]
     /\ cby \in [Is -> {"-", "inv", "sweep", "op"}]
     /\ oe \in [Is -> 0..MaxSC]
     /\ ost \in [Is -> SUBSET Tr]
@@ -269,12 +287,14 @@ Write(s, i) ==
     /\ scs' = [scs EXCEPT ![k] = s]
     /\ scby' = [scby EXCEPT ![k] = i]
 
-\* The suspension transaction (Term suspension transaction): the re-run pre-check (Action
-\* wiring 162, 163), then Party Identity's suspend. a = "committed" or "unk-done" (the
-\* unknown arm that wrote: the invocation yields).
+\* The suspension transaction (Term suspension transaction): the re-run pre-check and the
+\* re-read of the case's open triggers within the cap (Action wiring 162, 163, 173), then
+\* Party Identity's suspend. a = "committed" or "unk-done" (the unknown arm that wrote: the
+\* invocation yields).
 CommitAdv(i, a) ==
     /\ st[i] = "live"
     /\ ik[i] = "adv"
+    /\ Cardinality(OpenSet) <= Cap
     /\ pst = "V"
     /\ Write("S", i)
     /\ cw' = [cw EXCEPT ![i] = TRUE]
@@ -283,9 +303,11 @@ CommitAdv(i, a) ==
 
 \* Party Identity answers already-suspended: a pre-commit arm, refused carrying the code;
 \* the trigger stays under investigation (Action wiring 53 to 55; Composition state 32).
+\* The suspend is called only past the cap re-read (Action wiring 162, 173).
 AdvRefuseAs(i) ==
     /\ st[i] = "live"
     /\ ik[i] = "adv"
+    /\ Cardinality(OpenSet) <= Cap
     /\ pst = "S"
     /\ Refuse(i, "as")
     /\ UNCHANGED <<pi, ik, itr, iset, inow, cw, cby, oe, ost, nx, ntr, clk, ndir, gt, viol>>
@@ -297,6 +319,18 @@ AdvRefuseNv(i) ==
     /\ ik[i] = "adv"
     /\ pst = "C"
     /\ Refuse(i, "nv")
+    /\ gt' = gt \ {itr[i]}
+    /\ UNCHANGED <<pi, ik, itr, iset, inow, cw, cby, oe, ost, nx, ntr, clk, ndir, viol>>
+
+\* The re-read finds the open-trigger set, this trigger counted in it, over the open
+\* trigger cap: no write, refused open-trigger-cap-reached; the code is not
+\* already-suspended, so the rebuild drops the trigger (Action wiring 173; Composition
+\* state 32).
+AdvRefuseCap(i) ==
+    /\ st[i] = "live"
+    /\ ik[i] = "adv"
+    /\ Cardinality(OpenSet) > Cap
+    /\ Refuse(i, "cap")
     /\ gt' = gt \ {itr[i]}
     /\ UNCHANGED <<pi, ik, itr, iset, inow, cw, cby, oe, ost, nx, ntr, clk, ndir, viol>>
 
@@ -473,6 +507,7 @@ Next ==
     \/ \E i \in Is, a \in {"committed", "unk-done"} : CommitAdv(i, a)
     \/ \E i \in Is : AdvRefuseAs(i)
     \/ \E i \in Is : AdvRefuseNv(i)
+    \/ \E i \in Is : AdvRefuseCap(i)
     \/ \E i \in Is, a \in {"committed", "unk-done"} : CommitClr(i, a)
     \/ \E i \in Is : ClrRefuseTc(i)
     \/ \E i \in Is : ClrRefuseVf(i)
@@ -530,5 +565,15 @@ Write_ownership_finding == ~("finding-false" \in viol) /\ ~("finding-missed" \in
 \* Reconciliation 39: an alert for exactly the state changes whose own intent an
 \* abandonment or a refusal closed.
 False_closing_alert == ~("alert-wrong" \in viol)
+
+\* Action wiring 173, Capability requirement 59: the open triggers whose suspension
+\* transaction passed its re-read and left them in the set (the suspend wrote, or Party
+\* Identity answered already-suspended) never outnumber the open trigger cap. An operator's
+\* closing is read apart, as for the checks above: an outcome over an abandoned intent
+\* brings its trigger back unchecked (resolve 28, 31), detected, not prevented.
+CarriedOpen == {t \in OpenSet : \E i \in Is : /\ ik[i] = "adv"
+                                            /\ itr[i] = t
+                                            /\ (cw[i] \/ (st[i] = "refused" /\ code[i] = "as"))}
+Cap_bounded == ~OpTouched => (Cardinality(CarriedOpen) <= Cap)
 
 ====
