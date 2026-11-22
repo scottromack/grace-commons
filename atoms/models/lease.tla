@@ -27,13 +27,17 @@
 \*   -buggy-release   HoldInFlight = FALSE the holder releases with a call in flight (Composition note 5c).
 \*   -buggy-waiter    (a guard, not a constant) Tick runs past a free key with a waiter standing (Operation 2,
 \*                    Invariant 4.1); added 2026-11-10 so Inv_WaiterBound has a twin that breaks it.
+\*   -buggy-drift     (a guard, not a constant) the holder's clock runs one tick slow over the span from its
+\*                    reading to its issue, so the write issued within one call pause by the holder's clock is
+\*                    issued one tick later by the host's (Capability requirement 12); added 2026-11-21.
 \*   -probe-both      a reachability probe: both writes land and party 2 reads, in one trace.
 \*
 \* NOT MODELED: a second waiter and arrival order (Operation 5a, Invariant 4.2); try_take; remaining and
 \* release answered to a party that is not the holder (Invariant 5); a host restart (Operation 5c,
 \* Capability requirement 5); a unit of work and the share term (Sizing 5, 5a, 6), whose arithmetic the
 \* composing patterns' instruments carry; a call delivered twice (Capability requirement 10, 11); the rate
-\* at which two clocks drift; a store ahead of the host's clock, which only refuses earlier.
+\* at which two clocks drift, which the model holds at none by Capability requirement 12 (a holder clock that
+\* measures no span short) and twin -buggy-drift breaks; a store ahead of the host's clock, which only refuses earlier.
 EXTENDS Naturals
 
 CONSTANTS Dur, Pause, Skew, MaxTime, Margin, FenceCut, FreeOnDeath, HoldInFlight
@@ -120,7 +124,8 @@ P1Ask ==
     /\ chk' = now
     /\ UNCHANGED <<now, holder, exp, exp1, rel1, p1, uin, uby, udone, fin, fdone, p2, bound, tookAt, read2, late>>
 
-\* Sizing 3a: the write follows its reading within one call pause of asking; Capability requirement 7: it lands within one more.
+\* Sizing 3a: the write follows its reading within one call pause of asking, timed on the host's clock because the
+\* holder's clock measures no span short (Capability requirement 12); Capability requirement 7: it lands within one more.
 P1Issue ==
     /\ p1 = "held"
     /\ live

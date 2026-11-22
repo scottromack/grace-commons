@@ -214,9 +214,10 @@ fun releaseAnswer[x : LeaseRecord, r : Int, h : Holder, w : World] : one Release
     h in standing[x, r, w].holder => Released else NotHeld
 }
 
--- readsLive: what the holder reads of the host's answer (Sizing 2, 2a, Term live): live
--- where the remaining term exceeds the write margin, twice the call pause bound. It is a
--- reading the holder acts on, never a transition the host makes (Term expired).
+-- readsLive: what the holder reads of the host's answer (Sizing 2, 2a, 2b, Term live): live
+-- where the remaining term exceeds the write margin, twice the call pause bound, and expired
+-- where [Remaining] answers none (no term). It is a reading the holder acts on, never a
+-- transition the host makes (Term expired).
 pred readsLive[x : LeaseRecord, r : Int, h : Holder, w : World] {
     some t : remaining[x, r, h, w] | t > plus[Pattern.callPauseBound, Pattern.callPauseBound]
 }
