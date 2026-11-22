@@ -168,7 +168,7 @@ Capability requirement 56: The transport MUST call Notification's fail AND Notif
 
 Term quiet hours interpretation: the deployment's rule reading a stored quiet hours value as a predicate over now — is this instant inside the principal's quiet window.
 
-Term frequency limit interpretation: the deployment's rule reading a stored frequency limit as one or more window-and-cap pairs, rolling or calendar-aligned, channel-scoped or not.
+Term frequency limit interpretation: the deployment's rule reading a stored frequency limit as one or more window-and-cap pairs, rolling or calendar-aligned, channel-scoped or not, each pair stating whether a delivery at the window's start instant, and one at the decided instant, counts in it.
 
 Term channel interpretation: the deployment's rule reading stored channel preferences as the deliverable channel set, and a stored format as the envelope's format.
 
@@ -264,7 +264,7 @@ reconcile_overshoots(principal_ref)
   refuses invalid-request | journal-rejected
 ```
 
-Term fanout result: the fanout id and four unordered lists — created (principal and notification id), failed (principal and cause), suppressed (principal, reason and preference id or none) and yielded (principal).
+Term fanout result: the fanout id and four unordered lists — created (principal and notification id), failed (principal and cause), suppressed (principal, reason and preference id, or none as the absence marker and not a preference id) and yielded (principal).
 
 Term redisposition: created carrying the notification id | failed carrying the cause | suppressed carrying the reason and the preference id or none.
 
@@ -291,7 +291,7 @@ Action wiring 12: IF the read finds a disposition event THEN the initiated fanou
 Action wiring 13: IF the per-disposition exclusion's lease expired THEN the initiated fanout MUST answer the subscriber AND EVERY remaining subscriber as yielded.
 Action wiring 14: The initiated fanout MUST NOT write for a yielded subscriber.
 Action wiring 15: IF the read of Action wiring 10 finds no disposition event THEN an initiated fanout MUST read the preference read for the subscriber.
-Action wiring 16: IF the preference read fails THEN the initiated fanout MUST fail the subscriber carrying preference-unreadable.
+Action wiring 16: IF the preference read fails THEN the initiated fanout MUST record a failure event carrying preference-unreadable as the cause AND none as the preference id (Action wiring 27), AND MUST fail the subscriber carrying preference-unreadable.
 Action wiring 17: IF the preference read fails THEN the initiated fanout MUST NOT run the shaping gate.
 Action wiring 18: IF the preference read answers THEN the initiated fanout MUST run the shaping gate on the answer, the now, the delivery history AND the configuration.
 Action wiring 19: IF the shaping gate answers deliver THEN the initiated fanout MUST call Notification's create with the subscriber AND the envelope.
@@ -379,7 +379,7 @@ Term retryable disposition: a failure event whose pair carries no delivery event
 
 Term redisposition flag: redisposition set to true.
 
-Term observed record status: active | suspended | none — the status the gate saw, journaled because status is the one field Message Preference leaves mutable.
+Term observed record status: active | suspended | none — the status the gate saw, journaled because status is the one field Message Preference leaves mutable; none where Message Preference's current_for answers none, a Deleted record included.
 
 ### Wiring decision
 
@@ -719,6 +719,7 @@ Clock semantics 2: A deployment needing a mid-invocation window change honoured 
 ```
 Concurrency 1: A [Redispose] deliver MUST hold the per-disposition exclusion AND the per-principal exclusion alike.
 Concurrency 3: The composition MUST NOT roll back one subscriber's disposition for another's failure.
+Concurrency 4: IF the cap serialization EQUALS serialized-per-principal AND a foreign holder holds the per-principal exclusion THEN the initiated fanout MUST answer the subscriber as yielded AND [Redispose] MUST answer yielded, neither waiting for the holder.
 ```
 
 ### Payload retention
@@ -932,7 +933,7 @@ Projection: journal-rejected
 
 #### Yielded
 
-The rejection [Redispose] returns when its per-disposition lease expired before its disposition committed: the call wrote nothing after the expiry, and the principal is [Reconcile Gaps]'s. It is also what a [Redispose] returns when a foreign holder — a live [Fanout Shaped], or [Reconcile Gaps] — holds the pair's section: the call does not wait. Its batch counterpart is [Fanout Shaped]'s yielded list — the subscribers an invocation left undisposed.
+The rejection [Redispose] returns when its per-disposition lease expired before its disposition committed: the call wrote nothing after the expiry, and the principal is [Reconcile Gaps]'s. It is also what a [Redispose] returns when a foreign holder — a live [Fanout Shaped], or [Reconcile Gaps] — holds the pair's section, or the principal's per-principal exclusion where the cap serialization is serialized-per-principal (Concurrency 4): the call does not wait. Its batch counterpart is [Fanout Shaped]'s yielded list — the subscribers an invocation left undisposed.
 
 Kind:       Member
 Member of:  the redispose rejection
@@ -1001,7 +1002,7 @@ It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-su
 ```
 status: doing
 formal: verified — preference-aware-notification-fanout.tla + 16 twins and preference-aware-notification-fanout-batch.tla + 5 twins, re-derived 2026-11-09 (it was verified 2026-06-12 over the frequency-cap race alone, one principal and one step): the invocation and a [Redispose] caller or the gap run's repair as two writers over one disposition pair under the per-disposition exclusion, its lease expiry the holder's terminus, a foreign holder refused and a lapsed writer's commit written by no one; the disposition's create and its delivery event as one commit; the gap leg bounded below by the young-invocation edge, writing its intent first, abandoning only a gap principal, and the abandonment record terminal; the invocation's loop over several subscribers, a lapse yielding every subscriber not yet reached; Invariants 1.1, 2.1, 4.1, 4.2, 5.1, 5.2, 8.1, 9.1, 10.1 and 10.2 checked, with Action wiring 13, 14, 45 and 60 and Reconciliation 3, 4, 8 and 20; the pure gate (quiet windows, channel selection, the suspended and no-record rules, replay: Invariants 2.2, 3 and 7.1), the best-effort arm of Invariant 4 (4.3, Check 2.4), the eventual accounting inside the reconciliation window (Composition state 12, Check 1.1), the retry and audit horizons and the delivery count index are not modelled, and the pair and the loop are two models because two subscribers with both writers pass the checker's 200,000-state cap; closes 2026-08-30-d; preference-aware-notification-fanout.als + 15 twins (the static data model, 2026-11-12: Invariant 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 5.2, 7.1 and 8.1, with Composition state 15, Shaping gate 10 and 19, Action wiring 33 and 34 and Capability requirement 29, checked on every state of the initiation entries, the disposition events in line or a redisposition with the evaluation inputs they journal, the Notification records created, the preference records and the configuration versions, each disposition's verdict the shaping gate's walk over what its call read, and every verdict-bearing event replayed under the initiation entry's configuration version; nothing testable in Alloy for Invariant 4.3 and Composition state 12 with Check 1.1 (eventualities inside a window), Verdict replay 5 (an auditor's attribution, not a record), Shaping gate 22 (a record change the read did not see is a second state) and Primitive policy (a refused call writes nothing); Invariant 1.1, 1.2, 4.2, 9.1, 10.1 and 10.2 left to the TLA+ models (the loop's answer, an order and the seam's one id); the model found that Shaping gate 11 and 12 are not ordered, so a record carrying a frequency limit under no declared interpretation, read while the delivery history is unavailable, owes interpretation-undeclared and accounting-unreadable at once where Shaping gate 1 owes one verdict, and that Action wiring 18 and 54 run the gate under the configuration with no version named while no disposition event journals one and Verdict replay 4 replays under the initiation entry's, so a [Redispose] after a configuration change that evaluates under the version then in force breaks Invariant 7.1 with every rule kept; the model reads the initiation entry's version); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Invariant 4.3; Composition state 12, Check 1.1; 2a: Invariant 4.3 and Check 2.4 — owed: the model's header excludes the eventual accounting; an invariant under the model clock, and the eventuality as a PROPERTY with the fairness the page assumes in the header (twin: a reconciliation that never records an overshoot), 2026-11-09
-last gate: 2026-11-06 — Final Critique 18, delta, one fresh reader (Linus), frozen at a342d5e — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text; the blind second triage placed none foundational); refining recorded (open line 2026-11-06-f); 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
+last gate: 2026-11-21 — Final Critique 19, full, three fresh readers (GRID, EOS, Linus; Linus's first pass lapsed and reran) — not clean, 3 foundational (GRID reported 2, EOS 2, Linus 4; one GRID and one Linus finding refuted on the page's text, one Linus finding refuted by Subscription Check 1.1, EOS's two placed refining), cured in the patch (the next round is a delta round); 2026-11-06 — Final Critique 18, delta, one fresh reader (Linus), frozen at a342d5e — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text; the blind second triage placed none foundational); refining recorded (open line 2026-11-06-f); 2026-11-06 — Final Critique 17, full, three fresh readers (GRID, EOS, Linus) — not clean, 6 foundational (GRID reported 7, EOS 1, Linus 1; GRID's fail-versus-expire finding recorded as refining and Linus's refuted against Database 1), cured in the patch (the next round is a delta round); refining recorded (open lines 2026-11-06-d and 2026-11-06-e); 2026-11-06 — Final Critique 16, delta, one fresh reader (Linus) — not clean, 1 foundational (the blind second triage's; Linus reported 3), cured by a held Execution Contract rule (Logic confinement 17) in the quiet window (the next round is a delta round); refining recorded (open line 2026-11-06-c), the Reconcile Gaps prose cured; 2026-11-06 — Final Critique 15, delta, one fresh reader (Linus) — not clean, 2 foundational (the blind second triage's; Linus reported 0), cured in the settle (the next round is a delta round); 2026-11-05 — Final Critique 14, delta, one fresh reader (Linus) — not clean, 1 foundational, cured in the settle (the next round is a delta round)
 
 open: none
 ```
