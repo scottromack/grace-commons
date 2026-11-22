@@ -27,12 +27,51 @@
     5. DeniedNamesRejectedChain   — every Denied request names a chain whose state
                                     is Rejected (Invariant 7.2).
 
+  THE SWEEP (extended 2026-11-22, open line 2026-08-29-a: "the model's sweep carries
+  no pre-check, no identity, no recovery record, and no age bound")
+  The model keeps the minimum of the trail the reconciliation's sweep rules read:
+  per request, the set of recorded events (each an original, a recovery intent or a
+  recovery record, with its action reference, its invocation id, its attesting actor,
+  and two stamps of the moment it landed: whether the owed record was aged then, and
+  whether the recovery intent was already on the trail), and the open pending
+  entries that owe a record. Two owed records are modeled: the request event
+  (attested by the requestor; its outcome is chosen in Init) and the exercise event
+  (attested by the service identity, Action wiring 89). Each original write lands,
+  is refused (a pending entry opens, Action wiring 7), or lands with its answer lost
+  (the event is on the trail and the entry opens too), the case the pre-check is for.
+  The reconciliation retries every open entry (Reconciliation 2) in three steps: the
+  pre-check finds the event and closes the entry, writing nothing (Reconciliation 4
+  to 6); or, the owed record not aged (Reconciliation 10), it lands a recovery intent
+  under the service identity (Reconciliation 11 through 14) and then the recovery record
+  carrying the owed record's action reference and invocation id (Reconciliation 15),
+  and a later run's pre-check closes the entry. A crash between any two steps is an
+  interleaving. An entry ages (its owed record's instant plus the audit horizon
+  precedes now) at any step, never back.
+
+    6. SweepPreCheckNoDuplicate   — no two events of one request carry the same
+                                    action reference and invocation id, reading a
+                                    recovery record as the event it names, and no
+                                    write landed an event already carried
+                                    (Reconciliation 4, 5, 6).
+    7. SweepAttestedByService     — every reconciliation write is attested under the
+                                    service identity (Reconciliation 11).
+    8. SweepNoAgedWrite           — no reconciliation write lands for an aged event
+                                    (Reconciliation 10).
+    9. RecoveryRecordNamesOwed    — a recovery record carries the action reference
+                                    and invocation id of a record the request owed
+                                    (Reconciliation 15).
+   10. RecoveryRecordFollowsIntent — a recovery record lands only after the leg's
+                                    recovery intent for the same owed record
+                                    (Reconciliation 12 through 14).
+
   SCOPE
   Bounded: up to N_REQ requests, N_APP approvers, one Capability token per request.
   Credential and Session checks are abstracted as always-passing (they gate entry
   to actions; their correctness is an atom-level Alloy concern, not a composition-
-  level interleaving concern). Audit Trail writes are abstracted away (append-only;
-  their correctness is the Audit Trail composition's concern).
+  level interleaving concern). Audit Trail writes other than the two owed records
+  above (decision, denial, withdrawal, provisioning and failed exercise events) are
+  abstracted away (append-only; their correctness is the Audit Trail composition's
+  concern).
 
   TOOL
   TLA+ model checker (TLC). Run with TLC; all invariants should hold and no
@@ -42,8 +81,14 @@
   NOT MODELED
   - Credential.verify / Session.validate / Permissions.permitted (abstracted as
     always-pass; their guards are atom-level concerns)
-  - Audit Trail event writes (abstracted away; append-only, no state feedback)
-  - Clock / TTL / expiry (time is not a first-class value in this model)
+  - Audit Trail event writes other than the request event, the exercise event and
+    the sweep's writes for them (abstracted away; append-only, no state feedback)
+  - The evaluation entry and the approval leg (its retry is the chain evaluation,
+    which DecisionNotPending already runs again), so Reconciliation 12's constituent
+    state clause is not modeled; Reconciliation 16 (a recovery record's data never
+    from a composition index): the model carries no event data
+  - Clock / TTL / expiry (time is not a first-class value in this model; the age
+    of an owed record is one flag per pending entry)
   - Capability.redeem counter (modeled as a binary redeemable/exhausted flag
     sufficient for the composition-level temporal properties)
 *)
@@ -74,6 +119,55 @@ TerminalStates == {"Provisioned", "Denied", "Withdrawn", "Revoked", "Provisionin
 (* Chain states (simplified Multi-Party Approval model) *)
 ChainStates == {"Pending", "Approved", "Rejected", "Withdrawn"}
 
+(* ─── The trail, as the sweep reads it ──────────────────────────────────── *)
+
+(* The action references of the two owed records the model carries. *)
+ActRefs == {"access_requested", "access_exercised"}
+
+(*
+  Invocation ids: the request's [Request Access] and [Exercise Access] invocations
+  (Term invocation id; one of each per request, and trails are per request), and
+  "i_sweep", a reconciliation run's own id, which no correct write carries.
+*)
+InvIds == {"i_req", "i_ex", "i_sweep"}
+
+(* The attesting actors: the requestor and the service identity (Term service identity). *)
+Actors == {"requestor", "svc"}
+
+(*
+  An event on the trail. kind: an original write, a recovery intent (Term recovery
+  intent) or a recovery record (Term recovery record; act and inv are the owed
+  record's, Reconciliation 15, so it is read as the event it names). aged and
+  after_intent are stamps of the moment the event landed: the owed record was aged
+  then; the leg's recovery intent for the same owed record was already on the
+  trail then. An original carries FALSE in both.
+*)
+Events == [kind : {"orig", "intent", "rec"}, act : ActRefs, inv : InvIds,
+           actor : Actors, aged : BOOLEAN, after_intent : BOOLEAN]
+
+(*
+  A pending entry: the action reference and the invocation id of the record it owes
+  (Composition state 31), who attests the owed record (part of its data), and
+  whether the owed record is aged (Term aged event).
+*)
+Entries == [act : ActRefs, inv : InvIds, who : Actors, aged : BOOLEAN]
+
+(* The key the pre-check reads the trail for: an action reference and an invocation id. *)
+Keys == [act : ActRefs, inv : InvIds]
+
+KeyOf(x) == [act |-> x.act, inv |-> x.inv]
+
+(* Original-write outcomes: the event lands; Audit Trail refuses it; it lands and the answer is lost. *)
+Outcomes == {"landed", "refused", "lost"}
+
+(* An original write of the record act / inv attested by who. *)
+Orig(act, inv, who) ==
+  [kind |-> "orig", act |-> act, inv |-> inv, actor |-> who,
+   aged |-> FALSE, after_intent |-> FALSE]
+
+(* The pending entry owing that record, fresh (not aged). *)
+NewEntry(act, inv, who) == [act |-> act, inv |-> inv, who |-> who, aged |-> FALSE]
+
 ----
 
 VARIABLES
@@ -95,11 +189,20 @@ VARIABLES
   next_token,           \* function: request_id -> CapToken (pre-assigned for determinism)
 
   \* --- History ---
-  cascade_fired         \* request_id -> 0..2: the cascade's firings for the request (2 = twice or more)
+  cascade_fired,        \* request_id -> 0..2: the cascade's firings for the request (2 = twice or more)
+
+  \* --- The trail and the pending entries (the sweep) ---
+  trail,                \* request_id -> SUBSET Events: the request's recorded events
+  pending,              \* request_id -> SUBSET Entries: the request's open pending entries
+  owed,                 \* request_id -> SUBSET Keys: history, every record an entry ever owed
+  rewritten             \* request_id -> BOOLEAN: history, a write landed an event the trail already carried
+
+sweep_vars == <<trail, pending, owed, rewritten>>
 
 vars == <<request_state, request_to_cap, cap_to_request,
           chain_state, approvals, rejections,
-          cap_allocated, cap_exhausted, next_token, cascade_fired>>
+          cap_allocated, cap_exhausted, next_token, cascade_fired,
+          trail, pending, owed, rewritten>>
 
 ----
 
@@ -115,6 +218,10 @@ TypeOK ==
   /\ cap_allocated  \subseteq CapTokens
   /\ cap_exhausted  \subseteq CapTokens
   /\ cascade_fired  \in [RequestIDs -> 0..2]
+  /\ DOMAIN trail = RequestIDs   /\ \A r \in RequestIDs : trail[r]   \subseteq Events
+  /\ DOMAIN pending = RequestIDs /\ \A r \in RequestIDs : pending[r] \subseteq Entries
+  /\ DOMAIN owed = RequestIDs    /\ \A r \in RequestIDs : owed[r]    \subseteq Keys
+  /\ rewritten      \in [RequestIDs -> BOOLEAN]
 
 ----
 
@@ -134,10 +241,57 @@ Init ==
   /\ next_token     \in [RequestIDs -> CapTokens]
       \* Injectivity: each request gets a distinct token
       /\ \A r1, r2 \in RequestIDs : r1 # r2 => next_token[r1] # next_token[r2]
+  \* [Request Access] has run for every request: its request event, attested by the
+  \* requestor, landed, was refused (an initiation entry opens), or landed with its
+  \* answer lost (the event is on the trail and the entry opens too).
+  /\ \E out \in [RequestIDs -> Outcomes] :
+       /\ trail   = [r \in RequestIDs |->
+                       IF out[r] \in {"landed", "lost"}
+                       THEN {Orig("access_requested", "i_req", "requestor")} ELSE {}]
+       /\ pending = [r \in RequestIDs |->
+                       IF out[r] \in {"refused", "lost"}
+                       THEN {NewEntry("access_requested", "i_req", "requestor")} ELSE {}]
+       /\ owed    = [r \in RequestIDs |->
+                       IF out[r] \in {"refused", "lost"}
+                       THEN {[act |-> "access_requested", inv |-> "i_req"]} ELSE {}]
+  /\ rewritten      = [r \in RequestIDs |-> FALSE]
 
 ----
 
 (* ─── Helpers ────────────────────────────────────────────────────────────── *)
+
+(* The trail carries the record keyed k: an original, or a recovery record read as the event it names. *)
+Carries(r, k) ==
+  \E x \in trail[r] : x.kind \in {"orig", "rec"} /\ KeyOf(x) = k
+
+(* The leg's recovery intent for the owed record keyed k is on the trail. *)
+HasIntent(r, k) ==
+  \E x \in trail[r] : x.kind = "intent" /\ KeyOf(x) = k
+
+(*
+  Land event e on request r's trail; rewritten keeps the history of a write that
+  landed a record the trail already carried (a set would read the second as one).
+*)
+Land(r, e) ==
+  /\ trail'     = [trail EXCEPT ![r] = @ \cup {e}]
+  /\ rewritten' = IF e.kind # "intent" /\ Carries(r, KeyOf(e))
+                  THEN [rewritten EXCEPT ![r] = TRUE] ELSE rewritten
+
+(*
+  An original write of the record act / inv attested by who, with outcome out
+  (Action wiring 7: a refused record following a committed act opens a pending
+  entry carrying it).
+*)
+RecordOriginal(r, act, inv, who, out) ==
+  /\ IF out \in {"landed", "lost"}
+     THEN Land(r, Orig(act, inv, who))
+     ELSE UNCHANGED <<trail, rewritten>>
+  /\ pending' = IF out \in {"refused", "lost"}
+                THEN [pending EXCEPT ![r] = @ \cup {NewEntry(act, inv, who)}]
+                ELSE pending
+  /\ owed'    = IF out \in {"refused", "lost"}
+                THEN [owed EXCEPT ![r] = @ \cup {[act |-> act, inv |-> inv]}]
+                ELSE owed
 
 QuorumReached(r) ==
   Cardinality(approvals[r]) >= QuorumSize
@@ -218,6 +372,7 @@ ApproveStep(r, a) ==
        /\ ChainEvaluation(r, cs)
   /\ cap_exhausted' = cap_exhausted
   /\ next_token'    = next_token
+  /\ UNCHANGED sweep_vars
 
 (*
   A decision that lands on a chain already Approved (two approve_step calls race;
@@ -235,6 +390,7 @@ DecisionNotPending(r, a) ==
   /\ rejections'    = rejections
   /\ cap_exhausted' = cap_exhausted
   /\ next_token'    = next_token
+  /\ UNCHANGED sweep_vars
 
 (*
   reject_step: an approver rejects. Any rejection blocks all-of-N quorum.
@@ -255,6 +411,7 @@ RejectStep(r, a) ==
   /\ cap_exhausted'  = cap_exhausted
   /\ next_token'     = next_token
   /\ cascade_fired'  = cascade_fired
+  /\ UNCHANGED sweep_vars
 
 (*
   withdraw_request: requestor withdraws before approval completes.
@@ -273,6 +430,7 @@ WithdrawRequest(r) ==
   /\ cap_exhausted'  = cap_exhausted
   /\ next_token'     = next_token
   /\ cascade_fired'  = cascade_fired
+  /\ UNCHANGED sweep_vars
 
 (*
   exercise_access: bearer presents a valid capability token.
@@ -296,6 +454,10 @@ ExerciseAccess(r) ==
   /\ rejections'     = rejections
   /\ next_token'     = next_token
   /\ cascade_fired'  = cascade_fired
+  \* The exercise event, under the service identity (Action wiring 89), lands, is
+  \* refused (its exercise entry stays open), or lands with its answer lost.
+  /\ \E out \in Outcomes :
+       RecordOriginal(r, "access_exercised", "i_ex", "svc", out)
 
 (*
   revoke_access: administrator revokes a provisioned request.
@@ -313,6 +475,71 @@ RevokeAccess(r) ==
   /\ rejections'     = rejections
   /\ next_token'     = next_token
   /\ cascade_fired'  = cascade_fired
+  /\ UNCHANGED sweep_vars
+
+(* ─── The reconciliation's sweep ──────────────────────────────────────────── *)
+
+(* The composition's own variables, which no sweep step writes. *)
+comp_vars == <<request_state, request_to_cap, cap_to_request,
+               chain_state, approvals, rejections,
+               cap_allocated, cap_exhausted, next_token, cascade_fired>>
+
+(*
+  The pre-check finds the event (Reconciliation 4, 5, 6): the trail carries an
+  event with the owed record's action reference and invocation id, so the run
+  closes the entry and emits nothing. Closing writes no event, so it runs for an
+  aged entry too.
+*)
+SweepFound(r, e) ==
+  /\ e \in pending[r]
+  /\ Carries(r, KeyOf(e))
+  /\ pending' = [pending EXCEPT ![r] = @ \ {e}]
+  /\ UNCHANGED <<trail, owed, rewritten>>
+  /\ UNCHANGED comp_vars
+
+(*
+  The leg's recovery intent (Reconciliation 12 through 14): the pre-check found no event
+  and the owed record is not aged (Reconciliation 10), so the leg lands its intent,
+  carrying the owed record's invocation id, under the service identity
+  (Reconciliation 11), before the recovery record.
+*)
+SweepIntent(r, e) ==
+  /\ e \in pending[r]
+  /\ ~e.aged
+  /\ ~Carries(r, KeyOf(e))
+  /\ ~HasIntent(r, KeyOf(e))
+  /\ Land(r, [kind |-> "intent", act |-> e.act, inv |-> e.inv, actor |-> "svc",
+              aged |-> e.aged, after_intent |-> FALSE])
+  /\ UNCHANGED <<pending, owed>>
+  /\ UNCHANGED comp_vars
+
+(*
+  The recovery record (Reconciliation 15): the pre-check found no event, the owed
+  record is not aged, and the leg's intent has landed; the record carries the owed
+  record's action reference and invocation id, attested under the service identity.
+  The entry stays open until a later run's pre-check finds the record (SweepFound),
+  so a crash here leaves the case the pre-check exists for.
+*)
+SweepRecord(r, e) ==
+  /\ e \in pending[r]
+  /\ ~e.aged
+  /\ ~Carries(r, KeyOf(e))
+  /\ HasIntent(r, KeyOf(e))
+  /\ Land(r, [kind |-> "rec", act |-> e.act, inv |-> e.inv, actor |-> "svc",
+              aged |-> e.aged, after_intent |-> HasIntent(r, KeyOf(e))])
+  /\ UNCHANGED <<pending, owed>>
+  /\ UNCHANGED comp_vars
+
+(*
+  An entry's owed record ages (Term aged event): its instant plus the audit horizon
+  comes to precede now. Never back.
+*)
+EntryAges(r, e) ==
+  /\ e \in pending[r]
+  /\ ~e.aged
+  /\ pending' = [pending EXCEPT ![r] = (@ \ {e}) \cup {[e EXCEPT !.aged = TRUE]}]
+  /\ UNCHANGED <<trail, owed, rewritten>>
+  /\ UNCHANGED comp_vars
 
 ----
 
@@ -325,6 +552,10 @@ Next ==
   \/ \E r \in RequestIDs                    : WithdrawRequest(r)
   \/ \E r \in RequestIDs                    : ExerciseAccess(r)
   \/ \E r \in RequestIDs                    : RevokeAccess(r)
+  \/ \E r \in RequestIDs : \E e \in pending[r] : SweepFound(r, e)
+  \/ \E r \in RequestIDs : \E e \in pending[r] : SweepIntent(r, e)
+  \/ \E r \in RequestIDs : \E e \in pending[r] : SweepRecord(r, e)
+  \/ \E r \in RequestIDs : \E e \in pending[r] : EntryAges(r, e)
 
 Spec == Init /\ [][Next]_vars
 
@@ -414,6 +645,59 @@ NoPendingRequestHasToken ==
 ExhaustedSubsetAllocated ==
   cap_exhausted \subseteq cap_allocated
 
+(* ─── The sweep's invariants ──────────────────────────────────────────────── *)
+
+(* A reconciliation write: a recovery intent or a recovery record. *)
+SweepWrite(x) == x.kind \in {"intent", "rec"}
+
+(*
+  SweepPreCheckNoDuplicate (Reconciliation 4, 5, 6).
+  No two events of one request carry the same action reference and invocation id,
+  a recovery record read as the event it names, and no write ever landed a record
+  the trail already carried: the pre-check reads the trail before every emit, and
+  a found event closes the entry with nothing emitted.
+*)
+SweepPreCheckNoDuplicate ==
+  \A r \in RequestIDs :
+    /\ ~rewritten[r]
+    /\ \A x, y \in trail[r] :
+         (x # y /\ ~(x.kind = "intent") /\ ~(y.kind = "intent")) => (KeyOf(x) # KeyOf(y))
+
+(*
+  SweepAttestedByService (Reconciliation 11).
+  Every reconciliation write is attested under the service identity, never under
+  the actor of the record it stands in for.
+*)
+SweepAttestedByService ==
+  \A r \in RequestIDs : \A x \in trail[r] :
+    SweepWrite(x) => (x.actor = "svc")
+
+(*
+  SweepNoAgedWrite (Reconciliation 10).
+  No reconciliation write landed while the owed record it served was aged.
+*)
+SweepNoAgedWrite ==
+  \A r \in RequestIDs : \A x \in trail[r] :
+    SweepWrite(x) => ~x.aged
+
+(*
+  RecoveryRecordNamesOwed (Reconciliation 15).
+  A recovery record carries the action reference and the invocation id of a record
+  the request owed (one a pending entry carried), so it reads as the event it names.
+*)
+RecoveryRecordNamesOwed ==
+  \A r \in RequestIDs : \A x \in trail[r] :
+    (x.kind = "rec") => (KeyOf(x) \in owed[r])
+
+(*
+  RecoveryRecordFollowsIntent (Reconciliation 12 through 14).
+  A recovery record landed only after the leg's recovery intent for the same owed
+  record (its action reference and invocation id) was on the trail.
+*)
+RecoveryRecordFollowsIntent ==
+  \A r \in RequestIDs : \A x \in trail[r] :
+    (x.kind = "rec") => x.after_intent
+
 ----
 
 (* ─── Liveness (optional; requires fairness assumption) ─────────────────── *)
@@ -454,6 +738,11 @@ EventuallyTerminal ==
     NoPendingRequestHasToken
     ExhaustedSubsetAllocated
     DeniedNamesRejectedChain
+    SweepPreCheckNoDuplicate
+    SweepAttestedByService
+    SweepNoAgedWrite
+    RecoveryRecordNamesOwed
+    RecoveryRecordFollowsIntent
 
   Property (PROPERTY in the .cfg; not an ACTION_CONSTRAINT, which would only
   prune transitions and assert nothing):

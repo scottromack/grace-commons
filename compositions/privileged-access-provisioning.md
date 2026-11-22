@@ -126,8 +126,6 @@ Composition state 25: A session access entry MUST carry the request id, the sess
 Composition state 26: The composition MUST store the request-to-events map.
 Composition state 27: The composition MUST add an event id to the request-to-events map in the transaction that records the event (Execution Contract Database 1), ONLY AFTER Audit Trail's record action answers the event id AND the event carries a request id other than blank.
 
-NOTE: open 2026-11-07-a (Composition state 27).
-
 Composition state 28: The request-to-events map MUST NOT key an event carrying blank as the request id.
 Composition state 29: The composition MUST NOT rebuild an index entry from an aged event.
 Composition state 30: The composition MUST leave standing an index entry whose event is an aged event AND MUST classify the index entry as extraction-pending against Erasure Tombstone.
@@ -164,6 +162,8 @@ Term latest state-transition event: the request's state-transition event carryin
 
 Term denial reason: the reason a denial event or a provisioning-failure event carries for the refused state.
 
+Term withdrawal reason: the reason the chain evaluation's withdrawal event carries — the terminal event's reason, blank where the terminal event's read answers not-known or state-unavailable or its reason is destroyed (Action wiring 130), or where the chain's event ids name no terminal event (Action wiring 122).
+
 Term requested instant: the now an admitted request stamps when it opens (Capability requirement 25).
 
 Term access scope: the part of the resource a requestor names and the capability authorizes, carried on the request and parsed back out of the composed scope.
@@ -188,21 +188,19 @@ Term session access entry: one entry of the session access log.
 
 Term transactional index writes: a session access entry write | a request-to-events map write — the index writes that commit with their event (Composition state 24 and 27).
 
-Term request-to-events map: the composition's map from a request id to the event ids recorded for the request, in recording order — the declared request-to-audit traversal.
-
-NOTE: open 2026-11-07-b (Term request-to-events map).
+Term request-to-events map: the composition's map from a request id to the event ids recorded for the request, in the trail's sequence order — the declared request-to-audit traversal.
 
 Term audit pending list: a request record's list of pending entries, empty by default.
 
-Term pending entry: an open record owed on a request — an initiation entry, an exercise entry, an evaluation entry, a denial-reason entry, or the owed record of a committed act.
+Term pending entry: an open record owed on a request — an initiation entry, an exercise entry, an evaluation entry, a denial-reason entry, a withdrawal-reason entry, or the owed record of a committed act.
 
-Term closing occasion: the landing of the record a pending entry owes — for an evaluation entry, of the chain evaluation's writes (Action wiring 117) — or, for a denial-reason entry alone, Audit Trail's read record answering not-known for the chain's terminal event or the denial-reason leg finding the terminal event's reason destroyed (Reconciliation 40).
+Term closing occasion: the landing of the record a pending entry owes — for an evaluation entry, of the chain evaluation's writes (Action wiring 117) — or, for a denial-reason entry or a withdrawal-reason entry alone, Audit Trail's read record answering not-known for the chain's terminal event or the denial-reason leg finding the terminal event's reason destroyed (Reconciliation 40 and Reconciliation 44).
 
 Term aged event: an event whose `(recording instant + audit horizon)` PRECEDES now — past which the event's payload may be lawfully destroyed.
 
 Term quiescence: a state in which no invocation is in flight and no pending entry is open.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — inside the audit horizon, derived indexes: the request records over the trail (Composition state 16 through 18), the request-to-chain map over the request records' chain ids (Composition state 20), the request-to-capability and capability-to-request maps over the Capability instance's composed scopes (Composition state 23), the session access log over the exercise events and the failed exercise events (Composition state 24) and the request-to-events map over the events' request ids (Composition state 26); past the horizon, truth-bearing, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md): the request records (Composition state 8, Capability requirement 13), the session access log and the request-to-events map (Composition state 24, 27, 30, Capability requirement 35 and 36); the audit pending list: extraction-pending against [Owed Record](../atoms/owed-record.md) (Composition state 31).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — inside the audit horizon, derived indexes: the request records over the trail (Composition state 16 through 18), the request-to-chain map over the request records' chain ids (Composition state 20), the request-to-capability and capability-to-request maps over the Capability instance's composed scopes (Composition state 23), the session access log over the exercise events and the failed exercise events (Composition state 24) and the request-to-events map over the events' request ids (Composition state 26); past the horizon, truth-bearing, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md): the request records (Composition state 8, Capability requirement 13), the session access log and the request-to-events map (Composition state 24, 27, 30, Capability requirement 35 and 36); the audit pending list: extraction-pending against [Owed Record](../atoms/owed-record.md) (Composition state 31). The session access log and the request-to-events map depart from the section's second and third obligations in the one respect, named here once: each is written with its event, in the event's transaction (Composition state 24 and 27), where the section leaves a derived index outside its action's atomicity, so that an entry is complete before its event ages and is rebuilt from the events only where it is lost (Check 5.1).
 
 ### Capability requirement
 
@@ -302,24 +300,22 @@ Term payload budget: the audit substrate's payload cap less the event envelope.
 
 ### Action wiring
 
-NOTE: open 2026-11-04-a (the closure table).
-
 ```
 request_access(requestor_ref, credential, resource_ref, access_scope, justification, approver_set, quorum_rule, optional ttl)
   answers request_id
-  refuses invalid-request | permission-denied | invalid-credential | recording-failure(position)
+  refuses invalid-request | permission-denied | invalid-credential | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | storage-failure | state-unavailable | already-assigned | already-accounted(closing_event_id) | recording-failure(position, optional request_id)
 
 approve_step(actor_ref, credential, request_id, step_id, optional reason)
   answers approved
-  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | recording-failure(position)
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | chain-state-changed | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(position)
 
 reject_step(actor_ref, credential, request_id, step_id, reason)
   answers rejected_outcome
-  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | recording-failure(position)
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | chain-state-changed | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(position)
 
 withdraw_request(actor_ref, credential, request_id, reason)
   answers withdrawn
-  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | permission-denied | recording-failure(position)
+  refuses invalid-request | invalid-credential | not-known | not-pending | unauthorized | permission-denied | act-in-flight(invocation_id) | section-unavailable | journal-unavailable | storage-failure | state-unavailable | already-accounted(closing_event_id) | recording-failure(position)
 
 exercise_access(session_token, capability_token)
   answers exercised
@@ -342,9 +338,13 @@ Term request results: the requests a query matches, each carrying the request re
 
 Term read query: the filters [Read Request] admits, in any combination — request id, requestor reference, resource reference and request state — and malformed where it filters on another key, where a filter carries a blank value, or where the request state filter names no request state (Action wiring 106).
 
-Term unavailable: the chain's state a request result carries where read chain refused (Action wiring 109), the one value beside Multi-Party Approval's Pending, Approved, Rejected and Withdrawn.
+Term chain state: Pending | Approved | Rejected | Withdrawn — Multi-Party Approval's own states of a chain, read through read chain; the words Pending, Approved and Withdrawn name a chain's state here and a request's state in the request state, two states of two records that a read never takes for each other.
 
-Term mapped refusal: the refusal [Request Access] answers for the initiate chain refusal that closed the request (Action wiring 22 through 25), carried as the initiation-failed withdrawal event's reason.
+Term unavailable: the chain's state a request result carries where read chain refused (Action wiring 109), the one value beside the chain states.
+
+Term initiation refusal: invalid-request | invalid-credential | permission-denied | act-in-flight | section-unavailable | journal-unavailable | storage-failure | state-unavailable | already-assigned | recording-failure carrying intent | recording-failure carrying refusal — the refusals of initiate chain after which no chain stands, each answered before a commit or without one.
+
+Term mapped refusal: the refusal [Request Access] answers for the initiation refusal that closed the request (Action wiring 22 through 25 and Action wiring 123), carried as the initiation-failed withdrawal event's reason.
 
 ```
 Action wiring 1: A credentialed action MUST call Credential's verify with the actor reference, the credential type AND the credential.
@@ -363,13 +363,17 @@ Action wiring 15: IF the database refuses the request record THEN [Request Acces
 Action wiring 16: An admitted request MUST call Multi-Party Approval's initiate chain with the requestor reference, the credential, the request id, the access scope, the approver set AND the quorum rule.
 Action wiring 17: IF initiate chain answers the chain id OR recording-failure carrying outcome THEN [Request Access] MUST write the chain id onto the request record.
 Action wiring 18: IF initiate chain answers the chain id OR recording-failure carrying outcome THEN [Request Access] MUST complete the initiation entry's payload with the chain id.
-Action wiring 19: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST record an initiation-failed withdrawal event carrying the request shape AND the mapped refusal as the reason.
-Action wiring 20: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST set the request state to Withdrawn.
-Action wiring 21: IF initiate chain answers invalid-request, invalid-credential, permission-denied OR recording-failure carrying intent THEN [Request Access] MUST close the initiation entry ONLY AFTER the initiation-failed withdrawal event lands.
+Action wiring 19: IF initiate chain answers an initiation refusal THEN [Request Access] MUST record an initiation-failed withdrawal event carrying the request shape AND the mapped refusal as the reason.
+Action wiring 20: IF initiate chain answers an initiation refusal THEN [Request Access] MUST set the request state to Withdrawn.
+Action wiring 21: IF initiate chain answers an initiation refusal THEN [Request Access] MUST close the initiation entry ONLY AFTER the initiation-failed withdrawal event lands.
 Action wiring 22: IF initiate chain answers invalid-request THEN [Request Access] MUST answer invalid-request.
 Action wiring 23: IF initiate chain answers invalid-credential THEN [Request Access] MUST answer invalid-credential.
 Action wiring 24: IF initiate chain answers permission-denied THEN [Request Access] MUST answer permission-denied.
 Action wiring 25: IF initiate chain answers recording-failure THEN [Request Access] MUST answer recording-failure carrying the position unchanged.
+Action wiring 123: IF initiate chain answers act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable OR already-assigned THEN [Request Access] MUST answer the substrate's refusal.
+Action wiring 124: IF initiate chain answers recording-failure carrying outcome THEN [Request Access] MUST answer recording-failure carrying outcome AND the request id.
+Action wiring 125: IF initiate chain answers already-accounted THEN [Request Access] MUST leave the initiation entry open, MUST NOT set the request state AND MUST answer already-accounted carrying the closing event id.
+Action wiring 126: A requestor whose [Request Access] answer is lost MUST call [Request Access] again ONLY AFTER reading the requestor's requests through [Read Request] filtered on the requestor reference AND the resource reference (Execution Contract Error model 1).
 Action wiring 26: The deployment MUST alert on a substrate permission-denied as a wiring fault.
 Action wiring 27: An admitted request MUST record the request event ONLY AFTER initiate chain answers the chain id.
 Action wiring 28: IF the request event lands THEN [Request Access] MUST close the initiation entry.
@@ -377,27 +381,28 @@ Action wiring 29: IF Audit Trail refuses the request event THEN [Request Access]
 Action wiring 31: IF the request's chain id EQUALS blank THEN a decision action MUST answer not-pending.
 Action wiring 32: [Approve Step] MUST call Multi-Party Approval's approve step with the actor reference, the credential, the chain id, the step id AND the reason.
 Action wiring 33: [Reject Step] MUST call Multi-Party Approval's reject step with the actor reference, the credential, the chain id, the step id AND the reason.
-Action wiring 34: IF the approval substrate answers invalid-request, not-known, not-pending OR unauthorized to a decision THEN the decision action MUST answer the substrate's refusal.
+Action wiring 34: IF the approval substrate answers invalid-request, not-known, not-pending, unauthorized OR chain-state-changed to a decision THEN the decision action MUST answer the substrate's refusal.
 Action wiring 35: IF the approval substrate answers invalid-credential to a decision THEN the decision action MUST answer invalid-credential.
 Action wiring 36: IF the approval substrate answers recording-failure to a decision THEN the decision action MUST answer recording-failure carrying the position unchanged.
 Action wiring 37: IF the approval substrate answers recording-failure carrying outcome to a decision THEN the decision action MUST open an evaluation entry.
-Action wiring 38: IF the approval substrate answers not-pending to a decision THEN the decision action MUST run the chain evaluation.
+Action wiring 127: IF the approval substrate answers act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted OR recording-failure carrying refusal to a decision THEN the decision action MUST answer the substrate's refusal.
+Action wiring 38: IF the approval substrate answers not-pending OR chain-state-changed to a decision THEN the decision action MUST run the chain evaluation.
 Action wiring 39: A decision action MUST record a decision event carrying the request id, the chain id, the step id, the decision AND the reason ONLY AFTER the approval substrate answers the decision.
 Action wiring 40: A decision action MUST run the chain evaluation ONLY AFTER the approval substrate answers the decision.
 Action wiring 41: A decision action MUST answer the decision ONLY AFTER the approval substrate answers the decision.
 Action wiring 43: The chain evaluation MUST read the chain through Multi-Party Approval's read chain with a query on the chain id.
-Action wiring 44: IF read chain answers permission-denied OR invalid-query OR an empty result THEN the chain evaluation MUST open an evaluation entry ONLY IF the chain evaluation is not the retry of an open evaluation entry.
+Action wiring 44: IF read chain answers permission-denied, invalid-query, state-unavailable OR an empty result THEN the chain evaluation MUST open an evaluation entry ONLY IF the chain evaluation is not the retry of an open evaluation entry.
 Action wiring 45: The deployment MUST alert on a read chain refusal inside the chain evaluation as a wiring fault.
 Action wiring 46: A read chain refusal MUST NOT change the decision action's answer.
 Action wiring 47: IF the chain's state EQUALS Approved AND the provisioning conjunction holds THEN the chain evaluation MUST set the request state to Approved.
 Action wiring 48: IF the chain's state EQUALS Approved AND the provisioning conjunction holds THEN the chain evaluation MUST fire the provisioning cascade.
 Action wiring 49: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST read the chain's terminal event.
-Action wiring 50: The chain evaluation MUST find the chain's terminal event by reading the chain's event ids from the tail to the first terminal event.
-Action wiring 51: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed OR the chain's event ids name no terminal event THEN the chain evaluation MUST take blank as the denial reason.
+Action wiring 50: The chain evaluation MUST find the chain's terminal event by reading the chain's event ids in the trail's sequence order from the first to the first terminal event, the terminal event being the first by sequence number, as Multi-Party Approval Composition state 31 binds.
+Action wiring 51: IF Audit Trail's read record answers not-known OR state-unavailable OR the terminal event's reason is destroyed OR the chain's event ids name no terminal event THEN the chain evaluation MUST take blank as the denial reason.
 Action wiring 52: IF the denial reason EQUALS blank THEN the chain evaluation MUST open a denial-reason entry ONLY IF the request carries no open denial-reason entry.
 Action wiring 53: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST record a denial event carrying Denied AND the denial reason under the service identity.
 Action wiring 54: IF the chain's state EQUALS Rejected AND the request state EQUALS Pending THEN the chain evaluation MUST set the request state to Denied.
-Action wiring 55: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name a terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND the terminal event's reason under the service identity.
+Action wiring 55: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name a terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND the withdrawal reason under the service identity.
 Action wiring 56: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending THEN the chain evaluation MUST set the request state to Withdrawn.
 Action wiring 57: IF the chain's state EQUALS Pending THEN the chain evaluation MUST NOT write.
 Action wiring 58: IF the request state IS IN the terminal request states THEN the chain evaluation MUST NOT write.
@@ -414,6 +419,8 @@ Action wiring 68: IF withdraw chain answers unauthorized OR not-known THEN the d
 Action wiring 69: IF withdraw chain answers invalid-credential THEN [Withdraw Request] MUST answer invalid-credential.
 Action wiring 70: IF withdraw chain answers invalid-request THEN [Withdraw Request] MUST answer invalid-request.
 Action wiring 71: IF withdraw chain answers recording-failure THEN [Withdraw Request] MUST answer recording-failure carrying the position unchanged.
+Action wiring 128: IF withdraw chain answers act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable OR already-accounted THEN [Withdraw Request] MUST answer the substrate's refusal.
+Action wiring 129: IF withdraw chain answers act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted OR recording-failure carrying refusal THEN [Withdraw Request] MUST NOT write.
 Action wiring 72: An admitted withdrawal MUST record a withdrawal event carrying Withdrawn AND the reason ONLY AFTER withdraw chain answers withdrawn.
 Action wiring 73: An admitted withdrawal MUST set the request state to Withdrawn ONLY AFTER withdraw chain answers withdrawn.
 Action wiring 74: An admitted withdrawal MUST answer withdrawn ONLY AFTER withdraw chain answers withdrawn.
@@ -457,22 +464,16 @@ Action wiring 112: A permitted read MUST order the results by requested instant,
 Action wiring 113: IF an owed record's actor credential is in hand THEN the invocation MUST retry the owed record under the actor's credential.
 Action wiring 114: IF Permissions' permitted answers denied THEN [Revoke Access] MUST answer permission-denied.
 Action wiring 115: IF Permissions' permitted answers denied THEN [Read Request] MUST answer permission-denied.
-Action wiring 116: IF the approval substrate answers invalid-credential OR recording-failure carrying intent to a decision THEN the decision action MUST NOT write.
+Action wiring 116: IF the approval substrate answers invalid-credential, act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted, recording-failure carrying intent OR recording-failure carrying refusal to a decision THEN the decision action MUST NOT write.
 Action wiring 117: IF read chain answers the chain THEN the chain evaluation MUST close the request's open evaluation entries ONLY AFTER the chain evaluation's writes land.
 Action wiring 118: IF Capability's redeem answers invalid THEN [Exercise Access] MUST complete the exercise entry with the redemption failure.
 Action wiring 119: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST answer capability-invalid carrying not-known (Execution Contract Constituent failure 1).
 Action wiring 120: IF Audit Trail refuses the failed exercise event carrying blank as the request id THEN [Exercise Access] MUST NOT open a pending entry.
 Action wiring 121: A resolved exercise MUST take the exercised instant from the invocation's now.
-Action wiring 122: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name no terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND blank as the reason under the service identity.
+Action wiring 122: IF the chain's state EQUALS Withdrawn AND the request state EQUALS Pending AND the chain's event ids name no terminal event THEN the chain evaluation MUST record a withdrawal event carrying Withdrawn AND blank as the withdrawal reason under the service identity.
+Action wiring 130: IF Audit Trail's read record answers not-known OR state-unavailable OR the terminal event's reason is destroyed THEN the chain evaluation MUST take blank as the withdrawal reason.
+Action wiring 131: IF the withdrawal reason EQUALS blank THEN the chain evaluation MUST open a withdrawal-reason entry ONLY IF the request carries no open withdrawal-reason entry.
 ```
-
-NOTE: open 2026-11-04-c — where the terminal event's reason is destroyed past the audit horizon (Term terminal event), Action wiring 55's withdrawal event carries it blank (GRACE-lang Term blank), as Action wiring 122's does where no terminal event is named yet, and no rule opens a recovery entry for a blank withdrawal reason as Action wiring 52 does for a blank denial reason.
-
-NOTE: open 2026-11-11-a (Action wiring 50).
-
-NOTE: open 2026-11-06-c (Action wiring 25).
-
-NOTE: open 2026-11-06-d (Action wiring 47).
 
 Term credentialed action: [Approve Step] | [Reject Step] | [Withdraw Request] | [Revoke Access].
 
@@ -500,6 +501,8 @@ Term evaluation entry: the pending entry recording a chain evaluation owed after
 
 Term denial-reason entry: the pending entry recording a denial event that landed with a blank denial reason.
 
+Term withdrawal-reason entry: the pending entry recording a withdrawal event that landed with a blank withdrawal reason.
+
 Term exercise entry: the pending entry a resolved exercise writes in the exercise's one transaction (Execution Contract Database 1), carrying the exercise's payload; marked redeemed where redeem answers redeemed (Action wiring 86) and completed with the redemption failure where redeem answers invalid (Action wiring 118), so an open exercise entry carries one or the other.
 
 Term resolved exercise: an [Exercise Access] whose session validated and whose token Capability's read found with a composed scope that parses to a request.
@@ -515,6 +518,159 @@ Term requests initiate: the scope admitting [Request Access] — a [Requests Ini
 Term requests revoke: the scope admitting [Revoke Access] — a [Requests Revoke].
 
 Term requests read: the scope admitting [Read Request] — a [Requests Read].
+
+#### Closure table
+
+Every input an action takes and every answer a call of the seven actions can meet — Credential's verify, Permissions' permitted, Multi-Party Approval's initiate chain, approve step, reject step, withdraw chain and read chain, Audit Trail's record action and read record, Session's validate, and Capability's allocate, redeem, revoke and read — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1, Execution Contract Constituent failure 3); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here, and the caller's next call is the requestor's own (Action wiring 126) or the reconciliation's (Reconciliation 1 and 2). The reconciliation's legs make the calls below again and land each answer as its action does, leaving an entry whose call fails open for the next run (Reconciliation 2). [Request Access] writes its request record and initiation entry before it calls initiate chain (Action wiring 13 and 16), so it departs from the default of Execution Contract Constituent failure 1 and 3, under which a constituent's storage-failure or state-unavailable commits nothing: it lands each as an initiation refusal (Action wiring 19 through 21 and 123).
+
+**Inputs.**
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| every action | a blank actor reference | invalid-request, nothing written | Primitive policy 1, 10 |
+| [Request Access] | a blank resource reference, access scope or justification | invalid-request, nothing written | Primitive policy 2, 3, 8, 10 |
+| every action | a blank required reason | invalid-request, nothing written | Primitive policy 9, 10 |
+| every action | a reference over its cap | invalid-request, nothing written | Primitive policy 4, 10 |
+| [Request Access] | an approver set or quorum rule the approval substrate's chain-shape rules refuse | invalid-request, nothing written | Primitive policy 5, 10 |
+| every action | the data of an event the action will emit over the payload budget | invalid-request, nothing written | Primitive policy 6, 10 |
+| [Request Access] | a supplied ttl in the refused ttls | invalid-request, nothing written | Primitive policy 7, 10 |
+| every action | an identifier or a string input | compared byte-exact, never normalized, no credential read or written into an event | Primitive policy 11 through 14 |
+| [Read Request] | an undeclared filter key, a blank filter value or an undeclared request state | invalid-query | Action wiring 106 |
+| a credentialed action | a request id naming no request record | not-known | Action wiring 5 |
+| [Approve Step], [Reject Step], [Withdraw Request] | a request whose chain id is blank | not-pending | Action wiring 31, 61 |
+| [Withdraw Request] | a caller who is not the request's requestor, or a request not Pending | unauthorized, not-pending | Action wiring 59, 60 |
+| [Revoke Access] | a request not Provisioned | not-provisioned | Action wiring 96 |
+
+**Credential's verify**, at [Request Access] where the credential check on request is true, and at every credentialed action.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| verified | the request resolved and the action goes on | Action wiring 1, 2, 12 |
+| failed-verification | invalid-credential, nothing written | Action wiring 3, Primitive policy 13 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Permissions' permitted**, at [Request Access], [Revoke Access] and [Read Request]; no decision action and no [Withdraw Request] calls it, the substrate's own scopes deciding there (Wiring decision 5, Action wiring 62).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| permitted | the action goes on | Action wiring 10, 95, 104 |
+| denied | permission-denied, nothing written | Action wiring 11, 114, 115 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Multi-Party Approval's initiate chain**, at [Request Access], after the request record and the initiation entry are written.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the chain id | the chain id on the request record and the initiation entry, then the request event | Action wiring 16, 17, 18, 27 |
+| recording-failure carrying outcome | the chain id on the record and the entry as above; recording-failure carrying outcome and the request id answered | Action wiring 17, 18, 25, 124 |
+| invalid-request, invalid-credential, permission-denied | the request Withdrawn by an initiation-failed withdrawal event naming the refusal, the same answered | Action wiring 19 through 24 |
+| recording-failure carrying intent | the request Withdrawn by an initiation-failed withdrawal event, recording-failure carrying intent answered | Action wiring 19 through 21, 25 |
+| recording-failure carrying refusal | the request Withdrawn by an initiation-failed withdrawal event, recording-failure carrying refusal answered | Action wiring 19 through 21, 25 |
+| act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-assigned | the request Withdrawn by an initiation-failed withdrawal event naming the refusal, the same answered | Action wiring 19 through 21, 123 |
+| already-accounted | the request left Pending with no chain id, the initiation entry left open, already-accounted answered; the initiation leg finds the chain or closes the request | Action wiring 125, Reconciliation 30 through 37 |
+| permission-denied of a substrate scope | answered as above, and the deployment alerts | Action wiring 24, 26 |
+
+**Multi-Party Approval's approve step and reject step**, at a decision action.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| approved, rejected_outcome | the decision event, then the chain evaluation, then the answer | Action wiring 39, 40, 41 |
+| invalid-request, not-known, unauthorized | the substrate's refusal answered | Action wiring 34 |
+| not-pending, chain-state-changed | the chain evaluation, then the substrate's refusal answered | Action wiring 34, 38 |
+| invalid-credential | invalid-credential, nothing written | Action wiring 35, 116 |
+| recording-failure carrying outcome | an evaluation entry opened, recording-failure carrying outcome answered | Action wiring 36, 37 |
+| recording-failure carrying intent | recording-failure carrying intent, nothing written | Action wiring 36, 116 |
+| recording-failure carrying refusal, act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable | the substrate's refusal answered, nothing written | Action wiring 127, 116 |
+| already-accounted | already-accounted answered, nothing written; the step decision the substrate holds is landed by the terminal-chain leg | Action wiring 127, 116, Reconciliation 23 |
+
+**Multi-Party Approval's withdraw chain**, at [Withdraw Request].
+
+| Answer | Lands | Owner |
+|---|---|---|
+| withdrawn | the withdrawal event, the request Withdrawn, withdrawn answered | Action wiring 72, 73, 74 |
+| not-pending | the chain evaluation, then not-pending answered | Action wiring 64, 65 |
+| permission-denied | permission-denied | Action wiring 66 |
+| unauthorized, not-known | the substrate's refusal answered, and the deployment alerts | Action wiring 67, 68 |
+| invalid-credential, invalid-request | the same answered | Action wiring 69, 70 |
+| recording-failure | recording-failure carrying the position unchanged | Action wiring 71 |
+| act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted | the substrate's refusal answered, nothing written; an already-accounted withdrawal is landed by the terminal-chain leg | Action wiring 128, 129, Reconciliation 22 |
+
+**Multi-Party Approval's read chain**, at the chain evaluation and at [Read Request].
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the chain | the chain's state taken, the evaluation's transition, record and cascade | Action wiring 43, 47 through 58, 117 |
+| permission-denied, invalid-query, state-unavailable, an empty result | at the chain evaluation, an evaluation entry opened where the evaluation is not a retry, the decision action's answer unchanged, the deployment alerts | Action wiring 44, 45, 46 |
+| permission-denied, invalid-query | at [Read Request], unavailable as the chain's state; no call for a blank chain id | Action wiring 108, 109 |
+| state-unavailable | at [Read Request], state-unavailable | Execution Contract Constituent failure 3 |
+
+**Audit Trail's read record**, at the chain evaluation's terminal event and at the reconciliation's pre-check.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the record with its reason | the reason taken | Action wiring 51, 55, 130 |
+| the record, its reason destroyed | blank taken as the denial reason or the withdrawal reason, an entry opened | Action wiring 51, 52, 130, 131 |
+| not-known | the same; at the denial-reason leg the entry closed | Action wiring 51, 130, Reconciliation 40, 44 |
+| the pre-check's read of the trail for the record's action reference and invocation id | the event found: the entry closed and nothing emitted; none found: the record emitted | Reconciliation 4, 5, 6 |
+| state-unavailable | blank taken as the reason and an entry opened at the chain evaluation; the entry left open at the denial-reason leg, for the next run | Action wiring 51, 130, 131, Reconciliation 2 |
+
+**Audit Trail's record action**, at every event the composition records.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the event id | the index entries written after it, in its transaction, and the pending entry closed | Action wiring 8, 28, 91, Composition state 24, 27 |
+| invalid-credential, invalid-request, recording-failure | a pending entry carrying the record opened or left open, the action's answer unchanged | Action wiring 7, 29, 92 |
+| the same for a failed exercise event carrying a blank request id | capability-invalid carrying not-known, no pending entry | Action wiring 119, 120 |
+| an index write that fails outside the transactional index writes | the answer unchanged | Action wiring 9 |
+
+**Session's validate**, at [Exercise Access].
+
+| Answer | Lands | Owner |
+|---|---|---|
+| valid | the token resolved through Capability's read | Action wiring 75, 78, Invariant 3.1 |
+| invalid (expired, revoked or not-known) | session-invalid naming the reason, nothing written | Action wiring 76, 77, Non-goal 14 |
+| state-unavailable | state-unavailable, nothing written | Execution Contract Constituent failure 3 |
+
+**Capability's read**, at [Exercise Access] and at [Read Request].
+
+| Answer | Lands | Owner |
+|---|---|---|
+| a record whose composed scope parses to a request | the exercise resolved, or the effective status carried | Action wiring 78, 82, 107 |
+| no record, or a composed scope that parses to no request | capability-invalid carrying not-known and a failed exercise event with a blank request id, redeem never called; at [Read Request] no effective status | Action wiring 79, 80, 81, 110 |
+| state-unavailable | state-unavailable | Execution Contract Constituent failure 3 |
+
+**Capability's redeem**, at [Exercise Access], after the exercise entry is written.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| redeemed | the entry marked redeemed, the exercise event recorded, exercised answered | Action wiring 85, 86, 87, 89, 91 |
+| invalid (exhausted, expired, revoked or not-known) | the entry completed with the redemption failure, the failed exercise event recorded, capability-invalid answered | Action wiring 88, 90, 118, 91 |
+| storage-failure | storage-failure, nothing committed | Execution Contract Constituent failure 1 |
+| the database refusing the exercise entry | capability-invalid carrying recording-failure | Action wiring 84 |
+
+**Capability's allocate**, at the provisioning cascade.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the capability token | the provisioning event, the request Provisioned, the token delivered, the two maps written | Provisioning cascade 8 through 14 |
+| invalid-request | a provisioning-failure event, the request ProvisioningFailed, the reason ttl-elapsed or the relayed refusal | Provisioning cascade 3 through 7 |
+| storage-failure | nothing written | Provisioning cascade 15 |
+
+**Capability's revoke**, at [Revoke Access].
+
+| Answer | Lands | Owner |
+|---|---|---|
+| revoked, already-terminal | the revocation event, the request Revoked, revoked answered | Action wiring 101, 102, 103 |
+| not-known, invalid-request | recording-failure, and the deployment alerts | Action wiring 98, 99 |
+| storage-failure | recording-failure | Action wiring 100 |
+
+**The database**, for every write the action itself makes.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| the request record or its initiation entry refused | recording-failure carrying intent, nothing written | Action wiring 15 |
+| a read that fails | state-unavailable, ahead of every refusal the read would have decided | Execution Contract Read 1 |
+| any other write refused | storage-failure, nothing written | Execution Contract Read 4 |
 
 ### Wiring decision
 
@@ -557,7 +713,7 @@ Reconciliation 15: A recovery record MUST carry the owed record's action referen
 Reconciliation 16: The reconciliation MUST NOT take a recovery record's data from a composition index.
 Reconciliation 21: The approval leg MUST run the chain evaluation for EVERY request in an open request state whose chain's state EQUALS Approved.
 Reconciliation 22: IF the request state IS IN the open request states AND the chain's state IS IN the refusing chain states THEN the terminal-chain leg MUST run the chain evaluation.
-Reconciliation 23: The terminal-chain leg MUST land a recovery record for EVERY step decision in the chain's events that no decision event names.
+Reconciliation 23: The terminal-chain leg MUST land a recovery record for EVERY step decision in the events of EVERY chain, whatever the chain's state, that no decision event names.
 Reconciliation 24: The redemption leg MUST land a recovery record for the exercise event of EVERY exercise entry marked redeemed.
 Reconciliation 29: The redemption leg MUST land a recovery record for the failed exercise event of EVERY open exercise entry carrying a redemption failure.
 Reconciliation 30: IF the request record carries no chain id THEN the initiation leg MUST read the approval substrate for a chain whose subject reference EQUALS the request id.
@@ -570,11 +726,13 @@ Reconciliation 38: The denial-reason leg MUST read the chain's terminal event fo
 Reconciliation 39: IF the read answers the terminal event's reason THEN the denial-reason leg MUST land a recovery record for the denial event carrying the reason.
 Reconciliation 40: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the denial-reason leg MUST close the denial-reason entry.
 Reconciliation 41: The denial-reason leg MUST NOT record a second denial event.
+Reconciliation 42: The denial-reason leg MUST read the chain's terminal event for EVERY open withdrawal-reason entry.
+Reconciliation 43: IF the read answers the terminal event's reason THEN the denial-reason leg MUST land a recovery record for the withdrawal event carrying the reason.
+Reconciliation 44: IF Audit Trail's read record answers not-known OR the terminal event's reason is destroyed THEN the denial-reason leg MUST close the withdrawal-reason entry.
+Reconciliation 45: The denial-reason leg MUST NOT record a second withdrawal event.
 ```
 
-NOTE: open 2026-11-06-b (Reconciliation 23).
-
-Term reconciliation: the leg this composition runs outside every invocation whose output — a landed record, a finished provisioning, a closed request — a requestor or an auditor awaits: the approval leg, the terminal-chain leg, the redemption leg, the initiation leg and the denial-reason leg, at every start and on every retry.
+Term reconciliation: the leg this composition runs outside every invocation whose output — a landed record, a finished provisioning, a closed request — a requestor or an auditor awaits: the approval leg, the terminal-chain leg, the redemption leg, the initiation leg and the denial-reason leg, which serves the withdrawal-reason entries as it does the denial-reason entries (Reconciliation 42 through 45), at every start and on every retry; the terminal-chain leg runs the chain evaluation for a Rejected or Withdrawn chain (Reconciliation 22) and lands the decision events owed on a chain in any state (Reconciliation 23).
 
 Term recovery intent: the access_recovery_intended event — the reconciliation's record that the act following it was occasioned by the reconciliation and not by a direct call.
 
@@ -751,9 +909,9 @@ Check 1.2: An auditor MUST find EVERY parsed request's chain Approved, recomputi
 Check 1.3: An auditor MUST report a bypass token as a provisioning bypass (Invariant 1.1).
 Check 1.4: IF a token's request events are aged events THEN an auditor MUST read the request's Provisioned state AND the surviving provisioning attestation in place of the chain records (Capability requirement 10).
 Check 2.1: An auditor MUST find, for EVERY exercise event, a Session record of the named principal live across the exercised instant (Invariant 3.1).
-Check 2.2: An auditor MUST report a discrepancy that DOES NOT EXCEED the clock allowance as inconclusive (Invariant 3.1, Execution Contract Logic confinement 18).
+Check 2.2: IF Check 2.1 finds no live span of the named principal's Session records across an exercise event THEN an auditor MUST report a discrepancy that DOES NOT EXCEED the clock allowance as inconclusive (Invariant 3.1, Execution Contract Logic confinement 18).
 Check 3.1: An auditor MUST find the deciding actor's credential Active across EVERY decision event's recorded instant (Invariant 6.1).
-Check 3.2: An auditor MUST report a discrepancy that DOES NOT EXCEED the clock allowance as inconclusive (Invariant 6.1, Execution Contract Logic confinement 18).
+Check 3.2: IF Check 3.1 finds no Active span of the deciding actor's credential across a decision event THEN an auditor MUST report a discrepancy that DOES NOT EXCEED the clock allowance as inconclusive (Invariant 6.1, Execution Contract Logic confinement 18).
 Check 4.1: An auditor MUST find a denial event AND a Rejected chain for EVERY Denied request inside the horizon (Invariant 7.1).
 Check 4.2: IF a ProvisioningFailed request carries no open pending entry THEN an auditor MUST find the request's provisioning-failure event (Invariant 7.3).
 Check 5.1: An auditor MUST rebuild EVERY in-horizon index entry by the element's declared rebuild AND reproduce EVERY traversal answer (Composition state 16).
@@ -772,9 +930,9 @@ Check 6.7: An auditor MUST report a redemption failure a resolved exercise reach
 
 NOTE: EVERY check names the rule the check tests.
 
-NOTE: open 2026-11-18-a (Check 2.2, Check 3.2).
-
 Term bypass token: a token whose composed scope parses to no request, to a request whose chain is not Approved, or not at all.
+
+Term discrepancy: the length of time an instant a check tests lies outside the span the check reads, measured to the span's nearest edge — for Check 2.1, from the exercise event's exercised instant to the nearest edge of any live span of the named principal's Session records, and for Check 3.1, from the decision event's recorded instant to the nearest edge of any Active span of the deciding actor's Credential records.
 
 Term clock allowance: Execution Contract Logic confinement 18's setting, spent here between the clock of this composition's call and the clock of another call that stamped a constituent's record, as a Session record's issue and revocation and a Credential record's are stamped; none is spent inside one call (Execution Contract Logic confinement 19).
 
@@ -910,7 +1068,7 @@ Term revocation event: the access_revoked event.
 
 #### Request Access
 
-The intake action: submit a privileged-access request under a named requestor, gate it on [Requests Initiate] and — where configured — the requestor's credential, write the request, open its approval chain, and record the request event (Action wiring 10 through 13 and Action wiring 15 through 29). Answers the request id; the request is Pending. Refuses [Permission Denied] where Permissions answers denied (Action wiring 11) and [Invalid Credential] where Credential's verify answers failed-verification (Action wiring 3) and [Recording Failure] where the database refuses the request record (Action wiring 15).
+The intake action: submit a privileged-access request under a named requestor, gate it on [Requests Initiate] and — where configured — the requestor's credential, write the request, open its approval chain, and record the request event (Action wiring 10 through 13 and Action wiring 15 through 29). Answers the request id; the request is Pending. Refuses [Permission Denied] where Permissions answers denied (Action wiring 11) and [Invalid Credential] where Credential's verify answers failed-verification (Action wiring 3) and [Recording Failure] where the database refuses the request record (Action wiring 15), and relays the approval substrate's initiation refusals (Action wiring 22 through 25 and Action wiring 123 through 125); a [Recording Failure] carrying outcome carries the request id (Action wiring 124).
 
 Kind: Operation
 
@@ -1006,7 +1164,7 @@ Projection: permission-denied
 
 #### Recording Failure
 
-The composition's rejection for a write the database refused or a constituent's recording failure relayed, carrying its position — intent, nothing committed and the action retryable in whole; outcome, the act committed and its record owed (Recoverable Invocation Invariant 8.3 and Recoverable Invocation Invariant 8.4, which Multi-Party Approval's acting actions follow). The composition's own refusal carries intent (Action wiring 15, Action wiring 98 and Action wiring 100); the approval substrate's carries its position unchanged (Action wiring 25, Action wiring 36 and Action wiring 71).
+The composition's rejection for a write the database refused or a constituent's recording failure relayed, carrying its position — intent, nothing committed and the action retryable in whole; outcome, the act committed and its record owed (Recoverable Invocation Invariant 8.3 and Recoverable Invocation Invariant 8.4, which Multi-Party Approval's acting actions follow). The composition's own refusal carries intent (Action wiring 15, Action wiring 98 and Action wiring 100); the approval substrate's carries its position unchanged (Action wiring 25, Action wiring 36 and Action wiring 71), and at [Request Access] a position of outcome carries the request id (Action wiring 124).
 
 Kind:       Member
 Member of:  the composition's refusals
@@ -1075,21 +1233,12 @@ Projection: invalid-credential
 
 ```
 status: doing
-formal: verified — privileged-access-provisioning.tla + 8 twins; privileged-access-provisioning.als + 10 twins (the static data model, 2026-11-12: Invariant 3.2, 6.1, 7.1, 7.3, 8.1, 10.1 and 10.2, with 3.1 and 7.2 cross-checking the TLA+ model, checked on every state of the request records, the trail's events, each an original or a recovery record read as the event it names, and the open and closed pending entries the request, decision, chain evaluation and cascade, exercise and reconciliation writes leave; the model found that Invariant 7.1 holds only where Audit Trail lands the denial event of a chain evaluation that follows no committed load-bearing act (the terminal-chain leg, Reconciliation 22, or Withdraw Request's not-pending arm, Action wiring 64), since Action wiring 54 sets Denied and Action wiring 7 opens an entry only after a committed act, unless Action wiring 8 holds the request state until its event lands, which leaves the quiescence of Invariant 7.1 and 7.3 qualifying nothing; and that Action wiring 81 gives the failed exercise event of a token resolving to no request no session principal and no exercised instant, which the forged-token example and Composition state 24 and 25 carry); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: owed rows: Liveness; 2a: Liveness — owed: a PROPERTY under TLC; the file's FairnessSpec already states the fairness (weak fairness on the withdraw and revoke steps), the header names it; twin: a model that never delivers the cascade, 2026-06-03
+formal: verified — privileged-access-provisioning.tla + 13 twins (2026-11-22: the reconciliation's sweep over the request event and the exercise event, each landed, refused or landed with its answer lost, the pending entries owing them and the trail's originals, recovery intents and recovery records, checked as SweepPreCheckNoDuplicate (Reconciliation 4 through 6), SweepAttestedByService (Reconciliation 11), SweepNoAgedWrite (Reconciliation 10), RecoveryRecordNamesOwed (Reconciliation 15) and RecoveryRecordFollowsIntent (Reconciliation 12 through 14), broken by privileged-access-provisioning-buggy-sweep-no-precheck.tla, privileged-access-provisioning-buggy-sweep-unattested.tla, privileged-access-provisioning-buggy-sweep-aged-write.tla, privileged-access-provisioning-buggy-sweep-fresh-invocation.tla and privileged-access-provisioning-buggy-sweep-no-recovery-intent.tla; the evaluation entry and Reconciliation 16 not modeled; the model found that an entry whose owed record is aged has no closing occasion, since Reconciliation 2 retries it on every run, Reconciliation 10 bars the write and Composition state 32 closes it only once its record lands, so the request never reaches quiescence, and that Reconciliation 10's aged event is undefined for an owed record that never landed, which carries no recording instant); privileged-access-provisioning.als + 10 twins (the static data model, 2026-11-12: Invariant 3.2, 6.1, 7.1, 7.3, 8.1, 10.1 and 10.2, with 3.1 and 7.2 cross-checking the TLA+ model, checked on every state of the request records, the trail's events, each an original or a recovery record read as the event it names, and the open and closed pending entries the request, decision, chain evaluation and cascade, exercise and reconciliation writes leave; the model found that Invariant 7.1 holds only where Audit Trail lands the denial event of a chain evaluation that follows no committed load-bearing act (the terminal-chain leg, Reconciliation 22, or Withdraw Request's not-pending arm, Action wiring 64), since Action wiring 54 sets Denied and Action wiring 7 opens an entry only after a committed act, unless Action wiring 8 holds the request state until its event lands, which leaves the quiescence of Invariant 7.1 and 7.3 qualifying nothing; and that Action wiring 81 gives the failed exercise event of a token resolving to no request no session principal and no exercised instant, which the forged-token example and Composition state 24 and 25 carry); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12, 2026-11-22: owed rows: Liveness; 2a: Liveness — owed: a PROPERTY under TLC; the file's FairnessSpec already states the fairness (weak fairness on the withdraw and revoke steps), the header names it; twin: a model that never delivers the cascade, 2026-06-03
 last gate: 2026-11-19 — Final Critique 13, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at e3af1687 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational and 1 refining: the foundational is the open line 2026-11-18-a re-found, read with a measure the page does not hold (it takes the discrepancy of Check 2.2 and Check 3.2 for the time between two calls' stamps, a Session issued and revoked hours apart, where Check 2.1 and Check 3.1 ask whether the event's instant falls within the record's live or Active span and the discrepancy is how far it lies outside, a gap the clock allowance of Term clock allowance spends between the clocks of two calls), placed refining by both triages, and its cure (compare same-action stamps against the allowance and distinct-action stamps against a declared elapsed-time bound) refused: it spends the allowance only where Execution Contract Logic confinement 19 says none is spent, takes it from the distinct calls Logic confinement 18 and the Term name, and adds a setting no rule needs, so the line stands, extended; the refining (Check 2.2 and Check 3.2 share a body) placed rhetorical and declined, since each check names the one invariant it tests; Multi-Party Approval changed since the diff base and is unreached by the page's rules; 2026-11-18 — Final Critique 12 — delta, frozen at 7495618 — foundational count 1 after the blind second triage, not clean, no sample (Check 2.2 and Check 3.2 left a discrepancy exactly equal to the operating skew unowned; cured by DOES NOT EXCEED the clock allowance, the term renamed to the owner's name and cited to Execution Contract Logic confinement 18)
 
 open:
-- 2026-11-18-a · refining · Check 2.2; Check 3.2 · "discrepancy" is declared nowhere: the page does not say which two stamps it measures (the event's instant and the nearest edge of the Session record's live span or the credential's Active span, as the comparable checks of Actor Suspension and External Onboarding name both stamps), and the one wording the finder and the blind triage proposed, a gap between an instant and a span that DOES NOT EXCEED the allowance, compares two instants with a condition operator where Earned vocabulary 20 bars EXCEEDS → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-07-a · refining · derived-index classification · the Contract classification NOTE calls the request-to-events map (and the session access log) a derived index inside the audit horizon, while Composition state 24 and 27 write each as a peer write in the event's transaction, which the section titled Composition state in `execution-contract.md` (obligations 2 and 3) says a derived index is not → keep the in-transaction write and the NOTE names the departure (an index written with its event, complete before the event ages); stated once (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-07-b · refining · map order · Term request-to-events map says "in recording order" and cites no order rule, where the trail's sequence order and Execution Contract Order 1 each govern → the Term names the trail's sequence order (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-04-a · refining · structure · Action wiring carries no closure table, which spec-format.md requires as the subsection's first #### block → draft it as its own authoring unit, every cell owned by a rule
-- 2026-11-06-b · refining · terminal-chain leg · Reconciliation 23 lands a recovery record for every step decision in the chain's events that no decision event names, with no scope: every chain, or only the Rejected and Withdrawn chains Reconciliation 22 runs for, so a decision whose substrate recording-failure carrying outcome landed on a Pending or Approved chain may keep no decision event → Reconciliation 23 runs for every chain (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-06-c · refining · request id on a refused outcome · [Request Access] answering recording-failure carrying outcome hands the requestor no request id, so a retry opens a second request and chain → a retry is recognised by a key that survives a lost answer, never "the cost is stated" (decided 2026-11-19, group 3 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-06-d · refining · seam vocabulary · the request states Pending, Approved and Withdrawn are reused as the chain's states with different meanings across the seam (Action wiring 47 through 57) → declare the term, or name it a deployment disclosure where the word names a deployment's own value (decided 2026-11-19, group 1 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-04-c · refining · withdrawal reason · Action wiring 55 carries the terminal event's reason onto the withdrawal event, blank where the reason is destroyed past the audit horizon (Term terminal event, GRACE-lang Term blank), and Action wiring 122 records blank where the chain's event ids name no terminal event yet, where Action wiring 51 through 52 take blank and open a denial-reason entry → a retry is recognised by a key that survives a lost answer, never "the cost is stated" (decided 2026-11-19, group 3 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-11-11-a · refining · Action wiring 50; Term terminal event · two events of one chain can both carry a terminal summary only where an operator writes a second terminal event, which Multi-Party Approval alerts on (Composition state 22) and binds the first of by sequence number (Composition state 24), where Action wiring 50 reads from the tail and binds the later → the terminal event is the first by sequence number, as Multi-Party Approval Composition state 24 binds; Action wiring 50 reads the first (one form across both pages) (decided 2026-11-19, rounds/open-line-choices-directions-2.md (Scott, 3:35 and 3:41 PM Central))
-- 2026-11-10-a · refining · Action wiring 19 through 25, Action wiring 34 through 37, Action wiring 66 through 71, Action wiring 116; the request signatures · Multi-Party Approval composes Recoverable Invocation (its 2026-11-10 decision): initiate chain, the step decisions and withdraw chain now also answer act-in-flight, section-unavailable, journal-unavailable, storage-failure, state-unavailable, already-accounted and recording-failure carrying refusal, initiate chain already-assigned and the decisions chain-state-changed, each closed before or without a commit, and the wiring maps none of them → a retry is recognised by a key that survives a lost answer, never "the cost is stated" (decided 2026-11-19, group 3 of Scott's ruling of 2026-11-19T21:32Z)
-- 2026-08-29-a · refining · formal · the model's sweep carries no pre-check, no identity, no recovery record, and no age bound → extend the model with the four sweep rules
+- 2026-11-21-a · refining · Reconciliation 2, Reconciliation 10, Composition state 32, Term aged event · a pending entry whose owed record is an aged event has no way to close: Reconciliation 2 retries it on every run, Reconciliation 10 bars the write, and Composition state 32 closes it only once its record lands, so the request never reaches quiescence and Invariant 5 and Invariant 7 hold vacuously for it; Term aged event reads a recording instant an owed record that never landed does not have → close the entry as lapsed, writing nothing, once the owed record would be an aged event counted from the instant the entry was opened (asked of Scott, rounds/escalations.md; found by the model of 2026-11-21)
+- 2026-11-21-b · refining · Reconciliation 4, Reconciliation 12 through 15 · after a crash between a leg's recovery intent and its recovery record the page does not say whether the next run lands a second recovery intent, and Reconciliation 4's pre-check read on the intent would find it and close the entry without landing the record → the leg reads the trail for its own recovery intent and lands the recovery record under the one it finds (asked of Scott, rounds/escalations.md; found by the model of 2026-11-21)
 ```
 
 </details>
