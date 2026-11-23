@@ -774,7 +774,7 @@
    "verified-repair"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -812,7 +812,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-23",
   "title": "Escalation"
  },
  "event-log": {

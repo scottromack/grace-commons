@@ -210,7 +210,7 @@ A derived implementation of Escalation is acceptable when the following are prov
 
 ```
 Check 3.3: An auditor MUST exempt an intent whose window overlaps any span of journal-unavailable, or of store-unavailable or credential-refused for the intent's kind.
-Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans.
+Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans, the gap running from a closed record's last seen to the next record's first seen (findings 10a, findings 11).
 Check 3.5: IF service identity EQUALS none THEN the register MUST carry EVERY aged intent of a kind the bindings table serves as a closure-at-risk act finding WITHIN closure window.
 Check 3.6: IF an intent's window overlaps a span of credential-refused for the intent's kind THEN the register MUST carry the intent, an intent a closing record names excepted, as a closure-at-risk act finding WITHIN closure window.
 ```
@@ -274,7 +274,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-23` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -282,9 +282,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-23
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS beam-free, Linus claude-sonnet-5-5), frozen at 18c7609b — foundational count 4, not clean, one sample; cured in the round
+last gate: 2026-11-23 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at b8a27b32 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims refuted (act findings key on the invocation id, one per intent; findings 10b leaves an unread run's interval unread, and its cure would split a real outage), one refining cured (Check 3.4 says what the healthy gap is)
 open: none
 ```
 
