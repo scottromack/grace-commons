@@ -81,7 +81,7 @@ Term unreached: the acts step 1 kept that the run stopped short of after a write
 
 Term closed already: an act for which step 2's re-read finds a closing record naming the invocation id, another writer's (reconcile step 2.6).
 
-Term skipped: an act the run examined and left for the next run, in place of any count the act held — a failed take, a storage-failure and no answer included; a release that answered storage-failure (reconcile 9a); a re-read at step 2 that failed (reconcile step 2.10); an act probe answering unavailable; a closing write or a recovery_intended write whose retries the lease cut short; a closing write or a recovery_intended write left for the next run after step 3 counted the act; an act whose remaining did not exceed write floor at step 2 before any write (reconcile step 2.7); an act whose write under the service identity answered invalid-credential (reconcile step 3.18); an act whose outcome-unrecordable escalation answered invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) (reconcile step 3.23). The list is exhaustive.
+Term skipped: an act the run examined and left for the next run, in place of any count the act held — a failed take, a storage-failure and no answer included; a release that answered storage-failure (reconcile 9a); a re-read at step 2 that failed (reconcile step 2.10); an act probe answering unavailable; a closing write or a recovery_intended write whose retries the lease cut short; a closing write or a recovery_intended write left for the next run after step 3 counted the act; a read-back that failed (reconcile step 3.16c); an act whose remaining did not exceed write floor at step 2 before any write, a remaining of none or no answer included (reconcile step 2.7); an act whose write under the service identity answered invalid-credential (reconcile step 3.18); an act whose outcome-unrecordable escalation answered invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) (reconcile step 3.23). The list is exhaustive.
 
 Term reported: an act the run examined, of a kind whose service identity EQUALS none, that step 2 counted in no count and whose act probe did not answer unavailable.
 
@@ -105,7 +105,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    NOTE: watch rule inheritance (Durable Intent refuse step 0.1).
    reconcile step 2.5: IF the step-2 re-read finds a closing record naming the invocation id THEN the run MUST release.
    reconcile step 2.6: IF the step-2 re-read finds a closing record naming the invocation id THEN the run MUST count the act in closed already.
-   reconcile step 2.7: WHEN the step-2 re-read finds no closing record naming the invocation id AND service identity DOES NOT EQUAL none for the act's kind AND a remaining the run queried for the act (Durable Intent journal write bound 1) DOES NOT EXCEED write floor:
+   reconcile step 2.7: WHEN the step-2 re-read finds no closing record naming the invocation id AND service identity DOES NOT EQUAL none for the act's kind AND a remaining the run queried for the act (Durable Intent journal write bound 1) DOES NOT EXCEED write floor, a remaining of none or no answer included (Lease Term expired):
        reconcile step 2.7a: The run MUST count the act in skipped.
        reconcile step 2.7b: The run MUST release.
    reconcile step 2.8: The run MUST NOT take the critical section for an intent reconcile step 2.1 excepts.
@@ -136,7 +136,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 3.8a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent event id, act key, cause set to undecidable and database candidates set to candidates, capped as reconcile step 3.9 says.
        reconcile step 3.8c: The run MUST count escalated.
    reconcile step 3.9: database candidates MUST NOT carry more than intent candidates cap references, the first of candidates in act probe's order.
-   reconcile step 3.10: Past the cap, the escalated record MUST carry the count of EVERY candidate and the range, the first and the last of candidates in act probe's order.
+   reconcile step 3.10: Past the cap, the escalated record MUST carry the count of EVERY candidate and the range, the first and the last of candidates in act probe's order; the range is a pair of bounds, no reference of database candidates, so a cap of 1 carries the first reference and a range that names the same reference twice.
    reconcile step 3.11: The sweep MUST NOT choose among candidates.
    reconcile step 3.12: The sweep MUST NOT write an outcome the sweep did not read.
    reconcile step 3.13: WHEN act probe EQUALS unavailable:
@@ -146,9 +146,9 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    reconcile step 3.15: EVERY closing write's arms and EVERY recovery_intended write's arms MUST follow the outcome position.
    reconcile step 3.15a: The run MUST query remaining((kind, act key), critical section holder) behind the act probe and again behind each journal write of step 3 that another write follows, as that write's own reading (Durable Intent journal write bound 1).
    reconcile step 3.16: After invalid-request(step-4) (Audit Trail record action step 4.5), the run MUST read the record back by invocation id.
-   reconcile step 3.16a: IF the read-back finds the record THEN the run MUST count the act in closed or escalated, as the write's arm counts the act, with a hard alert.
+   reconcile step 3.16a: IF the read-back finds the record THEN the run MUST count the act in closed or escalated, as the write's arm counts the act and in place of any count the act held, with a hard alert.
    reconcile step 3.16b: IF the read-back finds nothing THEN the run MUST leave the write for the next run (reconcile step 3.17), with a hard alert.
-   NOTE: watch the read-back's other arm (reconcile step 3.16).
+   reconcile step 3.16c: IF the read-back answers unavailable or gives no answer THEN the run MUST leave the write for the next run (reconcile step 3.17), with a hard alert, and count the act in skipped.
    reconcile step 3.17: The run MUST leave EVERY step-2 arm and step-3 arm not landed within the lease for the next run.
    reconcile step 3.18: The run MUST surface an invalid-credential for a service identity on compliance surface at once, as a hard alert.
    reconcile step 3.19: The run MUST NOT write further under the credential once a write under the credential has answered invalid-credential; the next run's first write under the credential tries the credential again, and a write that answers otherwise ends the finding credential-refused (Escalation Term findings).
@@ -174,18 +174,19 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
 
    ```
    reconcile step 5.1: IF at risk threshold DOES NOT EXCEED intent age THEN the run MUST surface an examined, skipped or unreached intent whose closing has not landed as the act finding closure-at-risk.
-   reconcile step 5.9: IF an escalated record stands for an intent AND now DOES NOT PRECEDE the intent's settling edge AND now PRECEDES the intent's horizon edge THEN the run MUST surface the intent as the act finding closure-at-risk.
+   reconcile step 5.9: IF an escalated record stands for an intent AND the intent's settling edge PRECEDES now AND now PRECEDES the intent's horizon edge THEN the run MUST surface the intent as the act finding closure-at-risk.
    reconcile step 5.8: The run MUST return the counts.
    ```
 Term at risk threshold: `(((closure_window - (2 * run_bound)) - sweep_cadence) - clock_allowance)`.
 
 Term intent age: `(now - recorded_at)`.
 
-Term settling edge: `(horizon_edge - settling_period)` — the instant from which an escalation still standing has less than the kind's settling period left before the intent's horizon edge.
+Term settling edge: `(horizon_edge - settling_period)` — the instant after which an escalation still standing has less than the kind's settling period left before the intent's horizon edge.
 
 ```
 reconcile 6: An actor that is not a writer MUST NOT write a closing record.
-reconcile 7: Two sweep runs MUST serialize on the critical section per act and on sweep closed ids under the critical section.
+reconcile 7: Two sweep runs MUST serialize on the critical section per act.
+reconcile 7a: Two sweep runs MUST serialize on sweep closed ids under the critical section.
 reconcile 8: The run MUST commit EVERY journal write for an act as a separate transaction, the recovery_intended record and the closing record apart, so a recovery_intended record stays committed when the closing write fails (reconcile step 3.3, reconcile step 3.22; Execution Contract Database 1 holds within each write).
 reconcile 9: IF a take on act section answers storage-failure THEN the run MUST count the act in skipped with nothing written for the act (Execution Contract Constituent failure 1).
 reconcile 9a: IF a release on act section answers storage-failure THEN the run MUST count the act in skipped, a write already committed for the act standing (Execution Contract Constituent failure 1).
@@ -199,7 +200,7 @@ reconcile 9a: IF a release on act section answers storage-failure THEN the run M
 - **Invariant 4 — Bounded closure (safety + liveness).**
   ```
   Invariant 4.1: The records MUST reveal, provably, EVERY act whose invocation has yielded or died, as an aged intent with no record naming the intent's invocation id.
-  Invariant 4.2: IF the journal and the adopter's database are reachable AND service identity DOES NOT EQUAL none for the intent's kind AND the intent's kind IS IN the bindings table AND no instance finding credential-refused stands for the kind THEN EVERY elapsed intent MUST carry a closing record, an outcome, an abandoned record or an escalation, WITHIN closure window of the intent's recording instant.
+  Invariant 4.2: IF the journal and the adopter's database are reachable AND service identity DOES NOT EQUAL none for the intent's kind AND the intent's kind IS IN the bindings table AND no instance finding credential-refused stands for the kind THEN EVERY elapsed intent MUST carry a closing record, an outcome, an abandoned record or an escalation, WITHIN closure window of the intent's recording instant, an intent Escalation Check 3.3 exempts excepted.
   Invariant 4.3: WHEN the journal is unreachable:
       Invariant 4.3a: A writer MUST NOT close the intent during the outage.
   Invariant 4.4: [Reconcile] MUST surface a journal outage as the instance finding journal-unavailable, never as the outage's intents.
@@ -256,7 +257,7 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
   Term sweep cadence: the interval at which the sweep runs after the mandatory run at process restart. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
   ```
-  sweep cadence 2: A run MUST start WITHIN sweep cadence of the previous run's return.
+  sweep cadence 2: A run MUST start WITHIN sweep cadence of the previous run's return, the death of the process that ran the previous run excepted (sweep cadence 3).
   sweep cadence 3: IF the process that ran the previous run has died THEN a run MUST start WITHIN run interval of the previous run's start.
   ```
   Term run interval: `(sweep_cadence + run_bound)` — the gap between two runs' starts that worst closure charges (Recoverable Invocation Instance start 4): a run's run bound, then the cadence.
@@ -265,7 +266,7 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
   Term closure latency: the disclosed bound on one whole closure: re-read, act probe, `<kind>.recovery_intended`, the closing record, the index update. Condition 5. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
 - **run bound**
-  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which Lease's take ends at the waiter's last reading (reconcile step 2.3). *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which Lease's take ends at the waiter's last reading (reconcile step 2.3); a backlog past the one the deployment sizes for is a breach of the deployment's own sizing, and no bound is claimed for it. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
   ```
   run bound 1: A node MUST NOT start a run beside the node's own run in flight.
@@ -308,7 +309,7 @@ A derived implementation of Sweep is acceptable when the following are provable 
 #### Conformance checks
 
 ```
-Check 3.1: For EVERY elapsed intent inside the horizon, of a kind whose service identity DOES NOT EQUAL none, a closing record MUST land WITHIN closure window of the intent's recording instant, the auditor's reading tolerating clock allowance across seams, an intent Escalation Check 3.3 exempts excepted.
+Check 3.1: For EVERY elapsed intent for which the auditor's now PRECEDES the intent's horizon edge, of a kind whose service identity DOES NOT EQUAL none, a closing record MUST land WITHIN closure window of the intent's recording instant, the auditor's reading tolerating clock allowance across seams, an intent Escalation Check 3.3 exempts excepted.
 Check 3.2: An auditor MUST exempt an intent of a kind the bindings table no longer serves from Check 3.1, Escalation Check 3.5 and Escalation Check 3.6.
 ```
 ```
@@ -379,7 +380,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 ```
 status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS beam-free, Linus claude-sonnet-5-5), frozen at 18c7609b — foundational count 5 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample; the reports claimed 9 foundational and the triage placed 5 refuted or refining and found one of its own (the read-back after invalid-request(step-4) had no rule for what it finds): GRID's step 2.1 claim (the exception is evaluated across the run's own acts, one at a time) and its none-defaults claim (Execution Contract Logic confinement 15 makes a setting with no default a required setting at start), EOS's act-probe claim (reconcile 2b stands under rule 2's none-kind WHEN, 3.1 under the kinds that declare an identity) and its step-4 claim (invalid-request(step-4) is Audit Trail's record action step 4.5, now cited), Linus's Check 3.1 claim (Escalation Check 3.3 exempts the outage spans, now cited); cured: reconcile step 3.16a and 3.16b land the read-back's two arms, reconcile step 3.19 stops the writes of one run after invalid-credential and the next run's first write tries the credential again (Escalation Term findings), reconcile 8 commits each journal write of an act as a transaction of its own, Term cited names the owner of write floor, examine edge, in-flight, hard alert, critical section holder, act finding, instance finding, condition read and resolving actor, reconcile step 3.8a through 3.10 cap the candidates at the first intent candidates cap of them in act probe's order and carry the count and the first-and-last range past the cap; refining cured: Invariant 4.2 reads elapsed intents, reconcile step 2.12 examines one act at a time, step 5.9 stops at the horizon edge, reconcile 3 and 2e, step 4.4 releases only what is held, reconcile 9a, step 2.7 for a kind with an identity, Check 6.1 reads the records as of the outcome's commit, the Example gains its credential-refused path, the three none defaults cite Logic confinement 15; model redraw deferred to Lean: none; Condition Register composition filed to Scott
+last gate: 2026-11-23 — Final Critique 2, a delta round (diff base 18c7609b, 52 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at 817faf2c — foundational count 2 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample; the report claimed 3 foundational and the triage placed 2 and refined 1 (the step 2.7 trace is refuted: Durable Intent journal write bound 1 and Lease Sizing 2b, 7 and 8 bar the write on a failed remaining query, and its count wording is cured as refining); cured: reconcile step 3.16c lands the read-back that answers unavailable or gives no answer (the write left for the next run, a hard alert, the act counted skipped, Term skipped naming it), Invariant 4.2 excepts an intent Escalation Check 3.3 exempts, as Check 3.1 does (the finder's closure start is refused: Escalation Check 3.4 grants no exemption for the healthy gap); refining cured: reconcile step 2.7 and Term skipped read a remaining of none or no answer as not exceeding write floor, reconcile step 3.16a counts in place of any count the act held, Check 3.1 reads the horizon edge, Term run bound claims no bound past its sizing, sweep cadence 2 excepts the death sweep cadence 3 covers, reconcile step 5.9 and Term settling edge read less than the settling period left, reconcile 7 split into 7 and 7a, reconcile step 3.10 says the range adds no reference; refuted: Term partition's closed_already is a formula identifier; model redraw deferred to Lean: none
 open: none
 ```
 
