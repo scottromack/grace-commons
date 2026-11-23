@@ -336,7 +336,7 @@ read(card_id)
 ```
 
 ```
-Operation 14: IF the card id EXCEEDS the string cap OR no gift card EXISTS for the card id THEN [Read] MUST answer not-known.
+Operation 14: IF no gift card EXISTS for the card id, including a card id that is not a string, OR the card id EXCEEDS the string cap, THEN [Read] MUST answer not-known.
 Operation 15: [Read] MUST answer the gift card's card id, currency, value AND balance.
 Operation 16: [Read] MUST NOT answer the card code digest.
 Operation 17: [Read] MUST NOT write.
@@ -394,15 +394,16 @@ Capability requirement 1: The deployment MUST supply at the seam a card id no gi
 Capability requirement 2: The deployment MUST supply at the seam a card code no gift card of the instance has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST draw a card code from a cryptographically secure random source.
 Capability requirement 4: The code entropy MUST NOT EXCEED the card code's random material.
-Capability requirement 5: The deployment MUST supply the accepted currencies.
+Capability requirement 5: The deployment MUST supply the accepted currencies, each a currency whose code gives a minor unit (Term minor unit).
 Capability requirement 6: The deployment MAY supply the card cap for a currency ONLY IF the card cap IS IN the positive amounts PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 8: The deployment MUST NOT normalize a card code at the seam.
 Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
 Capability requirement 10: The deployment MUST supply each card id PER Execution Contract Logic confinement 16.
 Capability requirement 11: The deployment MUST supply each card code PER Execution Contract Logic confinement 16.
-Capability requirement 12: The deployment MUST supply at the seam the card code digest of each card code the deployment supplies and of each card code a call presents (Execution Contract Logic confinement 8).
+Capability requirement 12: The deployment MUST supply at the seam the card code digest of each card code the deployment supplies and of each card code a call presents that is a string (Execution Contract Logic confinement 8).
 Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 14: The deployment MUST NOT normalize a card id at the seam.
 ```
 
 Term code entropy: 64 bits, the least random material a card code carries.
@@ -423,7 +424,7 @@ Kind:       Parameter
 Parameter of: Issue
 Projection: card_cap
 
-NOTE: the atom declares no reference, so Execution Contract Logic confinement 13 reaches neither the card code nor the currency (Capability requirement 8, Capability requirement 9).
+NOTE: the atom declares no reference, so Execution Contract Logic confinement 13 reaches neither the card id nor the card code nor the currency (Capability requirement 14, Capability requirement 8, Capability requirement 9).
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 10, Capability requirement 11).
 
@@ -560,7 +561,7 @@ Term terms: gift card, card id, card code, card code digest, code entropy, strin
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-23` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -568,9 +569,9 @@ Term terms: gift card, card id, card code, card code digest, code entropy, strin
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-23
 formal: verified — gift-card.als + 12 twins (the static data model: State 1, Identity 5 through 9, Invariant 1.1 and 2.2, Operation 1, 2, 3 and 5 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 5 check, Identity 2 and 4 by the Identity 8 check, Identity 10 by the Operation 1 check and Operation 11 by the Invariant 1.1 check); gift-card.tla + 16 twins (across steps: Invariant 2.1, 3.1 through 3.3 and 4.1, State 2, Term balance (the value less every spend), Operation 4, 6 through 10, 12, 13, 16 and 17); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 11, Operation 14 and 15, State 3 (the models' stored code reads as the card code digest since 2026-11-23, Final Critique 5, no twin re-derived), 2026-11-11
-last gate: 2026-11-23 — Final Critique 5, a delta round, one reader (Linus opencode/minimax-m3), frozen at 2d3efd9 — foundational count 1, cured, not clean, no sample; 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at c725410 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's one foundational rating, a second [Spend] meeting Logic confinement 16 twice, was placed not a finding, since [Spend] takes the card code as a caller's input and the host supplies the id and the code once, at [Issue] (Operation 4), and Logic confinement 16 says an id a call carries onward on a later call's input is not supplied again; its refining rating, Term spent balance, and its two others, the [Spend] row's "within the balance" and the NOTE beside Capability requirement 10 and 11, were placed refining Kind B and rhetorical Kind D; the term and the row cured by a clause and a word, the NOTE left as the corpus's one watched name); 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-23 — Final Critique 6, a delta round, one reader (Linus opencode/minimax-m3), frozen at e057eb2 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational rating, that no rule binds a card code the deployment supplies to the string cap, was placed not a finding: Execution Contract Logic confinement 16 names Gift Card's card code an allocated id whose Input 2 bounds hold beside it, and Capability requirement 11 cites it, so a deployment issuing codes over its cap breaks Capability requirement 11 and no two conforming builds differ; its refining ratings, Capability requirement 12's digest of a non-string, Operation 14's non-string card id, the accepted currencies' minor unit and the card id's normalization at the seam, were cured by a clause each and Capability requirement 14, and its three rhetorical ratings and three refining ones, the citation of Logic confinement 3 in Capability requirement 1 and 2, the digest before the cap and the card cap's gloss, left as the phrasing or a preference of sound content); 2026-11-23 — Final Critique 5, a delta round, one reader (Linus opencode/minimax-m3), frozen at 2d3efd9 — foundational count 1, cured, not clean, no sample; 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at c725410 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's one foundational rating, a second [Spend] meeting Logic confinement 16 twice, was placed not a finding, since [Spend] takes the card code as a caller's input and the host supplies the id and the code once, at [Issue] (Operation 4), and Logic confinement 16 says an id a call carries onward on a later call's input is not supplied again; its refining rating, Term spent balance, and its two others, the [Spend] row's "within the balance" and the NOTE beside Capability requirement 10 and 11, were placed refining Kind B and rhetorical Kind D; the term and the row cured by a clause and a word, the NOTE left as the corpus's one watched name); 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
