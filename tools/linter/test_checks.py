@@ -42,6 +42,7 @@ from lint import (  # noqa: E402
     check_audit_claim,
     check_term_kind,
     check_pattern_not_page,
+    check_part_order,
     check_standard_sentences,
     check_case_rows,
     check_term_registry,
@@ -760,6 +761,36 @@ def check_pattern_not_page_synthetic(problems: list[str]) -> int:
         got = run(text, "atoms/a.hist.md" if label.startswith("a history") else "atoms/a.md")
         if got != want:
             problems.append(f"Y-pattern-not-page: {label}: {got} finding(s), want {want}")
+    return len(cases)
+
+
+# ── P-part-order, pinned synthetically ───────────────────────────────────── #
+# The order of a sentence's parts (unit `format: the order of a sentence's parts`, Scott 2026-11-22): a sentence that opens
+# with its reason fires, and so does a parenthesis naming a person and a date that stands mid-sentence; the same words in
+# the fixed order, and a rule inside a fence, stay silent.
+def check_part_order_synthetic(problems: list[str]) -> int:
+    import tempfile
+
+    def run(text: str) -> int:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for sub in ("atoms", "compositions"):
+                (root / sub).mkdir()
+            (root / "atoms/a.md").write_text(text, encoding="utf-8")
+            return len(check_part_order(load_patterns(root)))
+
+    cases = [
+        ("a reason first", "# A\n\n## Why\n\nBecause a retry repeats, the record keeps one entry.\n", 1),
+        ("a reason first after a sentence", "# A\n\n## Why\n\nIt keeps one. Since a retry repeats, it writes once.\n", 1),
+        ("the point first, then the reason", "# A\n\n## Why\n\nThe record keeps one entry because a retry repeats.\n", 0),
+        ("a person and a date that close the sentence", "# A\n\n## Why\n\nThe record keeps one entry (Scott, 2026-11-20).\n", 0),
+        ("a person and a date mid-sentence", "# A\n\n## Why\n\nThe record keeps one entry (Scott, 2026-11-20) and nothing else.\n", 1),
+        ("a rule in a fence", "# A\n\n```\nRule 1: Since the call repeats, the atom MUST write once (Scott, 2026-11-20) now.\n```\n", 0),
+    ]
+    for label, text, want in cases:
+        got = run(text)
+        if got != want:
+            problems.append(f"P-part-order: {label}: {got} finding(s), want {want}")
     return len(cases)
 
 
@@ -4731,6 +4762,13 @@ def main(argv: list[str]) -> int:
         print(f"Y-pattern-not-page: {n_page} synthetic fixtures hold (a pattern, a rule and this pattern said to be a "
               "page each fire; GitHub Pages, a page size, a screen in an example, the Ledger, Decisions, "
               "a dated open note and a history file stay silent) \u2713")
+
+    order_problems: list[str] = []
+    n_order = check_part_order_synthetic(order_problems)
+    failures.extend(order_problems)
+    if not order_problems:
+        print(f"P-part-order: {n_order} synthetic fixtures hold (a sentence opening with its reason and a person-and-date "
+              "parenthesis mid-sentence each fire; the point first, a closing parenthesis and a rule in a fence stay silent) \u2713")
 
     std_problems: list[str] = []
     n_std = check_standard_sentences_synthetic(std_problems)

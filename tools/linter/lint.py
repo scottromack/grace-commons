@@ -316,6 +316,9 @@ TRAILING_PAREN = re.compile(r"\s*\([^)]*\)\s*$")
 # finding for its page's next round, and a code leaves this set in the change
 # that cures its last site.
 ADVISORY_CODES: frozenset[str] = frozenset({"Z-vague", "Z-unit", "Z-pronoun", "O-term-kind", "Y-pattern-not-page",
+                                            # the order of a sentence's parts: advisory until it reads clean across the corpus
+                                            # (unit `format: the order of a sentence's parts`, 2026-11-23)
+                                            "P-part-order",
                                             # the standard sentences: advisory until the reorganisation sweep is done, then a gate
                                             # (unit `method: the forms of the tree reorganisation and the standard sentences`)
                                             "Y-key-sentence", "Y-owner-key-sentence", "Y-link-sentence", "Y-range-sentence",
@@ -3975,6 +3978,36 @@ def check_case_rows(patterns: dict[Path, Pattern]) -> list[Finding]:
     return out
 
 
+# P-part-order (advisory): the order of a sentence's parts in a pattern's free text
+# (unit `format: the order of a sentence's parts`, Scott 2026-11-22: the words stay free, the order is fixed).
+# Two signals only: a sentence that opens with its reason (`Because` or `Since` before the main clause), and a
+# parenthesis naming a person and a date that does not close its sentence. A term entry's kind-first order and
+# a NOTE:'s subject-first order are not read, since nothing measures them yet.
+_ORDER_REASON = re.compile(r"(?:^|(?<=[.!?] ))(?:Because|Since) [^,.;]{3,},")
+_ORDER_PAREN = re.compile(r"\((?:[^()]*?\b(?:Scott|the maintainer)\b[^()]*?\d{4}-\d{2}-\d{2}[^()]*?)\)(?![.?!]?(?:\s*$))")
+
+
+def check_part_order(patterns: dict[Path, Pattern]) -> list[Finding]:
+    out: list[Finding] = []
+    for p in patterns.values():
+        fence = False
+        for i, raw in enumerate(p.text.splitlines(), 1):
+            if raw.lstrip().startswith(("```", "~~~")):
+                fence = not fence
+                continue
+            if fence or raw.lstrip().startswith(("|", "- **Invariant")):
+                continue
+            if _ORDER_REASON.search(raw):
+                out.append(Finding(p.path, i, "P-part-order",
+                    "a sentence opens with its reason: say the point first, then the reason (`because …`) "
+                    "(spec-format.md, the order of a sentence's parts)"))
+            elif _ORDER_PAREN.search(raw):
+                out.append(Finding(p.path, i, "P-part-order",
+                    "a parenthesis naming a person and a date stands mid-sentence: let it close the sentence "
+                    "(spec-format.md, the order of a sentence's parts)"))
+    return out
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     flags = {a for a in argv[1:] if a.startswith("--")}
@@ -4041,6 +4074,7 @@ def main(argv: list[str]) -> int:
     findings += check_term_kind(root, patterns)
     findings += check_requirement_text(patterns)
     findings += check_pattern_not_page(root, patterns)
+    findings += check_part_order(patterns)
     findings += check_standard_sentences(patterns)
     findings += check_case_rows(patterns)
 
