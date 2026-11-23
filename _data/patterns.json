@@ -827,8 +827,8 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
-  "invariants": 4,
+  "grounded": false,
+  "invariants": 5,
   "kind": "atom",
   "models": {
    "als": true,
@@ -838,7 +838,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-06",
+  "status": "doing",
   "title": "Gift Card"
  },
  "idempotent-reservation": {

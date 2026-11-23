@@ -18,7 +18,7 @@ toc: true
 
 ## What it is
 
-Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left. Whoever holds the gift card's code can spend it, so the code is drawn at random where nobody can guess it, and the seller's own records name the gift card by a separate card id that spends nothing. A spend takes exactly the amount asked or is refused, so a balance never goes below zero, and nothing ever raises a balance: the gift card is never reloaded, never refunded to, never cancelled, never expires and carries no fee. Applying a gift card to a purchase, splitting a payment between a gift card and another method, refunds, and loyalty features such as reloading or transferring a balance each belong to another pattern, which is why one gift card serves an online store, a café and a bookshop alike.
+Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left. Whoever holds the gift card's code can spend it, so the code is drawn at random where nobody can guess it, the seller's records keep only a digest of the code and never the code, and they name the gift card by a separate card id that spends nothing. A spend takes exactly the amount asked or is refused, so a balance never goes below zero, and nothing ever raises a balance: the gift card is never reloaded, never refunded to, never cancelled, never expires and carries no fee. Applying a gift card to a purchase, splitting a payment between a gift card and another method, refunds, and loyalty features such as reloading or transferring a balance each belong to another pattern, which is why one gift card serves an online store, a café and a bookshop alike.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -43,7 +43,7 @@ Kind: Type
 Identity 1: The atom MUST identify a gift card by the card id.
 ```
 
-Term card id: the opaque value naming one gift card in the seller's records — a [Card Id]; unique for the system's life, and it spends nothing.
+Term card id: the opaque value naming one gift card in the seller's records — a [Card Id]; unique for the life of the instance, and it spends nothing.
 
 #### Card Id
 
@@ -58,24 +58,26 @@ Identity 5: The atom MUST NOT reuse a card id.
 Identity 11: The atom MUST compare two card ids codepoint for codepoint.
 ```
 
-Term card code: the random value whose holder may spend a gift card — a [Card Code]; unique for the system's life, answered once, by [Issue].
+Term card code: the random value whose holder may spend a gift card — a [Card Code]; unique for the life of the instance, answered once, by [Issue], and never stored: the gift card carries its card code digest in its place (State 1, State 3).
 
 #### Card Code
 
-The random value whose holder may spend a gift card, allocated by the host at the seam on [Issue] from a cryptographically secure random source, with at least 64 bits of random material; never reused, never changed, answered only by [Issue], stored as supplied and compared codepoint for codepoint.
+The random value whose holder may spend a gift card, allocated by the host at the seam on [Issue] from a cryptographically secure random source, with at least 64 bits of random material; never reused, never changed, answered only by [Issue] and never stored (State 3); the gift card carries its card code digest in its place, computed over the card code exactly as the seam supplied or a call presented it, and a card code over the string cap names nothing (Operation 7).
 
 Kind:       Field
 Field of:   Gift Card
 Projection: card_code
 
 ```
-Identity 2: The atom MUST find a gift card by the card code.
-Identity 3: The card code MUST serve as the bearer credential [Check Balance] accepts.
-Identity 4: The card code MUST serve as the bearer credential [Spend] accepts.
-Identity 6: The atom MUST NOT reuse a card code.
+Identity 2: The atom MUST find a gift card by the card code digest of the card code presented.
+Identity 3: The card code MUST serve as the bearer credential whose card code digest [Check Balance] accepts.
+Identity 4: The card code MUST serve as the bearer credential whose card code digest [Spend] accepts.
+Identity 6: The atom MUST NOT reuse a card code digest.
 Identity 7: The atom MUST NOT normalize a card code.
-Identity 8: The atom MUST compare two card codes codepoint for codepoint.
+Identity 8: The atom MUST compare two card code digests codepoint for codepoint.
 ```
+
+Term card code digest: the digest of a card code, a string, computed at the seam (Execution Contract Logic confinement 8) over the card code as supplied or presented; the gift card carries it in place of the card code (Execution Contract Logic confinement 21).
 
 Term value: the amount a gift card was loaded with at [Issue] — a [Value]; a positive amount in the currency the call names.
 
@@ -97,11 +99,11 @@ Kind:       Field
 Field of:   Gift Card
 Projection: balance
 
-Term currency: the unit of account a gift card's value and balance are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; set when the gift card is issued.
+Term currency: the unit of account a gift card's value and balance are counted in, a code from ISO 4217 (the International Organization for Standardization's standard for currency codes) — a [Currency]; set when the gift card is issued.
 
 #### Currency
 
-The unit of account a gift card's [Value] and [Balance] are counted in, such as an ISO 4217 code; set by [Issue] from the accepted currencies, never changed, stored as supplied and compared codepoint for codepoint.
+The unit of account a gift card's [Value] and [Balance] are counted in, an ISO 4217 code; set by [Issue] from the accepted currencies, never changed, stored as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Gift Card
@@ -112,15 +114,16 @@ Identity 9: The atom MUST NOT normalize a currency.
 Identity 10: The atom MUST compare two currencies codepoint for codepoint.
 ```
 
-Term minor unit: the smallest unit of a currency — the cent of a dollar, or the yen itself; for a code from ISO 4217, the unit that standard's minor unit exponent gives.
+Term minor unit: the unit the minor unit exponent of a currency's ISO 4217 code gives — the cent of a dollar, or the yen itself.
 
 Term whole amount: a whole number of the gift card currency's minor unit, zero or more.
 
 Term positive amount: a whole amount of one or more.
 
 ```
-State 1: EVERY gift card MUST carry card id, card code, currency, value and balance.
+State 1: EVERY gift card MUST carry card id, card code digest, currency, value and balance PER Execution Contract Logic confinement 21.
 State 2: The atom MUST NOT remove a gift card.
+State 3: The atom MUST NOT store a card code.
 ```
 
 ## What people do
@@ -130,21 +133,21 @@ State 2: The atom MUST NOT remove a gift card.
 Term code action: [Check Balance] | [Spend] — the actions that name a gift card by the card code.
 
 ```
-Operation 7: IF no gift card EXISTS for the card code, including a card code that is not a string, THEN a code action MUST answer not-known.
+Operation 7: IF no gift card EXISTS for the card code, including a card code that is not a string, OR the card code EXCEEDS the string cap, THEN a code action MUST answer not-known.
 ```
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the gift cards |
 |---|---|---|---|
-| a code action | the code names nothing | [Not Known] | none (Operation 7) |
+| a code action | the code names nothing, or is over the string cap | [Not Known] | none (Operation 7) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
 #### Not Known
 
-The refusal of a [Card Code] naming no gift card, on [Check Balance] or [Spend], or of a [Card Id] naming no gift card, on [Read].
+The refusal of a [Card Code] naming no gift card, on [Check Balance] or [Spend], or of a [Card Id] naming no gift card, on [Read]; a card code or a card id over the string cap names nothing.
 
 Kind:       Member
 Member of:  the action rejection
@@ -180,7 +183,7 @@ issue(currency, value)
 Operation 1: IF the currency IS NOT IN the accepted currencies THEN [Issue] MUST answer invalid-currency.
 Operation 2: IF the value IS NOT IN the positive amounts THEN [Issue] MUST answer invalid-value.
 Operation 3: IF the value EXCEEDS the card cap of the currency THEN [Issue] MUST answer over-cap.
-Operation 4: [Issue] MUST record EXACTLY ONE gift card carrying the card id AND the card code the seam supplied, the currency and the value of the call.
+Operation 4: [Issue] MUST record EXACTLY ONE gift card carrying the card id AND the card code digest the seam supplied, the currency and the value of the call.
 Operation 5: [Issue] MUST set the gift card's balance to the value.
 Operation 6: [Issue] MUST answer the card id AND the card code.
 ```
@@ -294,7 +297,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the gift cards |
 |---|---|---|---|
-| [Spend] | amount a positive amount, not over the balance, database accepts | the new balance | the balance falls by the amount; the card code, the currency and the value stand (Operation 12, Invariant 3.1, Invariant 3.2, Invariant 3.3) |
+| [Spend] | amount a positive amount, not over the balance, database accepts | the new balance | the balance falls by the amount; the card code digest, the currency and the value stand (Operation 12, Invariant 3.1, Invariant 3.2, Invariant 3.3) |
 | [Spend] | amount not a positive amount | [Invalid Amount] | none (Operation 10) |
 | [Spend] | amount over the balance | [Insufficient Balance] | none (Operation 11, Invariant 4.1) |
 
@@ -322,7 +325,7 @@ Projection: insufficient-balance
 
 ### Read
 
-Answers a gift card for the seller's records, named by its [Card Id]: its [Currency], [Value] and [Balance], never its [Card Code]; changes nothing.
+Answers a gift card for the seller's records, named by its [Card Id]: its [Currency], [Value] and [Balance], never its [Card Code] or the digest of it; changes nothing.
 
 Kind: Operation
 
@@ -333,9 +336,9 @@ read(card_id)
 ```
 
 ```
-Operation 14: IF no gift card EXISTS for the card id THEN [Read] MUST answer not-known.
+Operation 14: IF the card id EXCEEDS the string cap OR no gift card EXISTS for the card id THEN [Read] MUST answer not-known.
 Operation 15: [Read] MUST answer the gift card's card id, currency, value AND balance.
-Operation 16: [Read] MUST NOT answer the card code.
+Operation 16: [Read] MUST NOT answer the card code digest.
 Operation 17: [Read] MUST NOT write.
 ```
 
@@ -343,8 +346,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the gift cards |
 |---|---|---|---|
-| [Read] | the card id names a gift card | the card id, currency, value and balance, never the code | none (Operation 15 through 17) |
-| [Read] | the card id names nothing | [Not Known] | none (Operation 14) |
+| [Read] | the card id names a gift card | the card id, currency, value and balance, never the code or its digest | none (Operation 15 through 17) |
+| [Read] | the card id names nothing, or is over the string cap | [Not Known] | none (Operation 14) |
 
 - `read(g404)`, where no gift card `g404` exists — rejected as [Not Known].
 
@@ -359,15 +362,19 @@ The case space, and the rule that owns each case:
   Invariant 2.1: The atom MUST NOT raise a gift card's balance.
   Invariant 2.2: A gift card's balance MUST NOT EXCEED the gift card's value.
   ```
-- **Invariant 3 — A gift card keeps its code, its currency and its value.**
+- **Invariant 3 — A gift card keeps its card code digest, its currency and its value.**
   ```
-  Invariant 3.1: The atom MUST NOT change a gift card's card code.
+  Invariant 3.1: The atom MUST NOT change a gift card's card code digest.
   Invariant 3.2: The atom MUST NOT change a gift card's currency.
   Invariant 3.3: The atom MUST NOT change a gift card's value.
   ```
 - **Invariant 4 — A refused spend takes nothing.**
   ```
   Invariant 4.1: A refused [Spend] MUST NOT change a gift card's balance.
+  ```
+- **Invariant 5 — A gift card's value is positive.**
+  ```
+  Invariant 5.1: EVERY gift card MUST carry a positive amount as the gift card's value.
   ```
 
 ## When something happens
@@ -383,10 +390,10 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply at the seam a card id no gift card has carried PER Execution Contract Logic confinement 3.
-Capability requirement 2: The deployment MUST supply at the seam a card code no gift card has carried PER Execution Contract Logic confinement 3.
+Capability requirement 1: The deployment MUST supply at the seam a card id no gift card of the instance has carried PER Execution Contract Logic confinement 3.
+Capability requirement 2: The deployment MUST supply at the seam a card code no gift card of the instance has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST draw a card code from a cryptographically secure random source.
-Capability requirement 4: The card code's random material MUST NOT fall below the code entropy.
+Capability requirement 4: The code entropy MUST NOT EXCEED the card code's random material.
 Capability requirement 5: The deployment MUST supply the accepted currencies.
 Capability requirement 6: The deployment MAY supply the card cap for a currency ONLY IF the card cap IS IN the positive amounts PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
@@ -394,11 +401,15 @@ Capability requirement 8: The deployment MUST NOT normalize a card code at the s
 Capability requirement 9: The deployment MUST NOT normalize a currency at the seam.
 Capability requirement 10: The deployment MUST supply each card id PER Execution Contract Logic confinement 16.
 Capability requirement 11: The deployment MUST supply each card code PER Execution Contract Logic confinement 16.
+Capability requirement 12: The deployment MUST supply at the seam the card code digest of each card code the deployment supplies and of each card code a call presents (Execution Contract Logic confinement 8).
+Capability requirement 13: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
 
 Term code entropy: 64 bits, the least random material a card code carries.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each card id and card code here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each card id, each card code and each card code digest here.
+
+Term string cap: the bound on a card id's and a card code's length in Unicode code points; 1,024 code points where a deployment declares none.
 
 Term accepted currencies: the currencies the deployment sells gift cards in — the set [Issue] checks a currency against; where the deployment supplies none, the set is empty and Operation 1 refuses every currency.
 
@@ -444,7 +455,6 @@ Where the atom breaks down: a gift card meant to be reloaded, shared, or refunde
 
 ```
 Composition note 1: A composing pattern MUST own what this atom declines.
-Composition note 2: A composing pattern MUST spend a gift card in the gift card's currency.
 ```
 
 NOTE: composing patterns — none yet. Forthcoming: Checkout.
@@ -481,15 +491,17 @@ Acceptable when the checks below are provable to an external auditor from the gi
 #### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY gift card carrying card id, card code, currency, value AND balance (State 1).
+Check 1.1: An auditor MUST find EVERY gift card carrying card id, card code digest, currency, value AND balance (State 1).
+Check 1.2: An auditor MUST find no gift card carrying a card code (State 3).
 Check 2.1: An auditor MUST find no two gift cards sharing a card id (Identity 5).
-Check 2.2: An auditor MUST find no two gift cards sharing a card code (Identity 6).
+Check 2.2: An auditor MUST find no two gift cards sharing a card code digest (Identity 6).
 Check 3.1: An auditor MUST find EVERY gift card carrying a whole amount as the gift card's balance (Invariant 1.1).
 Check 3.2: An auditor MUST find no version of a gift card other than the gift card's first version whose balance EXCEEDS the balance of the gift card's previous version (Invariant 2.1).
 Check 3.3: An auditor MUST find no gift card whose balance EXCEEDS the gift card's value (Invariant 2.2).
-Check 4.1: An auditor MUST find EVERY version of a gift card carrying the card code of the gift card's first version (Invariant 3.1).
+Check 4.1: An auditor MUST find EVERY version of a gift card carrying the card code digest of the gift card's first version (Invariant 3.1).
 Check 4.2: An auditor MUST find EVERY version of a gift card carrying the currency of the gift card's first version (Invariant 3.2).
 Check 4.3: An auditor MUST find EVERY version of a gift card carrying the value of the gift card's first version (Invariant 3.3).
+Check 5.1: An auditor MUST find EVERY gift card carrying a positive amount as the gift card's value (Invariant 5.1).
 ```
 
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
@@ -508,19 +520,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a gift card; a code action; an auditor.
 
-Term records: gift card — one stored value loaded once in one currency, carrying card id, card code, currency, value and balance.
+Term records: gift card — one stored value loaded once in one currency, carrying card id, card code digest, currency, value and balance.
 
-Term record verbs: identify, find, serve, reuse, normalize, compare, carry, remove, supply, draw, fall, record, set, answer, write, raise, change, spend, take, share, read, reload, split, transfer, refund, cancel, expire, charge, apply, convert, limit, report, hold, tell, own, clear, refuse.
+Term record verbs: identify, find, serve, reuse, normalize, compare, carry, remove, store, supply, declare, draw, record, set, answer, write, raise, change, spend, take, share, read, reload, split, transfer, refund, cancel, expire, charge, apply, convert, limit, report, hold, tell, own, clear, refuse.
 
 Term value sets: code action is declared above and cited here (GRACE-lang Closed vocabulary 15).
 
-Term bounds: positive amount (one, the floor of a value and an amount); whole amount (zero, the floor of a balance); code entropy (64 bits, the floor of a card code's random material).
+Term bounds: positive amount (one, the floor of a value and an amount); whole amount (zero, the floor of a balance); code entropy (64 bits, the floor of a card code's random material); string cap (the bound on a card id's and a card code's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-10-30) through the Grace connector.
 
-Term terms: gift card, card id, card code, code entropy, seam, value, balance, currency, minor unit, whole amount, positive amount, accepted currencies, card cap, amount, spent balance, code action, version.
+Term terms: gift card, card id, card code, card code digest, code entropy, string cap, seam, value, balance, currency, minor unit, whole amount, positive amount, accepted currencies, card cap, amount, spent balance, code action, version.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->
@@ -548,7 +560,7 @@ Term terms: gift card, card id, card code, code entropy, seam, value, balance, c
 
 ## Status
 
-`done — 2026-11-06` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -556,9 +568,9 @@ Term terms: gift card, card id, card code, code entropy, seam, value, balance, c
 </summary>
 
 ```
-status: done — 2026-11-06
-formal: verified — gift-card.als + 12 twins (the static data model: State 1, Identity 5 through 9, Invariant 1.1 and 2.2, Operation 1, 2, 3 and 5 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 5 check, Identity 2 and 4 by the Identity 8 check, Identity 10 by the Operation 1 check and Operation 11 by the Invariant 1.1 check); gift-card.tla + 16 twins (across steps: Invariant 2.1, 3.1 through 3.3 and 4.1, State 2, Term balance (the value less every spend), Operation 4, 6 through 10, 12, 13, 16 and 17); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 11, Operation 14 and 15, 2026-11-11
-last gate: 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at c725410 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's one foundational rating, a second [Spend] meeting Logic confinement 16 twice, was placed not a finding, since [Spend] takes the card code as a caller's input and the host supplies the id and the code once, at [Issue] (Operation 4), and Logic confinement 16 says an id a call carries onward on a later call's input is not supplied again; its refining rating, Term spent balance, and its two others, the [Spend] row's "within the balance" and the NOTE beside Capability requirement 10 and 11, were placed refining Kind B and rhetorical Kind D; the term and the row cured by a clause and a word, the NOTE left as the corpus's one watched name); 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
+status: doing
+formal: verified — gift-card.als + 12 twins (the static data model: State 1, Identity 5 through 9, Invariant 1.1 and 2.2, Operation 1, 2, 3 and 5 checked on every version a sequence of admitted calls leaves, Identity 1 caught by the Identity 5 check, Identity 2 and 4 by the Identity 8 check, Identity 10 by the Operation 1 check and Operation 11 by the Invariant 1.1 check); gift-card.tla + 16 twins (across steps: Invariant 2.1, 3.1 through 3.3 and 4.1, State 2, Term balance (the value less every spend), Operation 4, 6 through 10, 12, 13, 16 and 17); the vote no of 2026-10-30 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 11, Operation 14 and 15, State 3 (the models' stored code reads as the card code digest since 2026-11-23, Final Critique 5, no twin re-derived), 2026-11-11
+last gate: 2026-11-23 — Final Critique 5, a delta round, one reader (Linus opencode/minimax-m3), frozen at 2d3efd9 — foundational count 1, cured, not clean, no sample; 2026-11-14 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at c725410 — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; Linus's one foundational rating, a second [Spend] meeting Logic confinement 16 twice, was placed not a finding, since [Spend] takes the card code as a caller's input and the host supplies the id and the code once, at [Issue] (Operation 4), and Logic confinement 16 says an id a call carries onward on a later call's input is not supplied again; its refining rating, Term spent balance, and its two others, the [Spend] row's "within the balance" and the NOTE beside Capability requirement 10 and 11, were placed refining Kind B and rhetorical Kind D; the term and the row cured by a clause and a word, the NOTE left as the corpus's one watched name); 2026-11-06 — Final Critique 3, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 2, a delta round, frozen at 4f85e1c — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
