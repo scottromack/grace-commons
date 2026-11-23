@@ -847,7 +847,7 @@
    "provisional-commitment",
    "duplicate-prevention"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -863,7 +863,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "substrates": [],
   "title": "Idempotent Reservation"
  },
