@@ -155,7 +155,7 @@ State 4: The atom MUST NOT remove a post.
 
 Term text action: [Write] | [Edit] — the actions that set a title and a body.
 
-Term post action: [Edit] | [Publish] | [Unpublish] — the actions that name a post by post id.
+Term post action: [Edit] | [Publish] | [Unpublish] — the actions that change the post a post id names.
 
 Term reading action: [Look Up] | [List Published] | [List By Author] — the actions that change nothing.
 
@@ -214,8 +214,6 @@ Kind:       Member
 Member of:  the action rejection
 Role:       Outcome
 Projection: storage-failure
-
-This covers every refusal but [Storage Failure], which answers when the database refuses a write.
 
 ### Write
 
@@ -282,7 +280,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the posts |
 |---|---|---|---|
-| [Edit] | the post exists, title and body valid | ok | title and body replaced; the status, author reference, written instant and published instant stand; the earlier wording stays in the post's history (Operation 9, Operation 10, Operation 29, Invariant 1.1 through 1.3) |
+| [Edit] | the post exists, title and body valid | ok | title and body replaced; the status, post id, author reference, written instant and published instant stand; the earlier wording stays in the post's history (Operation 9, Operation 10, Operation 29, Invariant 1.1 through 1.3) |
 
 - `edit("p-999", "Hello", "Hi")` — rejected as [Unknown Post]: no post carries the post id.
 
@@ -377,7 +375,7 @@ list_published()
 ```
 
 ```
-Operation 21: [List Published] MUST answer EVERY published post, in published instant order, earliest first, then in codepoint order of post id.
+Operation 21: [List Published] MUST answer EVERY published post, in published instant order, earliest first, then in codepoint order of post id (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -398,7 +396,7 @@ list_by_author(author_reference)
 ```
 
 ```
-Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, earliest first, then in codepoint order of post id.
+Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, earliest first, then in codepoint order of post id (Execution Contract Logic confinement 10).
 Operation 27: IF the author reference is malformed OR the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [List By Author] MUST answer an empty list (Execution Contract Query 5).
 ```
 
@@ -406,7 +404,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the posts |
 |---|---|---|---|
-| [List By Author] | any | every post by the author, drafts included, oldest written first | none (Operation 22, Operation 23, Operation 27) |
+| [List By Author] | the author reference is valid | every post by the author, drafts included, oldest written first | none (Operation 22, Operation 23) |
+| [List By Author] | the author reference is blank, over the string cap, or not a string | an empty list | none (Operation 27, Operation 23) |
 
 ## What is and what should never be (Invariants)
 
@@ -463,7 +462,7 @@ Non-goal 2: The atom MUST NOT tell who may change a post.
 Non-goal 3: The atom MUST NOT file a post.
 Non-goal 4: The atom MUST NOT hold a comment.
 Non-goal 5: The atom MUST NOT hold a reaction.
-Non-goal 6: The atom MUST NOT remove a post.
+Non-goal 6: A deployment needing a post removed MUST compose Restorable Delete.
 Non-goal 7: The atom MUST NOT publish a post at a set time.
 Non-goal 8: The atom MUST NOT give a post a web address.
 Non-goal 9: The atom MUST NOT draw a body.
@@ -508,7 +507,7 @@ Post is a primitive with no regulatory anchor. It inherits from:
 
 ### Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the posts the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the posts the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Database 8, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 #### Conformance checks
 
@@ -574,7 +573,7 @@ Term terms: post, posts, post id, author reference, title, body, string cap, bod
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`done — 2026-11-23` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -582,9 +581,9 @@ Term terms: post, posts, post id, author reference, title, body, string cap, bod
 </summary>
 
 ```
-status: done — 2026-11-20
+status: done — 2026-11-23
 formal: pending — no model yet
-last gate: 2026-11-20 — Final Critique 3, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 369b7bb0 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed none and held three questions (whether Non-goal 13 and Non-goal 14 conflict, whether a moderator's hiding overlaps Unpublish, whether a deployment that composes no Moderation leaves a state no rule covers); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
+last gate: 2026-11-23 — Final Critique 4, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at ccae326b — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed none, held three questions (whether a post state breaks State 1 through 3 or the Invariants, whether two rules oblige two answers on one call, whether a lost answer, a failed read or write or two callers leave a state no rule covers) and made nine refining and two rhetorical reports, which the blind triage placed refining A for the Term post action gloss, the Edit case row's post id and the List By Author case row, refining C for the string order's citation of Execution Contract Logic confinement 10, the Generation acceptance paragraph's citation of Execution Contract Database 8 and State 4 repeating Non-goal 6, refining B for the post id's missing cap, refuted for Order 1 and for the Look Up row's Operation 19, and rhetorical for Term published and Term published instant; cured: those wordings and citations, Non-goal 6 now names Restorable Delete as the pattern a deployment needing a removal composes, the stray sentence after the Storage Failure entry is cut, and the post id's cap is decided by Execution Contract Input 2, which owes no restatement of an allocated id's bounds; 2026-11-20 — Final Critique 3, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 369b7bb0 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed none and held three questions (whether Non-goal 13 and Non-goal 14 conflict, whether a moderator's hiding overlaps Unpublish, whether a deployment that composes no Moderation leaves a state no rule covers); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 4b9a398b — foundational count 0 after the blind second triage, clean, one sample; Linus's three foundational claims placed none foundational by both triages: the refusal that answers for a call with two invalid inputs is the one listed first on the action's refuses line (Execution Contract Refusal 1, the page's signature blocks), a second Publish on a published post writes nothing (Operation 14) so it stood the post in published no further, and Capability requirement 5 is the atom's own rule for the canonical form of an author reference that Logic confinement 13's last sentence lets stand in place of it, which the page now says in a NOTE as Comment and Reaction do; both refining items refuted (Operation 23 stands on the page, and Restorable Delete owns Non-goal 6 by composing); 2026-11-19 — Final Critique 1, frozen at 4787905a — foundational count 3, cured by the settle, not clean, no sample
 
 open: none
 ```
