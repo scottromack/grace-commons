@@ -164,7 +164,7 @@ A comment system calls [Record] with a comment's text, and the database refuses 
 
 ### Check
 
-The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen]. What to do with an answer is the containing pattern's decision (Operation 12), a state-unavailable one included: proceeding as [Not Seen] is fail-open, as [Seen] fail-closed.
+The behavior a containing pattern invokes before accepting a new [Identity], to ask whether that [Identity] is currently under guard. It only reads — it changes nothing — and reports its answer as [Seen] or [Not Seen]. What to do with an answer is the containing pattern's decision (Non-goal 1), a state-unavailable one included: proceeding as [Not Seen] is fail-open, as [Seen] fail-closed.
 
 Kind: Operation
 
@@ -204,7 +204,7 @@ Member of:  the Check outcome
 Role:       Outcome
 Projection: not-seen
 
-A payment processor calls [Check] while the database cannot be read: [Check] answers state-unavailable (Execution Contract Read 1), and proceeding as on [Not Seen] (fail-open) or as on [Seen] (fail-closed) is the processor's own decision (Operation 12).
+A payment processor calls [Check] while the database cannot be read: [Check] answers state-unavailable (Execution Contract Read 1), and proceeding as on [Not Seen] (fail-open) or as on [Seen] (fail-closed) is the processor's own decision (Non-goal 1).
 
 ## What is and what should never be (Invariants)
 
@@ -277,9 +277,9 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ### Composition notes
 
-Three compositions name this atom: [Idempotent Reservation](../compositions/idempotent-reservation.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) and [Reserve from Pool](../compositions/reserve-from-pool.md). What a containing pattern owes is stated where the atom's operations are — the window duration (Operation 11) and the response to an answer (Operation 12) — and is not restated here.
+Three compositions name this atom: [Idempotent Reservation](../compositions/idempotent-reservation.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) and [Reserve from Pool](../compositions/reserve-from-pool.md). What a containing pattern owes is stated where the atom's operations are — the window duration (Operation 11) and the response to an answer (Non-goal 1) — and is not restated here.
 
-The comment and payment examples check and record in separate steps. A containing pattern that checks, acts and records in one action has Execution Contract Database 1 and Database 2 serialize it: two such actions on one identity run one after the other, and the later reads what the earlier committed. Where the check and the record are separate actions, two first sightings at once can both answer not-seen and both act; which of the two a containing pattern builds is its own (Operation 12).
+The comment and payment examples check and record in separate steps. A containing pattern that checks, acts and records in one action has Execution Contract Database 1 and Database 2 serialize it: two such actions on one identity run one after the other, and the later reads what the earlier committed. Where the check and the record are separate actions, two first sightings at once can both answer not-seen and both act; which of the two a containing pattern builds is its own (Non-goal 1).
 
 ## Example
 
