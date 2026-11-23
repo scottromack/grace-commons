@@ -35,7 +35,7 @@ name: Verify corpus claims
 #                 file; a push that touches neither audits nothing and says so. It
 #                 is the proof of a change, and a newer push may cancel it.
 #   the nightly   the whole library, every night at 08:00 UTC (2:00 AM Central, the
-#                 council's quiet window), on Saturdays at 06:00 UTC, and by hand
+#                 council's maintenance window), on Saturdays at 06:00 UTC, and by hand
 #                 (workflow_dispatch), in a group no push cancels. It is the library's
 #                 proof.
 #
