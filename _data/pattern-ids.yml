@@ -172,3 +172,9 @@ patterns:
     file: atoms/role.md
   - id: 75
     file: atoms/moderation.md
+  - id: 76
+    file: atoms/durable-intent.md
+  - id: 77
+    file: atoms/sweep.md
+  - id: 78
+    file: atoms/escalation.md

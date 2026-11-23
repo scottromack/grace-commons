@@ -48,7 +48,9 @@ The second emergent property is the identity binding at accept, not at initiate.
 - **[Credential](../atoms/credential.md)** — the binding between the enrolled party and the party's authentication material.
 - **[Party Identity](../atoms/party-identity.md)** — the identity record the arc enrolls in the unverified state.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every attempt and every outcome is recorded through.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol [Onboard] follows around its arc: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the onboarding binding below; this pattern restates none of the protocol.
+- **[Durable Intent](../atoms/durable-intent.md)** — the protocol [Onboard] follows around its arc: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the onboarding binding below; this pattern restates none of the protocol. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Invitation instance MUST serve the composition.
@@ -67,16 +69,18 @@ Composes 13: The composition MUST NOT query the substrate by a payload predicate
 Composes 14: The composition MUST attest EVERY audit record under the calling actor's credential.
 Composes 15: The composition MUST NOT declare a service identity.
 Composes 16: The composition MUST NOT make a constituent write outside a caller-authenticated invocation.
-Composes 17: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 17: EXACTLY ONE Durable Intent instance MUST serve the composition.
 Composes 18: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
 Composes 19: The composition MUST bind the act kind PER the onboarding binding.
 Composes 20: The composition MUST NOT bind [Invite], [Decline] or [Revoke] as an act kind.
 Composes 21: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
+Composes 22: EXACTLY ONE Sweep instance MUST serve the composition.
+Composes 23: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), the [Audit Trail](./audit-trail.md) substrate and [Recoverable Invocation](./recoverable-invocation.md) — the four actions, the credential gate and the onboarding binding.
+Term composition: this pattern's wiring of [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), the [Audit Trail](./audit-trail.md) substrate and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the four actions, the credential gate and the onboarding binding.
 
-Term constituents: [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), [Audit Trail](./audit-trail.md), [Recoverable Invocation](./recoverable-invocation.md).
+Term constituents: [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), [Audit Trail](./audit-trail.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
 
 Term substrate: the Audit Trail instance serving the composition.
 
@@ -86,13 +90,13 @@ Term act kind: onboarding — the one act kind this composition binds on its Rec
 
 Term onboarding binding: the act kind's bindings, each under the name Recoverable Invocation gives it. act key — the token digest. commit — the onboarding transaction, read through the commit partition. pairing datum — none. repeatable — no. act probe — the onboarding probe. invocation completion bound — the onboarding completion bound. commit round trip and probe round trip — the deployment's disclosed bounds. journal — the composition's Audit Trail instance, with onboarding.intended, the one outcome onboarding.completed, and onboarding.refused. retention period — the audit horizon. settling period — the deployment's settling period. service identity — none (Composes 15 and 16). outcome envelope — sized from the minted-id width bounds (Primitive policy 6).
 
-Term act key: the token digest of the invitation token the call names (Invitation Term token digest), supplied at the seam (Capability requirement 35) and known before the invocation open. Two onboardings of one token are one act attempted twice, repeatable being no: a second call takes the act's critical section in turn and meets act-landed once the first has closed with an outcome (a refusal, an abandonment or an escalation holds none, so the arc runs again, Recoverable Invocation open step 3.9), or its commit is refused by Invitation's single resolution (Recoverable Invocation repeatable 2).
+Term act key: the token digest of the invitation token the call names (Invitation Term token digest), supplied at the seam (Capability requirement 35) and known before the invocation open. Two onboardings of one token are one act attempted twice, repeatable being no: a second call takes the act's critical section in turn and meets act-landed once the first has closed with an outcome (a refusal, an abandonment or an escalation holds none, so the arc runs again, Durable Intent open step 3.9), or its commit is refused by Invitation's single resolution (Recoverable Invocation repeatable 2).
 
 Term onboarding transaction: Invitation's accept, Party Identity's enroll and Credential's register, called in that order and committed together or not at all (Execution Contract Database 1) — the one commit Recoverable Invocation's bound commit stands for (Composition notes, *Recoverable Invocation's commit is one call*).
 
 Term commit partition: committed where the onboarding transaction commits and answers the party id and the credential id; pre-commit where any of its calls refuses — Invitation's expired, not-known, already-resolved or invalid-request, Party Identity's or Credential's invalid-request, Credential's duplicate-active-credential, or a constituent's storage-failure or state-unavailable (Execution Contract Constituent failure 3) — the transaction then rolling back every write it made (Execution Contract Database 1) and the invitation staying as the call found it; unknown where the transaction answers a code that neither a constituent's signature nor an Execution Contract family answer declares, and where its reply has not arrived when the commit round trip has elapsed since the call's issue (Recoverable Invocation commit 6, commit 7).
 
-Term onboarding probe: the read that answers whether an open intent's onboarding committed. Invitation's read, which answers every invitation for a filter naming no field (Invitation Term filter), the composition selecting in its own code the invitation whose token digest EQUALS the intent's token digest, answers not-committed where the invitation is pending, expired, declined, revoked or accepted by another accepting identity reference (an expired invitation is a pending one whose window reads lapsed, which Invitation's accept refuses, Invitation Term effective status); where it is accepted by the intent's accepting identity reference the probe answers undecidable carrying the party ids the composition selects, in its own code, from the parties Party Identity's read answers for a query carrying no filter (Execution Contract Query 4), each party selected by the intent's document type, the intent's document reference AND the intent's enrolling actor reference, in any state, and the credential ids Credential's read finds registered for those parties under the intent's credential type that no other credential found carries as its successor credential id (Credential State 3), either set possibly empty, the candidates one list, the party ids in Party Identity's insertion order (Party Identity Operation 53) and then the credential ids in Credential's order (Credential Operation 69), at most the intent candidates cap of them, and past the cap the count of all of them and their range beside the first cap of them (Recoverable Invocation reconcile step 3.9 and 3.10); it answers unavailable where any of the reads is refused or gives no answer (Recoverable Invocation act probe 4), a read giving none once the probe round trip has elapsed since the probe's issue, so a read too broad for the bound is refused by timing out and never answered in part, Party Identity's read answering every matching party (Party Identity Operation 51) and the composition changing no constituent (Composes 5), a rejected query surfaced on the compliance surface. The probe never answers committed: Party Identity and Credential keep no value of the call to pair on (Recoverable Invocation pairing datum 6a), so the operator decides.
+Term onboarding probe: the read that answers whether an open intent's onboarding committed. Invitation's read, which answers every invitation for a filter naming no field (Invitation Term filter), the composition selecting in its own code the invitation whose token digest EQUALS the intent's token digest, answers not-committed where the invitation is pending, expired, declined, revoked or accepted by another accepting identity reference (an expired invitation is a pending one whose window reads lapsed, which Invitation's accept refuses, Invitation Term effective status); where it is accepted by the intent's accepting identity reference the probe answers undecidable carrying the party ids the composition selects, in its own code, from the parties Party Identity's read answers for a query carrying no filter (Execution Contract Query 4), each party selected by the intent's document type, the intent's document reference AND the intent's enrolling actor reference, in any state, and the credential ids Credential's read finds registered for those parties under the intent's credential type that no other credential found carries as its successor credential id (Credential State 3), either set possibly empty, the candidates one list, the party ids in Party Identity's insertion order (Party Identity Operation 53) and then the credential ids in Credential's order (Credential Operation 69), at most the intent candidates cap of them, and past the cap the count of all of them and their range beside the first cap of them (Sweep reconcile step 3.9 and 3.10); it answers unavailable where any of the reads is refused or gives no answer (Recoverable Invocation act probe 4), a read giving none once the probe round trip has elapsed since the probe's issue, so a read too broad for the bound is refused by timing out and never answered in part, Party Identity's read answering every matching party (Party Identity Operation 51) and the composition changing no constituent (Composes 5), a rejected query surfaced on the compliance surface. The probe never answers committed: Party Identity and Credential keep no value of the call to pair on (Recoverable Invocation pairing datum 6a), so the operator decides.
 
 ---
 ## Composition logic
@@ -107,7 +111,7 @@ Composition state 4: The composition MUST read a completion record's party id, c
 Composition state 5: The composition MUST NOT store a record of the Recoverable Invocation instance.
 ```
 
-Term completion relation: the relation a completion record declares — one token digest to one completion record at most, the unsuperseded records of a token digest alone counted (Recoverable Invocation Which closing stands 4) and an outcome an administrator names through the invocation resolve excepted (Invariant 4.7), and one completion record to exactly one token digest, one accepting identity reference, one party id and one credential id; mandatory on the completion record's side, optional on the invitation's, since an invitation may stay pending, lapse, or be declined or revoked.
+Term completion relation: the relation a completion record declares — one token digest to one completion record at most, the unsuperseded records of a token digest alone counted (Durable Intent Which closing stands 4) and an outcome an administrator names through the invocation resolve excepted (Invariant 4.7), and one completion record to exactly one token digest, one accepting identity reference, one party id and one credential id; mandatory on the completion record's side, optional on the invitation's, since an invitation may stay pending, lapse, or be declined or revoked.
 
 ### Capability requirement
 
@@ -166,7 +170,7 @@ Term settling period: the time the deployment declares for an operator to settle
 
 Term reconciliation run bound: Recoverable Invocation's run bound on this composition's instance.
 
-Term invocation id: the fresh id the host injects at the seam per [Onboard], carried by every record the invocation writes (Recoverable Invocation Term invocation id).
+Term invocation id: the fresh id the host injects at the seam per [Onboard], carried by every record the invocation writes (Durable Intent Term invocation id).
 
 ### Primitive policy
 
@@ -217,7 +221,7 @@ Audit arm 26: [Onboard] MUST answer PER Recoverable Invocation's Action wiring t
 Audit arm 27: The composition MUST pass the event type of a record as the action reference of Audit Trail's record_action.
 ```
 
-Term attempt record: the record an action writes first — the initiate attempt, the decline attempt or the revoke attempt; and, for [Onboard], the intent record the invocation open writes (Recoverable Invocation open step 4.3). The attestation the substrate makes inside the record *is* the credential gate.
+Term attempt record: the record an action writes first — the initiate attempt, the decline attempt or the revoke attempt; and, for [Onboard], the intent record the invocation open writes (Durable Intent open step 4.3). The attestation the substrate makes inside the record *is* the credential gate.
 
 Term post-write record: a record an action writes after a constituent write commits — the initiated record, the decline record or the revoke record; [Onboard]'s completion record is the invocation close's outcome, and its refusal record the invocation refuse's, both Recoverable Invocation's.
 
@@ -291,8 +295,8 @@ Action wiring 52: IF Invitation answers not-known for a revoke THEN [Revoke] MUS
 Action wiring 53: IF Invitation answers invalid-request for a revoke THEN [Revoke] MUST answer invalid-request.
 Action wiring 54: An admitted revoke MUST record a revoke record carrying the token digest AND the revocation reason ONLY AFTER Invitation's revoke answers revoked.
 Action wiring 55: A landed revoke MUST answer revoked.
-Action wiring 56: A validated onboard MUST call the invocation open with the act kind, the token digest as the act key, the enrolling actor reference, the actor credential AND the intent data (Recoverable Invocation Action wiring 4).
-Action wiring 57: The intent data MUST carry the token digest, the accepting identity reference, the document type, the document reference, the credential type AND the enrolling actor reference, which the onboarding probe selects by and which the intent payload the act probe is given carries no other way (Recoverable Invocation reconcile step 3.1).
+Action wiring 56: A validated onboard MUST call the invocation open with the act kind, the token digest as the act key, the enrolling actor reference, the actor credential AND the intent data (Durable Intent Action wiring 4).
+Action wiring 57: The intent data MUST carry the token digest, the accepting identity reference, the document type, the document reference, the credential type AND the enrolling actor reference, which the onboarding probe selects by and which the intent payload the act probe is given carries no other way (Sweep reconcile step 3.1).
 Action wiring 58: [Onboard] MUST close a pre-commit arm through the invocation refuse AND answer the constituent's code (Recoverable Invocation commit 2, commit 3).
 Action wiring 59: IF the invocation open answers act-landed THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND accepted.
 Action wiring 60: IF a call of the onboarding transaction answers an arm of the unknown partition THEN [Onboard] MUST call the invocation yield AND answer recording-failure(outcome) (Recoverable Invocation commit 8).
@@ -339,7 +343,7 @@ Every input an action takes and every answer a call of the four actions can meet
 | every action | an actor reference or the act key over the reference length cap | invalid-request, nothing written | Primitive policy 2, 10 |
 | every action | a field a constituent's own rules refuse that the composition decides from the call's inputs and now alone | invalid-request, nothing written | Primitive policy 3, 10 |
 | every action | the data of an event the action will emit over the payload cap | invalid-request, nothing written | Primitive policy 5, 10 |
-| onboard | the intent data or the largest outcome over the substrate's payload cap | invalid-request, nothing written | Primitive policy 5, 6; Recoverable Invocation open step 1.4 |
+| onboard | the intent data or the largest outcome over the substrate's payload cap | invalid-request, nothing written | Primitive policy 5, 6; Durable Intent open step 1.4 |
 
 **Audit Trail's record_action at an attempt record**, at [Invite], [Decline] and [Revoke]; [Onboard]'s intent is the invocation open's and is landed below.
 
@@ -388,15 +392,15 @@ Every input an action takes and every answer a call of the four actions can meet
 
 | Answer | Lands | Owner |
 |---|---|---|
-| the invocation pair | the onboarding transaction issued | Action wiring 56, Recoverable Invocation Action wiring 4 |
-| invalid-credential | invalid-credential, nothing written | Recoverable Invocation Action wiring table |
-| invalid-request | invalid-request, nothing written | Recoverable Invocation Action wiring table |
-| act-in-flight(invocation_id) | act-in-flight, nothing written | Recoverable Invocation Action wiring table, open step 3.5 |
+| the invocation pair | the onboarding transaction issued | Action wiring 56, Durable Intent Action wiring 4 |
+| invalid-credential | invalid-credential, nothing written | Durable Intent Action wiring table |
+| invalid-request | invalid-request, nothing written | Durable Intent Action wiring table |
+| act-in-flight(invocation_id) | act-in-flight, nothing written | Durable Intent Action wiring table, open step 3.5 |
 | act-landed | invitation-invalid carrying already-resolved AND accepted | Action wiring 59 |
-| section-unavailable | section-unavailable, nothing written | Recoverable Invocation Action wiring table |
-| journal-unavailable | journal-unavailable, nothing written; never read as not-known | Recoverable Invocation Action wiring table, Recoverable Invocation Action wiring 3 |
-| recording-failure(intent) | recording-failure(intent), nothing committed | Recoverable Invocation Action wiring table |
-| recording-failure(outcome) | recording-failure(outcome), the intent left open for the sweep | Recoverable Invocation Action wiring table |
+| section-unavailable | section-unavailable, nothing written | Durable Intent Action wiring table |
+| journal-unavailable | journal-unavailable, nothing written; never read as not-known | Durable Intent Action wiring table, Durable Intent Action wiring 3 |
+| recording-failure(intent) | recording-failure(intent), nothing committed | Durable Intent Action wiring table |
+| recording-failure(outcome) | recording-failure(outcome), the intent left open for the sweep | Durable Intent Action wiring table |
 
 **The onboarding transaction**, at [Onboard] after the invocation open returns.
 
@@ -422,10 +426,10 @@ Every input an action takes and every answer a call of the four actions can meet
 | Call | Answer | Lands | Owner |
 |---|---|---|---|
 | the invocation close | landed | the party id and the credential id answered | Action wiring 37, 38 |
-| the invocation close | recording-failure(outcome) | recording-failure(outcome), the committed arc's record the operator's invocation resolve's, the composition naming no service identity (Composes 15); never re-run | Recoverable Invocation Action wiring table |
+| the invocation close | recording-failure(outcome) | recording-failure(outcome), the committed arc's record the operator's invocation resolve's, the composition naming no service identity (Composes 15); never re-run | Durable Intent Action wiring table |
 | the invocation refuse | landed | the constituent's code answered | Action wiring 58 |
-| the invocation refuse | already-accounted(closing_event_id) | already-accounted | Recoverable Invocation Action wiring table |
-| the invocation refuse | recording-failure(refusal, constituent_code) | recording-failure(refusal, constituent_code); never re-run | Recoverable Invocation Action wiring table |
+| the invocation refuse | already-accounted(closing_event_id) | already-accounted | Durable Intent Action wiring table |
+| the invocation refuse | recording-failure(refusal, constituent_code) | recording-failure(refusal, constituent_code); never re-run | Durable Intent Action wiring table |
 | the invocation yield | any | recording-failure(outcome) | Recoverable Invocation commit 8, Action wiring 60 |
 
 ### Wiring decision
@@ -480,7 +484,7 @@ These emerge from the composition; none belongs to a single constituent.
   Invariant 4.1: EVERY accepted, declined AND revoked write through the composition MUST stand as a covered transition.
   Invariant 4.2: EVERY invitation the composition initiates MUST stand as a covered initiation.
   Invariant 4.3: The composition MUST make the coverage claim ONLY IF the arc lies inside the audit horizon.
-  Invariant 4.4: A token digest MUST NOT appear on two unsuperseded completion records (Recoverable Invocation Which closing stands 4), except on an outcome an administrator names through the invocation resolve (Invariant 4.7).
+  Invariant 4.4: A token digest MUST NOT appear on two unsuperseded completion records (Durable Intent Which closing stands 4), except on an outcome an administrator names through the invocation resolve (Invariant 4.7).
   Invariant 4.5: A party id MUST NOT appear on the unsuperseded completion records of two token digests, except on an outcome an administrator names through the invocation resolve (Invariant 4.6).
   Invariant 4.6: The composition MUST make the claim of Invariant 4.5 as detectable through Check 7.3 AND MUST NOT make the claim as prevented for an outcome an administrator names through the invocation resolve.
   Invariant 4.7: The composition MUST make the claim of Invariant 4.4 as detectable through Check 7.1 AND MUST NOT make the claim as prevented for an outcome an administrator names through the invocation resolve.
@@ -548,7 +552,7 @@ onboard(
 ) → rejected(act-in-flight(invocation_id))
 ```
 
-Internally: the invocation open takes the act's critical section, keyed by the token digest, and finds the first call's intent open and younger than the examine edge, so it answers act-in-flight carrying the first call's invocation id and writes nothing (Recoverable Invocation open step 3.5). Once the first call has closed, a second call meets act-landed, which [Onboard] answers as `invitation-invalid(already-resolved(accepted))` (Action wiring 59); a different acceptor, or any call after the first intent passed its horizon, is refused by Invitation's single resolution through the invocation refuse the same way (Action wiring 20, 58). No party is enrolled and no credential registered; the call's own trace is nothing, or its intent and its refusal record.
+Internally: the invocation open takes the act's critical section, keyed by the token digest, and finds the first call's intent open and younger than the examine edge, so it answers act-in-flight carrying the first call's invocation id and writes nothing (Durable Intent open step 3.5). Once the first call has closed, a second call meets act-landed, which [Onboard] answers as `invitation-invalid(already-resolved(accepted))` (Action wiring 59); a different acceptor, or any call after the first intent passed its horizon, is refused by Invitation's single resolution through the invocation refuse the same way (Action wiring 20, 58). No party is enrolled and no credential registered; the call's own trace is nothing, or its intent and its refusal record.
 
 ### Invitation revoked before use
 
@@ -587,7 +591,7 @@ onboard(
 ) → recording-failure(outcome, invocation_id)
 ```
 
-Internally: the invocation open landed the intent; the transaction's reply did not arrive within the commit round trip, so the arm is unknown (Recoverable Invocation commit 6) and [Onboard] called the invocation yield (Action wiring 60). The intent stays open. Once it is past the examine edge the sweep runs the onboarding probe: the invitation is accepted by the intent's accepting identity reference, the composition selects `party_4421` from the parties Party Identity's read answers, enrolled under the intent's document pair, and Credential's read finds `cred_7791` registered for it, so the probe answers undecidable carrying both (Term onboarding probe), and the sweep surfaces the intent on the compliance surface, the composition naming no service identity (Recoverable Invocation service identity 1b). An administrator reads the candidates and closes the intent through the invocation resolve, naming `onboarding.completed` carrying `{tok_inv_g7h2k1, newhire@acme.com, party_4421, cred_7791}` on the intent's invocation id, which the outcome record carries beside the payload (Standing rule 9). The composition chooses nothing (Recoverable Invocation reconcile step 3.11), and Check 7.3 finds a party the administrator names that another token's completion record already names.
+Internally: the invocation open landed the intent; the transaction's reply did not arrive within the commit round trip, so the arm is unknown (Recoverable Invocation commit 6) and [Onboard] called the invocation yield (Action wiring 60). The intent stays open. Once it is past the examine edge the sweep runs the onboarding probe: the invitation is accepted by the intent's accepting identity reference, the composition selects `party_4421` from the parties Party Identity's read answers, enrolled under the intent's document pair, and Credential's read finds `cred_7791` registered for it, so the probe answers undecidable carrying both (Term onboarding probe), and the sweep surfaces the intent on the compliance surface, the composition naming no service identity (Recoverable Invocation service identity 1b). An administrator reads the candidates and closes the intent through the invocation resolve, naming `onboarding.completed` carrying `{tok_inv_g7h2k1, newhire@acme.com, party_4421, cred_7791}` on the intent's invocation id, which the outcome record carries beside the payload (Standing rule 9). The composition chooses nothing (Sweep reconcile step 3.11), and Check 7.3 finds a party the administrator names that another token's completion record already names.
 
 ### Credential collision — a refusal that leaves the invitation pending
 
@@ -632,7 +636,7 @@ Check 3.1: An auditor MUST find no registration instant preceding the party's en
 Check 4.1: An auditor MUST find no completion record for an invitation whose status DOES NOT EQUAL accepted (Invariant 1.1).
 Check 4.2: An auditor MUST find no completion record without an intent record carrying the completion record's invocation id (Invariant 1.1).
 Check 5.1: An auditor MUST enumerate EVERY accepted invitation carrying no completion record AND no intent record for the token digest (Invariant 4.1).
-Check 5.2: An auditor MUST enumerate EVERY intent record whose invocation id no closing record names (Recoverable Invocation Term closing record), which Recoverable Invocation's checks read against the closure window (Invariant 4.1).
+Check 5.2: An auditor MUST enumerate EVERY intent record whose invocation id no closing record names (Durable Intent Term closing record), which Recoverable Invocation's checks read against the closure window (Invariant 4.1).
 Check 6.1: An auditor MUST find a decline record for EVERY declined invitation AND a revoke record for EVERY revoked invitation (Invariant 4.1).
 Check 6.2: An auditor MUST find an initiated record carrying the token digest for EVERY invitation (Invariant 4.2).
 Check 6.3: An auditor MUST find EVERY initiated record naming an invitation that exists (Invariant 4.2).
@@ -670,7 +674,7 @@ Standing rule 4: An auditor MUST quantify an Invitation-record check over the de
 Standing rule 5: An auditor MUST quantify a trail-walking check over the arcs inside the horizon.
 Standing rule 6: An auditor MUST read a purged event as lawful destruction.
 Standing rule 8: An auditor MUST join the Audit Trail's records and the Invitation's record on the token digest, and the party and credential records on the party id (Check 2.2, Check 7.3).
-Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome, an intent record paired with the intent record's outcome by invocation id excepted (Recoverable Invocation Primitive policy 5).
+Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome, an intent record paired with the intent record's outcome by invocation id excepted (Durable Intent Primitive policy 5).
 ```
 
 Term arcs inside the horizon: the invitations whose `((acceptance instant + audit horizon) - clock offset allowance)` DOES NOT PRECEDE the auditor's now — or, for an invitation never accepted, whose `((initiation instant + audit horizon) - clock offset allowance)` DOES NOT PRECEDE the auditor's now — the membership test for an Invitation record under Standing rule 5.
@@ -715,7 +719,7 @@ Clock semantics 1: The composition MUST take the clock offset allowance at the r
 
 ```
 Concurrency 1: Two fresh accepts of one invitation token MUST resolve through Invitation's single resolution.
-Concurrency 4: Two [Onboard] calls of one invitation token in flight MUST resolve through the act's critical section, the second answering act-in-flight (Recoverable Invocation open step 3.5).
+Concurrency 4: Two [Onboard] calls of one invitation token in flight MUST resolve through the act's critical section, the second answering act-in-flight (Durable Intent open step 3.5).
 ```
 
 ### Credential collision
@@ -738,7 +742,7 @@ A Party Identity or Credential refusal inside the onboarding transaction, or an 
 
 **Relationship to Attributed Permissions Admin.** Once onboarded, the principal appears as a subject in Permissions. An authorized actor calls `Attributed Permissions Admin.grant(subject_ref=party_id, action_scope, ...)` to grant the newly onboarded party access to specific scopes. The `party_id` produced by External Onboarding becomes the `subject_ref` in Permissions grants.
 
-**Recoverable Invocation.** [Onboard] follows [Recoverable Invocation](./recoverable-invocation.md) around its arc (Composes 17 through 19): an intent before the onboarding transaction, the completion record as its outcome, a refusal record where a call refuses, the act's critical section over them, and a sweep and an operator's the invocation resolve for what an invocation left open. The pattern binds the act kind once (Term onboarding binding) and restates none of the protocol. [Invite], [Decline] and [Revoke] are not bound, since each is one constituent write and one record under the credential gate (Composes 20). An [Onboard] met by an in-flight or a landed act answers act-in-flight or act-landed before the credential gate clears (Recoverable Invocation open step 3.5, open step 4.3), so a caller presenting a token without a valid credential learns that an act for it stands, the order Recoverable Invocation fixes and this composition cannot change (Composes 5).
+**Recoverable Invocation.** [Onboard] follows [Durable Intent](../atoms/durable-intent.md) around its arc (Composes 17 through 19): an intent before the onboarding transaction, the completion record as its outcome, a refusal record where a call refuses, the act's critical section over them, and a sweep and an operator's the invocation resolve for what an invocation left open. The pattern binds the act kind once (Term onboarding binding) and restates none of the protocol. [Invite], [Decline] and [Revoke] are not bound, since each is one constituent write and one record under the credential gate (Composes 20). An [Onboard] met by an in-flight or a landed act answers act-in-flight or act-landed before the credential gate clears (Durable Intent open step 3.5, open step 4.3), so a caller presenting a token without a valid credential learns that an act for it stands, the order Recoverable Invocation fixes and this composition cannot change (Composes 5).
 
 **Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; this pattern's is three calls in one database transaction (Term onboarding transaction), whose partition belongs to the transaction, Invitation's accepted being rolled back when Credential refuses. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch here, as evidence for Recoverable Invocation's next revision, which is the record Recoverable Invocation Deviation 2 asks of an adopter first, as Capability-Backed Sharing does.
 

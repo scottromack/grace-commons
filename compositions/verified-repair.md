@@ -17,11 +17,11 @@ toc: true
 {:toc}
 </details>
 
-**Composes:** [Recoverable Invocation](./recoverable-invocation.md) · [Audit Trail](./audit-trail.md)
+**Composes:** [Durable Intent](../atoms/durable-intent.md) · [Sweep](../atoms/sweep.md) · [Escalation](../atoms/escalation.md) · [Audit Trail](./audit-trail.md)
 
 ## Summary
 
-Verified Repair is the rulebook for a council of automated reviewers that keeps a library's patterns correct while nobody is watching. In each round it freezes one exact copy of a pattern, has independent cold readers and automatic checkers (programs that test a mathematical model built from the frozen copy) report the failures they find in that copy, sorts their reports, and lets through only the fixes the sorting admits, recording every step. It is a composition, a pattern built by wiring simpler patterns together: [Recoverable Invocation](./recoverable-invocation.md) carries each fix into the pattern's version history, writing down what it is about to do before it does it, so that a crash or a lost reply never applies a fix twice, and [Audit Trail](./audit-trail.md) keeps the record of every round, report, decision and fix, tying each entry to whoever made it and sealing it so that any later alteration can be detected. Wired together, they let no change land on a pattern unless it answers a failure reported against the frozen copy or is the round's own record, lands after the round has settled and on the very text the cold readers read, never mends the pattern to fit a model that had fallen behind it, and never touches what the pattern claims without a recorded ruling by its maintainer, the person responsible for the library. Where a count of zero decides that a round found nothing serious, the reports are sorted twice, the second time by someone who does not know where the line falls, and past a set number of rounds on one pattern a further round counts only by the maintainer's ruling. Every saved change points to a record that names its round and the frozen copy and holds every fix it applied, so the whole chain from frozen copy to saved change can be shown from the records alone.
+Verified Repair is the rulebook for a council of automated reviewers that keeps a library's patterns correct while nobody is watching. In each round it freezes one exact copy of a pattern, has independent cold readers and automatic checkers (programs that test a mathematical model built from the frozen copy) report the failures they find in that copy, sorts their reports, and lets through only the fixes the sorting admits, recording every step. It is a composition, a pattern built by wiring simpler patterns together: [Durable Intent](../atoms/durable-intent.md) carries each fix into the pattern's version history, writing down what it is about to do before it does it, so that a crash or a lost reply never applies a fix twice, and [Audit Trail](./audit-trail.md) keeps the record of every round, report, decision and fix, tying each entry to whoever made it and sealing it so that any later alteration can be detected. Wired together, they let no change land on a pattern unless it answers a failure reported against the frozen copy or is the round's own record, lands after the round has settled and on the very text the cold readers read, never mends the pattern to fit a model that had fallen behind it, and never touches what the pattern claims without a recorded ruling by its maintainer, the person responsible for the library. Where a count of zero decides that a round found nothing serious, the reports are sorted twice, the second time by someone who does not know where the line falls, and past a set number of rounds on one pattern a further round counts only by the maintainer's ruling. Every saved change points to a record that names its round and the frozen copy and holds every fix it applied, so the whole chain from frozen copy to saved change can be shown from the records alone.
 
 ---
 
@@ -31,17 +31,19 @@ A council of agents keeps a canonical pattern true. It freezes the pattern, send
 
 Verified Repair is the loop written so that none of the three happens without a rule refusing it. **No change to a canonical pattern lands unless it answers a reported failure, or is the round's own record, read off one frozen snapshot, sorted twice where a zero count decides a round clean, aimed at the side the failure indicts, kept out of the pattern's claims unless the maintainer has ruled on it, applied by the council writer to the bytes it was read from, and recorded** — so that the whole chain, snapshot to verifier to verdict to finding to triage to patch to diff to commit, is provable.
 
-What the composition is not. It is not a verifier: cold readers and engines are the deployment's, held to the verdict contract here. It is not a judge of meaning: a change to what a pattern claims is the maintainer's, and so is any easy decision a rule does not settle. It is not a write protocol: every commit it makes is a [Recoverable Invocation](./recoverable-invocation.md) act, so the one-writer rule, the intent before the commit, the yield on a lost reply and the sweep after a crash are that pattern's and are cited here, not restated. And it is not tied to an engine: Alloy (a language for specifying a system as relations and constraints, which a model finder checks), TLA+ (the Temporal Logic of Actions, a language for specifying a system as its states and the steps between them, which a model checker explores) and any heavier logic sit beneath one verdict contract, as cold readers do.
+What the composition is not. It is not a verifier: cold readers and engines are the deployment's, held to the verdict contract here. It is not a judge of meaning: a change to what a pattern claims is the maintainer's, and so is any easy decision a rule does not settle. It is not a write protocol: every commit it makes is a [Durable Intent](../atoms/durable-intent.md) act, so the one-writer rule, the intent before the commit, the yield on a lost reply and the sweep after a crash are that pattern's and are cited here, not restated. And it is not tied to an engine: Alloy (a language for specifying a system as relations and constraints, which a model finder checks), TLA+ (the Temporal Logic of Actions, a language for specifying a system as its states and the steps between them, which a model checker explores) and any heavier logic sit beneath one verdict contract, as cold readers do.
 
 ---
 
 ## Composes
 
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol of the composition's one irreversible write, a commit to the repository.
+- **[Durable Intent](../atoms/durable-intent.md)** — the protocol of the composition's one irreversible write, a commit to the repository. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 - **[Audit Trail](./audit-trail.md)** — the journal of rounds, verdicts, triage records, rulings and escalations, and the protocol's journal; the journal's enumeration is read from the Event Log instance it carries (Composes 8).
 
 ```
-Composes 1: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 1: EXACTLY ONE Durable Intent instance MUST serve the composition.
 Composes 2: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 3: The Recoverable Invocation instance MUST journal to the composition's Audit Trail instance.
 Composes 4: The composition MUST bind EXACTLY ONE act kind to the Recoverable Invocation instance: council.commit, under the commit binding.
@@ -50,11 +52,13 @@ Composes 6: The composition MUST record EVERY round, verdict, triage record, rul
 Composes 7: The composition MUST NOT change a constituent's contract other than through a round on the constituent's pattern.
 Composes 8: The composition MUST call Event Log's read by sequence-number range on the Event Log instance the wired Audit Trail instance carries, ONLY as the journal's full enumeration (Capability requirement 31), as a declared direct invocation of a substrate constituent's own declared query (the section titled Instance topology in `execution-contract.md` declares the direct invocation).
 Composes 9: The composition MUST call Audit Trail's read_record, by event id, ONLY for the record of a given round AND for the verdict records AND triage records of the given round the call reads (Primitive policy 21).
+Composes 10: EXACTLY ONE Sweep instance MUST serve the composition.
+Composes 11: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Recoverable Invocation](./recoverable-invocation.md) and [Audit Trail](./audit-trail.md) — the round, the verdict contract, the triage, the repair and the escalations below.
+Term composition: this pattern's wiring of [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) and [Audit Trail](./audit-trail.md) — the round, the verdict contract, the triage, the repair and the escalations below.
 
-Term constituents: [Recoverable Invocation](./recoverable-invocation.md), [Audit Trail](./audit-trail.md).
+Term constituents: [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md), [Audit Trail](./audit-trail.md).
 
 Term commit binding: the act kind's bindings, each under the name Recoverable Invocation gives it. act key — the repository. commit — the repository commit, read through the commit partition. pairing datum — the council nonce, which the intent data carries and the database keeps in the commit's trailer: an adopter-minted nonce the database stores. repeatable — yes. act probe — the commit probe. invocation completion bound — the commit completion bound. commit round trip and probe round trip — the deployment's disclosed bounds. journal — the composition's Audit Trail instance, with council.commit.intended, the one outcome council.commit.committed, and council.commit.refused, the closings council.commit.recovery_intended, council.commit.abandoned and council.commit.escalated derived from the vocabulary (Recoverable Invocation journal 3). retention period — the journal retention policy's, which places every council record under the same policy as the act kind's (Capability requirement 17). settling period — the deployment's settling period for the maintainer's resolve (Capability requirement 14). service identity — the sweep identity. outcome envelope — the commit envelope. Deviations: none.
 
@@ -62,7 +66,7 @@ Term commit partition: committed — the database answers a commit id; pre-commi
 
 Term commit probe: the repository's read by trailer value (Capability requirement 2) for the commits whose trailer carries the intent's council nonce — committed carrying council.commit.committed and the commit id where exactly one does, not-committed where none does, undecidable carrying the commit ids where more than one does, and unavailable where the read refuses or gives no answer; Capability requirement 19 keeps the undecidable arm empty for a conforming repository, and the arm stands as Recoverable Invocation's act probe names it. The read is scoped to the act key's repository, so every commit it finds carries the act key by construction (Recoverable Invocation act probe 8).
 
-Term commit envelope: the act kind's outcome envelope — the true maximum of the records the kind writes: the committed outcome, one commit id at its minted width, or a closing the sweep or the maintainer writes, whichever the substrate sizes largest, serialized as the substrate sizes it; the database candidates of a council.commit.escalated hold at most one commit, since no two commits carry one council nonce (Capability requirement 19). The intent, which alone carries the round key, the snapshot hash, every patch whole and the council nonce, is sized beside it by the invocation open (Recoverable Invocation Primitive policy 12).
+Term commit envelope: the act kind's outcome envelope — the true maximum of the records the kind writes: the committed outcome, one commit id at its minted width, or a closing the sweep or the maintainer writes, whichever the substrate sizes largest, serialized as the substrate sizes it; the database candidates of a council.commit.escalated hold at most one commit, since no two commits carry one council nonce (Capability requirement 19). The intent, which alone carries the round key, the snapshot hash, every patch whole and the council nonce, is sized beside it by the invocation open (Durable Intent Primitive policy 12).
 
 Term council nonce: the nonce injected at the council writer's seam for one [Repair] call, carried by no earlier council.commit intent and by no earlier commit of the repository (Capability requirement 19, 21) — the act kind's pairing datum, carried in the intent data and in the commit's trailer.
 
@@ -86,7 +90,7 @@ Composition state 5: The composition MUST read whether a settled round is clean 
 
 Term round index: map from a pattern to the pattern's rounds — each round's id, key, snapshot, the verdicts it carries — counted verdicts by pass, a cold reader's malformed verdicts and a formal engine's sound verdicts — whether the round has settled, and the invocations whose intents carry its key. Derived index, rebuilt from what the journal still holds; past the journal's retention period a purged round drops out.
 
-Term round key: the nonce injected at [Freeze]'s seam for one round and recorded with it — what an intent names the round by, minted by the council and not by the substrate or the repository (Recoverable Invocation Primitive policy 10), and unique (Capability requirement 24).
+Term round key: the nonce injected at [Freeze]'s seam for one round and recorded with it — what an intent names the round by, minted by the council and not by the substrate or the repository (Durable Intent Primitive policy 10), and unique (Capability requirement 24).
 
 Term verdict key: the nonce injected at [Report]'s seam for one verdict and recorded with it — what a finding id names the verdict by (Capability requirement 24).
 
@@ -199,7 +203,7 @@ Primitive policy 3: IF a verdict carries no snapshot hash OR no base commit OR n
 Primitive policy 4: IF the call carries no patch OR a patch carries no patch id OR two patches of the call carry one patch id OR a patch carries no fragment OR a fragment carries no target OR a patch id OR a fragment's target EXCEEDS the reference length cap THEN [Repair] MUST answer invalid-request.
 Primitive policy 5: IF the count of the patches the call carries EXCEEDS the patch cap THEN [Repair] MUST answer invalid-request.
 Primitive policy 6: The composition MUST compare a snapshot hash, a commit id, a finding id, a corpus gate finding's file, code AND message, a fragment, AND the words not clean in a last gate line's leading entry byte-exact.
-Primitive policy 7: IF the repository's name OR the council writer's actor reference EXCEEDS the reference length cap THEN [Repair] MUST answer invalid-request (Recoverable Invocation Primitive policy 1, 8).
+Primitive policy 7: IF the repository's name OR the council writer's actor reference EXCEEDS the reference length cap THEN [Repair] MUST answer invalid-request (Durable Intent Primitive policy 1, 8).
 Primitive policy 8: [Freeze], [Report], [Triage] AND [Rule] MUST NOT write the action's own record BEFORE EVERY rule of the action that answers a refusal has answered no refusal, other than Primitive policy 13, 15 AND 17, which answer the write's own failure.
 Primitive policy 9: IF a round is given AND the round names no round the journal holds THEN [Report], [Triage], [Rule] AND [Repair] MUST answer not-known.
 Primitive policy 10: IF a read of the repository refuses OR gives no answer THEN [Freeze] AND [Repair] MUST answer repository-unavailable; a read that answers absent is no refusal (Capability requirement 25).
@@ -418,10 +422,10 @@ Action wiring 23: [Repair] MUST build the repair tree, once the repair refusal o
 Action wiring 24: IF a finding the corpus gate reports over the repair tree IS NOT IN the gate's findings over the head Action wiring 15 read OR the gate gives no answer within the gate's answer bound THEN [Repair] MUST answer gate-red.
 Action wiring 25: IF the repair tree's diff from the head Action wiring 15 read DOES NOT EQUAL the change set THEN [Repair] MUST answer mismatch.
 Action wiring 26: An opened repair MUST commit the repair tree with the head Action wiring 15 read as the parent AND the council trailer as the commit's trailer, WITHIN Recoverable Invocation's pause bound of the invocation open's return (Recoverable Invocation commit 15).
-Action wiring 27: IF the commit answers a commit id THEN [Repair] MUST call the invocation close with the act kind, the act key, the open result, the council writer's actor reference AND credential, council.commit.committed AND the commit id as the outcome data (Recoverable Invocation close 5).
+Action wiring 27: IF the commit answers a commit id THEN [Repair] MUST call the invocation close with the act kind, the act key, the open result, the council writer's actor reference AND credential, council.commit.committed AND the commit id as the outcome data (Durable Intent close 5).
 Action wiring 28: IF the commit's arm EQUALS pre-commit THEN [Repair] MUST call the invocation refusal with the act kind, the act key, the open result, the council writer's actor reference AND credential, AND the database's code as the reason AND as the constituent code (Recoverable Invocation commit 2).
 Action wiring 29: WHEN the commit's arm EQUALS unknown:
-    Action wiring 29a: [Repair] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying the reply lost where the commit gave no answer and the reply answered where the commit's reply is one the database's contract does not declare (Recoverable Invocation yield 7).
+    Action wiring 29a: [Repair] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying the reply lost where the commit gave no answer and the reply answered where the commit's reply is one the database's contract does not declare (Durable Intent yield 7).
     Action wiring 29b: [Repair] MUST answer recording-failure(outcome) (Recoverable Invocation commit 8d).
 Action wiring 30: IF [Repair] answers gated THEN [Repair] MUST escalate to the maintainer's queue EVERY patch that carries a fragment gated under Action wiring 19, 56 or 63 over the call's fragments, whichever rule of Action wiring 19, 20, 56 and 63 the gated answer rests on, so that a call gated under Action wiring 20 alone, none of whose fragments Action wiring 19, 56 or 63 gates, escalates no patch, AND no open escalation of the round and the patch id EXISTS.
 Action wiring 30a: IF [Repair] answers hook-rejected OR gate-red THEN [Repair] MUST escalate the round to the maintainer's queue AND no open escalation of the round alone EXISTS.
@@ -430,7 +434,7 @@ Action wiring 32: [Repair] MUST NOT push.
 Action wiring 33: [Repair] MUST NOT call the invocation open BEFORE the corpus gate AND the diff check have answered over the repair tree.
 Action wiring 40: IF a patch answers a finding that carries no settled triage of the round with triage disposition cure THEN [Repair] MUST answer unresolved.
 Action wiring 41: IF a patch answers no finding AND a fragment of the patch IS NOT a records fragment THEN [Repair] MUST answer unresolved.
-Action wiring 42: IF the invocation open, close OR refusal refuses THEN [Repair] MUST answer the code Recoverable Invocation Action wiring 2 exports for the refusal.
+Action wiring 42: IF the invocation open, close OR refusal refuses THEN [Repair] MUST answer the code Durable Intent Action wiring 2 exports for the refusal.
 Action wiring 45: IF the invocation refusal answers a refusal event id THEN [Repair] MUST answer the database's code (Recoverable Invocation commit 3).
 Action wiring 49: IF the actor reference DOES NOT EQUAL the council writer's actor reference THEN [Repair] MUST answer invalid-credential.
 Action wiring 53: IF the stated count of a records fragment's new last gate line EQUALS blank OR the stated count DOES NOT EQUAL the round's foundational count THEN [Repair] MUST answer mismatch.
@@ -477,7 +481,7 @@ Term repair refusal order: Primitive policy 4, Primitive policy 5, Primitive pol
 <details markdown="block">
 <summary>WHY</summary>
 
-The escalation is the council's record, not the act's (Action wiring 30, 30a): it is written before any intent or, for hook-rejected, after the invocation refusal has closed the intent, so Recoverable Invocation Action wiring 6, which keeps an adopter's journal writes for the act to the protocol's own actions, does not reach it.
+The escalation is the council's record, not the act's (Action wiring 30, 30a): it is written before any intent or, for hook-rejected, after the invocation refusal has closed the intent, so Durable Intent Action wiring 6, which keeps an adopter's journal writes for the act to the protocol's own actions, does not reach it.
 
 </details>
 
@@ -524,7 +528,7 @@ Term malformed: the verdict that nothing was verified — a model that did not c
 
 Term finding: one failure a verifier reports — the site as Term site names it, the trace, and the reporter's class and finding kind — named by its finding id; Recoverable Invocation's findings register and Audit Trail's reconciliation findings are always named so.
 
-Term finding id: the verdict key of the verdict that carries the finding, and the finding's ordinal in it — minted by the council, so an intent may carry it (Recoverable Invocation Primitive policy 10).
+Term finding id: the verdict key of the verdict that carries the finding, and the finding's ordinal in it — minted by the council, so an intent may carry it (Durable Intent Primitive policy 10).
 
 Term site: a span of the pattern a finding or a fragment sits in, as the snapshot carries it, or for a finding a span of a pattern the snapshot's pattern composes, as the permitted ranges carry it — a rule label or a Term name with its text, running to the end of its fenced block or declaration line, or to the next label or Term name inside the block; for a sentence outside every rule and Term, a WHY under a block of rules and an invariant's title among them, the span of all sentences outside every rule and Term under the heading it falls under, named by that heading; and the records sites: the status line, the Ledger's status, formal and last gate lines and the Ledger's open list, each in the pattern, and the Decisions heading of the pattern's history file.
 
@@ -590,7 +594,7 @@ Term purged-horizon: the reason an unverifiable answer of this pattern carries �
 
 ### Walkthrough — a clean round
 
-The council freezes `compositions/immutable-ledger.md` at base commit `2f1b5c1`: [Freeze] reads the pattern at that commit from the repository and records the round under round id `r-14`, the event id of its record, with snapshot hash `a1a6621b…`. Three cold readers, none of whom has read an earlier round, are handed the snapshot and run GRID (a nine-checkpoint check of structural completeness), EOS (Essence of Software, a check of conceptual independence) with the builder's reading, and Linus; each verdict carries `a1a6621b…`, its pass and its own verifier, so each counts (Invariant 1.2, Action wiring 5). The verdicts are holds, holds and counterexample — one foundational finding, an operator's closing never sized, beside refining ones. The first triager rejects it: the protocol's open sizes against the kind's largest record, which Term true maximum on [Recoverable Invocation](./recoverable-invocation.md) makes the operator's closing too. The round's foundational count is now zero, so the count decides the round clean and is a deciding count: every counted finding goes to a second triager, another actor, whose brief carries the findings, the first triage's rejection, the method's test and the blame rule (Term blame), and not the threshold (Action wiring 11 through 13, 37). The second triager rejects it on the same text, and the round settles. [Repair] then carries the round's records and the refining cures that add no rule: the pattern at the head is still the snapshot, every cure answers a finding settled as cure, every fragment resolves to one site on the pattern or its history file and its old text is found verbatim, none sits in the claim families — the records leave the status line to the maintainer's ruling — the gate reports nothing over the repair tree it does not report over the head, the tree's diff is exactly the change set, and the commit lands on the head it was built from, carrying the council trailer. The round is clean.
+The council freezes `compositions/immutable-ledger.md` at base commit `2f1b5c1`: [Freeze] reads the pattern at that commit from the repository and records the round under round id `r-14`, the event id of its record, with snapshot hash `a1a6621b…`. Three cold readers, none of whom has read an earlier round, are handed the snapshot and run GRID (a nine-checkpoint check of structural completeness), EOS (Essence of Software, a check of conceptual independence) with the builder's reading, and Linus; each verdict carries `a1a6621b…`, its pass and its own verifier, so each counts (Invariant 1.2, Action wiring 5). The verdicts are holds, holds and counterexample — one foundational finding, an operator's closing never sized, beside refining ones. The first triager rejects it: the protocol's open sizes against the kind's largest record, which Term true maximum on [Durable Intent](../atoms/durable-intent.md) makes the operator's closing too. The round's foundational count is now zero, so the count decides the round clean and is a deciding count: every counted finding goes to a second triager, another actor, whose brief carries the findings, the first triage's rejection, the method's test and the blame rule (Term blame), and not the threshold (Action wiring 11 through 13, 37). The second triager rejects it on the same text, and the round settles. [Repair] then carries the round's records and the refining cures that add no rule: the pattern at the head is still the snapshot, every cure answers a finding settled as cure, every fragment resolves to one site on the pattern or its history file and its old text is found verbatim, none sits in the claim families — the records leave the status line to the maintainer's ruling — the gate reports nothing over the repair tree it does not report over the head, the tree's diff is exactly the change set, and the commit lands on the head it was built from, carrying the council trailer. The round is clean.
 
 ### Rejection path — the pattern moved under the round
 
@@ -673,13 +677,13 @@ NOTE: the owners — the maintainer, through the roadmap (Non-goal 2); a person 
 ### Concurrency
 
 ```
-Concurrency 1: Two [Repair] calls on one repository MUST serialize on the act's critical section (Recoverable Invocation open step 2.1).
+Concurrency 1: Two [Repair] calls on one repository MUST serialize on the act's critical section (Durable Intent open step 2.1).
 ```
 
 ### Indeterminate outcome
 
 ```
-Indeterminate outcome 1: The commit probe MUST answer Recoverable Invocation's sweep for a council commit whose reply was lost (Recoverable Invocation reconcile step 3, Execution Contract Error model 1).
+Indeterminate outcome 1: The commit probe MUST answer Recoverable Invocation's sweep for a council commit whose reply was lost (Sweep reconcile step 3, Execution Contract Error model 1).
 ```
 
 ---
@@ -718,7 +722,7 @@ Term round: three passes — GRID, EOS with the builder's reading, Linus — by 
 
 Term search: passes over moving text, each reading the pattern live rather than one snapshot; it counts toward nothing, and a round whose cold readers are handed the snapshot is never one.
 
-Term clean round: a settled round whose foundational count is zero and one of whose repairs' invocations closed council.commit.committed, as Recoverable Invocation's read invocation answers it for any of the invocation ids the round index carries, a call for each (Composition state 5, Recoverable Invocation read invocation 3a), with no blocking sibling in the round index that repair read (Composition state 3, Action wiring 86). A clean round decides council records — a round [Freeze] records, a verdict [Report] counts — and no write of the act kind council.commit, so Recoverable Invocation read invocation 15, which governs a write of the act decided on that read, does not reach it.
+Term clean round: a settled round whose foundational count is zero and one of whose repairs' invocations closed council.commit.committed, as Recoverable Invocation's read invocation answers it for any of the invocation ids the round index carries, a call for each (Composition state 5, Durable Intent read invocation 3a), with no blocking sibling in the round index that repair read (Composition state 3, Action wiring 86). A clean round decides council records — a round [Freeze] records, a verdict [Report] counts — and no write of the act kind council.commit, so Durable Intent read invocation 15, which governs a write of the act decided on that read, does not reach it.
 
 Term blocking sibling: another round of the same pattern and snapshot hash that, at a given instant, is settled with a foundational count above zero, or is unsettled with a counted finding its reporter classed foundational.
 
@@ -750,7 +754,7 @@ Kind: Operation
 
 #### Repair
 
-The action through which the council writes: it checks every precondition against the round's settled triages, the maintainer's rulings and the pattern at the head, builds its own tree from the head with the round's patches and records applied as one change, runs the corpus gate, checks the diff, and commits through [Recoverable Invocation](./recoverable-invocation.md) with the council trailer, on the head it built from.
+The action through which the council writes: it checks every precondition against the round's settled triages, the maintainer's rulings and the pattern at the head, builds its own tree from the head with the round's patches and records applied as one change, runs the corpus gate, checks the diff, and commits through [Durable Intent](../atoms/durable-intent.md) with the council trailer, on the head it built from.
 
 Kind: Operation
 

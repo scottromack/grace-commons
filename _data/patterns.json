@@ -312,7 +312,10 @@
   "audience": "common",
   "composes": [
    "capability",
-   "selective-disclosure"
+   "selective-disclosure",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 4,
@@ -334,8 +337,7 @@
   ],
   "status": "doing",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Capability-Backed Sharing"
  },
@@ -406,7 +408,10 @@
  "chain-of-custody": {
   "audience": "common",
   "composes": [
-   "provenance"
+   "provenance",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": true,
   "invariants": 6,
@@ -428,8 +433,7 @@
   ],
   "status": "done \u2014 2026-11-22",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Chain of Custody"
  },
@@ -593,7 +597,10 @@
   "audience": "common",
   "composes": [
    "party-identity",
-   "retention-window"
+   "retention-window",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": true,
   "invariants": 8,
@@ -614,8 +621,7 @@
   ],
   "status": "done \u2014 2026-11-23",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Customer Onboarding"
  },
@@ -681,6 +687,61 @@
   "status": "done \u2014 2026-11-20",
   "title": "Duplicate Prevention"
  },
+ "durable-intent": {
+  "audience": "common",
+  "composed_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "domain": null,
+  "done": false,
+  "invariants": 5,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "AMLD",
+   "BSA/AML",
+   "FATF",
+   "FRCP 37(e)",
+   "FinCEN",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "NIST 800-63",
+   "PCI DSS",
+   "SCIM",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "todo",
+  "title": "Durable Intent"
+ },
  "erasure-tombstone": {
   "audience": "common",
   "composed_by": [],
@@ -698,6 +759,61 @@
   "standards": [],
   "status": "done \u2014 2026-11-20",
   "title": "Erasure Tombstone"
+ },
+ "escalation": {
+  "audience": "common",
+  "composed_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "domain": null,
+  "done": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "AMLD",
+   "BSA/AML",
+   "FATF",
+   "FRCP 37(e)",
+   "FinCEN",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "NIST 800-63",
+   "PCI DSS",
+   "SCIM",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "todo",
+  "title": "Escalation"
  },
  "event-log": {
   "audience": "common",
@@ -779,7 +895,10 @@
   "composes": [
    "invitation",
    "credential",
-   "party-identity"
+   "party-identity",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 5,
@@ -800,8 +919,7 @@
   ],
   "status": "doing",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "External Onboarding"
  },
@@ -870,7 +988,10 @@
  "immutable-ledger": {
   "audience": "common",
   "composes": [
-   "selective-disclosure"
+   "selective-disclosure",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 4,
@@ -892,8 +1013,7 @@
   ],
   "status": "doing",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Immutable Ledger with Selective Disclosure"
  },
@@ -1098,7 +1218,10 @@
   "composes": [
    "approval-step",
    "permissions",
-   "assignment"
+   "assignment",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 9,
@@ -1121,8 +1244,7 @@
    "privileged-access-provisioning"
   ],
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Multi-Party Approval"
  },
@@ -1394,7 +1516,10 @@
   "composes": [
    "consent",
    "permissions",
-   "retention-window"
+   "retention-window",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 8,
@@ -1411,8 +1536,7 @@
   ],
   "status": "doing",
   "substrates": [
-   "audit-trail",
-   "recoverable-invocation"
+   "audit-trail"
   ],
   "title": "Propagate Consent Revocation Downstream"
  },
@@ -1534,17 +1658,6 @@
    "SOX"
   ],
   "status": "done \u2014 2026-11-23",
-  "substrate_of": [
-   "capability-backed-sharing",
-   "chain-of-custody",
-   "customer-onboarding",
-   "external-onboarding",
-   "immutable-ledger",
-   "multi-party-approval",
-   "propagate-consent-revocation-downstream",
-   "resolve-a-persons-data-rights",
-   "verified-repair"
-  ],
   "substrates": [
    "audit-trail"
   ],
@@ -1597,7 +1710,10 @@
   "audience": "common",
   "composes": [
    "selective-disclosure",
-   "consent"
+   "consent",
+   "durable-intent",
+   "sweep",
+   "escalation"
   ],
   "done": false,
   "invariants": 8,
@@ -1618,8 +1734,7 @@
   ],
   "status": "doing",
   "substrates": [
-   "defensible-retention",
-   "recoverable-invocation"
+   "defensible-retention"
   ],
   "title": "Resolve a Person's Data Rights"
  },
@@ -1909,6 +2024,61 @@
   "status": "done \u2014 2026-11-20",
   "title": "Subscription"
  },
+ "sweep": {
+  "audience": "common",
+  "composed_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "domain": null,
+  "done": false,
+  "invariants": 4,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [
+   "capability-backed-sharing",
+   "chain-of-custody",
+   "customer-onboarding",
+   "external-onboarding",
+   "immutable-ledger",
+   "multi-party-approval",
+   "propagate-consent-revocation-downstream",
+   "resolve-a-persons-data-rights",
+   "verified-repair"
+  ],
+  "security": true,
+  "standards": [
+   "21 CFR Part 11",
+   "AMLD",
+   "BSA/AML",
+   "FATF",
+   "FRCP 37(e)",
+   "FinCEN",
+   "GDPR",
+   "HIPAA",
+   "ISO 27001",
+   "NIST 800-53",
+   "NIST 800-63",
+   "PCI DSS",
+   "SCIM",
+   "SEC 17a-4",
+   "SOC 2",
+   "SOX"
+  ],
+  "status": "todo",
+  "title": "Sweep"
+ },
  "tag": {
   "audience": "common",
   "composed_by": [],
@@ -1984,7 +2154,11 @@
  },
  "verified-repair": {
   "audience": "internal",
-  "composes": [],
+  "composes": [
+   "durable-intent",
+   "sweep",
+   "escalation"
+  ],
   "done": false,
   "invariants": 8,
   "kind": "composition",
@@ -1997,7 +2171,6 @@
   "standards": [],
   "status": "doing",
   "substrates": [
-   "recoverable-invocation",
    "audit-trail"
   ],
   "title": "Verified Repair"

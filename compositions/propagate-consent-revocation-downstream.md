@@ -47,7 +47,9 @@ What the composition is *not*: it is not the consent-collection UI (user interfa
 - **[Permissions](../atoms/permissions.md)** — the inward authorization surface: which internal actor may administer a consent record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every state-changing act of the composition is an attributed, sealed, retention-governed Audit Trail event.
 - **[Retention Window](../atoms/retention-window.md)** — the consent retention instance: one placement over each consent record, marking how long the controller must be able to produce it.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it.
+- **[Durable Intent](../atoms/durable-intent.md)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Consent instance MUST serve the composition.
@@ -64,16 +66,18 @@ Composes 11: A deployment MUST NOT call the grant write outside the composition.
 Composes 12: A deployment MUST NOT call the revoke write outside the composition.
 Composes 13: A deployment MUST NOT call the consent read outside the composition.
 Composes 14: A deployment MUST NOT record an event under the consent namespace or under Recoverable Invocation's vocabulary for the consent kinds outside the composition.
-Composes 15: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 15: EXACTLY ONE Durable Intent instance MUST serve the composition.
 Composes 16: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
 Composes 17: The composition MUST bind the act kinds PER the consent bindings.
 Composes 18: The composition MUST NOT bind [Register Processing], [Read Consent History] or [Processing Permitted] as an act kind.
 Composes 19: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
+Composes 20: EXACTLY ONE Sweep instance MUST serve the composition.
+Composes 21: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), a [Retention Window](../atoms/retention-window.md) instance and [Recoverable Invocation](./recoverable-invocation.md) — the gate, the registration surface, the withdrawal with its propagation, the history read, the three indexes, the consent bindings and the write-ownership leg.
+Term composition: this pattern's wiring of [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), a [Retention Window](../atoms/retention-window.md) instance and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the gate, the registration surface, the withdrawal with its propagation, the history read, the three indexes, the consent bindings and the write-ownership leg.
 
-Term constituents: [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), [Retention Window](../atoms/retention-window.md), [Recoverable Invocation](./recoverable-invocation.md).
+Term constituents: [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), [Retention Window](../atoms/retention-window.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
 
 Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Tamper Evidence](../atoms/tamper-evidence.md) and the audit-event [Retention Window](../atoms/retention-window.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
 
@@ -254,7 +258,7 @@ Term event id width: the widest event id, in bytes, the wired Audit Trail instan
 
 Term id width: the widest consent id or retention id, in bytes, the host allocates at the seam of Consent or of Retention Window (Consent Identity 2, Retention Window Identity 2), whichever is wider.
 
-Term maximal envelope: the largest outcome the composition could write, a grant event or a propagation event with the fields Recoverable Invocation writes on it (Action wiring 17, 41, Recoverable Invocation Primitive policy 4, 11) — the registrations cap's pairs at the field length cap, every reference and the reason at the field length cap, the intent event id at the event id width, the consent id and the retention id at the id width, the act key at the id width, or at the field length cap twice where it is the subject reference with the purpose, and the fixed fields: the act kind, the invocation id as the host injects it (Capability requirement 27), the revocation instant, the expiry and the recovery flag — serialized as the substrate sizes it.
+Term maximal envelope: the largest outcome the composition could write, a grant event or a propagation event with the fields Recoverable Invocation writes on it (Action wiring 17, 41, Durable Intent Primitive policy 4, 11) — the registrations cap's pairs at the field length cap, every reference and the reason at the field length cap, the intent event id at the event id width, the consent id and the retention id at the id width, the act key at the id width, or at the field length cap twice where it is the subject reference with the purpose, and the fixed fields: the act kind, the invocation id as the host injects it (Capability requirement 27), the revocation instant, the expiry and the recovery flag — serialized as the substrate sizes it.
 
 
 Term required setting: the administration completion bound, the field length cap, the registrations cap, the event id width, the id width, the commit round trip, the probe round trip, the settling period or the recovery identity.
@@ -263,7 +267,7 @@ Term recovery identity: the composition's registered actor reference and credent
 
 Term clock offset allowance: Recoverable Invocation's clock allowance on this composition's instance.
 
-Term invocation id: the fresh id the host injects at the seam per [Record Consent] or [Withdraw Consent], carried by every record the invocation writes (Recoverable Invocation Term invocation id).
+Term invocation id: the fresh id the host injects at the seam per [Record Consent] or [Withdraw Consent], carried by every record the invocation writes (Durable Intent Term invocation id).
 
 Term commit round trip: the deployment's disclosed bound on one commit, from issue to reply — the revoke write for the withdrawal kind, the grant transaction for the grant kind.
 
@@ -331,7 +335,7 @@ Audit arm 18: [Record Consent] AND [Withdraw Consent] MUST answer PER Recoverabl
 ```
 
 
-Term intent: a grant intent or a withdrawal intent — the record Recoverable Invocation's open writes before the Consent write, the one that verifies the caller's credential (Recoverable Invocation Primitive policy 19).
+Term intent: a grant intent or a withdrawal intent — the record Recoverable Invocation's open writes before the Consent write, the one that verifies the caller's credential (Durable Intent Primitive policy 19).
 
 Term outcome: a grant event or a propagation event — the record Recoverable Invocation's close writes after the Consent write, or its sweep writes for it.
 
@@ -341,7 +345,7 @@ Term subsequent write: a single write.
 
 Term retention step: the step naming the substrate's retention placement on an invalid-request — step-4; the event is appended and attested.
 
-Term position: intent | outcome — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of a bound action sat; a single write has none.
+Term position: intent | outcome — Recoverable Invocation's (Durable Intent Primitive policy 19 through 31): where a recording-failure of a bound action sat; a single write has none.
 
 
 ### Action wiring
@@ -374,13 +378,13 @@ Term withheld state: revoked | expired | not-known — the consent check's answe
 
 Term expiry: the optional expires_at a caller passes to Consent's grant unchanged.
 
-Term metadata: the optional opaque metadata a caller passes to Consent's grant unchanged — a consent-form version, for one. No field length cap reaches it: the invocation open sizes it with the rest of the grant intent's data against the payload cap and lands invalid-request, nothing written, for an intent that would not fit (Recoverable Invocation Primitive policy 12, Primitive policy 13, Action wiring 61).
+Term metadata: the optional opaque metadata a caller passes to Consent's grant unchanged — a consent-form version, for one. No field length cap reaches it: the invocation open sizes it with the rest of the grant intent's data against the payload cap and lands invalid-request, nothing written, for an intent that would not fit (Durable Intent Primitive policy 12, Primitive policy 13, Action wiring 61).
 
 ```
 Action wiring 1: EVERY administration action MUST call the permission check with the actor reference AND the action's scope.
 Action wiring 2: IF the permission check answers denied THEN the administration action MUST answer permission-denied.
 Action wiring 3: An administration action MUST NOT write BEFORE the permission check answers permitted.
-Action wiring 4: A validated grant MUST call the invocation open with the act kind consent.grant, the subject reference with the purpose as the act key, the actor reference, the credential AND the intent data carrying the subject reference, the purpose, the retention policy reference, the expiry, the metadata AND now as the pairing datum (Recoverable Invocation Action wiring 4).
+Action wiring 4: A validated grant MUST call the invocation open with the act kind consent.grant, the subject reference with the purpose as the act key, the actor reference, the credential AND the intent data carrying the subject reference, the purpose, the retention policy reference, the expiry, the metadata AND now as the pairing datum (Durable Intent Action wiring 4).
 Action wiring 5: A grant intent MUST NOT carry a consent id.
 Action wiring 7: An admitted grant MUST call the consent check with the subject reference AND the purpose, inside the grant transaction.
 Action wiring 8: IF the consent check answers granted THEN the grant transaction MUST commit no write AND [Record Consent] MUST close the pre-commit arm through the invocation refuse AND answer already-granted (Recoverable Invocation commit 2, commit 3).
@@ -402,7 +406,7 @@ Action wiring 28: An opened withdrawal MUST derive the propagation set.
 Action wiring 29: The composition MUST derive a propagation set from the registration events AND the purged downstream entries.
 Action wiring 30: The composition MUST NOT derive a propagation set from a live downstream entry.
 Action wiring 31: IF a derivation finds a registration event whose pair the downstream index lacks THEN the derivation MUST add the binding.
-Action wiring 32: A validated withdrawal MUST call the invocation open with the act kind consent.withdrawal, the consent id as the act key, the actor reference, the credential AND the intent data carrying the consent id, the subject reference, the purpose, the reason AND now as the revocation instant, the pairing datum (Recoverable Invocation Action wiring 4).
+Action wiring 32: A validated withdrawal MUST call the invocation open with the act kind consent.withdrawal, the consent id as the act key, the actor reference, the credential AND the intent data carrying the consent id, the subject reference, the purpose, the reason AND now as the revocation instant, the pairing datum (Durable Intent Action wiring 4).
 Action wiring 33: A withdrawal intent MUST NOT carry the propagation set.
 Action wiring 34: An opened withdrawal MUST call the revoke write with the consent id, the actor reference as the revoker, the reason AND the intent's revocation instant.
 Action wiring 35: IF the revoke write answers already-revoked THEN [Withdraw Consent] MUST close the pre-commit arm through the invocation refuse AND answer already-revoked.
@@ -486,7 +490,7 @@ Term landed registration: a validated registration whose registration event land
 
 Term resolved withdrawal: a [Withdraw Consent] call whose permission check answered permitted and whose consent id the subject index resolves.
 
-Term validated withdrawal: a resolved withdrawal whose inputs cleared Primitive policy 1 through 6 and whose largest record the invocation open sized against the payload cap (Recoverable Invocation Primitive policy 12 and Primitive policy 13).
+Term validated withdrawal: a resolved withdrawal whose inputs cleared Primitive policy 1 through 6 and whose largest record the invocation open sized against the payload cap (Durable Intent Primitive policy 12 and Primitive policy 13).
 
 Term admitted withdrawal: a validated withdrawal whose invocation open landed the withdrawal intent.
 
@@ -509,7 +513,7 @@ Term index-anomaly finding: a finding that the subject index resolves a consent 
 
 #### Closure table
 
-Every input an action takes, and every answer a call of the five actions and of the leg can meet — Permissions' permission check, Consent's consent check, grant write, revoke write and consent read, Retention Window's retention placement, Audit Trail's audit write, record read and log read, and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. [Register Processing], [Read Consent History] and [Processing Permitted] are one transaction each (Execution Contract Database 1), and the three indexes stay outside it (Composition state 8). [Record Consent] and [Withdraw Consent] are Recoverable Invocation's: the intent commits at the open, ahead of the Consent write (Execution Contract Constituent failure 1), the Consent write is the commit, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Recoverable Invocation Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). A refusal writes nothing, except that a pre-commit arm of a bound action keeps the authenticated attempt in a refusal record (Recoverable Invocation commit 3).
+Every input an action takes, and every answer a call of the five actions and of the leg can meet — Permissions' permission check, Consent's consent check, grant write, revoke write and consent read, Retention Window's retention placement, Audit Trail's audit write, record read and log read, and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. [Register Processing], [Read Consent History] and [Processing Permitted] are one transaction each (Execution Contract Database 1), and the three indexes stay outside it (Composition state 8). [Record Consent] and [Withdraw Consent] are Recoverable Invocation's: the intent commits at the open, ahead of the Consent write (Execution Contract Constituent failure 1), the Consent write is the commit, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Durable Intent Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). A refusal writes nothing, except that a pre-commit arm of a bound action keeps the authenticated attempt in a refusal record (Recoverable Invocation commit 3).
 
 **Inputs.**
 
@@ -523,7 +527,7 @@ Every input an action takes, and every answer a call of the five actions and of 
 | [Register Processing], [Withdraw Consent] | a consent id the subject index misses once rebuilt | not-known, nothing written | Primitive policy 5, 8, Execution Contract Derived index 1 |
 | [Register Processing] | a pair outside the registered set, where the set holds the registrations cap's pairs | registration-cap-exceeded, nothing written | Primitive policy 6, 8 |
 | [Register Processing] | a pair the consent's downstream entry already holds | the registration event recorded, the binding unchanged | Action wiring 21, 22, Composition state 5 |
-| [Withdraw Consent] | an outcome over Audit Trail's payload cap | invalid-request at the open, nothing written | Recoverable Invocation Primitive policy 12, 13 |
+| [Withdraw Consent] | an outcome over Audit Trail's payload cap | invalid-request at the open, nothing written | Durable Intent Primitive policy 12, 13 |
 | [Record Consent] | an expiry or metadata | passed to the grant write unchanged, the metadata never interpreted | Action wiring 9, Term expiry, Term metadata |
 
 **Permissions: the permission check**, at every administration action (Action wiring 1).
@@ -540,13 +544,13 @@ Every input an action takes, and every answer a call of the five actions and of 
 | Call | Answer | Lands | Owner |
 |---|---|---|---|
 | the open | an intent event id | the commit | Action wiring 4, 32, Term admitted grant, Term admitted withdrawal |
-| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 61, Recoverable Invocation Action wiring table |
-| the open | act-landed | never: both kinds are repeatable | Recoverable Invocation open step 3.9, repeatable 1 |
-| the open | recording-failure(outcome) | recording-failure(outcome), the intent standing and its record the sweep's | Action wiring 61, Recoverable Invocation Action wiring table |
+| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 61, Durable Intent Action wiring table |
+| the open | act-landed | never: both kinds are repeatable | Durable Intent open step 3.9, repeatable 1 |
+| the open | recording-failure(outcome) | recording-failure(outcome), the intent standing and its record the sweep's | Action wiring 61, Durable Intent Action wiring table |
 | the close | an event id | the index writes where the action owes them, and the action's answer | Action wiring 17, 18, 19, 41, 42 |
 | the close | recording-failure(outcome) | recording-failure(outcome), the act committed and its record the sweep's | Action wiring 61, Recoverable Invocation commit 4 |
 | the refuse | an event id | the constituent's own code, the attempt recorded | Action wiring 8, 11, 12, 14, 35 through 39, 58 |
-| the refuse | already-accounted or recording-failure(refusal, constituent_code) | that code; the sweep records the attempt where the refusal did not land | Action wiring 61, Recoverable Invocation Action wiring table |
+| the refuse | already-accounted or recording-failure(refusal, constituent_code) | that code; the sweep records the attempt where the refusal did not land | Action wiring 61, Durable Intent Action wiring table |
 | the yield | its return | recording-failure(outcome), the act possibly committed and its record the sweep's | Action wiring 59, 60 |
 
 **Consent and Retention Window, inside an action.** A state-unavailable from any of these calls is a pre-commit arm for a bound action and passes through unchanged for the others, and writes nothing (Execution Contract Read 1 through 3, Constituent failure 3), and a call with no answer is the unknown partition (Term commit partition). The other answers:
@@ -664,7 +668,7 @@ Term key repair: a key entry the reconciliation writes from a grant event's payl
 
 Term index repair: a binding repair or a key repair.
 
-Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Escalation findings 6).
 
 
 ## Composition-level invariants
@@ -690,7 +694,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 3.1: EVERY propagation event MUST name a consent the Consent records hold in Revoked.
   Invariant 3.2: Two propagation events MUST NOT carry one consent id.
   Invariant 3.3: A propagation event's propagation set MUST EQUAL the registered set at the event's boundary.
-  NOTE: the invocation resolve does not check an operator's outcome against the database (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 3.1, Invariant 3.2 and Invariant 3.3 are detected, not prevented, for an operator's closing: Check 3.1, Check 3.2 and Check 3.10 find it.
+  NOTE: the invocation resolve does not check an operator's outcome against the database (Escalation resolve 28, Escalation resolve 31), so Invariant 3.1, Invariant 3.2 and Invariant 3.3 are detected, not prevented, for an operator's closing: Check 3.1, Check 3.2 and Check 3.10 find it.
   ```
   Term event's boundary: the position in the Event Log of the intent the event's intent event id names.
 
@@ -762,7 +766,7 @@ A retry after a timeout: `withdraw_consent(actor_ref="consent_svc", consent_id="
 
 ### Failure path — withdrawal whose propagation event fails to record
 
-A [Withdraw Consent] call passes its checks, opens its invocation (the intent lands), revokes, and the close's `record_action` returns recording-failure — the Event Log append answered nothing, its reply lost — so no outcome lands and the call answers `recording-failure(outcome)`, an answer and not a refusal, its intent and revoke committed with it: the position telling the consent service the consent **is** Revoked and the action must not be re-run (a re-run would be refused already-revoked in any case). The record is the sweep's: at its next run it finds the intent open, runs the withdrawal probe — Consent's read by the consent id with the intent's `revoked_at` — and, the record standing Revoked at that instant, writes a `consent.withdrawal.recovery_intended` record and then the outcome `consent.withdrawal.revoked` under the composition's service identity, carrying the recovery flag, the original caller as the acting actor reference and the original `consent.withdrawal.intended` event as its `intent_event_id`, so an auditor distinguishes the recovered withdrawal from a clean one and still reads who withdrew (Recoverable Invocation Invariant 5.1, 5.2). Had the cause been permanent, or the probe undecidable, the sweep would have escalated the intent with its cause for an operator to settle through the invocation resolve. The gate is honest during the gap: processing_permitted reads Consent, so it returns `rejected(not-permitted(revoked))` from the moment the revoke committed.
+A [Withdraw Consent] call passes its checks, opens its invocation (the intent lands), revokes, and the close's `record_action` returns recording-failure — the Event Log append answered nothing, its reply lost — so no outcome lands and the call answers `recording-failure(outcome)`, an answer and not a refusal, its intent and revoke committed with it: the position telling the consent service the consent **is** Revoked and the action must not be re-run (a re-run would be refused already-revoked in any case). The record is the sweep's: at its next run it finds the intent open, runs the withdrawal probe — Consent's read by the consent id with the intent's `revoked_at` — and, the record standing Revoked at that instant, writes a `consent.withdrawal.recovery_intended` record and then the outcome `consent.withdrawal.revoked` under the composition's service identity, carrying the recovery flag, the original caller as the acting actor reference and the original `consent.withdrawal.intended` event as its `intent_event_id`, so an auditor distinguishes the recovered withdrawal from a clean one and still reads who withdrew (Sweep Invariant 5.1, 5.2). Had the cause been permanent, or the probe undecidable, the sweep would have escalated the intent with its cause for an operator to settle through the invocation resolve. The gate is honest during the gap: processing_permitted reads Consent, so it returns `rejected(not-permitted(revoked))` from the moment the revoke committed.
 
 ### Rejection path — gate query for a subject who never consented
 
@@ -800,10 +804,10 @@ Check 4.1: An auditor MUST find a registration event preceding the event's bound
 Check 4.2: IF the record read answers Purged on a binding's registration event AND the propagation event carrying the binding's consent id carries the binding's pair THEN an auditor MUST find the registration event's surviving sequence number preceding the propagation event's boundary (Invariant 4.1, Cross-record consistency 3).
 Check 5.1: An auditor MUST find a consent retention in Retained for EVERY governed consent carrying a grant event (Invariant 6.1).
 Check 5.2: An auditor MUST find no consent retention in Purged (Invariant 6.1).
-Check 6.1: An auditor MUST resolve EVERY outcome's intent event id to an intent that PRECEDES the outcome in the Event Log AND carries the outcome's invocation id, the actor of a recovered outcome being the acting actor reference the outcome carries (Recoverable Invocation Invariant 1.1, Recoverable Invocation Invariant 5.2).
-Check 6.2: An auditor MUST NOT join an outcome to an intent by any key other than the invocation id (Recoverable Invocation Primitive policy 5).
+Check 6.1: An auditor MUST resolve EVERY outcome's intent event id to an intent that PRECEDES the outcome in the Event Log AND carries the outcome's invocation id, the actor of a recovered outcome being the acting actor reference the outcome carries (Durable Intent Invariant 1.1, Sweep Invariant 5.2).
+Check 6.2: An auditor MUST NOT join an outcome to an intent by any key other than the invocation id (Durable Intent Primitive policy 5).
 Check 6.3: An auditor MUST NOT order an intent AND the intent's outcome by instant (Clock semantics 1).
-Check 6.4: An auditor MUST read an intent carrying no outcome as open, awaiting the sweep, closed by the sweep or by an operator, never as a conformance failure (Recoverable Invocation Invariant 4.2).
+Check 6.4: An auditor MUST read an intent carrying no outcome as open, awaiting the sweep, closed by the sweep or by an operator, never as a conformance failure (Sweep Invariant 4.2).
 Check 7.1: An auditor MUST find EVERY consent retention period not exceeding the audit horizon (Capability requirement 4).
 Check 7.2: An auditor MUST find no consent id resolved from the Consent records on a subject index miss (Composition state 11).
 Check 7.3: An auditor MUST read a payload-dependent clause on an event the verification answers purged as unverifiable (Composition state 13).
@@ -860,8 +864,8 @@ Non-goal 6: The composition MUST NOT model the data subject's withdrawal surface
 Non-goal 7: The composition MUST NOT authenticate the data subject.
 Non-goal 8: The composition MUST NOT record a denied attempt.
 Non-goal 9: The composition MUST NOT destroy a consent record.
-Non-goal 10: The composition MUST NOT describe an act's open, commit and close as atomic (Recoverable Invocation Non-goal 1).
-Non-goal 11: The composition MUST NOT own a re-entry arm for an already-granted or already-revoked answer beyond the constituent's own refusal (Recoverable Invocation Non-goal 4).
+Non-goal 10: The composition MUST NOT describe an act's open, commit and close as atomic (Durable Intent Non-goal 1).
+Non-goal 11: The composition MUST NOT own a re-entry arm for an already-granted or already-revoked answer beyond the constituent's own refusal (Durable Intent Non-goal 4).
 Non-goal 12: The composition MUST NOT bind the interval between a [Processing Permitted] answer and the processing activity the answer authorizes.
 ```
 
@@ -909,7 +913,7 @@ The first two are Recoverable Invocation's Cross-record consistency for the two 
 
 ## Composition notes
 
-**Recoverable Invocation.** [Record Consent] and [Withdraw Consent] follow [Recoverable Invocation](./recoverable-invocation.md) around their acts (Composes 15 through 19): an intent before the commit, the one outcome as the close, a refusal record where the constituent refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the two act kinds once (Term consent bindings) and restates none of the protocol. [Register Processing], [Read Consent History] and [Processing Permitted] are not bound (Composes 18): a registration is one write and one record, a history read writes only its own access event, and the gate reads Consent alone.
+**Recoverable Invocation.** [Record Consent] and [Withdraw Consent] follow [Durable Intent](../atoms/durable-intent.md) around their acts (Composes 15 through 19): an intent before the commit, the one outcome as the close, a refusal record where the constituent refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the two act kinds once (Term consent bindings) and restates none of the protocol. [Register Processing], [Read Consent History] and [Processing Permitted] are not bound (Composes 18): a registration is one write and one record, a history read writes only its own access event, and the gate reads Consent alone.
 
 **Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the grant kind's is three calls in one database transaction (Term grant transaction), whose partition belongs to the transaction, the consent check's granted answer and a refusal of the grant write or the retention placement each rolling it back. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch here, as evidence for Recoverable Invocation's next revision, which is the record Recoverable Invocation Deviation 2 asks of an adopter first, as External Onboarding and Capability-Backed Sharing do. The withdrawal's commit is one call, the revoke write, and needs no such reading.
 

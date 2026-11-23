@@ -22,7 +22,7 @@ toc: true
 
 Chain of Custody is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves the chain-of-custody problem no single atom solves alone: making it provable that an artifact moved through an unbroken sequence of verified, non-repudiable (unable later to deny the act) custodians, that no entry was tampered with in the fields its audit event carries (Non-goal 14), and that the chain was kept for the required period. It wires two constituents: Provenance (the append-only custody chain with structural continuity — one current custodian at all times, hand-to-hand transfers) and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every custody event via the Event Log, Actor Identity, Retention Window, and Tamper Evidence atoms it contains).
 
-The composition's defining emergent guarantee is provable custody: a single query, `verify_custody(chain_id, original_event_payloads)`, returns the full ordered chain with, per entry, the verified attribution of the acting custodian (who authorized this step), the tamper-evident seal status (has the entry been altered), and the retention state (is the entry still held lawfully) — plus a continuity check confirming that every transfer's outgoing custodian equals the prior holder. This is the provable answer to the regulator's, judge's, or auditor's four questions — *who held it, was the transfer unbroken, was the record altered, was it kept long enough*. Neither Provenance alone nor Audit Trail alone produces this answer; the composition is what wires them into a single custody-proof surface. Each custody step follows [Recoverable Invocation](./recoverable-invocation.md)'s protocol around its Provenance write — an intent before it, the outcome after it — so a step whose audit record never landed, from a lost reply or a crash between the write and its record, is closed by that composition's sweep, its record attested as recovered, and the four answers hold for it too.
+The composition's defining emergent guarantee is provable custody: a single query, `verify_custody(chain_id, original_event_payloads)`, returns the full ordered chain with, per entry, the verified attribution of the acting custodian (who authorized this step), the tamper-evident seal status (has the entry been altered), and the retention state (is the entry still held lawfully) — plus a continuity check confirming that every transfer's outgoing custodian equals the prior holder. This is the provable answer to the regulator's, judge's, or auditor's four questions — *who held it, was the transfer unbroken, was the record altered, was it kept long enough*. Neither Provenance alone nor Audit Trail alone produces this answer; the composition is what wires them into a single custody-proof surface. Each custody step follows [Durable Intent](../atoms/durable-intent.md)'s protocol around its Provenance write — an intent before it, the outcome after it — so a step whose audit record never landed, from a lost reply or a crash between the write and its record, is closed by that composition's sweep, its record attested as recovered, and the four answers hold for it too.
 
 Its most common uses are pharmaceutical chain of custody under FDA (US Food and Drug Administration) 21 CFR (Code of Federal Regulations) Part 211 and DEA (US Drug Enforcement Administration) 21 CFR Part 1304 (controlled substance inventory), physical-evidence authentication under FRE (Federal Rules of Evidence) 901(b)(9), financial instrument custody records under SEC (US Securities and Exchange Commission) Rule 17a-4, and digital-file chain of custody under ISO (International Organization for Standardization) 23081 (records-management metadata). Any system that must make it provable that every step in an artifact's journey was attributed, sealed, and retention-governed is a candidate for this composition.
 
@@ -44,7 +44,9 @@ What the composition is *not*: it is not a DAG-model (DAG — directed acyclic g
 
 - **[Provenance](../atoms/provenance.md)** — the structural custody chain: one current custodian at all times, hand-to-hand transfers, the outgoing custodian read from chain state.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every custody action records through it, and each record is appended to Event Log, attested by Actor Identity, placed under Retention Window and sealed by Tamper Evidence at the configured cadence.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol the five custody actions follow around the Provenance write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it.
+- **[Durable Intent](../atoms/durable-intent.md)** — the protocol the five custody actions follow around the Provenance write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Provenance instance MUST serve the composition.
@@ -56,17 +58,19 @@ Composes 6: The composition MUST NOT change a constituent's spec.
 Composes 7: The composition MUST select the custody events through the custody enumeration.
 Composes 9: The composition MUST NOT read Audit Trail records directly.
 Composes 10: IF the custody enumeration answers invalid-query THEN the deployment MUST alert on a deployment fault AND [Verify Custody], the one action that runs the binding rebuild (Composition state 7), MUST answer state-unavailable.
-Composes 12: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 12: EXACTLY ONE Durable Intent instance MUST serve the composition.
 Composes 13: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
 Composes 14: The composition MUST bind the act kinds PER the custody bindings.
 Composes 15: The composition MUST NOT bind an action other than a custody action as an act kind.
 Composes 16: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
 Composes 17: The composition MUST read the custody events through the Event Log instance Audit Trail carries, by an open-ended sequence range, as a declared direct invocation PER the section titled Substrate composition invocation in `execution-contract.md`.
+Composes 18: EXACTLY ONE Sweep instance MUST serve the composition.
+Composes 19: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Provenance](../atoms/provenance.md), [Audit Trail](./audit-trail.md) and [Recoverable Invocation](./recoverable-invocation.md) — the five custody actions, the verification, the binding index, the custody bindings and the write-ownership leg.
+Term composition: this pattern's wiring of [Provenance](../atoms/provenance.md), [Audit Trail](./audit-trail.md) and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the five custody actions, the verification, the binding index, the custody bindings and the write-ownership leg.
 
-Term constituents: [Provenance](../atoms/provenance.md), [Audit Trail](./audit-trail.md), [Recoverable Invocation](./recoverable-invocation.md).
+Term constituents: [Provenance](../atoms/provenance.md), [Audit Trail](./audit-trail.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
 
 Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Retention Window](../atoms/retention-window.md) and [Tamper Evidence](../atoms/tamper-evidence.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
 
@@ -192,7 +196,7 @@ Term minted id width: the deployment's declared most bytes a chain id or an entr
 
 Term clock offset allowance: Recoverable Invocation's clock allowance on this composition's instance.
 
-Term invocation id: the fresh id the host injects at the seam per custody action, carried by every record the invocation writes (Recoverable Invocation Term invocation id).
+Term invocation id: the fresh id the host injects at the seam per custody action, carried by every record the invocation writes (Durable Intent Term invocation id).
 
 Term commit round trip: the deployment's disclosed bound on one commit, from issue to reply — the origination transaction, the transfer transaction, or Provenance's transform, disclose or archive.
 
@@ -214,7 +218,7 @@ Primitive policy 6: IF the credential EQUALS blank THEN the custody action MUST 
 Primitive policy 7: IF a reference EXCEEDS the reference's input cap THEN the custody action MUST answer invalid-ref.
 Primitive policy 8: IF the transformation descriptor EXCEEDS the descriptor's input cap THEN [Transform Custody] MUST answer invalid-descriptor.
 Primitive policy 9: An action refused under Primitive policy 1 through 8 MUST NOT write.
-Primitive policy 10: A custody action MUST NOT call a constituent BEFORE Primitive policy 1 through 8 pass (Recoverable Invocation Action wiring 4).
+Primitive policy 10: A custody action MUST NOT call a constituent BEFORE Primitive policy 1 through 8 pass (Durable Intent Action wiring 4).
 Primitive policy 11: The composition MUST compare a chain id, an entry id, an event id AND a caller string byte-exact.
 Primitive policy 12: The composition MUST NOT normalize a caller string.
 Primitive policy 13: The composition MUST NOT inspect a credential beyond Primitive policy 6.
@@ -234,7 +238,7 @@ Term genesis type: originated | received — Provenance's.
 
 Term metadata: the optional opaque payload [Originate Custody] passes to Provenance unchanged.
 
-Term credential: the acting custodian's opaque credential material, validated by the substrate inside the intent record the invocation open writes (Recoverable Invocation Invariant 1.1).
+Term credential: the acting custodian's opaque credential material, validated by the substrate inside the intent record the invocation open writes (Durable Intent Invariant 1.1).
 
 Term caller string: an artifact reference, a custodian reference, a recipient reference or a transformation descriptor.
 
@@ -246,11 +250,11 @@ Term acting custodian: the genesis custodian for [Originate Custody]; the outgoi
 Audit arm 29: A custody action MUST answer the arms of the records Recoverable Invocation writes for the action PER Recoverable Invocation's Action wiring table.
 ```
 
-Term intent: a custody action's record before its Provenance write — the custody.originate.intended, custody.transfer.intended, custody.transform.intended, custody.disclose.intended or custody.archive.intended record the invocation open writes, the one that verifies the caller's credential (Recoverable Invocation Primitive policy 19); carrying the invocation's parameters other than the credential and the metadata, the pairing datum, and no constituent-minted id.
+Term intent: a custody action's record before its Provenance write — the custody.originate.intended, custody.transfer.intended, custody.transform.intended, custody.disclose.intended or custody.archive.intended record the invocation open writes, the one that verifies the caller's credential (Durable Intent Primitive policy 19); carrying the invocation's parameters other than the credential and the metadata, the pairing datum, and no constituent-minted id.
 
-Term position: intent | outcome — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of a custody action sat.
+Term position: intent | outcome — Recoverable Invocation's (Durable Intent Primitive policy 19 through 31): where a recording-failure of a custody action sat.
 
-Term recovery flag: Recoverable Invocation's recovery set to true — carried by an outcome its sweep wrote under the recovery identity or an operator wrote through the invocation resolve, and by no other (Recoverable Invocation Term recovery).
+Term recovery flag: Recoverable Invocation's recovery set to true — carried by an outcome its sweep wrote under the recovery identity or an operator wrote through the invocation resolve, and by no other (Durable Intent Term recovery).
 
 ### Action wiring
 
@@ -297,7 +301,7 @@ Action wiring 5: An outcome event MUST carry the chain id AND the entry id.
 Action wiring 8: IF Provenance answers a Provenance refusal, storage-failure OR state-unavailable inside a custody action's commit THEN the custody action MUST close the pre-commit arm through the invocation refuse AND answer that code (Recoverable Invocation commit 2, commit 3).
 Action wiring 9: A pre-commit arm MUST NOT write beyond the intent AND the refusal record.
 Action wiring 11: A closed custody action MUST write the binding AND answer the custody result.
-Action wiring 12: A validated origination MUST call the invocation open with the act kind custody.originate, the origination key as the act key, the custodian reference as the actor reference, the credential AND the intent data carrying the artifact reference, the custodian reference, the genesis type AND now as the pairing datum (Recoverable Invocation Action wiring 4).
+Action wiring 12: A validated origination MUST call the invocation open with the act kind custody.originate, the origination key as the act key, the custodian reference as the actor reference, the credential AND the intent data carrying the artifact reference, the custodian reference, the genesis type AND now as the pairing datum (Durable Intent Action wiring 4).
 Action wiring 13: An admitted origination MUST call Provenance's originate with the artifact reference, the custodian reference, the genesis type AND the metadata, inside the origination transaction.
 Action wiring 14: A committed origination MUST read the genesis entry at sequence number one through Provenance's read, inside the origination transaction.
 Action wiring 15: [Originate Custody] MUST close a committed origination transaction through the invocation close naming custody.originate.originated for originated AND custody.originate.received for received (Recoverable Invocation commit 4).
@@ -420,7 +424,7 @@ Term read passthrough: Provenance's read, passed through unchanged — the compo
 
 #### Closure table
 
-Every input an action takes, and every answer a call of the seven actions and of the leg can meet — Provenance's originate, transfer, transform, disclose, archive and read, the genesis lookup, the range read of the Event Log instance Audit Trail carries (Composes 17), Audit Trail's record read and verification, and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The five custody actions are Recoverable Invocation's: the intent commits at the open, ahead of the Provenance write (Execution Contract Constituent failure 1), the commit is the origination transaction, the transfer transaction or the one Provenance write, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Recoverable Invocation Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). [Verify Custody] and the read passthrough write nothing (Action wiring 53, 55), and the binding index stays outside every transaction (Composition state 6). A refusal writes nothing, except that a pre-commit arm of a custody action keeps the authenticated attempt in a refusal record (Recoverable Invocation commit 3).
+Every input an action takes, and every answer a call of the seven actions and of the leg can meet — Provenance's originate, transfer, transform, disclose, archive and read, the genesis lookup, the range read of the Event Log instance Audit Trail carries (Composes 17), Audit Trail's record read and verification, and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The five custody actions are Recoverable Invocation's: the intent commits at the open, ahead of the Provenance write (Execution Contract Constituent failure 1), the commit is the origination transaction, the transfer transaction or the one Provenance write, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Durable Intent Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). [Verify Custody] and the read passthrough write nothing (Action wiring 53, 55), and the binding index stays outside every transaction (Composition state 6). A refusal writes nothing, except that a pre-commit arm of a custody action keeps the authenticated attempt in a refusal record (Recoverable Invocation commit 3).
 
 **Inputs.**
 
@@ -433,7 +437,7 @@ Every input an action takes, and every answer a call of the seven actions and of
 | a custody action | the credential | consumed by the intent record alone, never inspected | Primitive policy 13, Term credential |
 | every action | a caller string | compared byte-exact, never normalized | Primitive policy 11, 12 |
 | [Originate Custody] | the metadata | passed to Provenance's originate unchanged, and to no Recoverable Invocation call | Action wiring 13, Primitive policy 15 |
-| a custody action | inputs whose outcome would exceed Audit Trail's payload cap | invalid-request at the open, nothing written | Recoverable Invocation Primitive policy 12, 13 |
+| a custody action | inputs whose outcome would exceed Audit Trail's payload cap | invalid-request at the open, nothing written | Durable Intent Primitive policy 12, 13 |
 | [Verify Custody] | the original event payloads | read by sequence number, never changed | Action wiring 41, 42, 52 |
 
 **Provenance: the resolution read**, at [Transfer Custody], ahead of the open (Action wiring 16).
@@ -453,13 +457,13 @@ Every input an action takes, and every answer a call of the seven actions and of
 | Call | Answer | Lands | Owner |
 |---|---|---|---|
 | the open | an intent event id | the commit | Action wiring 12, 20, 27, 29, 31, Term admitted origination, Term admitted transfer |
-| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 68, Recoverable Invocation Action wiring table |
-| the open | recording-failure(outcome) | recording-failure(outcome), the intent standing open, the commit never issued and the record the sweep's | Action wiring 68, Recoverable Invocation Action wiring table |
+| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 68, Durable Intent Action wiring table |
+| the open | recording-failure(outcome) | recording-failure(outcome), the intent standing open, the commit never issued and the record the sweep's | Action wiring 68, Durable Intent Action wiring table |
 | the open | act-landed | never: every kind is repeatable | Recoverable Invocation repeatable 1, Term custody bindings |
 | the close | an event id | the binding, and the custody result | Action wiring 11, 15, 26, 66 |
 | the close | recording-failure(outcome) | recording-failure(outcome), the act committed and its record the sweep's | Action wiring 68, Recoverable Invocation commit 4 |
 | the refuse | an event id | the constituent's own code, the attempt recorded | Action wiring 8, 64, 65 |
-| the refuse | already-accounted or recording-failure(refusal, constituent_code) | that code; the sweep records the attempt where the refusal did not land | Action wiring 68, Recoverable Invocation Action wiring table |
+| the refuse | already-accounted or recording-failure(refusal, constituent_code) | that code; the sweep records the attempt where the refusal did not land | Action wiring 68, Durable Intent Action wiring table |
 | the yield | its return | recording-failure(outcome), the act possibly committed and its record the sweep's | Action wiring 67 |
 
 **Provenance inside a commit.** A state-unavailable from any of these calls is a pre-commit arm (Execution Contract Constituent failure 3) closed through the refuse (Action wiring 8), and a call with no answer, or with an answer Provenance does not declare, is the unknown partition, closed through the yield (Action wiring 67, Term commit partition). The other answers:
@@ -557,7 +561,7 @@ Term write-ownership finding: a finding that a Provenance entry is no carried en
 
 Term false closing: a carried entry whose carrying intent an abandonment or a refusal closed — an act that committed, read as one that did not.
 
-Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Escalation findings 6).
 
 ### Verdict
 
@@ -615,7 +619,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 1.1: IF a settled entry IS a carried entry AND the state of the entry's carrying intent IS NOT an unclosed intent state THEN the entry MUST carry an outcome event whose action reference matches the entry's event type.
   Invariant 1.2: IF an outcome event carries no recovery flag THEN the event MUST carry an attestation of the acting custodian.
   ```
-  Term unclosed intent state: open | escalated | abandoned | refused — the members of Recoverable Invocation's state value set (Recoverable Invocation Term value sets) in which a carrying intent owes no outcome event.
+  Term unclosed intent state: open | escalated | abandoned | refused — the members of Recoverable Invocation's state value set (Durable Intent Term value sets) in which a carrying intent owes no outcome event.
 
   Term settled entry: a Provenance entry whose recording instant plus the examine window end of the act kind its event type names, plus the clock offset allowance (Execution Contract Logic confinement 18), PRECEDES the instant of the auditor's read — the call's now at [Verify Custody] (Recoverable Invocation Term examine window end).
 
@@ -634,7 +638,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 4.1: The composition MUST NOT leave an orphan entry unsurfaced.
   Invariant 4.3: Two invocation-written outcome events MUST NOT name one entry id.
   Invariant 4.4: EVERY invocation-written outcome event MUST name an entry the Provenance chain carries.
-  NOTE: the invocation resolve does not check an operator's outcome against Provenance (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31), so Invariant 4.3 and Invariant 4.4 claim only the invocation-written outcome events, and an operator's closing is detected, not prevented: Composition state 9, Check 5.10 and Check 5.11 find it.
+  NOTE: the invocation resolve does not check an operator's outcome against Provenance (Escalation resolve 28, Escalation resolve 31), so Invariant 4.3 and Invariant 4.4 claim only the invocation-written outcome events, and an operator's closing is detected, not prevented: Composition state 9, Check 5.10 and Check 5.11 find it.
   ```
 
 - **Invariant 5 — Provable custody.**
@@ -693,7 +697,7 @@ After the pharmaceutical chain is Archived (example step 5), a downstream system
 
 ### Failure path — custody step whose outcome is lost, recovered
 
-The evidence room releases a controlled-substance tote to the hospital pharmacy: `transfer_custody("chain-0107", "pharm-hosp-9", credential=<evid_room>)`. The resolution read shows the evidence room, `evid-room-2`, as the holder; the invocation open lands `custody.transfer.intended` under `evid-room-2` carrying the invocation's now as its pairing datum — the evidence-room custodian's credential validates, so what follows is an authenticated attempt on the record. Inside the transfer transaction the holder is re-read and unchanged, and `Provenance.transfer` writes the entry (`entry_id = e5`), its recording instant the same injected now. The invocation close's write of `custody.transfer.transferred` answers recording-failure carrying step-3 — the Event Log append answered nothing, its reply lost (Recoverable Invocation Primitive policy 32a) — and the read-back by invocation id finds nothing, so the call returns `recording-failure(outcome)`, telling the evidence room the act may exist, its record is the sweep's, and the action must not be re-run. Recovery is Recoverable Invocation's: once the intent ages past its examine edge, the sweep runs the step probe — Provenance's read of `chain-0107` for a transferred entry at the intent's pairing datum, from `evid-room-2` to `pharm-hosp-9` — finds `e5`, writes `custody.transfer.recovery_intended`, and lands `custody.transfer.transferred` under `recovery_identity` with `recovery = true` and `evid-room-2` as the acting actor reference (had the lost append landed after all, the sweep's re-read would have found it and written nothing). The binding rebuild binds `e5` to the recovered event. A later [Verify Custody] reports `e5` with recovery attestation true, actor match match carrying recovery, and an [Overall Verdict] of `custody-proof-complete-with-recovered-attestations([e5])` — structurally sound, surfaced for the auditor's judgment. Had the credential been bad, this path would never have been reached: it is refused at the intent with nothing committed.
+The evidence room releases a controlled-substance tote to the hospital pharmacy: `transfer_custody("chain-0107", "pharm-hosp-9", credential=<evid_room>)`. The resolution read shows the evidence room, `evid-room-2`, as the holder; the invocation open lands `custody.transfer.intended` under `evid-room-2` carrying the invocation's now as its pairing datum — the evidence-room custodian's credential validates, so what follows is an authenticated attempt on the record. Inside the transfer transaction the holder is re-read and unchanged, and `Provenance.transfer` writes the entry (`entry_id = e5`), its recording instant the same injected now. The invocation close's write of `custody.transfer.transferred` answers recording-failure carrying step-3 — the Event Log append answered nothing, its reply lost (Durable Intent Primitive policy 32a) — and the read-back by invocation id finds nothing, so the call returns `recording-failure(outcome)`, telling the evidence room the act may exist, its record is the sweep's, and the action must not be re-run. Recovery is Recoverable Invocation's: once the intent ages past its examine edge, the sweep runs the step probe — Provenance's read of `chain-0107` for a transferred entry at the intent's pairing datum, from `evid-room-2` to `pharm-hosp-9` — finds `e5`, writes `custody.transfer.recovery_intended`, and lands `custody.transfer.transferred` under `recovery_identity` with `recovery = true` and `evid-room-2` as the acting actor reference (had the lost append landed after all, the sweep's re-read would have found it and written nothing). The binding rebuild binds `e5` to the recovered event. A later [Verify Custody] reports `e5` with recovery attestation true, actor match match carrying recovery, and an [Overall Verdict] of `custody-proof-complete-with-recovered-attestations([e5])` — structurally sound, surfaced for the auditor's judgment. Had the credential been bad, this path would never have been reached: it is refused at the intent with nothing committed.
 
 ### DEA controlled substance — 21 CFR Part 1304 inventory custody
 
@@ -746,7 +750,7 @@ Check 4.2: An auditor MUST find EVERY Purged outcome event carrying a Purged ret
 Check 5.1: An auditor MUST enumerate the chain's outcome events through the custody enumeration AND find no two invocation-written outcome events carrying one entry id (Invariant 4.3).
 Check 5.2: An auditor MUST find EVERY invocation-written outcome event naming an entry the Provenance chain carries (Invariant 4.4).
 Check 5.10: An auditor MUST find no entry id on an operator-written outcome event AND on another outcome event, unless the binding-duplicate finding of Composition state 9 stands open for the chain (Composition state 9).
-Check 5.11: An auditor MUST read an operator-written outcome event naming an entry the Provenance chain does not carry as the operator's unchecked closing (Recoverable Invocation resolve 28, Recoverable Invocation resolve 31).
+Check 5.11: An auditor MUST read an operator-written outcome event naming an entry the Provenance chain does not carry as the operator's unchecked closing (Escalation resolve 28, Escalation resolve 31).
 Check 5.3: An auditor MUST find EVERY live binding's outcome event carrying the binding's entry id AND an action reference matching the bound entry's event type (Composition state 3, Invariant 1.1).
 NOTE: watch the check over a derived index (Check 1.1, Check 5.3).
 Check 5.9: An auditor MUST resolve EVERY orphan entry that is neither a young entry nor an aged entry to EXACTLY ONE OF a carried entry whose carrying intent stands open, a carried entry whose carrying intent stands escalated, a false closing, a write-ownership finding, a conformance failure (Invariant 4.1, Reconciliation 11, Reconciliation 32).
@@ -784,8 +788,8 @@ Non-goal 8: The composition MUST NOT record an attempt the intent refused.
 Non-goal 9: The composition MUST NOT record an audit event for a query.
 Non-goal 10: The composition MUST NOT dispose of the Provenance chain.
 Non-goal 11: The composition MUST NOT account for a disclosure's scope.
-Non-goal 12: The composition MUST NOT describe the three commits of a custody action as atomic (Recoverable Invocation Non-goal 1).
-Non-goal 13: The composition MUST NOT own a re-entry arm beyond Provenance's own refusal (Recoverable Invocation Non-goal 4).
+Non-goal 12: The composition MUST NOT describe the three commits of a custody action as atomic (Durable Intent Non-goal 1).
+Non-goal 13: The composition MUST NOT own a re-entry arm beyond Provenance's own refusal (Durable Intent Non-goal 4).
 Non-goal 14: The composition MUST NOT compare a genesis entry's metadata.
 ```
 
@@ -836,7 +840,7 @@ Rename 1: The composition MUST NOT change a recorded custodian reference for a r
 
 ## Composition notes
 
-**Recoverable Invocation.** The five custody actions follow [Recoverable Invocation](./recoverable-invocation.md) around their Provenance writes (Composes 12 through 16): an intent before the commit, the one outcome as the close, a refusal record where Provenance or the transfer transaction refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the five act kinds once (Term custody bindings) and restates none of the protocol. [Verify Custody] and the read passthrough are not bound (Composes 15): each writes nothing, so nothing outlives the invocation.
+**Recoverable Invocation.** The five custody actions follow [Durable Intent](../atoms/durable-intent.md) around their Provenance writes (Composes 12 through 16): an intent before the commit, the one outcome as the close, a refusal record where Provenance or the transfer transaction refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the five act kinds once (Term custody bindings) and restates none of the protocol. [Verify Custody] and the read passthrough are not bound (Composes 15): each writes nothing, so nothing outlives the invocation.
 
 **Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the origination's is two calls in one database transaction and the transfer's a read, a comparison and a write in one (Term origination transaction, Term transfer transaction), whose partition belongs to the transaction. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and carries the mismatch to Recoverable Invocation's next revision as evidence (Recoverable Invocation Deviation 2), as External Onboarding and Propagate Consent Revocation Downstream do. Two more readings are carried to Recoverable Invocation's next revision as evidence, not as findings against this pattern: its Term pairing datum reads a seam-injected now as passed into the commit, while Provenance's writes take no instant and the host injects it at Provenance's seam (Capability requirement 34); and its own example names a genesis non-repeatable, which a key Provenance never refuses twice cannot be (Provenance Identity 10, Term origination key).
 

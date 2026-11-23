@@ -19,7 +19,7 @@ toc: true
 
 ## Summary
 
-Customer Onboarding is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: ensuring that an external party (customer, counterparty, beneficial owner) reaches regulated activity only after their identity has been verified through an attributed, tamper-evident process, that the relationship is monitored on an ongoing basis with adverse triggers driving suspension, and that the identity record survives for the regulator-mandated period after the relationship ends. It wires three constituents: Party Identity (the persistent, verifiable identity record with its Unverified → Verified → Suspended → Closed lifecycle), Retention Window (the policy-bounded record lifetime, used in two distinct placements — one renewed through the relationship, one at relationship end), and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every state-changing decision). Each action that changes a party or a case follows [Recoverable Invocation](./recoverable-invocation.md): an audit intent before the change, an audit outcome after it, and a sweep that recovers the outcome of a change whose record never landed — so a change is never left both made and unrecorded without that standing visible.
+Customer Onboarding is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: ensuring that an external party (customer, counterparty, beneficial owner) reaches regulated activity only after their identity has been verified through an attributed, tamper-evident process, that the relationship is monitored on an ongoing basis with adverse triggers driving suspension, and that the identity record survives for the regulator-mandated period after the relationship ends. It wires three constituents: Party Identity (the persistent, verifiable identity record with its Unverified → Verified → Suspended → Closed lifecycle), Retention Window (the policy-bounded record lifetime, used in two distinct placements — one renewed through the relationship, one at relationship end), and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every state-changing decision). Each action that changes a party or a case follows [Durable Intent](../atoms/durable-intent.md): an audit intent before the change, an audit outcome after it, and a sweep that recovers the outcome of a change whose record never landed — so a change is never left both made and unrecorded without that standing visible.
 
 The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) is verification-gates-activity: a single read-only query, [Activity Permitted], answers permitted if and only if the party has an onboarding case with Customer Onboarding **and** Party Identity reports the party in `Verified` state — a party verified outside the composition's own case surface does not pass. Activity systems consume this query rather than reading Party Identity directly, so the gate is implemented exactly once instead of re-implemented (or skipped) per activity system. Customer Onboarding is the layer that centralizes both that the `Verified` state was reached through an attributed, tamper-evident verification (recorded in the Audit Trail) and that the gate query is the single surface activity consumes. This is the structural form of the check-the-customer-before-business obligation that US banking law names Customer Due Diligence (CDD) under the Bank Secrecy Act / Anti-Money Laundering rules (BSA/AML).
 
@@ -48,7 +48,9 @@ What the composition is *not*: it is not the verification workflow (document OCR
 - **[Party Identity](../atoms/party-identity.md)** — the persistent, verifiable identity record and its lifecycle.
 - **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime of the party record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
-- **[Recoverable Invocation](./recoverable-invocation.md)** — the protocol the five acting actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it.
+- **[Durable Intent](../atoms/durable-intent.md)** — the protocol the five acting actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Party Identity instance MUST serve the composition.
@@ -77,16 +79,18 @@ Composes 23: The composition MUST read a party's state through Party Identity's 
 Composes 24: The composition MUST read an audit record through Audit Trail's read_record.
 Composes 25: The composition MUST verify an audit record through Audit Trail's verify_record.
 Composes 26: The composition MUST NOT call Audit Trail's record_destruction.
-Composes 27: EXACTLY ONE Recoverable Invocation instance MUST serve the composition.
+Composes 27: EXACTLY ONE Durable Intent instance MUST serve the composition.
 Composes 28: The Recoverable Invocation instance MUST write to the composition's Audit Trail instance.
 Composes 29: The composition MUST bind the act kinds PER the onboarding bindings.
 Composes 30: The composition MUST NOT bind [Activity Permitted] as an act kind.
 Composes 31: The composition MUST NOT hold an instance of Lease, which Recoverable Invocation reaches.
+Composes 32: EXACTLY ONE Sweep instance MUST serve the composition.
+Composes 33: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Party Identity](../atoms/party-identity.md), [Retention Window](../atoms/retention-window.md), the [Audit Trail](./audit-trail.md) substrate and [Recoverable Invocation](./recoverable-invocation.md) — the six actions, the gate, the four indexes, the onboarding bindings and the reconciliation.
+Term composition: this pattern's wiring of [Party Identity](../atoms/party-identity.md), [Retention Window](../atoms/retention-window.md), the [Audit Trail](./audit-trail.md) substrate and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the six actions, the gate, the four indexes, the onboarding bindings and the reconciliation.
 
-Term constituents: [Party Identity](../atoms/party-identity.md), [Retention Window](../atoms/retention-window.md), [Audit Trail](./audit-trail.md), [Recoverable Invocation](./recoverable-invocation.md).
+Term constituents: [Party Identity](../atoms/party-identity.md), [Retention Window](../atoms/retention-window.md), [Audit Trail](./audit-trail.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
 
 Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Tamper Evidence](../atoms/tamper-evidence.md) and [Retention Window](../atoms/retention-window.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
 
@@ -228,9 +232,9 @@ Term audit horizon: the age past which the audit instance has destroyed an event
 
 Term aged-out event: an event whose age exceeds the audit horizon.
 
-Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action reference, read each outcome and each refusal record beside the intent it carries the intent event id of (Recoverable Invocation Primitive policy 11a), and take the index's fields from their payloads in intent order.
+Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action reference, read each outcome and each refusal record beside the intent it carries the intent event id of (Durable Intent Primitive policy 11a), and take the index's fields from their payloads in intent order.
 
-Term intent order: the Event Log insertion order of the intents the selected records join to, an outcome or a refusal record read at its intent's place — not the order the outcomes landed in, since an outcome Recoverable Invocation's sweep recovers lands when the sweep writes it, possibly after a later act's own. Two acts of one kind on one party serialize under the critical section Recoverable Invocation's open takes on the critical section key `(kind, act key)` (Recoverable Invocation open step 2.1), and a renewal's intent follows the initiation's outcome (Action wiring 39), so for the placement chain the intent order is the act order (Clock semantics 7).
+Term intent order: the Event Log insertion order of the intents the selected records join to, an outcome or a refusal record read at its intent's place — not the order the outcomes landed in, since an outcome Recoverable Invocation's sweep recovers lands when the sweep writes it, possibly after a later act's own. Two acts of one kind on one party serialize under the critical section Recoverable Invocation's open takes on the critical section key `(kind, act key)` (Durable Intent open step 2.1), and a renewal's intent follows the initiation's outcome (Action wiring 39), so for the placement chain the intent order is the act order (Clock semantics 7).
 
 Term miss: an index read the composition answers by rebuilding rather than by the stored value.
 
@@ -299,7 +303,7 @@ Capability requirement 50: A deployment MUST supply the act section Recoverable 
 Capability requirement 51: A deployment MUST disclose the commit round trip, the probe round trip AND the settling period.
 Capability requirement 52: A deployment MUST set the instance's bounds PER Recoverable Invocation Instance start 4 through 8.
 Capability requirement 53: A deployment MUST NOT remove a probed record BEFORE the audit horizon destroys the payload of the record's outcome (Recoverable Invocation Binding 9).
-Capability requirement 54: A deployment MUST set field caps under which the enrollment key's length DOES NOT EXCEED Audit Trail's reference length cap (Recoverable Invocation Primitive policy 1).
+Capability requirement 54: A deployment MUST set field caps under which the enrollment key's length DOES NOT EXCEED Audit Trail's reference length cap (Durable Intent Primitive policy 1).
 Capability requirement 55: A deployment MUST declare the cut-over instant.
 Capability requirement 56: A deployment MUST set the suspension bound.
 Capability requirement 57: The suspension floor MUST NOT EXCEED the audit horizon.
@@ -307,7 +311,7 @@ Capability requirement 58: A deployment MUST set the open trigger cap.
 Capability requirement 59: The open trigger cap MUST NOT EXCEED the most trigger ids, each at the trigger id's field cap, a trigger set's field cap holds.
 Capability requirement 60: A deployment MUST set the renewal retry delay.
 Capability requirement 61: A deployment MUST set the reconciliation run bound to hold one Party Identity read AND one Retention Window read PER active case PER run.
-Capability requirement 62: A deployment MUST set field caps under which the size of EVERY intent carrying a trigger set filled to the set's field cap DOES NOT EXCEED Audit Trail's payload cap (Recoverable Invocation Primitive policy 12).
+Capability requirement 62: A deployment MUST set field caps under which the size of EVERY intent carrying a trigger set filled to the set's field cap DOES NOT EXCEED Audit Trail's payload cap (Durable Intent Primitive policy 12).
 Capability requirement 63: A deployment MUST NOT leave an overrun suspension standing.
 ```
 
@@ -336,7 +340,7 @@ Term reconciliation run bound: Recoverable Invocation's run bound on this compos
 
 Term clock offset allowance: Recoverable Invocation's clock allowance on this composition's instance.
 
-Term invocation id: the fresh id the host injects at the seam per acting invocation, carried by every record Recoverable Invocation writes for the invocation (Recoverable Invocation Term invocation id).
+Term invocation id: the fresh id the host injects at the seam per acting invocation, carried by every record Recoverable Invocation writes for the invocation (Durable Intent Term invocation id).
 
 Term commit round trip: the deployment's disclosed bound on one commit, from issue to reply — the longest of the seven kinds' commits.
 
@@ -360,7 +364,7 @@ Term periodic trigger type: periodic-review-due — the one non-adverse trigger 
 
 Term field cap: the deployment's declared maximum size of one audit payload field.
 
-Term open trigger cap: open_trigger_cap — the deployment's declared most triggers one case's open-trigger set carries, the trigger whose suspension transaction re-reads the set counted in it; sized so that a trigger set fits its field cap and the intent that carries it (Capability requirement 59, Capability requirement 62). The cap counts a trigger at its own re-read: an adverse trigger intent whose invocation died before the re-read is escalated and stays in the set (Composition state 31, 32) past the cap, so a trigger set that outgrows its intent is refused invalid-request at the open (Recoverable Invocation Primitive policy 13) until an operator settles the escalated intent within the settling period, an abandonment dropping its trigger.
+Term open trigger cap: open_trigger_cap — the deployment's declared most triggers one case's open-trigger set carries, the trigger whose suspension transaction re-reads the set counted in it; sized so that a trigger set fits its field cap and the intent that carries it (Capability requirement 59, Capability requirement 62). The cap counts a trigger at its own re-read: an adverse trigger intent whose invocation died before the re-read is escalated and stays in the set (Composition state 31, 32) past the cap, so a trigger set that outgrows its intent is refused invalid-request at the open (Durable Intent Primitive policy 13) until an operator settles the escalated intent within the settling period, an abandonment dropping its trigger.
 
 Term trigger set: the closed triggers a clearance intent names OR the open triggers at close a closure intent names — one payload field, never truncated (Primitive policy 24).
 
@@ -440,11 +444,11 @@ Term clearance instant: a clearance's pairing datum, carried on the clearance ou
 
 Term closure instant: a closure's pairing datum, carried on the closure outcome — the close's state change instant (Action wiring 146).
 
-Term intent: the record the invocation open writes before the commit, the one that verifies the caller's credential (Recoverable Invocation Primitive policy 19), carrying the invocation's parameters other than the credential, the case id, the pairing datum and no constituent-minted id — an initiation intent, a verification intent, a trigger intent, a clearance intent or a closure intent.
+Term intent: the record the invocation open writes before the commit, the one that verifies the caller's credential (Durable Intent Primitive policy 19), carrying the invocation's parameters other than the credential, the case id, the pairing datum and no constituent-minted id — an initiation intent, a verification intent, a trigger intent, a clearance intent or a closure intent.
 
 Term outcome: the record the invocation close writes after the commit, one Recoverable Invocation's sweep recovered under the recovery identity, or one an operator wrote through the invocation resolve — an initiation outcome, a verification outcome, a suspension outcome, a renewal outcome, a clearance outcome or a closure outcome.
 
-Term refusal record: the kind's refused record the invocation refuse writes for a pre-commit arm, carrying the constituent's code (Recoverable Invocation refuse step 3.1).
+Term refusal record: the kind's refused record the invocation refuse writes for a pre-commit arm, carrying the constituent's code (Durable Intent refuse step 3.1).
 
 Term initiation intent: the customer-onboarding.enrollment.intended record or the customer-onboarding.admission.intended record, by the path.
 
@@ -472,7 +476,7 @@ Term closure intent: the customer-onboarding.closure.intended record.
 
 Term closure outcome: the customer-onboarding.closure.closed record.
 
-Term recovery flag: Recoverable Invocation's recovery set to true — carried by an outcome its sweep wrote under the recovery identity or an operator wrote through the invocation resolve, and by no other (Recoverable Invocation Term recovery).
+Term recovery flag: Recoverable Invocation's recovery set to true — carried by an outcome its sweep wrote under the recovery identity or an operator wrote through the invocation resolve, and by no other (Durable Intent Term recovery).
 
 Term committing call: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyIdentity.suspend` | `PartyIdentity.reinstate` | `PartyIdentity.close` | `RetentionWindow.place_under_retention` — a constituent call that writes outside the audit instance.
 
@@ -482,7 +486,7 @@ Term committing call: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyId
 Audit arm 19: The composition MUST alert on EVERY recording-failure carrying outcome an acting action answers.
 ```
 
-Term position: intent | outcome | refusal — Recoverable Invocation's (Recoverable Invocation Primitive policy 19 through 31): where a recording-failure of an acting action sat.
+Term position: intent | outcome | refusal — Recoverable Invocation's (Durable Intent Primitive policy 19 through 31): where a recording-failure of an acting action sat.
 
 ### Action wiring
 
@@ -522,7 +526,7 @@ Action wiring 4: An external path call MUST read the party through Party Identit
 Action wiring 5: IF no party EXISTS for the party id THEN [Initiate Onboarding] MUST answer party-not-known.
 Action wiring 6: IF the party's state IS NOT IN the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
 Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
-Action wiring 8: A validated initiation MUST call the invocation open with the path's act kind, the act key, the actor reference, the credential AND the intent data carrying the case id, the invocation's inputs, the next review due AND now as the pairing datum (Recoverable Invocation Action wiring 4).
+Action wiring 8: A validated initiation MUST call the invocation open with the path's act kind, the act key, the actor reference, the credential AND the intent data carrying the case id, the invocation's inputs, the next review due AND now as the pairing datum (Durable Intent Action wiring 4).
 Action wiring 9: A direct path initiation MUST NOT carry a party id on the initiation intent.
 Action wiring 10: A direct path initiation MUST call Party Identity's enroll with the enrollment fields.
 Action wiring 11: IF Party Identity answers invalid-request for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying invalid-request.
@@ -724,7 +728,7 @@ Action wiring 153b: IF an invocation IS IN the cover-bound invocations AND the i
 
 #### Closure table
 
-Every input an action takes, and every answer a call of the six actions and of the reconciliation can meet — Party Identity's enroll, verify, suspend, reinstate, close and read, Retention Window's place_under_retention and read, Audit Trail's read_record, the range read of the Event Log instance Audit Trail carries (Composes 12), and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The five acting actions are Recoverable Invocation's: the intent commits at the open, ahead of the commit (Execution Contract Constituent failure 1), the commit is the kind's transaction, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Non-goal 22; Recoverable Invocation Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). Inside a commit, every write commits together or not at all (Execution Contract Database 1), so a refusal inside it writes nothing but the refusal record the refuse lands (Recoverable Invocation commit 3); where two refusals of one action apply to one call, the one listed first on its refuses line answers (Execution Contract Refusal 1). The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the pattern.
+Every input an action takes, and every answer a call of the six actions and of the reconciliation can meet — Party Identity's enroll, verify, suspend, reinstate, close and read, Retention Window's place_under_retention and read, Audit Trail's read_record, the range read of the Event Log instance Audit Trail carries (Composes 12), and Recoverable Invocation's open, close, refuse and yield — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The five acting actions are Recoverable Invocation's: the intent commits at the open, ahead of the commit (Execution Contract Constituent failure 1), the commit is the kind's transaction, and the outcome lands at the close, so open, commit and close are three commits and not one transaction (Non-goal 22; Durable Intent Non-goal 1); an act whose outcome never lands is the sweep's, closed within its closure window (Recoverable Invocation reconcile). Inside a commit, every write commits together or not at all (Execution Contract Database 1), so a refusal inside it writes nothing but the refusal record the refuse lands (Recoverable Invocation commit 3); where two refusals of one action apply to one call, the one listed first on its refuses line answers (Execution Contract Refusal 1). The enumeration is exhaustive: an answer a constituent adds is a row this table lacks, and a cell no rule owns is a finding against the pattern.
 
 **Inputs, ahead of the open.**
 
@@ -737,15 +741,15 @@ Every input an action takes, and every answer a call of the six actions and of t
 | [Record Verification], [Trigger Monitoring Review], [Close Party] | a case whose active flag is false | not-active, ahead of the open | Action wiring 23, 39, 114 |
 | [Trigger Monitoring Review] | an adverse trigger type against a party outside the suspendable states; Party Identity's read answering invalid-query | not-verified carrying the state; invalid-request, read as the composition's defect | Action wiring 42 through 44 |
 | [Clear Review] | a case whose open-trigger set is empty | no-open-trigger, ahead of the open, the credential never validated | Action wiring 82 |
-| every acting action | an intent whose data exceeds Audit Trail's payload cap, the trigger sets in full included, which the open trigger cap and the field caps keep within it | invalid-request at the open, nothing written | Recoverable Invocation Primitive policy 12, 13, Capability requirement 59, Capability requirement 62 |
-| every acting action | the credential | consumed by the invocation open's intent record alone | Composes 15, Recoverable Invocation Primitive policy 6 |
+| every acting action | an intent whose data exceeds Audit Trail's payload cap, the trigger sets in full included, which the open trigger cap and the field caps keep within it | invalid-request at the open, nothing written | Durable Intent Primitive policy 12, 13, Capability requirement 59, Capability requirement 62 |
+| every acting action | the credential | consumed by the invocation open's intent record alone | Composes 15, Durable Intent Primitive policy 6 |
 
 **Recoverable Invocation: the open, the close, the refuse and the yield**, at the five acting actions.
 
 | Call | Answer | Lands | Owner |
 |---|---|---|---|
 | the open | an intent event id | the commit | Action wiring 8, 24, 46, 83, 115 |
-| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 157, Recoverable Invocation Action wiring table |
+| the open | invalid-credential, invalid-request, act-in-flight, section-unavailable, journal-unavailable, recording-failure(intent) | the same code, nothing committed | Action wiring 157, Durable Intent Action wiring table |
 | the open | act-landed | never: every kind is repeatable | Recoverable Invocation repeatable 1, Term onboarding bindings |
 | the open | recording-failure(outcome) | the same code, at [Initiate Onboarding] carrying the case id; the commit is never issued and the open intent is the sweep's, which finds nothing and escalates it | Action wiring 157, 158 |
 | the close | an event id | the index population after it, then the action's answer | Action wiring 20, 35, 64, 75, 79, 104, 111, 129 through 132 |
@@ -858,7 +862,7 @@ Term write-ownership finding: a finding that a verification event, a state chang
 
 Term false closing: a carried record one intent carries whose carrying intent an abandonment or a refusal closed — an act that committed, read as one that did not.
 
-Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Recoverable Invocation findings 6).
+Term finding surface: the deployment's compliance surface — the surface Recoverable Invocation's instance writes its register to. A write-ownership finding and this pattern's alerts are written beside that register and are no part of it (Escalation findings 6).
 
 ---
 
@@ -899,7 +903,7 @@ Invariant 8.6: A credential validation MUST NOT establish an authorization.
 Invariant 8.7: A credential validation MUST NOT establish the customer's evidence.
 ```
 
-NOTE: an operator's outcome through the invocation resolve is checked against no constituent record (Recoverable Invocation resolve 28, resolve 31), so Invariant 2.1, 4.2, 7.1, 7.2 and 7.5 are detected for an operator's closing, not prevented: Reconciliation 23, Reconciliation 25, Reconciliation 38, Reconciliation 39 and Reconciliation 43 find it, and Check 2.1, 4.1, 7.2, 7.3 and 7.5 read it. Invariant 1.1 through 1.3 are untouched, since the gate reads the party-to-case index and Party Identity and never an outcome; the 5 family is Retention Window's.
+NOTE: an operator's outcome through the invocation resolve is checked against no constituent record (Escalation resolve 28, resolve 31), so Invariant 2.1, 4.2, 7.1, 7.2 and 7.5 are detected for an operator's closing, not prevented: Reconciliation 23, Reconciliation 25, Reconciliation 38, Reconciliation 39 and Reconciliation 43 find it, and Check 2.1, 4.1, 7.2, 7.3 and 7.5 read it. Invariant 1.1 through 1.3 are untouched, since the gate reads the party-to-case index and Party Identity and never an outcome; the 5 family is Retention Window's.
 
 Term quiescent case: a case whose party carries no open intent of an act kind and no escalated one.
 
@@ -947,7 +951,7 @@ A broker-dealer admits a counterparty through External Onboarding, which enrolls
 
 An existing `Verified` party, `party_7732` (case `case_7700`), triggers a sanctions screening alert. The screening list is OFAC's SDN list (Office of Foreign Assets Control — the US Treasury office that administers sanctions — Specially Designated Nationals).
 
-1. **Adverse trigger.** `trigger_monitoring_review(case_7700, trigger_type="sanctions-match", trigger_ref="ofac-sdn-12894", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>) → recorded`. The pre-check reads the party `Verified`; `customer-onboarding.adverse-trigger.intended` lands **first**, carrying the trigger id; the suspension transaction re-runs the pre-check and `PartyIdentity.suspend` returns `sc_7701`; `customer-onboarding.adverse-trigger.suspended` lands carrying it; the trigger enters the open set. Invariant 3 holds — the trigger record is the suspension's own intent, ordered before it by Recoverable Invocation Invariant 1.1 whoever writes the outcome. A second sanctions alert while the party stands suspended lands its own intent, Party Identity answers already-suspended, `customer-onboarding.adverse-trigger.refused` records that code, the caller is answered already-suspended, and the trigger joins the open set.
+1. **Adverse trigger.** `trigger_monitoring_review(case_7700, trigger_type="sanctions-match", trigger_ref="ofac-sdn-12894", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>) → recorded`. The pre-check reads the party `Verified`; `customer-onboarding.adverse-trigger.intended` lands **first**, carrying the trigger id; the suspension transaction re-runs the pre-check and `PartyIdentity.suspend` returns `sc_7701`; `customer-onboarding.adverse-trigger.suspended` lands carrying it; the trigger enters the open set. Invariant 3 holds — the trigger record is the suspension's own intent, ordered before it by Durable Intent Invariant 1.1 whoever writes the outcome. A second sanctions alert while the party stands suspended lands its own intent, Party Identity answers already-suspended, `customer-onboarding.adverse-trigger.refused` records that code, the caller is answered already-suspended, and the trigger joins the open set.
 
 2. **Gate during investigation.** `activity_permitted(party_7732) → not-verified(Suspended)`.
 
@@ -965,15 +969,15 @@ A compliance officer calls `clear_review(case_5501, …)` for a party with no op
 
 ### Rejection path — a credential that does not validate
 
-An operator whose credential was revoked calls `record_verification(case_5501, verifying_actor_ref="officer_r7", method="manual-review", verification_result="passed", evidence_ref="evidence_manual_77", credential=<stale_officer_r7>)`. The index read passes, the boundary predicate passes, and the invocation open's `customer-onboarding.verification.intended` refuses with invalid-credential → invalid-credential. **Nothing committed**: `PartyIdentity.verify` was never called, so a mis-credentialed actor could not drive the transition and be discovered over it afterwards. This is the seam Recoverable Invocation Invariant 1.1 holds, and it is the path that makes invalid-credential a declared code on every state-changing signature rather than a theoretical arm.
+An operator whose credential was revoked calls `record_verification(case_5501, verifying_actor_ref="officer_r7", method="manual-review", verification_result="passed", evidence_ref="evidence_manual_77", credential=<stale_officer_r7>)`. The index read passes, the boundary predicate passes, and the invocation open's `customer-onboarding.verification.intended` refuses with invalid-credential → invalid-credential. **Nothing committed**: `PartyIdentity.verify` was never called, so a mis-credentialed actor could not drive the transition and be discovered over it afterwards. This is the seam Durable Intent Invariant 1.1 holds, and it is the path that makes invalid-credential a declared code on every state-changing signature rather than a theoretical arm.
 
 ### Failure path — the intent appended and the call still failed
 
-`close_party(case_5501, …)` reaches the invocation open, and `AuditTrail.record_action` answers `invalid-request(step-4)` for `customer-onboarding.closure.intended`: the audit instance's Retention Window answered policy-not-found at the substrate's **retention** step, after the event was appended and attested. The open reads the intent back by invocation id (Recoverable Invocation Primitive policy 20): it finds the record, so the action proceeds with a hard alert on the audit instance's policy (Recoverable Invocation Primitive policy 21). Had the read-back found nothing, the open would have answered invalid-request and nothing would have committed (Recoverable Invocation Primitive policy 22). The caller's code is invalid-request, never recording-failure(intent), since the fault is the deployment's and a retry meets it again.
+`close_party(case_5501, …)` reaches the invocation open, and `AuditTrail.record_action` answers `invalid-request(step-4)` for `customer-onboarding.closure.intended`: the audit instance's Retention Window answered policy-not-found at the substrate's **retention** step, after the event was appended and attested. The open reads the intent back by invocation id (Durable Intent Primitive policy 20): it finds the record, so the action proceeds with a hard alert on the audit instance's policy (Durable Intent Primitive policy 21). Had the read-back found nothing, the open would have answered invalid-request and nothing would have committed (Durable Intent Primitive policy 22). The caller's code is invalid-request, never recording-failure(intent), since the fault is the deployment's and a retry meets it again.
 
 ### Failure path — a lost verification outcome
 
-A [Record Verification] invocation lands `customer-onboarding.verification.intended`, keyed by `party_9017` with its pairing datum, and calls `PartyIdentity.verify`, which commits `verif_2210` at the injected now; its close's append then answers nothing, the reply lost, and the action answers `recording-failure(outcome)`: the verification stands committed and its outcome is the sweep's. Past the intent's examine edge, Recoverable Invocation's sweep takes the act's critical section, re-reads the invocation's closings (had the lost append landed after all, it would find it and write nothing), and runs the verification probe: Party Identity's read by `party_9017`, kept to the verification event whose verification instant equals the pairing datum and whose verifying actor reference and evidence reference equal the intent's — `verif_2210`. It records `customer-onboarding.verification.recovery_intended` under the recovery identity, then `customer-onboarding.verification.recorded` carrying `recovery = true`, `verif_2210` and its state change id, with `officer_r3` as the acting actor reference. An auditor reading the trail sees a recovered verification rather than a clean one, and compares it against the acting actor reference rather than the attesting recovery identity (Recoverable Invocation Invariant 5.2).
+A [Record Verification] invocation lands `customer-onboarding.verification.intended`, keyed by `party_9017` with its pairing datum, and calls `PartyIdentity.verify`, which commits `verif_2210` at the injected now; its close's append then answers nothing, the reply lost, and the action answers `recording-failure(outcome)`: the verification stands committed and its outcome is the sweep's. Past the intent's examine edge, Recoverable Invocation's sweep takes the act's critical section, re-reads the invocation's closings (had the lost append landed after all, it would find it and write nothing), and runs the verification probe: Party Identity's read by `party_9017`, kept to the verification event whose verification instant equals the pairing datum and whose verifying actor reference and evidence reference equal the intent's — `verif_2210`. It records `customer-onboarding.verification.recovery_intended` under the recovery identity, then `customer-onboarding.verification.recorded` carrying `recovery = true`, `verif_2210` and its state change id, with `officer_r3` as the acting actor reference. An auditor reading the trail sees a recovered verification rather than a clean one, and compares it against the acting actor reference rather than the attesting recovery identity (Sweep Invariant 5.2).
 
 ### Failure path — a lost initiation reply on the direct path
 
@@ -981,7 +985,7 @@ An [Initiate Onboarding] invocation on the direct path lands `customer-onboardin
 
 ### Failure path — verification committed, outcome open
 
-A [Record Verification] call drives the `Unverified → Verified` transition and its close fails: `recording-failure(outcome)` — the code telling the caller the verification may be committed and the action must not be re-run. The party *is* `Verified`, so the gate answers permitted while Invariant 2.3's coverage waits on the open intent; Recoverable Invocation's sweep closes it within the closure window (Recoverable Invocation Invariant 4.2). The composition alerts on the answer (Audit arm 19), and a deployment under BSA/AML exposure treats the open intent past its examine edge as a hard alerting condition (Capability requirement 42), beside Recoverable Invocation's own closure-at-risk.
+A [Record Verification] call drives the `Unverified → Verified` transition and its close fails: `recording-failure(outcome)` — the code telling the caller the verification may be committed and the action must not be re-run. The party *is* `Verified`, so the gate answers permitted while Invariant 2.3's coverage waits on the open intent; Recoverable Invocation's sweep closes it within the closure window (Sweep Invariant 4.2). The composition alerts on the answer (Audit arm 19), and a deployment under BSA/AML exposure treats the open intent past its examine edge as a hard alerting condition (Capability requirement 42), beside Recoverable Invocation's own closure-at-risk.
 
 ### Regulated adversarial scenarios
 
@@ -1087,8 +1091,8 @@ Non-goal 18: The composition MUST NOT anchor a timestamp to wall time.
 Non-goal 19: The composition MUST NOT index the audit log by a payload field.
 Non-goal 20: The composition MUST NOT admit a second Party Identity writer.
 Non-goal 21: The composition MUST NOT detect a dishonest clock reading.
-Non-goal 22: The composition MUST NOT describe the three commits of an acting action as atomic (Recoverable Invocation Non-goal 1).
-Non-goal 23: The composition MUST NOT own a re-entry arm beyond Party Identity's already-closed AND the external path's already-onboarded (Recoverable Invocation Non-goal 4).
+Non-goal 22: The composition MUST NOT describe the three commits of an acting action as atomic (Durable Intent Non-goal 1).
+Non-goal 23: The composition MUST NOT own a re-entry arm beyond Party Identity's already-closed AND the external path's already-onboarded (Durable Intent Non-goal 4).
 Non-goal 24: The composition MUST NOT bind a suspended party's investigation as an act kind.
 ```
 
@@ -1111,7 +1115,7 @@ Term skewed gate read: a read of the gate whose two reads, the party-to-case ind
 
 Term closing: an outcome, a refusal record, or Recoverable Invocation's abandonment or escalation record — what an intent may be followed by under the intent's invocation id.
 
-Term orphan: a committed act carrying an index the composition has not populated — the derived-index half; a committed act whose outcome has not landed stands as an open intent, which is Recoverable Invocation's (Recoverable Invocation Invariant 4.1).
+Term orphan: a committed act carrying an index the composition has not populated — the derived-index half; a committed act whose outcome has not landed stands as an open intent, which is Recoverable Invocation's (Sweep Invariant 4.1).
 
 ### Clock semantics
 
@@ -1144,7 +1148,7 @@ This is Recoverable Invocation's Cross-record consistency for the seven act kind
 
 ## Composition notes
 
-**Recoverable Invocation.** The five acting actions follow [Recoverable Invocation](./recoverable-invocation.md) around their constituent writes (Composes 27 through 31): an intent before the commit, the one outcome as the close, a refusal record where a constituent or a re-read refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the seven act kinds once (Term onboarding bindings) and restates none of the protocol. [Activity Permitted] is not bound (Composes 30): it writes nothing, so nothing outlives the invocation. The composition held no critical section of its own before, the database serializing a party's actions (Execution Contract Database 2), so the act section Recoverable Invocation takes is a new capability a deployment supplies (Capability requirement 50).
+**Recoverable Invocation.** The five acting actions follow [Durable Intent](../atoms/durable-intent.md) around their constituent writes (Composes 27 through 31): an intent before the commit, the one outcome as the close, a refusal record where a constituent or a re-read refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the seven act kinds once (Term onboarding bindings) and restates none of the protocol. [Activity Permitted] is not bound (Composes 30): it writes nothing, so nothing outlives the invocation. The composition held no critical section of its own before, the database serializing a party's actions (Execution Contract Database 2), so the act section Recoverable Invocation takes is a new capability a deployment supplies (Capability requirement 50).
 
 **The investigation is not a wait.** A suspended party waits for a person to clear the review, for as long as that takes inside the suspension bound (Capability requirement 57), and no rule of the composition ends that wait (Non-goal 24); the verification workflow's result is the deployment's, recorded here and not awaited (Non-goal 1, Non-goal 7); and the review scheduler calls the composition, never the reverse (Non-goal 6). What the composition waits on is its own calls — an enroll, a verify, a suspend, a reinstate, a close, a placement and the audit records around them — and those are Recoverable Invocation's.
 
@@ -1204,7 +1208,7 @@ Kind: Operation
 
 #### Trigger Monitoring Review
 
-The audit-first entry point an external monitoring or screening system calls: its intent is the trigger's record, landed *before* any resulting transition (Invariant 3), then — for an adverse trigger — the suspension transaction suspends the party, or — for a periodic one — the renewal transaction renews the active-relationship retention, and [Next Review Due] advances once the renewal lands, unless the party stands suspended. No suspension exists in the records without its precipitating trigger ordered ahead of it, a recovered or an operator's included (Recoverable Invocation Invariant 1.1). An adverse trigger against a party already suspended is refused already-suspended, its refusal record read as [Trigger On Suspended Party]; one whose suspend Party Identity refuses otherwise, or whose case's open-trigger set the [Open Trigger Cap Reached] refusal finds full, is read as [Trigger Voided] (Action wiring 53 through 56, Action wiring 173).
+The audit-first entry point an external monitoring or screening system calls: its intent is the trigger's record, landed *before* any resulting transition (Invariant 3), then — for an adverse trigger — the suspension transaction suspends the party, or — for a periodic one — the renewal transaction renews the active-relationship retention, and [Next Review Due] advances once the renewal lands, unless the party stands suspended. No suspension exists in the records without its precipitating trigger ordered ahead of it, a recovered or an operator's included (Durable Intent Invariant 1.1). An adverse trigger against a party already suspended is refused already-suspended, its refusal record read as [Trigger On Suspended Party]; one whose suspend Party Identity refuses otherwise, or whose case's open-trigger set the [Open Trigger Cap Reached] refusal finds full, is read as [Trigger Voided] (Action wiring 53 through 56, Action wiring 173).
 
 Kind: Operation
 
