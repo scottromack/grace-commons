@@ -595,7 +595,7 @@
    "party-identity",
    "retention-window"
   ],
-  "done": false,
+  "done": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -612,7 +612,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-23",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
