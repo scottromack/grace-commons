@@ -44,6 +44,12 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 Deleted: Identity 3. Execution Contract Logic confinement 3 owns it.
 ```
 
+### Structure › State
+
+```
+Deleted: State 8. Operation 19 and Operation 20 own it.
+```
+
 ### Structure › Capability requirement
 
 ```
@@ -57,13 +63,19 @@ Deleted: Clock semantics 3. Non-goal 16 owns it.
 ### Structure › Operations
 
 ```
+Deleted: Operation 3. The add signature's answers line owns it (Closed vocabulary 21 and Closed vocabulary 25).
+Deleted: Operation 5. Execution Contract Read 4 owns it.
 Deleted: Operation 6. Execution Contract Database 3 owns it.
 Deleted: Operation 9a. Operation 32 and Operation 33 own it.
 Deleted: Operation 11. Execution Contract Conformance 1 owns the admitted call's write.
+Deleted: Operation 21. Execution Contract Read 4 owns it.
+Deleted: Operation 22. Execution Contract Read 4 owns it.
+Deleted: Operation 23. Execution Contract Read 4 owns it.
 Deleted: Operation 24. Execution Contract Read 4 owns it.
 Deleted: Operation 25. Capability requirement 1 owns it.
 Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 31. The read signature, which lists no refusal, and Execution Contract Read 1 own it.
 ```
 
 ### Structure › Invariants › Invariant 1 — Membership exclusivity

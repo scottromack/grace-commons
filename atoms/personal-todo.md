@@ -70,7 +70,6 @@ State 4: A done unit MUST carry completion instant.
 State 5: [Add] MUST stamp addition instant from the injected now.
 State 6: IF the normalized new description DOES NOT EQUAL the unit's description THEN [Edit] MUST stamp last edit instant from the injected now.
 State 7: [Complete] MUST stamp completion instant from the injected now.
-State 8: [Delete] MUST take the unit out of the list.
 State 9: The atom MUST NOT offer a done-to-pending transition.
 State 10: The atom MUST NOT hold a deleted unit.
 ```
@@ -119,9 +118,7 @@ read()
 ```
 Operation 1: [Add] MUST record EXACTLY ONE unit per successful call, the unit carrying the normalized description.
 Operation 2: [Add] MUST stand the unit in pending.
-Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
-Operation 5: IF the database refuses the write THEN [Add] MUST answer storage-failure.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
@@ -135,13 +132,9 @@ Operation 17: [Complete] MUST stand the unit in done.
 Operation 18: IF no unit EXISTS for the id THEN [Delete] MUST answer not-known.
 Operation 19: [Delete] MUST take a pending unit out of the list.
 Operation 20: [Delete] MUST take a done unit out of the list.
-Operation 21: IF the database refuses the write THEN [Edit] MUST answer storage-failure.
-Operation 22: IF the database refuses the write THEN [Complete] MUST answer storage-failure.
-Operation 23: IF the database refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 28: [Read] MUST answer EVERY unit, pending AND done.
 Operation 29: [Read] MUST answer a unit's id, description, state, addition instant, last edit instant AND completion instant.
 Operation 30: [Read] MUST NOT write.
-Operation 31: [Read] MUST NOT refuse a call (Execution Contract Read 1 answers a failed read).
 Operation 32: IF the unit state EQUALS pending AND the normalized new description DOES NOT EQUAL the unit's description AND the normalized new description EQUALS blank THEN [Edit] MUST answer invalid-description.
 Operation 33: IF the unit state EQUALS pending AND the new description the call carries EXCEEDS the description cap THEN [Edit] MUST answer invalid-description (Execution Contract Input 2).
 Operation 34: IF the unit state EQUALS pending AND the new description is malformed THEN [Edit] MUST answer invalid-description (Execution Contract Input 1).
@@ -152,7 +145,7 @@ Operation 37: IF the id is malformed THEN [Delete] MUST answer not-known (Execut
 
 NOTE: watch the untyped input (Operation 35, Operation 36, Operation 37, Term id).
 
-NOTE: an admitted [Edit], [Complete] or [Delete] answers ok, the one answer its signature block gives (Closed vocabulary 21, Closed vocabulary 22, Closed vocabulary 25), so no operation restates it but Operation 10, which says an unchanged description within the cap answers ok.
+NOTE: an admitted [Add] answers id, and an admitted [Edit], [Complete] or [Delete] answers ok, the one answer each signature block gives (Closed vocabulary 21, Closed vocabulary 22, Closed vocabulary 25), so no operation restates either but Operation 10, which says an unchanged description within the cap answers ok.
 
 Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
@@ -172,9 +165,9 @@ The case space, and the rule that owns each case:
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; its id is not reused (Operation 19, Operation 20, Identity 5) |
 | [Edit], [Complete] or [Delete] | id names nothing, or is malformed | [Not Known] | none (Operation 7, Operation 15, Operation 18, Operation 35 through 37) |
-| any writing call | database refuses | [Storage Failure] | none (Operation 5, Operation 21 through 23; Execution Contract Read 4) |
+| any writing call | database refuses | [Storage Failure] | none (Execution Contract Read 4) |
 | any | the database read fails | state-unavailable | none (Execution Contract Read 1, Execution Contract Read 3) |
-| [Read] | the database answers the read | every unit, with its stored fields | none (Operation 28 through 31) |
+| [Read] | the database answers the read | every unit, with its stored fields | none (Operation 28 through 30) |
 
 ### Invariants
 
@@ -319,8 +312,6 @@ Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted t
 
 NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Database 5 (Non-goal 6); a history pattern *(forthcoming)* (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Database 2 (Non-goal 14); a wrapping pattern *(forthcoming)* (Non-goal 15); Trusted Timestamping *(forthcoming)* (Non-goal 16).
 
-Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
-
 ## Edge cases
 
 ### Concurrency on one unit
@@ -328,8 +319,6 @@ Where the atom breaks down: any system with more than one actor; a system where 
 ```
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
 ```
-
-Where two calls do overlap, each reads the active set inside the transaction that writes (Execution Contract Database 2): the later meets the earlier's unit and answers duplicate-active.
 
 ### Re-adding a deleted description
 
