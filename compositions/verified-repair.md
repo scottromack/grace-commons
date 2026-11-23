@@ -63,7 +63,7 @@ Term commit probe: the repository's read by trailer value (Capability requiremen
 
 Term commit envelope: the act kind's outcome envelope — the true maximum of the records the kind writes: the committed outcome, one commit id at its minted width, or a closing the sweep or the maintainer writes, whichever the substrate sizes largest, serialized as the substrate sizes it; the database candidates of a council.commit.escalated hold at most one commit, since no two commits carry one council nonce (Capability requirement 19). The intent, which alone carries the round key, the snapshot hash, every patch whole and the council nonce, is sized beside it by the invocation open (Recoverable Invocation Primitive policy 12).
 
-Term council nonce: the nonce injected at the council writer's seam for one [Repair] call, carried by no earlier council.commit intent and by no commit of the repository (Capability requirement 19, 21) — the act kind's pairing datum, carried in the intent data and in the commit's trailer.
+Term council nonce: the nonce injected at the council writer's seam for one [Repair] call, carried by no earlier council.commit intent and by no earlier commit of the repository (Capability requirement 19, 21) — the act kind's pairing datum, carried in the intent data and in the commit's trailer.
 
 Term council commit: a commit of the repository carrying a council trailer; no action undoes it, since a later round's repair offsets it and the repository never removes a commit (Capability requirement 11), so no undo is owed (Execution Contract Undo 4).
 
@@ -110,7 +110,7 @@ Capability requirement 10: A deployment MUST provision the sweep identity apart 
 Capability requirement 11: The repository MUST NOT remove a commit.
 Capability requirement 12: The repository MUST NOT accept a push from the composition.
 Capability requirement 13: The repository's commit MUST refuse with conflict where the head DOES NOT EQUAL the commit's parent.
-Capability requirement 14: A deployment MUST settle EVERY council.commit.escalated through Recoverable Invocation's resolve, under the maintainer's actor reference, WITHIN the settling period of the closing's landing AND BEFORE the journal's retention period purges the escalated invocation's intent; Recoverable Invocation holds the retention period above the settling period (Recoverable Invocation Term settling period, Check 4.1).
+Capability requirement 14: A deployment MUST settle EVERY council.commit.escalated through Recoverable Invocation's resolve, under the maintainer's actor reference, WITHIN the settling period of the closing's landing AND BEFORE the journal's retention period purges the escalated invocation's intent; Recoverable Invocation holds the retention period above the settling period counted from the examine window end of the intent's recording (Recoverable Invocation Term settling period, Check 4.1).
 Capability requirement 15: The repository's refusal with nothing written MUST carry EXACTLY ONE OF lock-held, conflict, hook-rejected.
 Capability requirement 17: A deployment MUST place EVERY council record under the retention policy the journal applies to the act kind council.commit.
 Capability requirement 18: IF a commit carries a council trailer AND the committing actor DOES NOT EQUAL the council writer THEN the repository MUST refuse the commit.
@@ -118,10 +118,10 @@ Capability requirement 19: IF a commit's council nonce IS IN the council nonces 
 Capability requirement 20: The repository MUST NOT move the head to a commit that does not descend from the head.
 Capability requirement 21: A deployment MUST inject a council nonce that no council.commit intent has carried (Execution Contract Logic confinement 16).
 Capability requirement 22: IF the committing actor EQUALS the council writer AND the commit carries no council trailer THEN the repository MUST refuse the commit.
-Capability requirement 23: A deployment MUST set EVERY payload cap the journal applies above the largest verdict, triage record, ruling, escalation AND council.commit intent the deployment's verifiers, triagers, maintainer AND council produce, the intent's every patch whole included, AND the patch cap above the most patches the deployment's triagers settle as cure for one round, AND the council writer MUST carry EVERY patch of a round in ONE [Repair] call (Action wiring 61).
+Capability requirement 23: A deployment MUST set EVERY payload cap the journal applies above the largest verdict, triage record, ruling, escalation AND council.commit intent the deployment's verifiers, triagers, maintainer AND council produce, the intent's every patch whole included, AND the patch cap above the most patches the deployment's triagers settle as cure for one round, AND the council writer MUST carry EVERY patch of a round in ONE [Repair] call (Action wiring 15, Invariant 2.1).
 Capability requirement 24: A deployment MUST inject a round key that the journal holds for no other round AND a verdict key that the journal holds for no other verdict (Execution Contract Logic confinement 16).
 Capability requirement 25: A deployment MUST supply a repository read of a pattern at a commit that answers EXACTLY ONE OF the pattern's bytes, absent, a refusal.
-Capability requirement 26: A deployment MUST supply a repository read of a commit by the commit id that answers EXACTLY ONE OF the commit's parent ids with the commit's trailer, absent, a refusal.
+Capability requirement 26: A deployment MUST supply a repository read of a commit by the commit id that answers EXACTLY ONE OF the commit's parent id with the commit's trailer, absent, a refusal, the repository's first commit having no parent id.
 Capability requirement 27: A deployment MUST refuse EVERY record_action under the action references council.round, council.verdict, council.triage, council.ruling AND council.escalation from EVERY caller other than the composition's own actions.
 Capability requirement 28: A deployment MUST supply the journal's database PER Execution Contract Database 1 through 4, Execution Contract Order 1 and Execution Contract Refusal 1.
 Capability requirement 29: A deployment MUST supply a repository read of the head that answers EXACTLY ONE OF the head's commit id, a refusal.
@@ -168,7 +168,7 @@ Term repair settling bound: the longest a settled round waits, from its settling
 
 Term admitted freeze: a [Freeze] call no rule refused and no rule answered budget-spent.
 
-Term admitted report: a [Report] call no rule refused.
+Term admitted report: a [Report] call no rule refused and no rule answered late-malformed.
 
 Term admitted ruling: a [Rule] call no rule refused.
 
@@ -238,7 +238,7 @@ freeze(pattern, base_commit, actor_ref, credential)
   refuses invalid-request | repository-unavailable | journal-unavailable | not-known | stale | invalid-request(step, committed_ids) | invalid-credential | recording-failure(step)
 
 report(round, verdict, actor_ref, credential)
-  answers recorded
+  answers recorded | late-malformed
   refuses invalid-request | journal-unavailable | purged | not-known | round-closed | stale | already-counted | invalid-request(step, committed_ids) | invalid-credential | recording-failure(step)
 
 triage(round, finding, record, actor_ref, credential)
@@ -293,11 +293,14 @@ Action wiring 57: IF the pattern at the base commit DOES NOT EQUAL the pattern a
 ```
 Action wiring 4: IF the verdict's snapshot hash DOES NOT EQUAL the round's snapshot hash OR the verdict's base commit DOES NOT EQUAL the round's base commit THEN [Report] MUST answer stale.
 Action wiring 5: IF a counted verdict of the round carries the verdict's pass OR the verdict's verifier OR the call's actor reference, OR a verdict the round holds recorded EQUALS the verdict byte for byte apart from the verdict key, THEN [Report] MUST answer already-counted.
-Action wiring 6: IF the verdict carries malformed AND no open escalation of the round, the pass and the verifier EXISTS THEN [Report] MUST escalate the verdict to the maintainer's queue, a malformed verdict refused round-closed (Action wiring 47) included.
+Action wiring 6: IF the verdict carries malformed AND no open escalation of the round, the pass and the verifier EXISTS THEN [Report] MUST escalate the verdict to the maintainer's queue, a malformed verdict answered late-malformed (Action wiring 90) included.
 Action wiring 7: An admitted report MUST record the verdict with the verdict key, the round id AND the round's position the round's record carries.
-Action wiring 47: IF the round IS IN the round index's settled rounds THEN [Report] AND [Triage] MUST answer round-closed.
-Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE EVERY rule of the report refusal order other than Action wiring 47 has answered no refusal.
+Action wiring 47: IF the round IS IN the round index's settled rounds THEN [Triage] MUST answer round-closed, AND [Report] MUST answer round-closed where the verdict carries no malformed.
+Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE EVERY rule of the report refusal order has answered no refusal.
 Action wiring 60: [Report] MUST NOT evaluate Action wiring 7 BEFORE Action wiring 6 has answered.
+Action wiring 90: WHEN the round IS IN the round index's settled rounds AND the verdict carries malformed AND no refusal [Report]'s refuses line lists applies to the call (Execution Contract Refusal 1):
+    Action wiring 90a: [Report] MUST answer late-malformed.
+    Action wiring 90b: [Report] MUST NOT record the verdict.
 ```
 
 Term sound verdict: a recorded verdict of a round carrying holds or counterexample — a cold reader's or a formal engine's.
@@ -347,7 +350,7 @@ Term side: model | english | both — which text a finding indicts: the derived 
 
 Term triage disposition: cure | route | reject | decline — cure for a finding of finding kind A, route for finding kind B or C, decline for finding kind D, reject where the text already answers it.
 
-Term deciding count: a count an outcome turns on — a round's foundational count where it is zero, since a zero decides the round clean. A count above zero is no deciding count here: it keeps the round unclean, and on the round that brings the pattern's round count to the round budget, and on every round a standing ruling admits past it, it decides the next [Freeze]'s budget-spent (Action wiring 34a) on the first triage alone, a cost this pattern accepts.
+Term deciding count: a count a round's cleanliness turns on — a round's foundational count where it is zero, since a zero decides the round clean. A count above zero is no deciding count here: it keeps the round unclean, and on the round that brings the pattern's round count to the round budget, and on every round a standing ruling admits past it, it decides the next [Freeze]'s budget-spent (Action wiring 34a) on the first triage alone, a cost this pattern accepts.
 
 Term threshold: the number a deciding count is read against — zero, for a round's foundational count deciding the round clean.
 
@@ -514,7 +517,7 @@ Term site: a span of the pattern a finding or a fragment sits in, as the snapsho
 
 Term pass: grid | eos | linus | formal — the cold reader's pass a verdict answers, as the method defines the three, or formal for a formal engine's run.
 
-Term builder's reading: the second reading of the eos pass, in which the cold reader walks every action the pattern declares as the engineer who must build it; the deployment's own brief for the pass sets it, a value the deployment discloses (Capability requirement 7).
+Term builder's reading: the second reading of the eos pass, in which the cold reader walks every action the pattern declares as the engineer who must build it; the deployment's own brief for the pass sets it.
 
 ---
 
@@ -694,7 +697,7 @@ Term snapshot hash: the SHA-256 (the Secure Hash Algorithm with a 256-bit digest
 
 Term base commit: the repository commit a round's snapshot was taken from.
 
-Term round id: the event id of the round's record — what [Report], [Triage] and [Repair] name a round by.
+Term round id: the event id of the round's record — what [Report], [Triage], [Rule] and [Repair] name a round by.
 
 Term pattern: a canonical document under the repository — one pattern's file.
 
@@ -716,7 +719,7 @@ Kind: Operation
 
 #### Report
 
-The action that records one verifier's verdict against a round's snapshot, refuses a verdict about other bytes, or for a pass or from a verifier already counted, and escalates a malformed one.
+The action that records one verifier's verdict against a round's snapshot, refuses a verdict about other bytes, or for a pass or from a verifier already counted, and escalates a malformed one, a malformed verdict of a settled round answered late-malformed and never recorded.
 
 Kind: Operation
 
@@ -762,7 +765,7 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 ```
 status: doing
 formal: verified — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair; verified-repair.tla + 4 twins + 3 probes (the commit path, Invariant 2.1, 2.2, 7.3 and Concurrency 1: two rounds, two [Repair] calls a round with commits in flight and no commit fence, one person commit; 61,659 states, and 263,067 with two person commits, past the harness's cap), verified-repair-settle.tla + 3 twins + 2 probes (the round's settling, Invariant 1.1 and 5.1: two verifiers on one pass, three triage records, each call's read and its record one transaction; 628 states, and 2,824 with four triage records), verified-repair-budget.tla + 3 twins + 2 probes (the round budget, Invariant 8.1: three freezes and one ruling, each freeze's read of the count and its round one transaction; 56 states, and 399 with four freezes and two rulings), the two re-derived 2026-10-21 on the journal's store (Capability requirement 28), each with a twin that takes Execution Contract Store 2 and Store 3 away; the settling model found Term counted finding counting a malformed verdict written after the settling record, cured on the page; verified-repair.als + 11 twins (the static data model, 2026-11-12: Invariant 1.2, 3.1, 4.1, 6.1 and 7.1 checked on every state the freezes, reports, triages, rulings and committed repairs can leave, Invariant 2.1 a cross-check with the commit path; nothing testable in Alloy for Invariant 7.2 (it says what an auditor's check answers over a purged payload, which no action writes); Invariant 1.1, 2.2, 5.1, 7.3 and 8.1 left to the TLA+ models (each an order the records alone do not keep); the model found that no capability requirement provisions the writer's actor reference apart from the maintainer's, as Capability requirement 10 does for the sweep identity, so one reference lets the writer record the ruling that admits its own claim-family patch); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12: no owed rows, 2026-10-21
-last gate: 2026-11-23 — Final Critique 33, a full round, frozen at 5561d41 — foundational count 9, not clean, one sample (GRID 6, EOS 4, Linus 4 reported; nine distinct kept and cured: a cold reader's verdict left open between counterexample and malformed where the coverage check did not clear (Verdict 5, 13, 14); Capability requirement 23's repair in more than one call against Action wiring 15 and Invariant 2.1, cured to one call; Composes 6's five action references; [Freeze]'s stale and budget-spent with no order (Action wiring 34); Action wiring 89 with no trigger or bound; an escalation obliged and forbidden for one subject (Action wiring 34b, 6, 30); Action wiring 86 keeping a round's records behind a blocking sibling; Action wiring 85 against Action wiring 76; Action wiring 17 for a history-file site; the walkthrough finding refuted, since a refining finding of finding kind A settles as cure, and the [Triage] refuses-line finding refuted by Action wiring 82 and Execution Contract Refusal 1; the refining items cured, and five citations of entries `pressure-testing.md` no longer holds re-pointed to What DONE means); 2026-11-16 — Final Critique 32, a delta round, frozen at 3935761 — foundational count 0 after the blind second triage, clean, no sample (Linus's one report, filing three foundational items, all placed not foundational: Primitive policy 16 and Primitive policy 3, a comma list read as all-missing or any-missing, placed refining B by the first triage and refuted by the second, since the grammar's flat OR and Verdict 3 and Action wiring 8 forbid the all-missing reading, and cured with one "no" for each item under OR, at Primitive policy 4 too; a change between [Freeze] and [Repair] breaking Invariant 2.1, refuted by Action wiring 15, which answers stale before the tree is built; and three refining items, Capability requirement 24 cured, Verdict 4's read bound a new open line 2026-11-16-h, and [Repair]'s gated answer refuted by the signature's answers line and Execution Contract Read 7); 2026-11-16 — Final Critique 31, frozen at ad6a8a3 — foundational count 3, not clean, one sample
+last gate: 2026-11-23 — Final Critique 34, a delta round, frozen at 26faf12 — foundational count 1, not clean, no sample (Linus's one report, filing three foundational items: one kept and cured, [Report]'s round-closed refusal obliged by Action wiring 6 to keep an escalation record that Execution Contract Read 4 and Read 7 erase for a refused call, cured by listing late-malformed on [Report]'s answers line for a malformed verdict of a settled round (Action wiring 47, 51, 90, Term admitted report), as Read 7 asks, with no change to the Execution Contract, and the same finding at [Repair] refuted, gated standing on its answers line; Capability requirement 14's window placed not foundational, since Recoverable Invocation's Instance start 5 and its closure-window invariant hold the retention period above the examine window end plus the settling period measured from the intent's recording, the sentence now saying so; Term deciding count's two sentences placed not foundational, its own second sentence deciding that a count above zero is no deciding count, the opening reworded; and four refining items and one rhetorical item cured: Capability requirement 23's citation of Action wiring 15 and Invariant 2.1, Term builder's reading's citation, Term council nonce's earlier commit, Capability requirement 26's one parent, Term round id's [Rule]); 2026-11-23 — Final Critique 33, a full round, frozen at 5561d41 — foundational count 9, not clean, one sample (GRID 6, EOS 4, Linus 4 reported; nine distinct kept and cured: a cold reader's verdict left open between counterexample and malformed where the coverage check did not clear (Verdict 5, 13, 14); Capability requirement 23's repair in more than one call against Action wiring 15 and Invariant 2.1, cured to one call; Composes 6's five action references; [Freeze]'s stale and budget-spent with no order (Action wiring 34); Action wiring 89 with no trigger or bound; an escalation obliged and forbidden for one subject (Action wiring 34b, 6, 30); Action wiring 86 keeping a round's records behind a blocking sibling; Action wiring 85 against Action wiring 76; Action wiring 17 for a history-file site; the walkthrough finding refuted, since a refining finding of finding kind A settles as cure, and the [Triage] refuses-line finding refuted by Action wiring 82 and Execution Contract Refusal 1; the refining items cured, and five citations of entries `pressure-testing.md` no longer holds re-pointed to What DONE means); 2026-11-16 — Final Critique 32, a delta round, frozen at 3935761 — foundational count 0 after the blind second triage, clean, no sample (Linus's one report, filing three foundational items, all placed not foundational: Primitive policy 16 and Primitive policy 3, a comma list read as all-missing or any-missing, placed refining B by the first triage and refuted by the second, since the grammar's flat OR and Verdict 3 and Action wiring 8 forbid the all-missing reading, and cured with one "no" for each item under OR, at Primitive policy 4 too; a change between [Freeze] and [Repair] breaking Invariant 2.1, refuted by Action wiring 15, which answers stale before the tree is built; and three refining items, Capability requirement 24 cured, Verdict 4's read bound a new open line 2026-11-16-h, and [Repair]'s gated answer refuted by the signature's answers line and Execution Contract Read 7); 2026-11-16 — Final Critique 31, frozen at ad6a8a3 — foundational count 3, not clean, one sample
 open: none
 ```
 
