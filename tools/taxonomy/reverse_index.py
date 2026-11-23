@@ -59,15 +59,23 @@ H2_FOLDED = re.compile(r"^\s*<h2\b[^>]*>\s*(.*?)\s*</h2>\s*$")
 
 
 def section(text, header_regex):
-    out, grab = [], False
+    """The lines under the `## ` heading header_regex names. A pattern in the tree order
+    (spec-format.md, The tree order) carries `### Composes` under `## What it is`: that
+    heading is read as the `## ` heading it stands for, and its block ends at the next
+    heading of either level."""
+    out, grab, level = [], False, 0
     for line in text.splitlines():
         folded = H2_FOLDED.match(line)
         if folded:
             line = "## " + folded.group(1)
-        if re.match(r"^## ", line):
+        tree = re.match(r"^### (Composes)\b", line)
+        if tree:
+            line = "## " + line[4:]
+        if re.match(r"^## ", line) or (grab and level == 3 and re.match(r"^### ", line)):
             if grab:
                 break
             grab = bool(re.match(header_regex, line))
+            level = 3 if tree else 2
             continue
         if grab:
             out.append(line)
@@ -124,8 +132,8 @@ def parse_composition(path):
             continue
         atoms.append(name)
         roles[name] = m.group(3).strip()[:90]
-    regulated = bool(re.search(r"^(?:## |[ \t]*<h2\b[^>]*>).*Generation acceptance", text, re.M))
-    std_section = section(text, r"^## Standards")
+    regulated = bool(re.search(r"^(?:#{2,3} |[ \t]*<h2\b[^>]*>).*Generation acceptance", text, re.M))
+    std_section = section(text, r"^## Standards") or section(text, r"^## Source")
     # a migrated page spells an acronym out where it first appears — `21 CFR (Code of
     # Federal Regulations) Part 11`, `ISO/IEC (International Electrotechnical Commission)
     # 27001` — so each pattern is matched with the expansions removed as well as with them

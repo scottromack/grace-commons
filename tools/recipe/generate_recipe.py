@@ -58,12 +58,12 @@ def composes_section(repo, comp_rel):
     full = os.path.join(repo, comp_rel)
     if not os.path.isfile(full):
         return ""
-    out, capture = [], False
+    out, capture, tree = [], False, False
     for ln in open(full, encoding="utf-8").read().splitlines():
         # a heading is `## Name`, or the <h2> of a section folded into a <details>
-        if re.match(r'^(?:##\s+|\s*<h2\b[^>]*>\s*)Composes\b', ln):
-            capture = True; continue
-        if capture and re.match(r'^(?:##\s+|\s*<h2\b)', ln):
+        if re.match(r'^(?:##\s+|###\s+|\s*<h2\b[^>]*>\s*)Composes\b', ln):
+            capture = True; tree = ln.startswith('###'); continue
+        if capture and re.match(r'^(?:##\s+|\s*<h2\b)', ln) or (capture and tree and ln.startswith('### ')):
             break
         if capture:
             out.append(ln)

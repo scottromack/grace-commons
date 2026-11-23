@@ -110,16 +110,19 @@ def substrates_of(text, comp_slugs):
     shape reverse_index requires for atom edges. Prose mentions inside the section
     (named peers, deliberate non-compositions like Compensable Workflow's "Audit
     Trail is deliberately not composed") do not count as edges."""
-    lines, grab, out = text.splitlines(), False, []
+    lines, grab, tree, out = text.splitlines(), False, False, []
     item = re.compile(r"^\s*-\s+\*{0,2}\[[^\]]+\]\(\./([a-z0-9-]+)\.md\)\*{0,2}\s*[—-]")
     for line in lines:
         folded = H2_FOLDED.match(line)
         if folded:
             line = "## " + folded.group(1)
-        if re.match(r"^## ", line):
+        if re.match(r"^## ", line) or (grab and tree and re.match(r"^### ", line)):
             if grab:
                 break
             grab = bool(re.match(r"^## Composes\b", line))
+            continue
+        if re.match(r"^### Composes\b", line):
+            grab, tree = True, True      # the tree order's `### Composes` (spec-format.md, The tree order)
             continue
         if grab:
             m = item.match(line)

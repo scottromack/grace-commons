@@ -3143,12 +3143,20 @@ def check_contract_labels(root: Path) -> list[Finding]:
     return out
 
 
+def composes_match(text):
+    """The Composes block of a composition: the `## Composes` section, or the tree order's
+    `### Composes` under `## What it is` (spec-format.md, The tree order), which ends at the next
+    heading of either level."""
+    return (re.search(r"(?ms)^(?:## |[ \t]*<h2\b[^>]*>[ \t]*)Composes\b[^\n]*\n(.*?)(?=^(?:## |[ \t]*<h2\b)|\Z)", text)
+            or re.search(r"(?ms)^### Composes\b[^\n]*\n(.*?)(?=^#{2,3} |\Z)", text))
+
+
 def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
     out: list[Finding] = []
     for p in patterns.values():
         if p.path.parent.name != "compositions":
             continue
-        m = re.search(r"(?ms)^(?:## |[ \t]*<h2\b[^>]*>[ \t]*)Composes\b[^\n]*\n(.*?)(?=^(?:## |[ \t]*<h2\b)|\Z)", p.text)
+        m = composes_match(p.text)
         if not m:
             continue  # H-heading owns a missing section
         if not COMPOSES_BULLET.search(m.group(1)):
@@ -3175,7 +3183,7 @@ def check_constituents_agree(patterns: dict[Path, Pattern]) -> list[Finding]:
     for p in patterns.values():
         if p.path.parent.name != "compositions":
             continue
-        sec = re.search(r"(?ms)^(?:## |[ \t]*<h2\b[^>]*>[ \t]*)Composes\b[^\n]*\n(.*?)(?=^(?:## |[ \t]*<h2\b)|\Z)", p.text)
+        sec = composes_match(p.text)
         if not sec or not COMPOSES_BULLET.search(sec.group(1)):
             continue  # F-composes-list owns a missing list
         listed = set(COMPOSES_BULLET.findall(sec.group(1)))
