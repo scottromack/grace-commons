@@ -23,7 +23,7 @@ Escalation is how a person finishes what the sweep could not: the findings the i
 <details markdown="block">
 <summary>WHY</summary>
 
-An act the database cannot certify is no act a program may close for the person who made it, because a guessed outcome in a regulated account is worse than a late one; the shape recurs wherever a machine meets what only a person can judge, and its findings must reach a person before the act's window ends. This atom holds the person's side: the findings, the operator's [Resolve] and the closure-at-risk finding, with the sweep's escalation records as what it reads (Scott, 2026-11-23, ruling of 9:29 AM Central). The findings register's protocol is owed to [Condition Register](./condition-register.md) and moves there when that atom is bonded; the rules stay here until the register's own text covers each (findings 3 through 13).
+An act the database cannot certify is no act a program may close for the person who made it, because a guessed outcome in a regulated account is worse than a late one, and its findings must reach a person before the act's window ends. This atom holds the person's side: the findings, the operator's [Resolve] and the closure-at-risk finding, with the sweep's escalation records as what it reads (Scott, 2026-11-23, ruling of 9:29 AM Central). The findings register's protocol is owed to [Condition Register](./condition-register.md) and moves there when that atom is bonded; the rules stay here until the register's own text covers each (findings 3 through 13).
 
 </details>
 
@@ -43,7 +43,7 @@ Term closing event id: closing_event_id — the event id of a closing record. Wh
   findings 2: The deployment MUST persist a finding naming no kind for at least the instance's longest retention period.
   findings 3: A surfacing that fails MUST NOT reject a [Reconcile] run that has landed closings.
   findings 4: The register MUST write a [Finding] as EXACTLY ONE OF act finding, instance finding.
-  findings 5: An instance finding MAY omit kind.
+  findings 5: An instance finding MAY omit kind ONLY IF the instance finding is journal-unavailable.
   findings 6: A surface MUST NOT read a finding outside the six conditions.
   findings 7: The register MUST set first seen at the first surfacing.
   findings 8: The register MUST NOT move first seen.
@@ -51,10 +51,11 @@ Term closing event id: closing_event_id — the event id of a closing record. Wh
   findings 10: WHEN a run does not see a standing instance finding's condition:
       findings 10a: IF the run's condition read answered that the condition does not stand THEN the register MUST close the record with last seen per Term last seen.
       findings 10b: IF the run made no condition read, or the run's condition read gave no answer, THEN the register MUST NOT close the record.
-  findings 11: The register MUST open a new record for a recurrence of an instance finding's condition after the record closed (findings 10a), and MUST open none for an act finding on the act finding's deduplication key.
-  findings 12: The register MUST hold one record per standing condition.
+  findings 11: The register MUST open a new record for a recurrence of an instance finding's condition after the record closed (findings 10a).
+  findings 12: The register MUST hold one record per standing condition of an instance finding.
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
+  findings 15: The register MUST open no second record for an act finding on the act finding's deduplication key.
   NOTE: until the register moves onto the [Condition Register](./condition-register.md) (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
@@ -107,10 +108,10 @@ resolve 39: [Resolve] MUST NOT write the closing record of resolve 21 BEFORE que
 resolve 8: [Resolve] MUST re-read the journal from sequence high water for the act key under the critical section.
 NOTE: watch rule inheritance (Durable Intent refuse step 0.1).
 resolve 9: IF an outcome or a refusal names the invocation id THEN [Resolve] MUST land already-accounted(closing event id), an outcome carrying a resolving actor excepted.
-resolve 10: An intent event id read_record answers not-known for MUST land not-known.
+resolve 10: An intent event id read_record answers not-known for MUST land not-known, an intent whose payload the substrate reports Purged excepted.
 resolve 11: [Resolve] MUST read the intent by read_record(intent event id).
 resolve 12: An intent whose payload the substrate reports Purged MUST land invalid-request(purged).
-resolve 13: EVERY closing [Resolve] writes over an existing record MUST carry supersedes naming that record's event id.
+resolve 13: EVERY closing [Resolve] writes over a standing closing MUST carry supersedes naming that closing's event id.
 resolve 14: WHEN no closing stands:
     resolve 14a: [Resolve] MAY write any disposition as the act's closing.
 resolve 15: WHEN an escalated record stands:
@@ -123,7 +124,7 @@ resolve 36: WHEN an outcome carrying a resolving actor stands:
     resolve 36b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land already-accounted(closing event id).
 resolve 18: An abandoned disposition for an in-flight intent MUST land invalid-request(too-young).
 resolve 19: The too-young guard MUST compare against now injected at the operator's seam.
-resolve 32: [Resolve] MUST admit the operator's abandoned disposition as the operator's attestation that the database has been quiet for as long as the operator's judgment requires.
+resolve 32: [Resolve] MUST admit the operator's abandoned disposition for an elapsed intent as the operator's attestation that the database has been quiet for as long as the operator's judgment requires.
 resolve 21: [Resolve] MUST write the closing record under the operator's own credential with recovery set to true, resolving actor set to actor reference, acting actor reference set to the intent's actor reference, and no recovery_intended.
 resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the resolution position of resolve 24 through 29.
@@ -133,11 +134,13 @@ resolve 26: recording-failure(step-2) and a lost reply (a recording-failure(step
 resolve 27: invalid-request MUST carry the cause: malformed, candidates-over-cap, purged, already-abandoned, too-young.
 resolve 27a: IF the grounds of more than one cause of resolve 27 apply to one call THEN [Resolve] MUST carry the cause resolve 27 lists first.
 resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-request(candidates-over-cap).
-resolve 29: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write MUST land recording-failure(resolution) with a hard alert.
+resolve 29: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write MUST land recording-failure(resolution).
+resolve 40: [Resolve] MUST surface a hard alert for an invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write.
 resolve 30: A disposition outside the three forms resolve 1 names MUST land invalid-request(malformed) with no take and nothing appended.
 resolve 31: A disposition whose outcome action reference IS NOT IN the kind's enumerated outcome refs MUST land invalid-request(malformed) with no take and nothing appended.
 resolve 33: IF kind IS NOT IN the bindings table THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
 resolve 33a: IF act key EQUALS blank OR invocation id EQUALS blank OR intent event id EQUALS blank THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
+resolve 33b: [Resolve] MUST NOT answer already-accounted or not-known for a call that resolve 4a, resolve 30, resolve 31, resolve 33 or resolve 33a lands as invalid-request(malformed).
 NOTE: watch the blank id (resolve 34).
 resolve 34: An intent event id naming no `<kind>.intended` record of the act key carrying invocation id MUST land not-known, an intent whose payload the substrate reports Purged and a blank act key, invocation id or intent event id (resolve 33a) excepted.
 resolve 35: [Resolve] MUST return closing event id for the closing the write lands.
@@ -208,12 +211,12 @@ A derived implementation of Escalation is acceptable when the following are prov
 ```
 Check 3.3: An auditor MUST exempt an intent whose window overlaps any span of journal-unavailable, or of store-unavailable or credential-refused for the intent's kind.
 Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans.
-Check 3.5: IF service identity EQUALS none THEN the register MUST carry EVERY aged intent as a closure-at-risk act finding WITHIN closure window.
+Check 3.5: IF service identity EQUALS none THEN the register MUST carry EVERY aged intent of a kind the bindings table serves as a closure-at-risk act finding WITHIN closure window.
 Check 3.6: IF an intent's window overlaps a span of credential-refused for the intent's kind THEN the register MUST carry the intent, an intent a closing record names excepted, as a closure-at-risk act finding WITHIN closure window.
 ```
 ```
 Check 6.4: EVERY `<kind>.abandoned` MUST carry a resolving actor.
-Check 6.5: EVERY database candidates entry of an `<kind>.escalated` record MUST match a database record of the intent.
+Check 6.5: EVERY database candidates entry of an `<kind>.escalated` record carrying no resolving actor MUST match a database record of the intent.
 ```
 #### External checks
 
@@ -240,13 +243,21 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Lease. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail.
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Lease. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. caller kind, in-flight, standing closing, lost reply, critical section holder, hard alert, write floor, sequence high water, read path, invocation id, now: Durable Intent. aged, elapsed intent, horizon edge, sweep lease, acting actor reference, recovery_intended, database candidates: Sweep.
 
-Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
+Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. finding conditions = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = malformed | candidates-over-cap | purged | already-abandoned | too-young.
 
 Term resolving actor: the operator's actor reference, carried by a closing record an operator writes through [Resolve] (resolve 21).
 
 Term cause: not-committed | not-observed | undecidable | outcome-unrecordable — the closing record's escalation or abandonment cause.
+
+Term bindings table: the table of act kinds the instance serves, each with its binding set, which the deployment declares.
+
+Term kind: the act kind an invocation belongs to — a key of the bindings table while the instance serves the kind, and the `<kind>` of every action reference the act's records carry.
+
+Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity; the critical section is keyed by it, and a finding names it.
+
+Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none.
 
 Term bounds: invocation completion bound, commit round trip, probe round trip, journal write bound, pause bound, read bound, closure latency, run bound, closure window, clock allowance, retention period, settling period, intent candidates cap, read cap.
 
@@ -254,7 +265,7 @@ Term cadences: sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE-lang, the corpus's rule grammar, v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, condition read, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
+Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, at risk threshold, settling edge, intent age, settle bound, retention end, run interval, partition, examined, skipped, reported, surfaced, unreached, closed already, terminus, payload match, act quiescence, read-your-writes, journal join, `position's existing arm`, cross-seam comparison, critical section key, critical section duration, reply, release, unfenced write, commit floor, act finding, instance finding, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, condition read, span, resolving actor, readable intent.
 
 [Resolve]: #resolve
 [Finding]: #finding
@@ -263,7 +274,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`todo` — written by the split of Recoverable Invocation (grace-commons 4c758dc5), and no round has read it yet.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -271,9 +282,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: none
+last gate: 2026-11-23 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS beam-free, Linus claude-sonnet-5-5), frozen at 18c7609b — foundational count 4, not clean, one sample; cured in the round
 open: none
 ```
 
