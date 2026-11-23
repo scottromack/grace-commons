@@ -208,6 +208,7 @@ Deleted: Verdict 6. Recoverable Invocation Which closing stands 2 owns it: an ou
 
 ```
   Deleted: Invariant 6.1. Recoverable Invocation Invariant 1.1 owns it.
+  Deleted: Invariant 6. Recoverable Invocation Invariant 1.1 owns it, and the heading kept no rule.
 ```
 
 ### Generation acceptance › Conformance checks

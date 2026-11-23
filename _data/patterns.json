@@ -873,7 +873,7 @@
    "selective-disclosure"
   ],
   "done": false,
-  "invariants": 5,
+  "invariants": 4,
   "kind": "composition",
   "models": {
    "als": true,
