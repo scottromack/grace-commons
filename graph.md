@@ -17,7 +17,7 @@ weight here is *semantic leverage*: how many compositions rest on a pattern — 
 
 ## Reverse leverage — atoms by fan-in
 
-How many grounded compositions compose each atom. A stale or wrong atom propagates exactly
+How many done compositions compose each atom. A stale or wrong atom propagates exactly
 this far — fan-in is the risk weight the rescan queue tie-breaks on, and the reuse a flat
 pattern count hides.
 

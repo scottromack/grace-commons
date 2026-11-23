@@ -8,7 +8,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -52,7 +52,7 @@
    "session",
    "credential"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -87,7 +87,7 @@
    "multi-party-approval"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -120,7 +120,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": false,
+  "done": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -152,7 +152,7 @@
    "permissions",
    "actor-identity"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -182,7 +182,7 @@
    "retention-window",
    "tamper-evidence"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -233,7 +233,7 @@
    "credential",
    "actor-identity"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -261,7 +261,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -282,7 +282,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 13,
   "kind": "atom",
   "models": {
@@ -314,7 +314,7 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -345,7 +345,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": false,
+  "done": false,
   "invariants": 14,
   "kind": "atom",
   "models": {
@@ -369,7 +369,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -389,7 +389,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -408,7 +408,7 @@
   "composes": [
    "provenance"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -437,7 +437,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -455,7 +455,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -475,7 +475,7 @@
    "state-machine",
    "event-log"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -497,7 +497,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -518,7 +518,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -552,7 +552,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "grounded": false,
+  "done": false,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -595,7 +595,7 @@
    "party-identity",
    "retention-window"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -625,7 +625,7 @@
    "legal-hold",
    "retention-window"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 13,
   "kind": "composition",
   "models": {
@@ -658,7 +658,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -685,7 +685,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -709,7 +709,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -752,7 +752,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -781,7 +781,7 @@
    "credential",
    "party-identity"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -809,7 +809,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -827,7 +827,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -847,7 +847,7 @@
    "provisional-commitment",
    "duplicate-prevention"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -872,7 +872,7 @@
   "composes": [
    "selective-disclosure"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -903,7 +903,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -933,7 +933,7 @@
    "recoverable-invocation"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -962,7 +962,7 @@
    "defensible-retention"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -991,7 +991,7 @@
    "credential",
    "session"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1019,7 +1019,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": "healthcare",
-  "grounded": true,
+  "done": true,
   "invariants": 14,
   "kind": "atom",
   "models": {
@@ -1039,7 +1039,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1061,7 +1061,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1079,7 +1079,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -1100,7 +1100,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1133,7 +1133,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1158,7 +1158,7 @@
    "subscription",
    "notification"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -1176,7 +1176,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -1194,7 +1194,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "atom",
   "models": {
@@ -1215,7 +1215,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1256,7 +1256,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1299,7 +1299,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1319,7 +1319,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1342,7 +1342,7 @@
    "event-log",
    "lease"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1366,7 +1366,7 @@
    "permissions",
    "capability"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 10,
   "kind": "composition",
   "models": {
@@ -1396,7 +1396,7 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1422,7 +1422,7 @@
    "chain-of-custody"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1453,7 +1453,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1480,7 +1480,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1498,7 +1498,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1517,7 +1517,7 @@
   "composes": [
    "lease"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -1554,7 +1554,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1577,7 +1577,7 @@
    "event-log",
    "actor-identity"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 7,
   "kind": "composition",
   "models": {
@@ -1599,7 +1599,7 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1627,7 +1627,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -1650,7 +1650,7 @@
    "propagate-consent-revocation-downstream"
   ],
   "domain": null,
-  "grounded": false,
+  "done": false,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1694,7 +1694,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -1716,7 +1716,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -1752,7 +1752,7 @@
    "session-gated-authorization"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -1789,7 +1789,7 @@
    "session",
    "permissions"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -1817,7 +1817,7 @@
    "permissions",
    "event-log"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -1838,7 +1838,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "done": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1859,7 +1859,7 @@
    "execute-gated-workflow"
   ],
   "domain": null,
-  "grounded": false,
+  "done": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -1890,7 +1890,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1913,7 +1913,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 1,
   "kind": "atom",
   "models": {
@@ -1933,7 +1933,7 @@
    "audit-trail"
   ],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1968,7 +1968,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -1985,7 +1985,7 @@
  "verified-repair": {
   "audience": "internal",
   "composes": [],
-  "grounded": false,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -2006,7 +2006,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "grounded": true,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {

@@ -15,7 +15,7 @@ There is a third option.
 
 Logins. Orders. Approvals. Gift cards. Audit trails. Every business needs them, and every business pays to build them again – a little differently, a little wrong each time.
 
-Grace Commons writes each one down once, in plain English anyone in the business can read, and checks it until nothing is left to find. The library holds {{ site.data.stats.patterns }} patterns today, {% if site.data.stats.patterns == site.data.stats.grounded %}every one marked done{% else %}{{ site.data.stats.grounded }} of them marked done{% endif %}. [See each one, with its status and date](./roadmap.md)
+Grace Commons writes each one down once, in plain English anyone in the business can read, and checks it until nothing is left to find. The library holds {{ site.data.stats.patterns }} patterns today, {% if site.data.stats.patterns == site.data.stats.done %}every one marked done{% else %}{{ site.data.stats.done }} of them marked done{% endif %}. [See each one, with its status and date](./roadmap.md)
 
 ## The small part that is different is your gold
 

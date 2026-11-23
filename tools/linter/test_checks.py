@@ -1634,7 +1634,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
         (root / "atoms" / "a.md").write_text("Fifty-plus specifications and 52 grounded.\n", encoding="utf-8")
         (root / "readme.md").write_text(
             "> Fifty-plus specifications are a lot.\n"
-            "{{ site.data.stats.patterns }} patterns, {{ site.data.stats.grounded }} grounded.\n"
+            "{{ site.data.stats.patterns }} patterns, {{ site.data.stats.done }} done.\n"
             "52 grounded patterns today.\n"
             "On 2026-11-06 the library held 58 patterns.\n"
             "the `58 patterns` form is quoted.\n"

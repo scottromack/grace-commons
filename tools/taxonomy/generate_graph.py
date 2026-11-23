@@ -24,10 +24,10 @@ Two artifacts, both DERIVED from the corpus (never hand-edited — regenerate):
                       patterns.json from the same cards, so a site page states a
                       count as {{ site.data.stats.patterns }} and cannot drift from
                       the library (unit `site: live numbers`, Scott 2026-11-06).
-                      The done counts keep the key names `grounded`,
-                      `grounded_atoms` and `grounded_compositions`, which Start
-                      Here prints; a card's `grounded` is true when its Status
-                      token is `done`.
+                      The done counts are `done`, `done_atoms` and
+                      `done_compositions`, which Start Here prints (the keys said
+                      `grounded` until unit `site: one done count`, 2026-11-23); a
+                      card's `done` is true when its Status token is `done`.
 
 Every field is read off the files (Status token, Invariant headers, the
 pattern's .tla/.als models and their -buggy twins in its folder's models folder,
@@ -184,9 +184,9 @@ def corpus_stats(root, cards):
         commits = None
     return {
         "patterns": len(cards), "atoms": len(atoms), "compositions": len(comps),
-        "grounded": sum(c["grounded"] for c in cards.values()),
-        "grounded_atoms": sum(c["grounded"] for c in atoms),
-        "grounded_compositions": sum(c["grounded"] for c in comps),
+        "done": sum(c["done"] for c in cards.values()),
+        "done_atoms": sum(c["done"] for c in atoms),
+        "done_compositions": sum(c["done"] for c in comps),
         "commits": commits,
         **states_ledger_stats(root),
     }
@@ -210,7 +210,7 @@ def main():
             "title": frontmatter_title(text, a), "kind": "atom",
             "audience": e["audience"],
             "status": status_token(text),
-            "grounded": is_done(status_token(text)),
+            "done": is_done(status_token(text)),
             "invariants": invariant_count(text),
             "models": models_of(p),
             "composed_by": e["composed_by"], "domain": e["domain"],
@@ -226,7 +226,7 @@ def main():
             "title": frontmatter_title(text, c["name"]), "kind": "composition",
             "audience": frontmatter_audience(text),
             "status": status_token(text),
-            "grounded": is_done(status_token(text)),
+            "done": is_done(status_token(text)),
             "invariants": invariant_count(text),
             "models": models_of(p),
             "composes": c["atoms"], "substrates": subs,
@@ -276,7 +276,7 @@ def main():
     # -- reverse leverage: atoms ---------------------------------------------
     P("## Reverse leverage — atoms by fan-in")
     P("")
-    P("How many grounded compositions compose each atom. A stale or wrong atom propagates exactly")
+    P("How many done compositions compose each atom. A stale or wrong atom propagates exactly")
     P("this far — fan-in is the risk weight the rescan queue tie-breaks on, and the reuse a flat")
     P("pattern count hides.")
     P("")
