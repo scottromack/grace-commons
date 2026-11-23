@@ -64,6 +64,7 @@ Deleted: Capability requirement 32. Recoverable Invocation act section 1 owns it
 Deleted: Capability requirement 33. Recoverable Invocation act section 16 owns it.
 Deleted: Capability requirement 34. Recoverable Invocation pause bound 1 owns it: the instance's pause bound.
 Deleted: Capability requirement 35. Recoverable Invocation act section 2 owns it.
+Deleted: Capability requirement 38. Concurrency 4 owns it: the rule moved under the Concurrency heading it belongs to (open line 2026-11-18-k).
 ```
 
 ### Composition logic › Audit arm
@@ -97,6 +98,10 @@ Deleted: Action wiring 39. Recoverable Invocation Action wiring 4 and Term decis
 Deleted: Action wiring 42. Execution Contract Database 2 owns it.
 Deleted: Action wiring 43. Execution Contract Database 1 owns it.
 Deleted: Action wiring 58. Execution Contract Database 2 owns it: an action's reads of a chain and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Action wiring 64. Concurrency 5 owns it: the rule moved under the Concurrency heading (open line 2026-11-18-k).
+Deleted: Action wiring 65. Concurrency 6 owns it: the rule moved under the Concurrency heading (open line 2026-11-18-k).
+Deleted: Action wiring 66. Concurrency 7 owns it: the rule moved under the Concurrency heading (open line 2026-11-18-k).
+Deleted: Action wiring 67. Concurrency 8 owns it: the rule moved under the Concurrency heading (open line 2026-11-18-k).
 ```
 
 ### Composition logic › Reconciliation

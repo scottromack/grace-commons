@@ -1,6 +1,8 @@
 -- multi-party-approval.als
 -- Alloy structural model for the Multi-Party Approval composition (Grace Commons compositions/multi-party-approval.md)
--- Grounded on Final Critique 21, 2026-11-11 at 1537770 — Alloy layer authored 2026-11-12.
+-- Grounded on Final Critique 21, 2026-11-11 at 1537770 — Alloy layer authored 2026-11-12;
+-- re-derived 2026-11-22 for the open-lines cures (the chain rebuild's trigger, Composition
+-- state 36; the initiation probe's reason; Invariant 5.4 and 10.4; Reconciliation 51).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -20,7 +22,8 @@
 -- The model has two parts.
 --   Part A, the records: every record is what an admitted write left — an initiation
 --   transaction (Action wiring 6 through 14), a decision transaction (Action wiring 17
---   through 38, 64, 65), a withdrawal transaction (Action wiring 41 through 49, 66, 67, 70),
+--   through 38; Concurrency 5, 6), a withdrawal transaction (Action wiring 41 through 49, 70;
+--   Concurrency 7, 8),
 --   the cascade inside a terminating commit (Cascade 1, 2, 7, 10, 13), the invocation's close
 --   and refuse, and Recoverable Invocation's sweep, which closes an open intent through this
 --   page's probes (Term initiation probe, decision probe, withdrawal probe). An operator's
@@ -29,8 +32,10 @@
 --   decided out of band (against Composes 11); a step no initiation submitted was submitted
 --   outside the composition.
 --   Part B, the indexes: what each stored index carries (Action wiring 8, 11, 57), and what
---   it holds after its rebuild (Composition state 12 through 18, 21), with the rebuild's
---   alerts (Composition state 22, 23).
+--   it holds after its rebuild (Composition state 12 through 18, 21), the chain rebuild
+--   running only at a miss or an operator's rebuild (Composition state 36), with the
+--   rebuild's alerts (Composition state 22, 23); and the write-ownership leg's reading of the
+--   chainless steps (Reconciliation 51).
 --
 -- RULES ENCODED (named by the page's own labels)
 --   Invariant 1.1 — a quiescent chain's step list counts its approver set (a cross-check with
@@ -46,6 +51,9 @@
 --   Invariant 4.3 — no Pending step of a Pending chain has its assignment recalled.
 --   Invariant 5.2 — every chain namespace event other than an intent names a chain the chain
 --                   records carry (under a reading: finding (a)).
+--   Invariant 5.4 — no two initiation events the invocation or the sweep wrote carry one
+--                   chain id (an operator's second one is the initiation alert's, which
+--                   multi-party-approval.tla checks).
 --   Invariant 7.1 — a terminal chain's state is the one its terminating commit wrote, and a
 --                   rebuild keeps it (cross-check, Inv7_1, with the rebuild).
 --   Invariant 7.2 — a terminal chain's terminal instant is its terminating commit's now, and
@@ -56,7 +64,17 @@
 --   Invariant 8.1 — a rebuild changes no declared field.
 --   Invariant 9.1 — a chain inside the retention horizon resolves from its records alone: its
 --                   chain record and step list, each step's assignment records, and every
---                   chain namespace event through its event index entry, rebuilt.
+--                   chain namespace event through its event index entry, rebuilt (Check 9.2).
+--   Invariant 10.4 — a committed initiation intent resolves to a chain record by its act key
+--                   and its pairing datum (Check 10.2).
+--   Action wiring 14, Term initiation probe — every initiation event the invocation or the
+--                   sweep wrote carries the chain shape and the initiation's reason: one
+--                   payload shape.
+--   Composition state 36 — the chain rebuild runs over a standing chain record only at an
+--                   operator's rebuild: with none, every chain record and step list entry
+--                   stands as written and no rebuild alert is raised.
+--   Reconciliation 51 — the leg opens a write-ownership finding for every chainless step of
+--                   every chain record it reads (Check 1.3 excepts it).
 --
 -- NOT CHECKED HERE
 --   Nothing testable in Alloy:
@@ -87,30 +105,35 @@
 --       terminal instant and the terminal summary from the chain's terminal event, keeping
 --       only a terminal record's state and instant (Composition state 26, 27), and
 --       Composition state 13 retains only the records it does not produce; Recoverable
---       Invocation's resolve checks no operator's outcome against the records. So a rebuild
---       (i) moves a Pending chain record to an operator's terminal state, with no commit,
---       quorum or cascade (run ShowRebuildTerminatesPendingChain), against the Invariant 2
---       NOTE's "prevented, not detected" (the routed vector reads no outcome, but the chain
---       state the rebuild writes does); (ii) rewrites declared fields and the step list from
---       an operator's chain shape (run ShowRebuildRewritesDeclaredFields), so Invariant 1.3,
---       1.4 and 8.1 are detected by the shape alert, not prevented — the Invariant 5 NOTE
---       names only 5.1 and 7.3; and (iii) produces a chain record from an operator's
---       initiation outcome for an initiation that committed nothing, where no chain record
---       stands for the shape alert to compare (run ShowRebuildFromOperatorOnly), so nothing
---       alerts it. Composition state 12 names no trigger for the rebuild, so whether a
---       rebuild ever runs over a standing record is itself not written; Composition state
---       13, 26 and 27 read as if it may. The checks that read the rebuilt records
---       (A_Invariant_1_1, 1_3, 1_4, 5_2, 7_1, 7_2, 8_1, 9_1) are stated under pred
+--       Invocation's resolve checks no operator's outcome against the records. Since
+--       2026-11-22 the rebuild runs over a standing record only at an operator's rebuild of
+--       the chain records (Composition state 36, checked: A_Composition_state_36), and where
+--       it takes a Pending record's state from an operator's terminal event (i) (run
+--       ShowRebuildTerminatesPendingChain) Composition state 29 alerts it and Composition
+--       state 37 marks the record operator-sourced, the exception Invariant 2.1 and its NOTE
+--       now name (multi-party-approval.tla checks the mark). At an operator's rebuild it still
+--       (ii) rewrites declared fields and the step list from an operator's chain shape (run
+--       ShowRebuildRewritesDeclaredFields), so Invariant 1.3, 1.4 and 8.1 are detected by the
+--       shape alert, not prevented, which the Invariant 5 NOTE does not name; and at a miss
+--       (iii) it produces a chain record from an operator's initiation outcome for an
+--       initiation that committed nothing, where no chain record stands for the shape alert to
+--       compare and no second initiation event for the initiation alert (run
+--       ShowRebuildFromOperatorOnly), so nothing alerts it. The checks that read the rebuilt
+--       records (A_Invariant_1_1, 1_3, 1_4, 5_2, 7_1, 7_2, 8_1, 9_1) are stated under pred
 --       operatorFaithful; the three runs show the states it sets aside.
 --   (c) Invariant 1.5 holds only by Composes 11: a step a deployment submits outside the
---       composition carrying a chain's prefix is a chainless step nothing but the auditor's
---       Check 1.3 reads (open line 2026-11-10-c; run ShowOutOfBandChainless). Without pred
---       noOutOfBandSubmit, A_Invariant_1_5 fails.
+--       composition carrying a chain's prefix is a chainless step (run
+--       ShowOutOfBandChainless). Without pred noOutOfBandSubmit, A_Invariant_1_5 fails. Since
+--       2026-11-22 the leg reads such a step by subject reference and submitter for every
+--       chain record it examines and opens a write-ownership finding for it (Reconciliation
+--       51, checked: A_Reconciliation_51), which Check 1.3 excepts; a chainless step of an
+--       aged or young chain record the leg does not read is left to Check 1.3.
 --
 -- SCOPE
 -- for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal,
--- 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now: two chain ids, three
--- approver slots, steps and assignments, four invocations, ten Event Log events. Five-bit
+-- 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now (3 Reason by default):
+-- two chain ids, three approver slots, steps and assignments, four invocations, ten Event
+-- Log events. Five-bit
 -- integers for the Event Log sequence and the counts. Instants are compared for equality
 -- only (the probes' pairing); the clock's edges (aged chains, purged events) are inputs. No
 -- trace, no `var`, no stepping: what a commit read before it wrote stands as a ghost
@@ -118,15 +141,23 @@
 -- checked across writes.
 --
 -- NOT MODELED HERE
---   - Primitive policy, the permission check, the credential, [Read Chain]'s query.
---   - The quorum rule's arithmetic and the rule reason (Wiring decision 1 through 9): a
---     terminating decision's state is its evaluation's answer, a ghost.
+--   - Primitive policy (but the approver set minimum, Capability requirement 1 and Primitive
+--     policy 5, which an initiation's step list reads), the permission check, the credential,
+--     [Read Chain]'s query, [Withdraw Chain]'s payload sizing (Action wiring 76, 77), the
+--     field length cap (Capability requirement 48).
+--   - The quorum rule's arithmetic, the routed vector and the rule reason (Wiring decision 1
+--     through 11, Term routed vector): a terminating decision's state is its evaluation's
+--     answer, a ghost.
+--   - The cut-over instant (Capability requirement 49, Reconciliation 52): every record here
+--     is written after the composition bound its act kinds.
+--   - A decision's or a withdrawal's reason: only the initiation's reason is modelled.
 --   - The cascade's deterministic arms (Cascade 8, 12, 15), the temporal invalid-request
 --     (Cascade 14: it fails the commit, so it leaves no record but the refusal), the recalled
 --     step ids, the order of the step list.
 --   - The reconciliation's findings (Reconciliation 20, 48 through 50) and the clock's
---     young and aged edges, multi-party-approval.tla's; a deployment's own recall of a step
---     assignment (open line 2026-11-11-c).
+--     young edge, multi-party-approval.tla's (Reconciliation 51's chainless findings are
+--     this model's, over the chain records that are not aged); a deployment's own recall of
+--     a step assignment (open line 2026-11-11-c).
 --
 -- HOW TO READ RESULTS
 -- Every "check A_*" must return "No counterexample found" (UNSAT) — the asserted guarantee holds.
@@ -156,6 +187,10 @@ sig Scope {}
 
 -- Rule: a quorum rule with its quorum count, compared whole (Term quorum rule).
 sig Rule {}
+
+-- Reason: the caller's free text (Term reason), compared whole; the prefix a step's stored
+-- reason adds (Term prefixed reason) is Step.sreason.
+sig Reason {}
 
 -- Now: an instant — the now one invocation stamps (Capability requirement 19, 23). Compared
 -- for equality only.
@@ -193,15 +228,17 @@ sig Slot {
 abstract sig Minted {}
 
 -- Step: one Approval Step record: its subject reference, approver reference, submitter,
--- scope, the chain id its stored reason's prefix carries (Term prefixed reason), its state,
--- its decider and decision or withdrawal instant; and — ghosts — the initiation intent whose
--- committed transaction submitted it (none: submitted outside the composition) and its slot.
+-- scope, the chain id its stored reason's prefix carries (Term prefixed reason) and the reason
+-- after that prefix, its state, its decider and decision or withdrawal instant; and — ghosts —
+-- the initiation intent whose committed transaction submitted it (none: submitted outside the
+-- composition) and its slot.
 sig Step extends Minted {
     ssubj   : one Subject,
     sappr   : one Actor,
     ssub    : one Actor,
     sscope  : one Scope,
     sreason : lone Chain,
+    stext   : lone Reason,
     sst     : one St,
     sdec    : lone Actor,
     sdat    : lone Now,
@@ -248,8 +285,8 @@ abstract sig Ev {
 }
 
 -- Intent: an intent the invocation open wrote (Term intent): its act kind, the chain id its
--- act key carries, the step id for a decision key, the caller and the pairing datum.
--- iwrote is a ghost: the chain state a terminating commit wrote (its evaluation's answer, or
+-- act key carries, the step id for a decision key, the caller, the pairing datum and, for an
+-- initiation, the reason its intent data carries (Action wiring 3). iwrote is a ghost: the chain state a terminating commit wrote (its evaluation's answer, or
 -- Withdrawn).
 sig Intent extends Ev {
     kind   : one Kind,
@@ -257,6 +294,7 @@ sig Intent extends Ev {
     istep  : lone Step,
     actor  : one Actor,
     datum  : one Now,
+    ireason : lone Reason,
     iwrote : lone St
 }
 
@@ -276,7 +314,8 @@ sig Terminating in Intent {}
 
 -- Outcome: an outcome (Term outcome): the intent it closes, who wrote it and the actor its
 -- attestation names; the terminal summary it carries (state, terminal instant, terminating
--- invocation), and for an initiation event the chain shape (Composition state 4, 6).
+-- invocation), and for an initiation event the chain shape and the reason (Composition state
+-- 4, 6; Action wiring 14).
 sig Outcome extends Ev {
     oi     : one Intent,
     oby    : one Writer,
@@ -289,7 +328,8 @@ sig Outcome extends Ev {
     oslots : set Slot,
     orule  : lone Rule,
     oiat   : lone Now,
-    osteps : set Minted
+    osteps : set Minted,
+    oreason : lone Reason
 }
 
 -- Refusal: a refusal record (Term refusal record) for the intent it closes.
@@ -314,6 +354,9 @@ sig Purged in Ev {}
 
 -- Aged: the aged chains (Term aged chains): the clock's; an input.
 sig Aged in Chain {}
+
+-- OperRebuild: an operator rebuilt the chain records (Composition state 36). An input.
+lone sig OperRebuild {}
 
 -- Oob: the steps decided by an out-of-band transition (Term out-of-band transition): a
 -- decision written around the composition, with no intent. A ghost.
@@ -358,7 +401,7 @@ fun decisionKinds : set Kind { KAppr + KRej + KSWd }
 fun stateOf[k : Kind] : one St { (k = KAppr) => Approved else ((k = KRej) => Rejected else Withdrawn) }
 
 -- counted: the committed decisions the chain evaluation counts — committed while the chain
--- was Pending, so not trailing (Action wiring 30, 65; Term routed vector).
+-- was Pending, so not trailing (Action wiring 30; Concurrency 5, 6; Term routed vector).
 fun counted : set Intent { (Committed - Trailing) & kind.decisionKinds }
 
 -- stillPending: a terminal chain's steps the routed vector counted as Pending at the
@@ -400,23 +443,27 @@ pred noShape[o : Outcome] {
 pred noSummary[o : Outcome] { no o.ost and no o.otat and no o.otinv }
 
 -- invData: what the invocation's close writes: an initiation event the chain shape its
--- commit wrote (Action wiring 14); a decision's outcome the terminal summary where its
+-- commit wrote and the reason its intent carries (Action wiring 14); a decision's outcome the terminal summary where its
 -- commit terminated the chain (Action wiring 29); a withdrawal event the terminal summary
 -- (Action wiring 49).
 pred invData[o : Outcome] {
-    o.oi.kind = KInit implies (initShape[o, o.oi.ichain] and noSummary[o]) else noShape[o]
+    o.oi.kind = KInit implies (initShape[o, o.oi.ichain] and noSummary[o] and o.oreason = o.oi.ireason)
+        else noShape[o]
     o.oi.kind != KInit implies
         ((o.oi in Terminating) => (o.ost = o.oi.iwrote and o.otat = o.oi.datum and o.otinv = o.oi)
          else noSummary[o])
 }
 
 -- faithful: what an act probe answers committed with — the record its pairing datum finds,
--- read now: the chain shape the chain record holds; the terminal summary where the chain
--- record's names the intent's invocation (Term initiation probe, decision probe, withdrawal
--- probe).
+-- read now: the chain shape the chain record holds and the reason the first step stores
+-- after its prefix (every step of a chain stores one reason, so the first step's is any
+-- step's); the terminal summary where the chain record's names the intent's invocation (Term
+-- initiation probe, decision probe, withdrawal probe).
 pred faithful[o : Outcome] {
     o.oi in Committed
-    o.oi.kind = KInit implies (initShape[o, o.oi.ichain] and noSummary[o]) else noShape[o]
+    o.oi.kind = KInit implies
+        (initShape[o, o.oi.ichain] and noSummary[o] and o.oreason = stepsOf[o.oi.ichain].stext)
+        else noShape[o]
     o.oi.kind != KInit implies
         ((o.oi.ichain.ctinv = o.oi)
             => (o.ost = o.oi.ichain.cst and o.otat = o.oi.ichain.ctat and o.otinv = o.oi)
@@ -444,8 +491,8 @@ fact HorizonEdge {
     all e : Ev | chainOf[e] not in Aged implies e not in Purged
 }
 
--- The host never injects an equal now into two invocations of one act key (Capability
--- requirement 38, the host's obligation).
+-- The host never injects an equal now into two invocations of one act key (Concurrency 4,
+-- the host's obligation).
 fact FreshNowPerActKey {
     all disj i, j : Intent | (i.kind = j.kind and i.ichain = j.ichain and i.istep = j.istep)
         implies i.datum != j.datum
@@ -478,11 +525,15 @@ fact RecoverableInvocationClosing {
 -- caller as the initiator and its now as the initiated instant (Action wiring 6, Capability
 -- requirement 23); one submit per approver slot with the chain's subject reference, scope,
 -- the slot's approver reference, the initiator as submitter and the prefixed reason (Action
--- wiring 7); one assign per step id to its approver (Action wiring 10); the step ids and
+-- wiring 7), the stored reason after the prefix the intent's; one assign per step id to its
+-- approver (Action wiring 10); the step ids and
 -- assignment ids appended to the landed ids (Action wiring 8, 11). A chain id no committed
 -- initiation wrote carries no record. Every assignment is an initiation's (Composes 18: no
--- reassign).
+-- reassign). An initiation intent carries the reason (Action wiring 3), and an admitted one an
+-- approver set of at least one slot (Capability requirement 1, Primitive policy 5).
 pred initWiring {
+    all i : Intent | i.kind = KInit iff one i.ireason
+    all c : Stored | some c.cslots
     all c : Stored | some c.ciinv and c.ciinv in Committed and c.ciinv.kind = KInit
         and c.ciinv.ichain = c and c.cinit = c.ciinv.actor and c.ciat = c.ciinv.datum
     all i : Committed & kind.KInit | i.ichain in Stored and i.ichain.ciinv = i
@@ -497,6 +548,7 @@ pred initWiring {
         st.sappr = st.sslot.slotAppr
         st.ssub = st.sby.ichain.cinit
         st.sreason = st.sby.ichain
+        st.stext = st.sby.ireason
         one asgOf[st]
         asgOf[st].assignee = st.sappr
     }
@@ -511,7 +563,7 @@ pred initWiring {
 -- withdrawal, stamping the invocation's now (Action wiring 21, 59 through 61; Capability
 -- requirement 37; Approval Step's guarantee). A step leaves Pending once: by one committed
 -- decision, the cascade, or a decision written around the composition. A trailing decision
--- commits only on a terminal chain and terminates nothing (Action wiring 18, 31, 65).
+-- commits only on a terminal chain and terminates nothing (Action wiring 18, 31; Concurrency 6).
 pred decisionWiring {
     all i : Intent | i.kind in decisionKinds iff some i.istep
     all i : Intent | some i.istep implies i.istep in stepsOf[i.ichain]
@@ -538,7 +590,7 @@ pred withdrawalWiring {
 
 -- terminalWiring: a committed chain withdrawal and a counted decision whose evaluation
 -- answered a terminal state are terminating; the re-reads inside the decision and withdrawal
--- transactions let one commit move a chain out of Pending (Action wiring 34, 65, 66, 67). The
+-- transactions let one commit move a chain out of Pending (Action wiring 34; Concurrency 5 through 8). The
 -- chain record carries that commit: its state, its now as the terminal instant, its path
 -- and its invocation (Action wiring 35, 38, 47, 70; Term terminal summary).
 pred terminalWiring {
@@ -616,8 +668,13 @@ fun firstShape[c : Chain] : set Outcome {
     { o : shapeEvs[c] | no o2 : shapeEvs[c] | o2.sn < o.sn }
 }
 
--- produced: the chain rebuild produces a record for the chain.
+-- produced: the chain rebuild produces a record for the chain where it runs.
 pred produced[c : Chain] { some shapeEvs[c] }
+
+-- rebuilt: the chain rebuild runs for the chain and produces its record (Composition state
+-- 36): at a miss, a chain id the chain records carry no record for (Composition state 21, a
+-- read naming it), or at an operator's rebuild of the chain records.
+pred rebuilt[c : Chain] { produced[c] and (c not in Stored or some OperRebuild) }
 
 -- termEvs: the chain's terminal events the log read finds (Term terminal event).
 fun termEvs[c : Chain] : set Outcome {
@@ -639,32 +696,32 @@ fun rbInit[c : Chain] : set Actor { firstShape[c].oi.actor }
 
 -- afterSubj, afterScope, afterInit, afterSlots, afterRule, afterIat, afterIinv: the declared
 -- fields after a rebuild: the produced record's, from its chain-shape event; a record the
--- rebuild does not produce retained (Composition state 13).
-fun afterSubj[c : Chain] : set Subject { produced[c] => firstShape[c].osubj else c.csubj }
-fun afterScope[c : Chain] : set Scope { produced[c] => firstShape[c].oscope else c.cscope }
-fun afterInit[c : Chain] : set Actor { produced[c] => rbInit[c] else c.cinit }
-fun afterSlots[c : Chain] : set Slot { produced[c] => firstShape[c].oslots else c.cslots }
-fun afterRule[c : Chain] : set Rule { produced[c] => firstShape[c].orule else c.crule }
-fun afterIat[c : Chain] : set Now { produced[c] => firstShape[c].oiat else c.ciat }
-fun afterIinv[c : Chain] : set Intent { produced[c] => firstShape[c].oi else c.ciinv }
+-- rebuild does not produce, or does not run for, retained (Composition state 13, 36).
+fun afterSubj[c : Chain] : set Subject { rebuilt[c] => firstShape[c].osubj else c.csubj }
+fun afterScope[c : Chain] : set Scope { rebuilt[c] => firstShape[c].oscope else c.cscope }
+fun afterInit[c : Chain] : set Actor { rebuilt[c] => rbInit[c] else c.cinit }
+fun afterSlots[c : Chain] : set Slot { rebuilt[c] => firstShape[c].oslots else c.cslots }
+fun afterRule[c : Chain] : set Rule { rebuilt[c] => firstShape[c].orule else c.crule }
+fun afterIat[c : Chain] : set Now { rebuilt[c] => firstShape[c].oiat else c.ciat }
+fun afterIinv[c : Chain] : set Intent { rebuilt[c] => firstShape[c].oi else c.ciinv }
 
 -- afterCst, afterTat: the chain state and terminal instant after a rebuild: a terminal
 -- record keeps its own (Composition state 26, 27); otherwise the terminal event's, Pending
 -- where none exists (Term chain rebuild).
 fun afterCst[c : Chain] : set St {
-    (not produced[c]) => c.cst
+    (not rebuilt[c]) => c.cst
     else ((c in Stored and c.cst != Pending) => c.cst
     else ((some firstTerm[c]) => firstTerm[c].ost else Pending))
 }
 fun afterTat[c : Chain] : set Now {
-    (not produced[c]) => c.ctat
+    (not rebuilt[c]) => c.ctat
     else ((c in Stored and c.cst != Pending) => c.ctat
     else firstTerm[c].otat)
 }
 
 -- afterSlist: the step list after a rebuild: the produced record's ordered step ids, or the
--- stored entry (Composition state 12, 13).
-fun afterSlist[c : Chain] : set Minted { produced[c] => firstShape[c].osteps else Idx.slist[c] }
+-- stored entry (Composition state 12, 13, 36).
+fun afterSlist[c : Chain] : set Minted { rebuilt[c] => firstShape[c].osteps else Idx.slist[c] }
 
 -- afterS2c: the step-chain index after a rebuild: the stored entry, or on a miss the step
 -- list index inverted (Composition state 16, 21).
@@ -678,16 +735,31 @@ fun afterS2c[x : Minted] : set Chain {
 fun afterEidx[c : Chain] : set Ev { Idx.eidx[c] + (retained & chainEvents[c]) }
 
 -- shapeAlert: the shape alert (Composition state 23): an initiation event whose chain shape
--- differs from the chain record's.
+-- differs from the chain record's, raised where the rebuild runs (Composition state 36).
 pred shapeAlert[c : Chain] {
-    c in Stored and (some o : shapeEvs[c] | (not initShape[o, c]) or o.oi.actor != c.cinit)
+    c in Stored and rebuilt[c] and (some o : shapeEvs[c] | (not initShape[o, c]) or o.oi.actor != c.cinit)
 }
 
 -- terminalAlert: the terminal-data alert (Composition state 22): a terminal event whose
--- terminal summary differs from the chain record's, or two terminal events for one chain.
+-- terminal summary differs from the chain record's, or two terminal events for one chain,
+-- raised where the rebuild runs (Composition state 36).
 pred terminalAlert[c : Chain] {
-    c in Stored and ((some o : termEvs[c] | o.ost != c.cst or o.otat != c.ctat or o.otinv != c.ctinv)
+    c in Stored and rebuilt[c] and ((some o : termEvs[c] | o.ost != c.cst or o.otat != c.ctat or o.otinv != c.ctinv)
                      or #termEvs[c] > 1)
+}
+
+-- legReads: the Pending steps the write-ownership leg reads for a chain record, by the
+-- subject reference and the submitter reference, Approval Step's read axes (Reconciliation
+-- 51).
+fun legReads[c : Chain] : set Step {
+    { s : Step | s.sst = Pending and s.ssubj = c.csubj and s.ssub = c.cinit }
+}
+
+-- legFindings: the step ids the leg opens a write-ownership finding for: every chainless
+-- step among what it read, for every chain record it reads — not an aged one (Reconciliation
+-- 5, 45, 51); the young edge is the clock's, not modelled.
+fun legFindings : set Step {
+    { s : Step | some c : Stored - Aged | s in legReads[c] and chainless[s, c] }
 }
 
 -- built: every record in the state is what an admitted write left.
@@ -850,6 +922,57 @@ assert A_Invariant_9_1 {
 }
 check A_Invariant_9_1 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
 
+-- A_Invariant_5_4: no two initiation events the invocation or the sweep wrote, Retained or
+-- Purged, carry one chain id (Check 5.5; an operator's is the initiation alert's).
+assert A_Invariant_5_4 {
+    built implies
+        all c : Chain | lone { o : oby.(ByInv + BySweep) | o.oi.kind = KInit and o.oi.ichain = c }
+}
+check A_Invariant_5_4 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- A_Invariant_10_4: an initiation intent whose initiation transaction committed resolves to a
+-- chain record whose chain id is its act key and whose initiated instant is its pairing datum
+-- (Check 10.2).
+assert A_Invariant_10_4 {
+    built implies
+        all i : Committed & kind.KInit | i.ichain in Stored and i.ichain.ciat = i.datum
+}
+check A_Invariant_10_4 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- A_Action_wiring_14: every initiation event the invocation or the sweep wrote carries the
+-- chain shape the chain record holds and the reason the initiation's intent carried: the
+-- invocation's from its intent (Action wiring 14), the sweep's from the first step's stored
+-- reason (Term initiation probe), one payload shape.
+assert A_Action_wiring_14 {
+    built implies
+        all o : oby.(ByInv + BySweep) | o.oi.kind = KInit implies
+            (initShape[o, o.oi.ichain] and o.oreason = o.oi.ireason)
+}
+check A_Action_wiring_14 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- A_Composition_state_36: with no operator's rebuild of the chain records, every stored chain
+-- record and its step list entry stand as written, whatever an operator's outcome carries,
+-- and no rebuild alert is raised for it: the chain rebuild runs over a standing record only at
+-- an operator's rebuild (Composition state 36 and its NOTE).
+assert A_Composition_state_36 {
+    (built and no OperRebuild) implies
+        all c : Stored | afterCst[c] = c.cst and afterTat[c] = c.ctat
+            and afterSubj[c] = c.csubj and afterScope[c] = c.cscope and afterInit[c] = c.cinit
+            and afterSlots[c] = c.cslots and afterRule[c] = c.crule and afterIat[c] = c.ciat
+            and afterIinv[c] = c.ciinv and afterSlist[c] = Idx.slist[c]
+            and not shapeAlert[c] and not terminalAlert[c]
+}
+check A_Composition_state_36 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- A_Reconciliation_51: every chainless step of a chain record the leg reads (one that is not
+-- aged) carries a write-ownership finding, so Check 1.3, which excepts such a step, finds it
+-- named.
+assert A_Reconciliation_51 {
+    built implies
+        all c : Stored - Aged, s : Step | chainless[s, c] implies s in legFindings
+}
+check A_Reconciliation_51 for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Satisfiability runs — non-vacuity guards, one for each shape the page admits
 -- Each run must find at least one instance (SAT).
@@ -950,6 +1073,19 @@ run ShowRebuildRewritesDeclaredFields {
 run ShowRebuildFromOperatorOnly {
     built and some c : Chain - Stored | produced[c] and not shapeAlert[c]
         and some x : afterSlist[c] | x in stepsOf[Stored]
+} for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- ShowStandingRecordUnrebuilt: Composition state 36. A Pending chain record beside an
+-- operator's terminal event and no operator's rebuild: the record stands Pending, unalerted.
+run ShowStandingRecordUnrebuilt {
+    built and no OperRebuild and some c : Stored | c.cst = Pending and some termEvs[c]
+        and afterCst[c] = Pending
+} for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
+
+-- ShowLegFindsChainless: Reconciliation 51. A step submitted outside the composition with a
+-- chain record's subject, submitter, scope and prefix: the leg reads it and opens a finding.
+run ShowLegFindsChainless {
+    built and some s : legFindings, c : Stored - Aged | chainless[s, c] and quiescent[c]
 } for 3 but 5 Int, 2 Chain, 3 Slot, 3 Step, 3 Asg, 10 Ev, 4 Intent, 3 Outcome, 1 Refusal, 1 Abandon, 1 Escalate, 4 Actor, 2 Subject, 2 Scope, 2 Rule, 3 Now
 
 -- ShowOutOfBandChainless: finding (c). A step submitted outside the composition with a

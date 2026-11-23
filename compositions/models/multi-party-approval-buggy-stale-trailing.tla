@@ -1,5 +1,5 @@
 ---- MODULE multi-party-approval-buggy-stale-trailing ----
-\* BUGGY TWIN (stale-trailing): the decision transaction skips its re-read of the chain state (Action wiring 64, 65 dropped): a decision whose intent says not trailing commits on a terminal chain (Trailing_matches). The checker must reject it. Everything else is the correct model.
+\* BUGGY TWIN (stale-trailing): the decision transaction skips its re-read of the chain state (Concurrency 5, 6 dropped): a decision whose intent says not trailing commits on a terminal chain (Trailing_matches). The checker must reject it. Everything else is the correct model.
 \* Grace Commons — Multi-Party Approval, the chain, its quorum and its five act kinds.
 \* Approval Step + Permissions + Assignment + Audit Trail (substrate) + Recoverable Invocation.
 \* Spec-level formal sibling of compositions/multi-party-approval.md. Derived validator; the
@@ -48,16 +48,18 @@
 \* WHAT THIS MODEL CHECKS
 \*   Inv1_1                 a quiescent chain has its full step list (Invariant 1.1).
 \*   Inv2_1                 a resolution-terminated chain's state is the quorum rule's answer on
-\*                          its routed vector (Invariant 2.1, Check 2.1).
+\*                          its routed vector, an operator-sourced chain record excepted
+\*                          (Invariant 2.1, Check 2.1; Composition state 37).
 \*   Inv2_2                 the quorum rule answers Pending on a withdrawal-terminated chain's
 \*                          pre-withdrawal vector (Invariant 2.2, Check 2.2).
 \*   Bypass                 an Approved chain carries the quorum's routed, non-trailing
-\*                          approvals: the bypass resistance the page claims.
+\*                          approvals: the bypass resistance the page claims, an
+\*                          operator-sourced chain record excepted (Invariant 2.1).
 \*   Inv4_1, Inv4_2         assignment coverage at quiescence (Invariant 4.1, 4.2).
 \*   Inv7_1                 a terminal chain's state never changes (Invariant 7.1).
 \*   No_withdrawn_residue   a Withdrawn chain carries no Pending step (Cascade 2, Cascade 14).
 \*   Trailing_matches       a decision commits only where its intent's trailing flag reads the
-\*                          chain state at the commit (Action wiring 64, 65).
+\*                          chain state at the commit (Concurrency 5, 6).
 \*   Owed_outcome           an invocation whose commit wrote stands open or beside a closing
 \*                          (an outcome, an escalation, an abandonment), never a refusal
 \*                          (Invariant 5.1; Cross-record consistency 1).
@@ -71,9 +73,14 @@
 \*                          chain record, and two for one chain (Composition state 22).
 \*   Shape_alert            the chain rebuild alerts an initiation outcome whose chain shape
 \*                          disagrees with the chain record (Composition state 23).
+\*   Initiation_alert       the chain rebuild alerts two initiation events for one chain
+\*                          (Composition state 24, the initiation alert).
+\*   Inv5_4                 no two initiation events the invocation or the sweep wrote carry
+\*                          one chain id (Invariant 5.4, Check 5.5).
 \*   Pairing_unique         a record carries one intent at most, and the sweep answers committed
 \*                          only for the intent whose own commit wrote the record (Capability
-\*                          requirement 37, 38; Recoverable Invocation pairing datum 2, 4).
+\*                          requirement 37, Concurrency 4; Recoverable Invocation pairing
+\*                          datum 2, 4).
 \*   Write_ownership_finding  the leg opens a finding for every step decided outside every
 \*                          invocation, and for no other (Reconciliation 20).
 \*   False_closing_alert    the leg alerts exactly the records whose own intent an abandonment
@@ -86,7 +93,7 @@
 \* inside the bound; NI = 4 reaches it, a saturation run). MaxOob = 1 step decision written
 \* around the composition. MaxFail = 1 failure among the invocations: a pre-commit refusal, an
 \* unknown arm, or a close that does not land. Each invocation takes a fresh now from an ordinal
-\* clock as its pairing datum (the host's injection, Capability requirement 19, 37, 38), which
+\* clock as its pairing datum (the host's injection, Capability requirement 19, 37; Concurrency 4), which
 \* the composition stamps on the chain record and Approval Step on the step; an out-of-band
 \* write reads the same clock. Exhaustive.
 \*
@@ -102,6 +109,17 @@
 \* terminal summary carries the terminating invocation's id, Term terminal summary). The leg's
 \* and the rebuild's answers are compared with the ghosts by a name the step adds to `viol`.
 \*
+\* THE CHAIN REBUILD runs only at a miss (Composition state 21) or at an operator's rebuild of
+\* the chain records (Composition state 36). The chain record is never lost here (the indexes
+\* are not modelled), so no miss arises and the rebuild step is an operator's rebuild, at any
+\* moment. It raises the terminal-data, shape and initiation alerts (Composition state 22, 23,
+\* 24) on what it finds, and where it finds a terminal event beside a Pending chain record (an
+\* operator's: the invocation and the sweep write a terminal summary only for a chain whose
+\* record names their act) it takes the chain state, the terminal instant and the terminal
+\* summary from it (Composition state 29), recalls the assignment of every step of the step
+\* list (Composition state 34) and marks the record operator-sourced (Composition state 37):
+\* `opsrc`, which Invariant 2.1 and bypass resistance read.
+\*
 \* NOT MODELLED (named)
 \* - Recoverable Invocation's mechanism and its own invariants (one writer per act, the recovery
 \*   intent before a recovered outcome, the recovery flag, the service identity's attestation,
@@ -110,16 +128,25 @@
 \*   Invocation Invariant 1.1) is the open's, inherited.
 \* - The clock and its edges: the young and aged records, the sweep cadence, the retention
 \*   horizon, the aged chains (Reconciliation 5, 44; Invariant 9.1).
-\* - Permissions (Invariant 3) and validation ahead of the open (Primitive policy); [Read Chain].
+\* - Permissions (Invariant 3) and validation ahead of the open (Primitive policy), [Withdraw
+\*   Chain]'s payload sizing among it (Action wiring 76, 77); [Read Chain].
 \*   An open names a Pending step; a decision on a decided step is the race the commit's
 \*   not-pending refuses.
 \* - A cascade call's deterministic arms (Cascade 8, 15) and the superseded arm (Cascade 10):
 \*   the cascade withdraws the steps Approval Step holds Pending, so it never meets not-pending
-\*   (open line 2026-11-06-c carries the other reading of still-Pending).
+\*   (open line 2026-11-06-c carries the other reading of still-Pending). So no step stands
+\*   among a terminal summary's deterministic-arm step ids, and Term routed vector's exception
+\*   for such a step is not reached.
 \* - A chain record written or terminated outside every invocation (Reconciliation 48, 49): such
 \*   a write breaks the chain's own invariants, which hold over the composition's writes
 \*   (Composes 12); the leg's step finding is modelled.
-\* - The derived indexes (a lost entry is rebuilt before a rule reads it, Composition state 21).
+\* - The derived indexes (a lost entry is rebuilt before a rule reads it, Composition state 21),
+\*   so the chain rebuild at a miss, and a chain record it produces from an operator's terminal
+\*   event (Composition state 31), are multi-party-approval.als's.
+\* - The cut-over instant (Capability requirement 49, Reconciliation 52, Wiring decision 10,
+\*   11): every record here is written after the composition bound its act kinds.
+\* - The payloads beyond the terminal summary and the chain shape: the reason an initiation
+\*   event carries (Action wiring 14, Term initiation probe) is multi-party-approval.als's.
 
 EXTENDS Naturals, FiniteSets
 
@@ -138,15 +165,16 @@ Verb(k) == IF k = "appr" THEN "Approved" ELSE IF k = "rej" THEN "Rejected" ELSE 
 VARIABLES
     rule, m,                                                    \* the quorum rule
     phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first,  \* the chain record
+    opsrc,                                                      \* its operator-sourced mark
     ss, how, sat, sby, asg,                                     \* the steps and assignments
     ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh,            \* the bound invocations
     nx, clk, noob, nfail, viol
-vars == <<rule, m, phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first,
+vars == <<rule, m, phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first, opsrc,
           ss, how, sat, sby, asg, ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh,
           nx, clk, noob, nfail, viol>>
 
 qr == <<rule, m>>
-chain == <<phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first>>
+chain == <<phase, sub, cs, cat, ctt, cterm, ctby, ccas, cmint, first, opsrc>>
 steps == <<ss, how, sat, sby, asg>>
 inv == <<ik, tgt, inow, st, trl, cw, tcs, cby, osum, osh>>
 
@@ -211,12 +239,20 @@ FalseStep(s) == how[s] = "routed" /\ sby[s] \in Is /\ st[sby[s]] \in Closed0
 FalseChain == phase = "live" /\ cmint \in Is /\ st[cmint] \in Closed0
 FalseWdr == cterm = "withdrawal" /\ ctby \in Is /\ st[ctby] \in Closed0
 
-\* ---- the chain rebuild's readings (Composition state 22, 23) ----
+\* ---- the chain rebuild's readings (Composition state 22, 23, 24) ----
 TermNamers == {j \in Is : st[j] = "closed" /\ osum[j] # "none"}
 TermWrong == (\E j \in TermNamers : ctby # j \/ osum[j] # cs) \/ Cardinality(TermNamers) >= 2
 TermAlerts == (\E j \in TermNamers : ctby # j \/ osum[j] # cs) \/ Cardinality(TermNamers) >= 2
 ShapeWrong == \E j \in Is : ik[j] = "init" /\ st[j] = "closed" /\ ~osh[j]
 ShapeAlerts == \E j \in Is : ik[j] = "init" /\ st[j] = "closed" /\ ~osh[j]
+InitNamers == {j \in Is : ik[j] = "init" /\ st[j] = "closed"}
+InitWrong == Cardinality(InitNamers) >= 2
+InitAlerts == Cardinality(InitNamers) >= 2
+
+\* The terminal events the rebuild adopts onto a Pending chain record (Composition state 29),
+\* each one an operator wrote: the binding of Composition state 30 and 31 picks among them.
+AdoptFrom == IF phase = "live" /\ cs = "Pending"
+             THEN {j \in Is : st[j] = "closed" /\ osum[j] # "none"} ELSE {}
 
 TypeOK ==
     /\ rule \in {"all", "m"}
@@ -231,6 +267,7 @@ TypeOK ==
     /\ ccas \subseteq Slots
     /\ cmint \in 0..NI
     /\ first \in {"none"} \cup Decided
+    /\ opsrc \in BOOLEAN
     /\ ss \in [Slots -> {"Pending"} \cup Decided]
     /\ how \in [Slots -> {"none", "routed", "cascade", "oob"}]
     /\ sat \in [Slots -> 0..MaxT]
@@ -250,7 +287,8 @@ TypeOK ==
     /\ clk \in 0..MaxT
     /\ noob \in 0..MaxOob
     /\ nfail \in 0..MaxFail
-    /\ viol \subseteq {"finding-false", "finding-missed", "alert-wrong", "term-missed", "shape-missed"}
+    /\ viol \subseteq {"finding-false", "finding-missed", "alert-wrong", "term-missed", "shape-missed",
+                      "init-missed"}
 
 Init ==
     /\ rule \in {"all", "m"}
@@ -265,6 +303,7 @@ Init ==
     /\ ccas = {}
     /\ cmint = 0
     /\ first = "none"
+    /\ opsrc = FALSE
     /\ ss = [s \in Slots |-> "Pending"]
     /\ how = [s \in Slots |-> "none"]
     /\ sat = [s \in Slots |-> 0]
@@ -290,7 +329,7 @@ Init ==
 \* The state-changing actions: validate, open, commit, close (Recoverable Invocation Action
 \* wiring 4).
 
-\* The pairing datum the host injects: a fresh now (Capability requirement 19, 37, 38).
+\* The pairing datum the host injects: a fresh now (Capability requirement 19, 37; Concurrency 4).
 Nows == {clk + 1}
 
 \* [Open] for an initiation (Action wiring 3): the intent lands under the initiator, keyed by
@@ -357,11 +396,11 @@ CommitInit(i, a) ==
     /\ (a = "committed" \/ nfail < MaxFail)
     /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<qr, cs, ctt, cterm, ctby, ccas, first, ss, how, sat, sby,
+    /\ UNCHANGED <<qr, cs, ctt, cterm, ctby, ccas, first, opsrc, ss, how, sat, sby,
                    ik, tgt, inow, trl, tcs, cby, osum, osh, nx, clk, noob, viol>>
 
 \* The decision transaction: the re-read of the chain state against the intent's trailing flag
-\* (Action wiring 64, 65), the step write and its recall, and, unless trailing, the chain
+\* (Concurrency 5, 6), the step write and its recall, and, unless trailing, the chain
 \* evaluation with its cascade and the terminal summary (Term decision transaction).
 CommitDec(i, a) ==
     LET s    == tgt[i]
@@ -393,9 +432,9 @@ CommitDec(i, a) ==
     /\ (a = "committed" \/ nfail < MaxFail)
     /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<qr, phase, sub, cat, cmint, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
+    /\ UNCHANGED <<qr, phase, sub, cat, cmint, opsrc, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
 
-\* The withdrawal transaction: the re-read of Pending (Action wiring 66, 67), the chain
+\* The withdrawal transaction: the re-read of Pending (Concurrency 7, 8), the chain
 \* Withdrawn, the cascade over every still-Pending step and the terminal summary.
 CommitWdr(i, a) ==
     LET P == {t \in 1..sub : ss[t] = "Pending"} IN
@@ -418,12 +457,12 @@ CommitWdr(i, a) ==
     /\ (a = "committed" \/ nfail < MaxFail)
     /\ nfail' = IF a = "committed" THEN nfail ELSE nfail + 1
     /\ st' = [st EXCEPT ![i] = IF a = "committed" THEN "committed" ELSE "dead"]
-    /\ UNCHANGED <<qr, phase, sub, cat, cmint, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
+    /\ UNCHANGED <<qr, phase, sub, cat, cmint, opsrc, ik, tgt, inow, trl, cby, osum, osh, nx, clk, noob, viol>>
 
 \* A pre-commit arm: a refused submit or assign, a step refusal, the re-reads' mismatches, a
 \* cascade's temporal invalid-request, a storage-failure or a state-unavailable. The commit
-\* writes nothing and [Refuse] lands the refusal record (Action wiring 9, 12, 22, 23, 65, 67;
-\* Cascade 14; Recoverable Invocation commit 2, 3).
+\* writes nothing and [Refuse] lands the refusal record (Action wiring 9, 12, 22, 23;
+\* Concurrency 6, 8; Cascade 14; Recoverable Invocation commit 2, 3).
 CommitPre(i) ==
     /\ st[i] = "live"
     /\ nfail < MaxFail
@@ -524,12 +563,38 @@ LegRun ==
                THEN {"alert-wrong"} ELSE {})
     /\ UNCHANGED <<qr, chain, steps, inv, nx, clk, noob, nfail>>
 
-\* The chain rebuild (Composition state 22, 23): the terminal-data alert and the shape alert.
-Rebuild ==
-    /\ viol' = viol
-         \cup (IF TermWrong /\ ~TermAlerts THEN {"term-missed"} ELSE {})
+\* The chain rebuild, run by an operator's rebuild of the chain records (Composition state 36;
+\* no miss arises here): the terminal-data, shape and initiation alerts (Composition state 22,
+\* 23, 24), read off what the rebuild finds, compared with the truth.
+RebuildViol ==
+    viol \cup (IF TermWrong /\ ~TermAlerts THEN {"term-missed"} ELSE {})
          \cup (IF ShapeWrong /\ ~ShapeAlerts THEN {"shape-missed"} ELSE {})
+         \cup (IF InitWrong /\ ~InitAlerts THEN {"init-missed"} ELSE {})
+
+\* The rebuild where it finds no terminal event beside a Pending chain record: the record
+\* stands as written (Composition state 26, 27, 28 keep a terminal one).
+Rebuild ==
+    /\ AdoptFrom = {}
+    /\ viol' = RebuildViol
     /\ UNCHANGED <<qr, chain, steps, inv, nx, clk, noob, nfail>>
+
+\* The rebuild where it finds a terminal event beside a Pending chain record: it takes the chain
+\* state, the terminal instant and the terminal summary from the event it binds (Composition
+\* state 29; the alert is the terminal-data alert's reading here), recalls the assignment of
+\* every step of the step list in the commit that writes the record (Composition state 34,
+\* 35), and marks the record operator-sourced where an operator wrote the event (Composition
+\* state 37).
+RebuildAdopt(j) ==
+    /\ j \in AdoptFrom
+    /\ viol' = RebuildViol
+    /\ cs' = osum[j]
+    /\ ctt' = inow[j]
+    /\ cterm' = IF ik[j] = "wdr" THEN "withdrawal" ELSE "resolution"
+    /\ ctby' = j
+    /\ first' = IF first = "none" THEN osum[j] ELSE first
+    /\ opsrc' = (cby[j] = "op")
+    /\ asg' = RecallAll(asg, 1..sub)
+    /\ UNCHANGED <<qr, phase, sub, cat, ccas, cmint, ss, how, sat, sby, inv, nx, clk, noob, nfail>>
 
 Next ==
     \/ \E t \in Nows : OpenInit(t)
@@ -548,6 +613,7 @@ Next ==
     \/ \E s \in Slots, x \in Decided : OutOfBand(s, x)
     \/ LegRun
     \/ Rebuild
+    \/ \E j \in Is : RebuildAdopt(j)
 Spec == Init /\ [][Next]_vars
 
 \* ---- the invariants ----
@@ -556,13 +622,15 @@ Quiescent == phase = "live" /\ ~(\E j \in Is : st[j] \in OpenSt \cup {"escalated
 \* Invariant 1.1: a quiescent chain has its full step list.
 Inv1_1 == Quiescent => sub = N
 
-\* Invariant 2.1, 2.2: quorum determinism, split by terminal path.
-Inv2_1 == cterm = "resolution" => cs = QOf(ss, how, TrlVec)
+\* Invariant 2.1, 2.2: quorum determinism, split by terminal path, an operator-sourced chain
+\* record excepted from 2.1 (Composition state 37).
+Inv2_1 == (cterm = "resolution" /\ ~opsrc) => cs = QOf(ss, how, TrlVec)
 Inv2_2 == cterm = "withdrawal" => PreQ = "Pending"
 
-\* Bypass resistance: an Approved chain carries the quorum's routed, non-trailing approvals.
+\* Bypass resistance: an Approved chain carries the quorum's routed, non-trailing approvals, an
+\* operator-sourced chain record excepted (Invariant 2.1).
 RoutedApprovals == Cardinality({s \in Slots : ss[s] = "Approved" /\ how[s] = "routed" /\ ~TrlVec[s]})
-Bypass == cs = "Approved" => RoutedApprovals >= (IF rule = "all" THEN N ELSE m)
+Bypass == (cs = "Approved" /\ ~opsrc) => RoutedApprovals >= (IF rule = "all" THEN N ELSE m)
 
 \* Invariant 4.1, 4.2: assignment coverage at quiescence, out-of-band decisions aside.
 Inv4_1 == \A s \in Slots :
@@ -576,7 +644,7 @@ Inv7_1 == first # "none" => cs = first
 \* Cascade 2, Cascade 14: a Withdrawn chain carries no Pending step.
 No_withdrawn_residue == cs = "Withdrawn" => \A s \in 1..sub : ss[s] # "Pending"
 
-\* Action wiring 64, 65: a decision commits only where its intent's trailing flag reads the
+\* Concurrency 5, 6: a decision commits only where its intent's trailing flag reads the
 \* chain state at the commit.
 Trailing_matches == \A j \in Is : (ik[j] \in DecKinds /\ cw[j]) => (trl[j] = (tcs[j] # "Pending"))
 
@@ -596,11 +664,16 @@ Terminal_outcome_matches ==
     \A j \in Is : (st[j] = "closed" /\ cby[j] # "op" /\ ik[j] \in DecKinds \cup {"wdr"})
                      => osum[j] = SumFor(j)
 
-\* Composition state 22, 23: the rebuild's alerts.
+\* Composition state 22, 23, 24: the rebuild's alerts.
 Terminal_alert == ~("term-missed" \in viol)
 Shape_alert == ~("shape-missed" \in viol)
+Initiation_alert == ~("init-missed" \in viol)
 
-\* Capability requirement 37, 38: a record carries one intent at most, and the sweep answers
+\* Invariant 5.4, Check 5.5: no two initiation events the invocation or the sweep wrote carry
+\* one chain id; an operator's is the initiation alert's.
+Inv5_4 == Cardinality({j \in Is : ik[j] = "init" /\ st[j] = "closed" /\ cby[j] # "op"}) <= 1
+
+\* Capability requirement 37, Concurrency 4: a record carries one intent at most, and the sweep answers
 \* committed only for the intent whose own commit wrote the record.
 Pairing_unique ==
     /\ \A j \in Is : (st[j] = "closed" /\ cby[j] = "sweep") => Writer(j) = j
