@@ -23,7 +23,7 @@ Durable Intent is the account a regulated action leaves of something it cannot t
 <details markdown="block">
 <summary>WHY</summary>
 
-An irreversible act and its account are two writes no transaction spans, because the library's rule since 2026-08-27 is that an atomic set may not contain a write the host cannot take back; the order intent, act, outcome therefore leaves exactly one reachable partial, the act committed with its record owed. This atom owns the two writes, the rule that one invocation has one standing closing (*Which closing stands*) and the position every code carries; the clean-up of the partial is [Sweep](./sweep.md)'s and the person's part is [Escalation](./escalation.md)'s, because they follow this atom's records by key and follow-up and share none of its rules (Scott, 2026-11-23, the split of Recoverable Invocation, ruling of 9:29 AM Central).
+An irreversible act and its account are two writes no transaction spans, because the library's rule since 2026-08-27 is that an atomic set may not contain a write the host cannot take back; the order intent, act, outcome therefore leaves exactly one reachable partial, the act committed with its record owed. This atom owns the two writes, the rule that one invocation has one standing closing (*Which closing stands*) and the position every code carries; the clean-up of the partial is [Sweep](./sweep.md)'s and the person's part is [Escalation](./escalation.md)'s, because they follow this atom's records by key and follow-up and keep their own rules for what they do with them, citing the journal rules that stay on this page (Scott, 2026-11-23, the split of Recoverable Invocation, ruling of 9:29 AM Central).
 
 </details>
 
@@ -51,7 +51,7 @@ Term act quiescence: of one act, no intent of the act in-flight and no writer ho
   open invocations 2: IF service identity EQUALS none THEN several open intents MAY share one (kind, act key).
   open invocations 3: The composition MUST rebuild open invocations from the range read filtered to `<kind>.intended` records, less those a later closing record names through invocation id.
   open invocations 4: [Open] MUST populate open invocations.
-  open invocations 5: [Close], [Refuse], [Resolve] and the sweep MUST clear open invocations.
+  open invocations 5: [Close], [Refuse], [Resolve] and the sweep MUST clear an intent from open invocations ONLY AFTER a closing record naming the intent's invocation id has landed.
   open invocations 6: [Open]'s pre-check, [Close]'s pre-check and the sweep MUST read open invocations.
   open invocations 7: open invocations MUST NOT hold an intent past the retention horizon.
   ```
@@ -63,7 +63,7 @@ Term act quiescence: of one act, no intent of the act in-flight and no writer ho
   act closings 2: [Open] step 3, [Resolve]'s supersession check, [Reconcile] step 2 and step 5 and [Read Invocation] MUST read act closings.
   ```
 - **sequence high water**
-  Term sequence high water: the highest sequence number the composition has read. Derived index. Past the horizon it holds no record and no payload, only a sequence number, which a payload's destruction leaves as it was.
+  Term sequence high water: the highest sequence number the composition has read whose recording instant settle bound has passed (sequence high water 2). Derived index. Past the horizon it holds no record and no payload, only a sequence number, which a payload's destruction leaves as it was.
 
   ```
   sequence high water 1: EVERY re-read of Recoverable Invocation MUST read the delta above sequence high water and advance open invocations, act closings and sweep closed ids by the delta.
@@ -73,6 +73,8 @@ Term act quiescence: of one act, no intent of the act in-flight and no writer ho
   sequence high water 5: IF an intent's retention end PRECEDES now THEN EVERY read of open invocations MUST drop the intent.
   sequence high water 6: A lost mark MUST rebuild open invocations, act closings and sweep closed ids from the log's beginning.
   ```
+  Term sweep closed ids: the set of invocation id values the sweep has closed, the third derived index, kept by [Sweep](./sweep.md) beside open invocations and act closings and advanced and rebuilt with them (sequence high water 1, sequence high water 6).
+
   Term settle bound: `(journal_write_bound + clock_allowance)`.
 
   Term retention end: `((recorded_at + retention_period) - clock_allowance)` — the end of the intent's retention, less the allowance for the two clocks, so that a read of open invocations drops the intent no later than the substrate's clock reaches that end (Recoverable Invocation Allowance 4).
@@ -85,18 +87,20 @@ One invocation may carry more than one closing record; one act key carries the c
 Which closing stands 1: This section IS AUTHORITATIVE FOR which of the closing records naming one invocation id is the invocation's.
 NOTE: watch addressable sections (Recoverable Invocation Instance start 1).
 Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names the other in supersedes.
-Which closing stands 3: resolving actor MUST NOT trigger supersession.
+Which closing stands 3: resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment naming an escalation supersedes the escalation.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
 Which closing stands 5: EVERY surface MUST count the standing closing and every record reachable from the standing closing through supersedes as one closing.
 Which closing stands 7: Among the unsuperseded closings naming one invocation id, the lowest sequence number MUST stand.
 ```
+Which closing stands 7 decides only a record set that already breaks Invariant 2.1 and Check 2.1: it keeps every reader's answer one where a conformance failure has landed, and a conforming journal never reaches it.
+
 Term standing closing: of one invocation id, the closing that stands under Which closing stands — of the closings naming the invocation id that no other closing naming it names, the one of the lowest sequence number.
 
 **Which state a standing closing projects.**
 
 Term state projection: no standing closing → open; an outcome record `<kind>.<outcome>` → closed; `<kind>.refused` → refused; `<kind>.abandoned` without resolving actor → abandoned; `<kind>.abandoned` with resolving actor → resolved; `<kind>.escalated` → escalated.
 
-An escalated entry becomes resolved when an operator's abandonment names it, and closed when any outcome names it. resolved is reserved for the case where a human's judgement is the only thing that closed an act and the act did not happen; an operator's outcome is closed. The abandoned split is the one Escalation Check 6.4 reads: only an operator abandons (Escalation Invariant 4.9), so an abandoned record carrying no resolving actor is a conformance failure, and resolving actor tells the two apart at both surfaces.
+An escalated entry becomes resolved when an operator's abandonment names it, and closed when any outcome names it. resolved is reserved for the case where a human's judgement is the only thing that closed an act and the act did not happen; an operator's outcome is closed. The abandoned split is the one Escalation Check 6.4 reads: only an operator abandons (Escalation Invariant 4.9), so an abandoned record carrying no resolving actor is a conformance failure that a reader still shows as abandoned, and resolving actor tells the two apart at both surfaces.
 
 *Cited by:* [Read Invocation]'s state; Generation acceptance check 2; Invariant 2. None restates it.
 
@@ -155,7 +159,7 @@ Steps:
 1. **Validate and size.**
 
    ```
-   open step 1.1: [Open] MUST validate act key, actor reference and credential non-empty per Primitive policies, and no other input: intent data is sized (open step 1.3) and written as given, blank included.
+   open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized (open step 1.3) and written as given, blank included.
    open step 1.2: IF caller kind EQUALS service THEN [Open] MUST land invalid-request.
    open step 1.3: [Open] MUST size intent data and the kind's largest record per Primitive policy 12.
    open step 1.4: IF the sized record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
@@ -275,7 +279,7 @@ Steps:
        close step 2.2d: IF the outcome carries resolving actor THEN [Close] MUST return landing actor set to operator.
        close step 2.2e: IF the outcome carries recovery AND no resolving actor THEN [Close] MUST return landing actor set to sweep.
        close step 2.2f: IF the outcome carries no recovery THEN [Close] MUST return landing actor set to invocation.
-   close step 2.3: WHEN the standing closing among the closing records naming the invocation id is an abandonment OR an escalation:
+   close step 2.3: WHEN the standing closing among the closing records naming the invocation id is an abandonment OR an escalation OR a refusal:
        close step 2.3a: [Close] MUST NOT adopt the record.
        close step 2.3b: [Close] MUST release and return recording-failure(outcome).
    close step 2.4: WHEN the step-2 re-read fails:
@@ -305,8 +309,8 @@ Steps:
 4. **Clear and release.**
 
    ```
-   close step 4.1: [Close] MUST remove the invocation id from open invocations at (kind, act key).
-   close step 4.2: [Close] MUST release the critical section.
+   close step 4.1: IF the outcome record landed at step 3 THEN [Close] MUST remove the invocation id from open invocations at (kind, act key).
+   close step 4.2: IF the outcome record landed at step 3 THEN [Close] MUST release the critical section.
    close step 4.3: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST return outcome event id and landing actor set to invocation.
    ```
 ### Refuse
@@ -364,7 +368,7 @@ Steps:
    refuse step 3.6: A lost reply whose one read-back finds nothing MUST land recording-failure(refusal, constituent code) with the intent left open.
    refuse step 3.7: invalid-credential MUST land recording-failure(refusal, constituent code) with the intent left open.
    refuse step 3.8: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.9: [Refuse] MUST clear the map.
+   refuse step 3.9: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST remove the invocation id from open invocations at (kind, act key).
    refuse step 3.10: [Refuse] MUST release the critical section.
    refuse step 3.11: The composition MUST NOT suppress a refusal record.
    refuse step 3.12: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST return refusal event id, with a hard alert for an invalid-request(step-4).
@@ -418,8 +422,8 @@ read invocation 3: WHEN invocation id DOES NOT EQUAL blank:
     read invocation 3b: [Read Invocation] MUST answer not-known for an invocation id no readable intent of the act key carries.
 NOTE: watch the blank optional input (read invocation 2, read invocation 3).
 read invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
-read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records at the most recent read cap, with more set to true beyond.
-read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records.
+read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records together, a superseded closing counted like any other, at the most recent read cap, the intent excepted, with more set to true beyond.
+read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records except beyond the cap of read invocation 5.
 read invocation 16: [Read Invocation] MUST answer an invocation report's invocations earliest first by the sequence numbers of the invocations' intents, and an invocation entry's records earliest first by sequence number.
 NOTE: watch read-order polarity (read invocation 16).
 read invocation 10: [Read Invocation] MUST read the entry's state from the table in the section titled Which closing stands.
@@ -494,7 +498,7 @@ Primitive policy 3: The composition MUST NOT recover act key from an adopter's p
 Primitive policy 4: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id in the payload.
 Primitive policy 5: EVERY check and EVERY journal join MUST pair on invocation id and no other field.
 Primitive policy 6: The adopter MUST pass actor reference and credential through to record_action at the intent record.
-Primitive policy 7: The composition MUST validate actor reference and credential as non-empty and MUST NOT inspect either.
+Primitive policy 7: The composition MUST validate actor reference and credential as not blank and MUST NOT inspect either beyond that.
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
 Primitive policy 9: intent data MUST carry the invocation's parameters and pairing datum.
 Primitive policy 10: intent data MUST NOT carry a field the substrate or the constituent stamps or mints.
@@ -504,6 +508,7 @@ Primitive policy 12: [Open] MUST size intent data and the kind's largest record 
 Primitive policy 13: [Open] MUST refuse invalid-request for an act whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for three comparisons alone: the age of an open intent against recording instant under clock allowance, at step 1 and at step 3, the retention drop of sequence high water 5, and the advance of the mark under settle bound (sequence high water 2).
+Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for the retention drop of sequence high water 5 and the advance of the mark under settle bound (sequence high water 2) alone.
 Primitive policy 17: The adopter's action MUST carry invocation id from [Open] into [Close] and [Refuse] as a parameter of each.
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
 ```
@@ -522,6 +527,8 @@ Term caller kind: EXACTLY ONE OF human, service — service where actor referenc
 Term examine edge: `((recorded_at + invocation_completion_bound) + clock_allowance)`.
 
 Term in-flight: an open intent for which examine edge EXCEEDS now.
+
+Term aged: an open intent for which examine edge DOES NOT EXCEED now — every open intent that is not in-flight.
 
 Term largest record: the larger of a kind's two sweep closings as the substrate measures a payload — the recovered outcome, built from outcome envelope, and the `<kind>.escalated` record, built from intent candidates cap (Invariant 6.2).
 
@@ -616,7 +623,7 @@ Term read-your-writes: Capability requirement 8 and Recoverable Invocation Capab
 
   Term critical section duration: invocation completion bound for an invocation; sweep lease for a sweep run or an operator; the longest a take on a key asks for is the larger of the two (Lease Composition note 5d).
 
-  Term release: to issue Lease's release for the grant where no call in flight exists under the grant, and to issue nothing where one does — the grant then ends at its instant (act section 15). EVERY release on this pattern reads so.
+  Term release: to issue Lease's release for the grant where no call in flight exists under the grant, and to issue nothing where one does — the grant then ends at its instant (act section 15). EVERY release on this pattern reads so. Lease's own release is the call alone: the word here names the decision whether to issue it.
 
   Term terminus: the end of the critical section's grant, at its release or at its instant (Lease Invariant 2.1) — an invocation's standing to write ends there.
 
@@ -649,6 +656,35 @@ Term read-your-writes: Capability requirement 8 and Recoverable Invocation Capab
 
 ### Bindings the actions read
 
+- **bindings table**
+  Term bindings table: the deployment's map from each kind the composition serves to that kind's bindings — repeatable, service identity, pairing datum, act probe, invocation completion bound, commit round trip, retention period, outcome envelope and intent candidates cap. *Default:* none.
+
+  ```
+  bindings table 1: The deployment MUST supply the bindings table, with an entry for every kind the composition serves, as a setting with no default (Execution Contract Logic confinement 15, Logic confinement 17).
+  bindings table 2: EVERY action MUST read a kind's bindings from the bindings table by that kind.
+  ```
+  Term kind: the act kind an invocation belongs to — a key of the bindings table while the instance serves the kind, and the `<kind>` of every action reference the act's records carry.
+
+  Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes. The critical section is keyed by it; the pre-check reads by it.
+
+  Term repeatable: `yes` or no: whether two invocations against one act key are two acts or one act attempted twice.
+
+  Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none.
+
+  Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent.
+
+  Term act probe: a read of the adopter's database keyed by act key and pairing datum, answering for the sweep: did the act commit, and with what outcome.
+
+  Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, the commit floor and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* none.
+
+  Term commit round trip: the longest one commit call takes from issue to reply. *Default:* none.
+
+  Term clock allowance: the most two of the deployment's clocks may differ (Execution Contract Logic confinement 18), spent where a reading from one clock meets a stamp or an instant minted from another. *Default:* none.
+
+  Term retention period: the duration a policy carries, as [Audit Trail](../compositions/audit-trail.md) declares it; here a per-kind binding, the duration of the one policy the kind's records resolve to. *Default:* none.
+
+  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation (Invariant 6). *Default:* none.
+
 - **outcome envelope**
   Term outcome envelope: the largest outcome payload the kind can write, sized by the adopter from the adopter's own caps, every set-valued field capped and every reference under reference length cap (Invariant 6).
 
@@ -663,9 +699,7 @@ Non-goal 2: This composition MUST NOT offer a rollback.
 ```
 Non-goal 4: The adopter MUST own the `already-*` re-entry arm, informed by [Read Invocation].
 ```
-NOTE: the owners — a Transaction pattern *(forthcoming)* (Non-goal 1, Non-goal 2); [Audit Trail](../compositions/audit-trail.md) (Recoverable Invocation Non-goal 3).
-
-NOTE: the owners — a Transaction pattern *(forthcoming)* (Non-goal 1, Non-goal 2); [Sweep](./sweep.md) (the clean-up of an act whose invocation died); [Escalation](./escalation.md) (the operator's closing and the findings); [Recoverable Invocation](../apps/recoverable-invocation/index.md) (the bindings of an adopter's database, the bounds and the instance's start).
+NOTE: the owners — a Transaction pattern *(forthcoming)* (Non-goal 1, Non-goal 2); [Audit Trail](../compositions/audit-trail.md) (Recoverable Invocation Non-goal 3); [Sweep](./sweep.md) (the clean-up of an act whose invocation died); [Escalation](./escalation.md) (the operator's closing and the findings); [Recoverable Invocation](../apps/recoverable-invocation/index.md) (the bindings of an adopter's database, the bounds and the instance's start).
 
 ## Example
 
@@ -675,7 +709,7 @@ NOTE: the owners — a Transaction pattern *(forthcoming)* (Non-goal 1, Non-goal
 
 ### The lost reply
 
-**The lost reply.** `SelectiveDisclosure.record` is issued and its reply never arrives. The arm is unknown: the adopter calls [Yield] and returns `recording-failure(outcome)`. Nothing is released — the commit is a call in flight — so the critical section runs to `t + 30 s`, and a second `disclose_subset` on the same four fields meets `act-in-flight(inv-7f2)` at [Open]'s read ahead of the take, without waiting. The [Reconcile] run after `t + 32 s` probes, and closes as in the crash where the database holds the record and as in the stall where it does not.
+**The lost reply.** `SelectiveDisclosure.record` is issued and its reply never arrives. The arm is unknown: the adopter calls [Yield] and returns `recording-failure(outcome)`. Nothing is released — the commit is a call in flight — so the critical section runs to `t + 30 s`, and a second `disclose_subset` on the same four fields meets `act-in-flight(inv-7f2)` at [Open]'s read ahead of the take, without waiting. The [Reconcile] run after `t + 32 s` (the 30 s invocation completion bound and the 2 s clock allowance this example discloses) probes, and closes as in the crash where the database holds the record and as in the stall where it does not.
 
 ### The refusal
 
@@ -767,6 +801,7 @@ Not Open 3: The composition MUST NOT decide not-open from a map or a range read.
 Not Open 4: [Close] MUST land recording-failure(outcome) at step 1 for a pair no [Open] returned.
 Not Open 5: [Refuse] MUST land recording-failure(refusal, constituent code) at step 1 for a pair no [Open] returned.
 ```
+Not Open 4 and Not Open 5 are decided where the grant answers none (close step 1.2, refuse step 1.2), an expired grant included: the composition cannot tell a pair no [Open] returned from a grant that ended, answers both alike and writes nothing. No rule checks that intent event id belongs to invocation id; the pair is the adopter's to hold whole (Not Open 2).
 
 #### Not Known
 
@@ -828,13 +863,13 @@ Term readable intent: an intent record whose payload the substrate has not destr
 
 Term true maximum: the largest outcome payload a kind writes, as External check 7 clears.
 
-Term bounds: invocation completion bound, commit round trip, probe round trip, journal write bound, pause bound, read bound, closure latency, run bound, closure window, clock allowance, retention period, settling period, intent candidates cap, read cap.
+Term bounds: invocation completion bound, commit round trip, journal write bound, pause bound, read bound, run bound, closure window, clock allowance, retention period, intent candidates cap, read cap.
 
 Term cadences: sweep cadence.
 
 Term qualifiers: migrated — rewritten in GRACE-lang, the corpus's rule grammar, v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, condition read, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
+Term terms: (named expressions, each declared where it is used) examine edge, settle bound, retention end, sweep lease, in-flight, aged, partition, examined, surfaced, standing closing, terminus, caller kind, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, instance finding, kind, act key, invocation id, now, operator run id, open result, close result, invocation report, invocation entry, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
 
 [Open]: #open
 [Close]: #close
@@ -855,7 +890,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`todo` — written by the split of Recoverable Invocation (grace-commons 4c758dc5), and no round has read it yet.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -863,9 +898,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: todo
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: none
+last gate: 2026-11-23 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS claude-sonnet-5-5, Linus beam-free), frozen at 18c7609b — foundational count 5, not clean, no sample (the atom names Lease and Audit Trail and carries journal rules that bind Sweep and Escalation, a shape question that waits under Needs Scott; [Refuse] cleared an intent it left open; the mark's Term against sequence high water 2; aged and the bindings the rules read had no declaration on the page; read invocation 5's cap against read invocation 6); the round's refining findings cured with them
 open: none
 ```
 
