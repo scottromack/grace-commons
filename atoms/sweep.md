@@ -370,7 +370,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-23` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -378,9 +378,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-23
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 2, a delta round (diff base 18c7609b, 52 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at 817faf2c — foundational count 2 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample; the report claimed 3 foundational and the triage placed 2 and refined 1 (the step 2.7 trace is refuted: Durable Intent journal write bound 1 and Lease Sizing 2b, 7 and 8 bar the write on a failed remaining query, and its count wording is cured as refining); cured: reconcile step 3.16c lands the read-back that answers unavailable or gives no answer (the write left for the next run, a hard alert, the act counted skipped, Term skipped naming it), Invariant 4.2 excepts an intent Escalation Check 3.3 exempts, as Check 3.1 does (the finder's closure start is refused: Escalation Check 3.4 grants no exemption for the healthy gap); refining cured: reconcile step 2.7 and Term skipped read a remaining of none or no answer as not exceeding write floor, reconcile step 3.16a counts in place of any count the act held, Check 3.1 reads the horizon edge, Term run bound claims no bound past its sizing, sweep cadence 2 excepts the death sweep cadence 3 covers, reconcile step 5.9 and Term settling edge read less than the settling period left, reconcile 7 split into 7 and 7a, reconcile step 3.10 says the range adds no reference; refuted: Term partition's closed_already is a formula identifier; model redraw deferred to Lean: none
+last gate: 2026-11-23 — Final Critique 3, a delta round (diff base 817faf2c, 42 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 07887353 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim refuted (reconcile step 1.2 and Invariant 7.2 read the one `now` a run takes at the sweep's seam, Execution Contract Scheduled leg 2 and Logic confinement 11, and Term horizon edge charges run bound for that reading's age, so a kept intent satisfies Invariant 7.2 through the run; a backlog past the deployment's sizing is a breach of that sizing, Term run bound); the rhetorical claim (reconcile step 1.2's relative clause) is the watched applicability pressure the page already flags; no cure; model redraw deferred to Lean: none
 open: none
 ```
 
