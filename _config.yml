@@ -34,7 +34,10 @@ mermaid:
 
 # The site's own nav: GitHub is in the top bar, so not again in the sidebar, and the order the
 # site has had.
-nav_external_links: []
+nav_external_links:
+  - title: Join Us
+    url: https://discord.gg/mpKss4n6ef
+    hover: on Discord
 nav_sort: case_insensitive
 
 markdown: kramdown
