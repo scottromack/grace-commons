@@ -51,20 +51,20 @@ Composes 2: EXACTLY ONE Duplicate Prevention instance MUST serve the composition
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 4: The composition MUST replace Provisional Commitment's own caller surface.
 Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
-Composes 6: The composition MUST answer a constituent's rejection unchanged.
+Composes 6: The composition MUST answer a constituent's rejection unchanged (Execution Contract Constituent failure 2), a check Action wiring 27 resolves excepted.
 Composes 7: The composition MUST call Duplicate Prevention's record EXACTLY ONE time per admitted first invocation.
 Composes 8: The composition MUST configure the Duplicate Prevention instance with the idempotency window.
 ```
 
-Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.md) and [Duplicate Prevention](../atoms/duplicate-prevention.md) — the token map, the four token-carrying actions and the eviction leg.
+Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.md) and [Duplicate Prevention](../atoms/duplicate-prevention.md) — the token results map, the four token-carrying actions and the eviction leg.
 
 Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md), [Duplicate Prevention](../atoms/duplicate-prevention.md).
 
 ### Wiring decision
 
 ```
-Wiring decision 1: The composition MUST record EVERY constituent answer to a call carrying an idempotency token against the token.
-Wiring decision 2: The composition MUST record a constituent's rejection against the token.
+Wiring decision 1: The composition MUST record EVERY Provisional Commitment answer to a call carrying an idempotency token against the token.
+Wiring decision 2: The composition MUST record a constituent's rejection against the token, a refusal excepted (Execution Contract Read 4, Execution Contract Read 7).
 Wiring decision 3: The composition MUST NOT record an answer for a malformed idempotency token.
 Wiring decision 4: The composition MUST NOT record a [Place Hold] answer the composition returned on a seen token carrying no entry.
 ```
@@ -78,7 +78,7 @@ Wiring decision 4: The composition MUST NOT record a [Place Hold] answer the com
 
 *Mechanism that resolves it.* A retry allowed to re-call the constituent would show the caller two answers to what they meant as one operation, the double this composition exists to prevent, and the decision lives here because neither constituent can make it: Provisional Commitment's record carries no token, and Duplicate Prevention remembers an identity, not an answer. The caller decides whether to attempt the act again under a **fresh** token, and the new attempt doubles nothing, since a refused [Place Hold] records no commitment (Provisional Commitment Operation 31).
 
-*Result.* *Same token, same result*, a rejection included. Three exclusions share one reason: the composition did not act, so it holds nothing to cache. A malformed token is not a token; a `seen` token with no entry means the composition recorded nothing and the next `check` may answer differently; and a storage failure commits nothing at all (Execution Contract Constituent failure 1).
+*Result.* *Same token, same result*, a rejection included. Three exclusions share one reason: the composition did not act, so it holds nothing to cache. A malformed token is not a token; a `seen` token with no entry means the composition recorded nothing and the next `check` may answer differently; and a refusal commits nothing at all, a constituent's storage failure among them (Execution Contract Constituent failure 1, Execution Contract Read 4). A rejection the composition caches is listed on its action's answers line and not on its refuses line, so the call is admitted and its record commits with it (Execution Contract Read 7).
 
 </details>
 
@@ -117,11 +117,11 @@ Projection: action_type
 
 Term recovery mark: recovered | first — recovered on the entry a re-entry writes (Indeterminate outcome 13), first on the entry a fresh request writes.
 
-Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function — a [Parameters Digest].
+Term parameters digest: the collision-resistant digest of a call's non-token parameters, a reference among them in the canonical form Execution Contract Logic confinement 13 gives it, computed at the seam by the configured digest function — a [Parameters Digest].
 
 #### Parameters Digest
 
-The recorded outcome's collision-resistant digest of the non-token call parameters, computed at the composition's I/O seam and injected. A retry whose digest differs from the recorded one is rejected [Token Collision]; digest-function drift across replicas misclassifies legitimate retries.
+The recorded outcome's collision-resistant digest of the non-token call parameters, a reference among them in the canonical form Execution Contract Logic confinement 13 gives it, computed at the composition's I/O seam and injected. A retry whose digest differs from the recorded one is rejected [Token Collision]; digest-function drift across replicas misclassifies legitimate retries.
 
 Kind:       Field
 Field of:   Token Results Entry
@@ -130,7 +130,7 @@ Projection: parameters_digest
 
 #### Result
 
-The recorded outcome's copy of the original response — the produced id or ok, or the rejection reason — exactly as returned to the caller on the first call. Every constituent answer is cached, success or rejection (the cache-the-failure rule), save a storage failure, which commits nothing (Execution Contract Constituent failure 1).
+The recorded outcome's copy of the original response — the produced id or ok, or the rejection reason — exactly as returned to the caller on the first call. Every Provisional Commitment answer is cached, success or rejection (the cache-the-failure rule), save a refusal, which commits nothing (Execution Contract Read 4), a storage failure among them (Execution Contract Constituent failure 1).
 
 Kind:       Field
 Field of:   Token Results Entry
@@ -149,6 +149,56 @@ NOTE: Contract classification, per the section titled Composition state in `exec
 
 ### Every action
 
+#### Closure table
+
+Every input an action takes and every answer a call of the four actions can meet — Duplicate Prevention's check and record, and Provisional Commitment's place hold, confirm, release, expire and read — with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1, Execution Contract Constituent failure 3); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. A refusal writes nothing (Execution Contract Read 4); a rejection the composition caches is on its action's answers line, so the call is admitted and the record commits with it (Execution Contract Read 7).
+
+**Inputs.**
+
+| Action | Input | Lands | Owner |
+|---|---|---|---|
+| every action | a blank idempotency token | invalid-request, no constituent called, nothing recorded | Primitive policy 1, Wiring decision 3 |
+| every action | an idempotency token over the token max length | invalid-request, no constituent called, nothing recorded | Primitive policy 2, Wiring decision 3 |
+| every action | an idempotency token | compared byte-exact, never normalized or case-folded | Primitive policy 3, 4, 5 |
+| every action | the call's non-token parameters | digested at the seam | Composition state 9 |
+| [Place Hold] | parameters Provisional Commitment refuses as invalid-request | invalid-request, nothing recorded | Composes 6, Wiring decision 2 |
+
+**Duplicate Prevention's check**, at every call whose token clears the boundary predicate, ahead of any answer from an entry (Primitive policy 6, Action wiring 29).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| seen, a live entry | token-collision for a differing action type or parameters digest, otherwise the entry's result | Action wiring 7, 8, 9 |
+| seen, no entry, [Place Hold] | outcome-unknown carrying the candidates, uncached | Indeterminate outcome 10, Wiring decision 4 |
+| seen, no entry, a resolving action | the action runs again, its entry marked recovered | Indeterminate outcome 13, 8 |
+| not-seen, an entry the window elapsed for | the entry evicted in place, the call a fresh request | Action wiring 12, Invariant 7.2 |
+| not-seen, no entry | a fresh request: Provisional Commitment is called | Term fresh request |
+| state-unavailable | resolved as seen, never answered | Action wiring 27, 28, Capability requirement 16, Execution Contract Constituent failure 3 |
+
+**Duplicate Prevention's record**, once for an admitted first invocation, in the transaction that commits the entry (Composes 7, Action wiring 25).
+
+| Answer | Lands | Owner |
+|---|---|---|
+| ok | the entry, the constituent's write and the record commit together | Execution Contract Database 1 |
+| storage-failure | storage-failure, nothing commits | Execution Contract Constituent failure 1 |
+
+**Provisional Commitment's place hold, confirm, release and expire**, for a fresh request or a re-entry.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| id, or ok | recorded against the token, answered | Wiring decision 1, Action wiring 21 |
+| resource-unavailable, not-known, not-held, window-elapsed or window-not-elapsed | recorded against the token, answered | Wiring decision 2, Composes 6 |
+| registry-unavailable, at a place hold | recorded against the token, answered | Wiring decision 2, Composes 6, Execution Contract Constituent failure 2 |
+| invalid-request, at a place hold | answered, nothing recorded | Composes 6, Wiring decision 2 |
+| storage-failure | storage-failure, nothing commits | Execution Contract Constituent failure 1 |
+| state-unavailable | state-unavailable, nothing commits | Execution Contract Constituent failure 3 |
+
+**Provisional Commitment's read**, at a [Place Hold] whose token is seen and holds no entry, for the candidates.
+
+| Answer | Lands | Owner |
+|---|---|---|
+| every commitment | the candidates the composition filters from it | Indeterminate outcome 3, 4, 7 |
+| state-unavailable | state-unavailable, nothing recorded | Execution Contract Constituent failure 3 |
+
 #### Idempotency Token
 
 The caller-supplied key attached to every state-changing call. The composition introduces it (Provisional Commitment's actions do not carry it); it keys the recorded outcome and is the identity recorded in Duplicate Prevention. Treated as opaque, compared byte-exact, and validated (non-empty, within `token_max_length`) before any constituent is consulted.
@@ -163,12 +213,13 @@ Action wiring 1: [Place Hold], [Confirm], [Release] AND [Expire] MUST take an id
 Action wiring 7: IF a live entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
 Action wiring 8: IF a live entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
 Action wiring 9: The composition MUST answer a matching complete entry's result.
-Action wiring 10: The composition MUST NOT call a constituent for a matching complete entry.
+Action wiring 10: The composition MUST NOT call Provisional Commitment for a matching complete entry.
 Action wiring 12: The composition MUST evict a complete entry the idempotency window elapsed for AND Duplicate Prevention's check answers not-seen for.
 Action wiring 21: The composition MUST answer Provisional Commitment's answer to the caller.
 Action wiring 25: The composition MUST call Duplicate Prevention's record for EVERY result recorded against an idempotency token (Wiring decision 1).
 Action wiring 27: IF Duplicate Prevention's check answers state-unavailable THEN the composition MUST resolve the check as seen (Capability requirement 16, Duplicate Prevention Non-goal 1, Execution Contract Constituent failure 3).
 Action wiring 28: IF Duplicate Prevention's check answers state-unavailable THEN the composition MUST NOT answer state-unavailable for the check.
+Action wiring 29: The composition MUST answer from an entry ONLY AFTER Duplicate Prevention's check answers (Action wiring 7, Action wiring 8, Action wiring 9, Action wiring 12).
 ```
 
 Term live entry: an entry the call finds and does not evict (Action wiring 12).
@@ -205,8 +256,8 @@ Kind: Operation
 
 ```
 place_hold(resource, requester, duration, idempotency_token)
-  answers id
-  refuses invalid-request | token-collision | registry-unavailable | resource-unavailable | storage-failure | outcome-unknown(candidates)
+  answers id | registry-unavailable | resource-unavailable
+  refuses invalid-request | token-collision | storage-failure | outcome-unknown(candidates)
 ```
 
 ### Confirm
@@ -217,8 +268,8 @@ Kind: Operation
 
 ```
 confirm(id, idempotency_token)
-  answers ok
-  refuses invalid-request | token-collision | not-known | not-held | window-elapsed | storage-failure
+  answers ok | not-known | not-held | window-elapsed
+  refuses invalid-request | token-collision | storage-failure
 ```
 
 ### Release
@@ -229,8 +280,8 @@ Kind: Operation
 
 ```
 release(id, idempotency_token)
-  answers ok
-  refuses invalid-request | token-collision | not-known | not-held | window-elapsed | storage-failure
+  answers ok | not-known | not-held | window-elapsed
+  refuses invalid-request | token-collision | storage-failure
 ```
 
 ### Expire
@@ -241,8 +292,8 @@ Kind: Operation
 
 ```
 expire(id, idempotency_token)
-  answers ok
-  refuses invalid-request | token-collision | not-known | not-held | window-not-elapsed | storage-failure
+  answers ok | not-known | not-held | window-not-elapsed
+  refuses invalid-request | token-collision | storage-failure
 ```
 
 ### Read
@@ -264,12 +315,12 @@ These emerge from the composition; none belongs to one constituent.
 
 - **Invariant 1 — Idempotent place hold within the window.**
   ```
-  Invariant 1.1: Two place_hold calls carrying one idempotency token AND one parameters digest MUST answer alike inside the idempotency window.
+  Invariant 1.1: Two place_hold calls carrying one idempotency token AND one parameters digest MUST answer alike inside the idempotency window, an outcome-unknown answer excepted (Wiring decision 4).
   ```
 - **Invariant 2 — Idempotent state transitions within the window.**
   ```
   Invariant 2.1: Two resolving calls carrying one idempotency token AND one parameters digest MUST answer alike inside the idempotency window.
-  Invariant 2.2: The composition MUST NOT call a constituent twice for one idempotency token inside the idempotency window, a resolving action's re-entry excepted (Indeterminate outcome 13).
+  Invariant 2.2: The composition MUST NOT call Provisional Commitment twice for one idempotency token inside the idempotency window, a resolving action's re-entry excepted (Indeterminate outcome 13).
   Invariant 2.3: A resolving action's re-entry MUST rest on Provisional Commitment Invariant 2.
   ```
 - **Invariant 3 — Token to commitment, one to one.**
@@ -347,12 +398,12 @@ Capability requirement 1: A deployment MUST set the idempotency window PER Execu
 Capability requirement 2: A deployment MAY declare the token max length PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 3: A deployment MUST set the digest function PER Execution Contract Logic confinement 17.
 Capability requirement 4: A deployment MUST set EXACTLY ONE digest function for EVERY call of one instance.
-Capability requirement 16: A deployment MUST resolve Duplicate Prevention's check fail-closed.
+Capability requirement 16: A deployment MUST resolve Duplicate Prevention's check fail-closed PER Action wiring 27.
 Capability requirement 18: The deployment MUST supply the database PER Execution Contract Database 1 through 4.
 Capability requirement 19: A deployment MUST set EXACTLY ONE idempotency window for EVERY call AND EVERY run of the eviction leg of one instance (Duplicate Prevention Operation 11).
 ```
 
-Term idempotency window: the duration the Duplicate Prevention instance guards a token, set by the deployment with no default to cover the slowest legitimate retry of the most critical action, and more than zero, as Duplicate Prevention's window duration is — an idempotency window.
+Term idempotency window: the duration the Duplicate Prevention instance guards a token, set by the deployment with no default to cover the slowest legitimate retry of the most critical action, and more than zero, as Duplicate Prevention's window duration is — an idempotency window; the one duration measures the guard from Duplicate Prevention's record and an entry from its pending instant (Term window end), and a call acts on both (Action wiring 12, Invariant 7.1).
 
 Term token max length: the bound on an idempotency token's length in Unicode code points; 1,024 code points where a deployment declares none, the corpus's default for text — a default cap a deployment may override as Execution Contract Input 2 allows (Capability requirement 2).
 
@@ -451,9 +502,9 @@ An implementation is acceptable when the checks below are provable to an externa
 Check 1.1: An auditor MUST find no two committed versions of one idempotency token's entries carrying two action types AND pending instants each of which PRECEDES the other version's window end (Execution Contract Database 5, Execution Contract Generation acceptance 1) (Invariant 4.1).
 Check 1.2: An auditor MUST find no two committed versions of one idempotency token's entries carrying two parameters digests AND pending instants each of which PRECEDES the other version's window end (Execution Contract Database 5, Execution Contract Generation acceptance 1) (Invariant 4.2).
 Check 2.1: An auditor MUST find no idempotency token bound to two commitment ids inside the idempotency window (Invariant 3.1).
-Check 3.1: An auditor MUST find EVERY complete entry carrying the result the constituent answered (Wiring decision 1).
-Check 4.1: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), whose token Duplicate Prevention's check answered seen for at the commit that evicted the entry (Housekeeping 6).
-Check 4.2: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), younger than the idempotency window (Housekeeping 5).
+Check 3.1: An auditor MUST find EVERY complete entry whose result is an id naming a commitment Provisional Commitment's read answers (Wiring decision 1).
+Check 4.1: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), whose token Duplicate Prevention's check, read on the state the commit that evicted the entry read (Execution Contract Database 2), answered seen for (Housekeeping 6, Action wiring 12).
+Check 4.2: An auditor MUST find no evicted entry, read at the evicted entry's last version (Execution Contract Database 5), younger than the idempotency window (Housekeeping 5, Action wiring 12).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -467,6 +518,7 @@ External check 6: An auditor needing a constituent's own guarantee confirmed MUS
 External check 7: An auditor needing the idempotency window confirmed MUST read the window the instance holds PER Execution Contract Logic confinement 17 (Capability requirement 1, Capability requirement 19).
 External check 8: An auditor needing the token max length confirmed MUST read the cap the instance holds PER Execution Contract Input 2 (Capability requirement 2).
 External check 9: An auditor needing the digest function confirmed MUST read the digest function the instance holds PER Execution Contract Logic confinement 17 (Capability requirement 3).
+External check 10: An auditor needing a complete entry's result other than an id confirmed MUST read the deployment's own account of the answer the constituent gave (Wiring decision 1).
 ```
 
 ### Vocabulary
@@ -520,7 +572,7 @@ Term cited: Execution Contract Conformance 8 — recursive conformance and the i
 ```
 status: doing
 formal: verified — idempotent-reservation.tla + 13 twins, re-derived 2026-11-08 (it was verified 2026-06-03 over one effect counter and an unguarded early eviction): the token's entry with its action type, parameters digest and recovery mark; Duplicate Prevention's guard on its own clock and its outage, read fail-closed; the eviction leg as the second process beside the calls, and the five arms a call takes (token-collision, replay, fresh request, outcome-unknown, re-entry); Invariants 1.1, 2.1 to 2.3, 3.1, 4.1, 4.2, 7.1, 7.2 and 8.2 checked, with Check 4.1 and 4.2, Composes 7, Wiring decision 2 and Indeterminate outcome 3, 4, 7, 8, 10 and 13; one token and a place_hold and a release stand for the action types, the boundary predicate and Invariant 8.1 are not modelled; closes 2026-08-30-a; idempotent-reservation.als + 14 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 4.1, 4.2 and 7.1, Composes 7, Composition state 6, Wiring decision 1, 3 and 4, Indeterminate outcome 4 and 8 and Action wiring 27 checked on every state the calls and the eviction leg can leave and every answer a call gives against what it read, over two tokens and all four action types, a cross-check with the TLA+ model but for Composition state 6 and Wiring decision 3; nothing testable in Alloy for Invariant 8.1 (a deployment condition no record holds); Invariant 2.3, 7.2 and 8.2 left to the TLA+ model (a re-run's effect, the arm a call takes and a count across the window are sequences); the model found that Invariant 2.1 as written does not hold where a confirm and a release of one commitment carry one token, since the commitment id is their only parameter and so their digest is one and Action wiring 7 answers the second token-collision where the first answered ok, so it is checked under one action type; and that the page reads Duplicate Prevention's check as able to answer state-unavailable while the call's own writes commit (Indeterminate outcome 8, 13; Action wiring 25), where its Decision of 2026-10-20 makes the map, the commitment and the recorded set one store); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-12, 2026-11-08
-last gate: 2026-11-23 — Final Critique 12, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 6168e7f3 — foundational count 2, not clean, no sample (Linus's three foundational reports were placed refining, foundational and foundational by the first triage; the count is not zero, so no blind second triage ran: Check 1.1 and Check 1.2, cured last round to compare versions "carrying one pending instant", could not fail on the forbidden write, a second entry of one token written inside the window, since that entry carries its own invocation's instant, never the first's, so the pair was never compared and a tie of two clock readings alone made the check bite; and External check 7 sent the auditor to the deployment's configuration, which names a window the instance does not hold between a change and the next start (Execution Contract Logic confinement 17), where External check 8 already reads the cap the instance holds; cured: Check 1.1 and Check 1.2 compare versions whose pending instants each precede the other's window end, which anchors the pair on the window and not on a tie, and cite Generation acceptance 1; External check 7 reads the window the instance holds, and External check 9 the digest function, on the same footing; the first report, that Execution Contract Constituent failure 3 names Duplicate Prevention Operation 12 where the page cites Non-goal 1, was placed refining: Operation 12 was deleted to Non-goal 1 on 2026-11-20, so the page cites the rule that owns the response and Constituent failure 3's own citation is stale, a held cure to execution-contract.md; the refining cures are Capability requirement 19 and Capability requirement 4, which say EXACTLY ONE where they said alike, and Composition state 6, which says for EVERY act of one idempotency token; the rest of the reports' refining and rhetorical findings were refuted by Action wiring 12, Indeterminate outcome 10 and 13, and the page's own use of the answers seen and not-seen); 2026-11-23 — Final Critique 11, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at e057eb2c — foundational count 2 after the blind second triage, not clean, no sample (Linus's three foundational reports were placed refuted, refining and refining by the first triage; the blind second triage, an Opus 5.5 subagent, placed two of them foundational, which decide: Check 1.1 and Check 1.2 read "inside the idempotency window" over every committed version of a token's entries, a window the page anchors on no instant, so two auditors differed on a conforming run whose lazily evicted entry and the entry written over it both stood inside one span of the window's length, and the check as written could never fail, one entry per token standing in any version; and an idempotency window changed at a restart (Execution Contract Logic confinement 17) left Check 4.1 and Check 4.2 reading the window the current configuration holds, failing a conforming eviction after a lengthened window and passing a forbidden one after a shortened one; cured: Check 1.1 and Check 1.2 find no two committed versions of one token's entries carrying one pending instant and two action types or two parameters digests, and Capability requirement 19 holds the idempotency window alike for every call and every run of the eviction leg of one instance, as Capability requirement 4 holds the digest function, External check 7 citing it; the first report's invariant half and the digest function's change across a restart were refuted, by Composition state 2 with Action wiring 12 and by Capability requirement 4; the refining cures are Action wiring 27, which cites Duplicate Prevention Non-goal 1 as Execution Contract Constituent failure 3 asks and leaves its second obligation to Action wiring 28, and Composition state 6, which loses a clause Indeterminate outcome 13 already decides); 2026-11-23 — Final Critique 10, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 33944be8 — foundational count 2, not clean, no sample (Linus's three foundational reports were placed foundational, refuted and foundational: Check 4.1 asked Duplicate Prevention about a token now and about an entry evicted then, so a token reused after the window failed a conforming deployment, and Invariant 4.1 and Invariant 4.2 bound a token to one action type and one parameters digest for its whole life where Action wiring 7 and 8, Non-goal 1 and the Token Collision entry read a live entry only, the checks over them naming no state that could fail; cured: Check 4.1 reads the check's answer at the commit that evicted the entry, Invariant 4.1 and 4.2 say inside the idempotency window as Invariant 1.1, 2.1 and 3.1 do, and Check 1.1 and 1.2 read every committed version of a token's entries inside the window; the third report, that the order of Duplicate Prevention's record against Provisional Commitment's call lets one token bind two commitment ids, was refuted by Execution Contract Database 1, which commits the entry, the constituent's write and the record together or not at all, so no order is observable; the refining cures are Composition state 6, which cites Indeterminate outcome 13 for the re-entry, Capability requirement 1 and 3, which cite Execution Contract Logic confinement 17, and Action wiring 27, which cites Execution Contract Constituent failure 3); 2026-11-20 — Final Critique 9, a delta round, frozen at 15e8c30f — foundational count 0 after the blind second triage, clean, no sample (Linus's one report claimed one foundational: External check 8's held cap against Execution Contract Input 2, refuted because the rule names the cap the instance holds and Logic confinement 17 fixes it, so an auditor reading the declaration is not following the rule); 2026-11-20 — Final Critique 8, a delta round, frozen at 5c0294d — foundational count 1 after the blind second triage (the first triage placed it refining), cured in the round, not clean, one sample (Linus's one report claimed three foundational: External check 8 names the deployment's configuration where Execution Contract Input 2 says the cap the instance holds is read from the instance, placed foundational by the blind second triage, Kind A, cured by one replacement after Event Log's External check 6; the other two refuted, Indeterminate outcome 11 because [Expire] is a caller's action (Term resolving action, Provisional Commitment Operation 19) and the candidates read's failure because Execution Contract Constituent failure 3 answers it; refining 2 refuted by the blind second triage, left); 2026-11-05 — Final Critique 7, a delta round, frozen at 63c13eb — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-23 — Final Critique 13, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/qwen3.8-max, Linus opencode-go/minimax-m3), frozen at 2ebcc7df — foundational count 5, cured, not clean, no sample (GRID's two, EOS's three and Linus's three foundational reports were placed five foundational, one merged and two refining by the first triage, so no blind second triage ran: a recorded constituent rejection stood on its action's refuses line, which Execution Contract Read 4 erases and Read 7 moves to the answers line (EOS and Linus found it); Invariant 1.1 held two outcome-unknown answers to answer alike where Wiring decision 4 leaves them uncached with live candidates (GRID); Check 3.1 asked an auditor for the constituent's answer no record carries (EOS); Action wiring 10 and Invariant 2.2 forbade the check the eviction in place needs, and no rule ordered the check before an entry answers (Linus); and Check 4.1 read the check after the commit that evicted and re-recorded the token (Linus); cured: the four signatures list each cached rejection on the answers line, Wiring decision 2 excepts a refusal, Invariant 1.1 excepts outcome-unknown, Action wiring 10 and Invariant 2.2 name Provisional Commitment, Action wiring 29 answers from an entry only after the check answers, Check 3.1 reads an id and External check 10 reads the deployment's account of every other result, and Check 4.1 reads the state the evicting commit read; the digest's reference input and Wiring decision 1's constituent were placed refining and cured (Execution Contract Logic confinement 13 and the Result entry decide them); the refining cures are the closure table spec-format owes in a composition's next round, Composes 6 citing Execution Contract Constituent failure 2 with the resolved check excepted, Capability requirement 16 citing Action wiring 27, Check 4.2 citing Action wiring 12, the Term idempotency window naming both measures of the one duration (the guard from Duplicate Prevention's record, an entry from its pending instant), and the Term composition naming the token results map; the rest of the reports' refining and rhetorical findings were refuted by the tombstones in the history file, Execution Contract Database 1 and Database 2, Invariant 7.1, the Term idempotency window and Composes 5 with Execution Contract Conformance 8, or fall outside the page: Duplicate Prevention's Window Duration card and Execution Contract Constituent failure 2's naming of Provisional Commitment's place hold); 2026-11-23 — Final Critique 12, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 6168e7f3 — foundational count 2, not clean, no sample (Linus's three foundational reports were placed refining, foundational and foundational by the first triage; the count is not zero, so no blind second triage ran: Check 1.1 and Check 1.2, cured last round to compare versions "carrying one pending instant", could not fail on the forbidden write, a second entry of one token written inside the window, since that entry carries its own invocation's instant, never the first's, so the pair was never compared and a tie of two clock readings alone made the check bite; and External check 7 sent the auditor to the deployment's configuration, which names a window the instance does not hold between a change and the next start (Execution Contract Logic confinement 17), where External check 8 already reads the cap the instance holds; cured: Check 1.1 and Check 1.2 compare versions whose pending instants each precede the other's window end, which anchors the pair on the window and not on a tie, and cite Generation acceptance 1; External check 7 reads the window the instance holds, and External check 9 the digest function, on the same footing; the first report, that Execution Contract Constituent failure 3 names Duplicate Prevention Operation 12 where the page cites Non-goal 1, was placed refining: Operation 12 was deleted to Non-goal 1 on 2026-11-20, so the page cites the rule that owns the response and Constituent failure 3's own citation is stale, a held cure to execution-contract.md; the refining cures are Capability requirement 19 and Capability requirement 4, which say EXACTLY ONE where they said alike, and Composition state 6, which says for EVERY act of one idempotency token; the rest of the reports' refining and rhetorical findings were refuted by Action wiring 12, Indeterminate outcome 10 and 13, and the page's own use of the answers seen and not-seen); 2026-11-23 — Final Critique 11, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at e057eb2c — foundational count 2 after the blind second triage, not clean, no sample (Linus's three foundational reports were placed refuted, refining and refining by the first triage; the blind second triage, an Opus 5.5 subagent, placed two of them foundational, which decide: Check 1.1 and Check 1.2 read "inside the idempotency window" over every committed version of a token's entries, a window the page anchors on no instant, so two auditors differed on a conforming run whose lazily evicted entry and the entry written over it both stood inside one span of the window's length, and the check as written could never fail, one entry per token standing in any version; and an idempotency window changed at a restart (Execution Contract Logic confinement 17) left Check 4.1 and Check 4.2 reading the window the current configuration holds, failing a conforming eviction after a lengthened window and passing a forbidden one after a shortened one; cured: Check 1.1 and Check 1.2 find no two committed versions of one token's entries carrying one pending instant and two action types or two parameters digests, and Capability requirement 19 holds the idempotency window alike for every call and every run of the eviction leg of one instance, as Capability requirement 4 holds the digest function, External check 7 citing it; the first report's invariant half and the digest function's change across a restart were refuted, by Composition state 2 with Action wiring 12 and by Capability requirement 4; the refining cures are Action wiring 27, which cites Duplicate Prevention Non-goal 1 as Execution Contract Constituent failure 3 asks and leaves its second obligation to Action wiring 28, and Composition state 6, which loses a clause Indeterminate outcome 13 already decides); 2026-11-23 — Final Critique 10, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 33944be8 — foundational count 2, not clean, no sample (Linus's three foundational reports were placed foundational, refuted and foundational: Check 4.1 asked Duplicate Prevention about a token now and about an entry evicted then, so a token reused after the window failed a conforming deployment, and Invariant 4.1 and Invariant 4.2 bound a token to one action type and one parameters digest for its whole life where Action wiring 7 and 8, Non-goal 1 and the Token Collision entry read a live entry only, the checks over them naming no state that could fail; cured: Check 4.1 reads the check's answer at the commit that evicted the entry, Invariant 4.1 and 4.2 say inside the idempotency window as Invariant 1.1, 2.1 and 3.1 do, and Check 1.1 and 1.2 read every committed version of a token's entries inside the window; the third report, that the order of Duplicate Prevention's record against Provisional Commitment's call lets one token bind two commitment ids, was refuted by Execution Contract Database 1, which commits the entry, the constituent's write and the record together or not at all, so no order is observable; the refining cures are Composition state 6, which cites Indeterminate outcome 13 for the re-entry, Capability requirement 1 and 3, which cite Execution Contract Logic confinement 17, and Action wiring 27, which cites Execution Contract Constituent failure 3); 2026-11-20 — Final Critique 9, a delta round, frozen at 15e8c30f — foundational count 0 after the blind second triage, clean, no sample (Linus's one report claimed one foundational: External check 8's held cap against Execution Contract Input 2, refuted because the rule names the cap the instance holds and Logic confinement 17 fixes it, so an auditor reading the declaration is not following the rule); 2026-11-20 — Final Critique 8, a delta round, frozen at 5c0294d — foundational count 1 after the blind second triage (the first triage placed it refining), cured in the round, not clean, one sample (Linus's one report claimed three foundational: External check 8 names the deployment's configuration where Execution Contract Input 2 says the cap the instance holds is read from the instance, placed foundational by the blind second triage, Kind A, cured by one replacement after Event Log's External check 6; the other two refuted, Indeterminate outcome 11 because [Expire] is a caller's action (Term resolving action, Provisional Commitment Operation 19) and the candidates read's failure because Execution Contract Constituent failure 3 answers it; refining 2 refuted by the blind second triage, left); 2026-11-05 — Final Critique 7, a delta round, frozen at 63c13eb — foundational count 0, clean, one sample; 2026-11-04 — Final Critique 6, a full round, frozen at de92f1e — foundational count 3, cured, not clean, no sample
 
 open: none
 ```
