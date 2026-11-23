@@ -1666,6 +1666,48 @@ def pattern_id_findings(root: Path) -> list[Finding]:
     return findings
 
 
+# the map of Grace's parts (unit `docs: the map of Grace's parts`, Scott 2026-11-23): one block at the top of
+# AGENTS.md and the same block on Start Here (readme.md), between these two markers. It cannot drift: both
+# copies read the same, every file it links to exists, and a part marked planned that names the file it will
+# live at (`Not yet: `path``) stops being planned the day that file exists.
+MAP_START, MAP_END = "<!-- grace-map:start -->", "<!-- grace-map:end -->"
+MAP_FILES = ("AGENTS.md", "readme.md")
+_MAP_LINK = re.compile(r"\]\((\./[^)\s#]+)(?:#[^)]*)?\)")
+_MAP_NOT_YET = re.compile(r"Not yet: `([^`]+)`")
+
+
+def map_block(path: Path) -> str | None:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    if MAP_START not in text or MAP_END not in text:
+        return None
+    return text.split(MAP_START, 1)[1].split(MAP_END, 1)[0]
+
+
+def map_findings(root: Path) -> list[Finding]:
+    """The map's two copies agree, each example resolves to a file, each planned part is still planned."""
+    findings: list[Finding] = []
+    blocks = {}
+    for name in MAP_FILES:
+        b = map_block(root / name)
+        if b is None:
+            findings.append(Finding(root / name, 1, "G-map-missing", f"{name} carries no map between `{MAP_START}` and `{MAP_END}`"))
+        else:
+            blocks[name] = b
+    if len(blocks) == 2 and blocks[MAP_FILES[0]] != blocks[MAP_FILES[1]]:
+        findings.append(Finding(root / MAP_FILES[1], 1, "G-map-differs", f"the map in {MAP_FILES[1]} differs from the map in {MAP_FILES[0]}; there is one map"))
+    for name, b in blocks.items():
+        for n, line in enumerate(b.splitlines(), start=1):
+            for link in _MAP_LINK.findall(line):
+                if not (root / link[2:]).exists():
+                    findings.append(Finding(root / name, n, "G-map-dead", f"the map names `{link}`, which is no file at HEAD"))
+            m = _MAP_NOT_YET.search(line)
+            if m and "(planned)" in line and (root / m.group(1)).exists():
+                findings.append(Finding(root / name, n, "G-map-planned", f"the map marks `{m.group(1)}` planned and the file exists; drop the mark"))
+            if m and "(planned)" not in line:
+                findings.append(Finding(root / name, n, "G-map-planned", f"the map says `Not yet: {m.group(1)}` of a part not marked *(planned)*"))
+    return findings
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     gate = "--gate" in argv
@@ -1687,6 +1729,7 @@ def main(argv: list[str]) -> int:
             findings += scan(p)
     if not args:
         findings += pattern_id_findings(root)
+        findings += map_findings(root)
     findings.sort(key=lambda f: (str(f.path), f.line, f.code))
     for f in findings:
         try:

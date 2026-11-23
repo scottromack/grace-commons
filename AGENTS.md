@@ -6,6 +6,36 @@
 
 ---
 
+<!-- grace-map:start -->
+## The map of Grace's parts
+
+Every kind of part Grace is made of, the whole tree first, then each part once with its one real example. A part marked *(planned)* does not exist yet.
+
+```
+Grace
+├─ Grammar              the controlled English every part is written in
+├─ Sub-atomic           what every atom stands on: three primitives, a pipeline, the database contract
+├─ Atoms                one idea each: its state, its actions, its rules
+├─ Bonds (planned)      how atoms connect: key, owner key, link, range, guard, follow-up, priority
+├─ Glue                 the few lines that belong to no atom or bond yet, each with a birth tag
+├─ Data (planned)       typed tables the checkers read
+├─ Outside-world contracts (planned)
+└─ Apps                 atoms + bond instances + marked glue
+   └─ Lean statements · proofs · codegen to two builds · generated tests (all planned)
+```
+
+- **Grammar** — the controlled English the specs are written in. Example: [GRACE-lang](./GRACE-lang.md). A formal grammar (GF) *(planned)*.
+- **Sub-atomic** — the three primitives (state machine, pure function, direct effect), the four-step pipeline every action runs, and the database contract's families (Database, Order, Read, Refusal, Query, Input, Undo). Example: [Execution Contract](./execution-contract.md).
+- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Personal Todo](./atoms/personal-todo.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
+- **Bonds** *(planned)* — the few kinds of connection between atoms, one page for all of them. Not yet: `bonds.md`. An app already names the kinds it uses: [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
+- **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
+- **Data** *(planned)* — typed tables the checkers read, outside the prose of atoms and glue; Medication Order's clinical tables are planned as the first.
+- **Outside-world contracts** *(planned)* — what an app asks of a database or system that is not Grace's, such as the act probe in the glue of [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
+- **Apps** — atoms, bond instances and marked glue, wired for one job. Example: [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md). The first whole app, the shared to-do list, *(planned)* will carry Lean statements that you review, proofs, code generated for two builds and generated tests. Not yet: `tools/lean`.
+<!-- grace-map:end -->
+
+---
+
 ## What Grace Commons is
 
 A public library of **atoms** and **compositions** written in [GRACE](./GRACE-lang.md), a small domain-specific language in controlled English: the spec is canonical, code is a derived build artifact. The thesis, philosophy, and inheritance are in [`the-spec-layer.md`](./the-spec-layer.md); the architecture overview is in [`why.md`](./why.md) (the vision page; `readme.md` is the site's Start Here landing/tour). Named for Grace Hopper, who first argued that business logic should be readable by the people who understand the business.
