@@ -327,7 +327,7 @@ Term hold placement: the deployment's own call of Legal Hold's place over an eve
   NOTE: watch condition negation — *not holding the critical section* is written as a minted term that no instance EXISTS of (Cascade critical section 2, Cascade critical section 3).
   Cascade critical section 3: IF no held critical section EXISTS THEN the cascade MUST NOT land a later truth-bearing write.
   Cascade critical section 4: The host MUST hold a cascade's critical section as a lease:
-      Cascade critical section 4a: The host MUST set the lease to the act's completion bound, a [Purge Event] re-driven by the first half excepted (Audit Trail Per-act critical section 13a, Cascade critical section 5).
+      Cascade critical section 4a: The host MUST set the lease above the act's completion bound by at least the time resolution, a [Purge Event] re-driven by the first half excepted (Audit Trail Per-act critical section 1e, Per-act critical section 13a, Cascade critical section 5).
       Cascade critical section 4b: IF lease EQUALS expired THEN the invocation MUST NOT issue a truth-bearing write.
   Cascade critical section 5: A [Purge Event] re-driven by the first half MUST NOT take a second critical section for an event id the first half holds.
   Cascade critical section 6: A hold placement MUST take the critical section by Lease's take, waiting no longer than Lease's arrival term (Lease Operation 3).
