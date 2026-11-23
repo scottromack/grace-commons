@@ -3524,7 +3524,7 @@ _LIVE_COUNT = re.compile(
     r"|\b(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)-plus\s+"
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
-_LIVE_LEDGERS = {"roadmap.hist.md", "changelog.md", "project-log.md", "ai-usage-log.md",
+_LIVE_LEDGERS = {"roadmap.hist.md", "changelog.md", "project-log.md", "ai-usage-log.md", "RELEASES.md",
                  "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md",
                  "watch-list.md"}
 
