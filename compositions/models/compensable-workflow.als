@@ -6,6 +6,10 @@
 -- instance and every event carries its run's compensable workflow id; a step declaring no
 -- compensating action completes with a blank compensation reference, which no compensation
 -- run is owed for; the resume markers commit with the transition back.
+-- Re-derived 2026-11-22 for the unit `compositions/compensable-workflow.md two model findings`:
+-- Primitive policy 29 refuses an effect step marked read-only at the start, so Invariant 3.1 is
+-- checked over every effect step outside the roll-forward steps; Check 5.1 reads the order the
+-- continue policy gives (A_Check_5_1), and Action wiring 97 is checked (A_Action_wiring_97).
 -- Derived validator; the English spec is the single source of truth. On any
 -- disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 --
@@ -27,8 +31,8 @@
 --                   can follow it) the spine's current state equals the replayed state
 --                   (Check 2.1; a cross-check with the TLA+ model's Invariant_2_1).
 --   Invariant 3.1 — every step completion event of an effect step outside the roll-forward
---                   steps carries exactly one compensation reference (Check 3.1), in the
---                   form the page settles: see FOUND (1) on an effect step marked read-only.
+--                   steps carries exactly one compensation reference (Check 3.1), the start
+--                   admitting the definition by Primitive policy 12 and 29 (cured FOUND (1)).
 --   Invariant 4.1 — a run carrying a compensation close event carries a compensation run
 --                   event for every step completion event whose compensation reference does
 --                   not equal blank (Check 4.1; cross-check).
@@ -40,8 +44,13 @@
 --                   cross-check).
 --   Invariant 5.1 — the completed steps are compensated newest first: no compensating
 --                   action is attempted for a step while a newer completed step with a
---                   compensating action has had none attempted (cross-check; see FOUND (3)
---                   on Check 5.1's wording).
+--                   compensating action has had none attempted (cross-check).
+--   Check 5.1     — compensation run events land in the reverse of the step completion
+--                   order, save where a compensation failure event names the newer step
+--                   (with Action wiring 97; cured FOUND (3)).
+--   Action wiring 97 — under the continue policy a standing failure's compensating action is
+--                   run again (its resume marker opens the re-run) only where no pending
+--                   compensation stands.
 --   Invariant 6.1 — no log carries two terminal markers (Check 6.1).
 --   Invariant 6.2 — halted is never read as an outcome: neither the replay's outcome nor
 --                   the spine's terminal states take it (Action wiring 62).
@@ -90,33 +99,35 @@
 --   section): the claim and the deployment's declarations are no records (External check 1,
 --   3 and 6); the TLA+ model's Invariant_7_1 models the target and the section.
 --
--- FOUND (recorded, not cured; see the Ledger's formal line)
---   (1) Primitive policy 12 refuses only an unmarked irreversible step (an effect step with
---       no compensating action and no step marker), so it admits an effect step marked
---       read-only with no compensating action; its step completion event carries no
---       compensation reference (Event schema 5), and it is outside the roll-forward steps,
---       so Invariant 3.1 as written fails on it. Term step marker says read-only is "for a
---       step with no external effect to reverse", but no rule refuses the pair. The check
---       below takes the steps the page settles (not marked read-only); run
---       FoundReadOnlyEffectStep shows the admitted state.
+-- FOUND (the model's findings, each cured; see the Ledger's formal line)
+--   (1) Cured 2026-11-22 (unit `two model findings`): Primitive policy 12 refused only an
+--       unmarked irreversible step, so it admitted an effect step marked read-only with no
+--       compensating action, whose completion carried no compensation reference against
+--       Invariant 3.1 (the run FoundReadOnlyEffectStep showed it). Primitive policy 29 now
+--       refuses an effect step marked read-only (startAdmits), A_Invariant_3_1 reads every
+--       effect step outside the roll-forward steps, and run ShowReadOnlyStep shows a step
+--       marked read-only, no effect step, completing with a blank reference.
 --   (2) Cured by Final Critique 10 (2026-11-22): a completed step declaring no compensating
 --       action stayed a pending compensation no write could discharge (the run FoundNo-
 --       CompensationToRun showed it). Term pending compensation and Invariant 4.1 now count a
 --       completion whose compensation reference stands, so the run closes over a blank
 --       reference: A_Action_wiring_40 checks it, run ShowBlankReferenceClose shows it.
---   (3) Check 5.1 reads compensation run events in the reverse of the step completion
---       order. Under the continue policy a newer step whose compensation definitely failed
---       is passed over (a standing failure is no pending compensation), the older step is
---       compensated, the run halts naming the failed step (Action wiring 41), and the
---       operator's resume runs it last: a conforming log whose run events are not in reverse
---       completion order. Invariant 5.1 holds in the reading checked below (attempted
---       newest first); run FoundContinueOrder shows the log.
+--   (3) Cured 2026-11-22 (unit `two model findings`): Check 5.1 read compensation run
+--       events in the reverse of the step completion order, and under the continue policy a
+--       newer step whose compensation definitely failed is passed over (a standing failure
+--       is no pending compensation), the older step is compensated, the run halts naming
+--       the failed step (Action wiring 41), and the operator's resume runs it last (the run
+--       FoundContinueOrder showed the log). Check 5.1 now reads that order, save where a
+--       compensation failure event names the newer step (A_Check_5_1), and Action wiring 97
+--       states it once (A_Action_wiring_97); run ShowContinueOrder shows the log.
 --
 -- SCOPE
 -- One state of the shared log: up to two compensable workflows (runs) of one definition, up
 -- to two declared steps (enough for newest first, a pivot that is the last step, and a step
 -- that follows a pivot), each with its effect-step flag, step marker and compensating action
--- as the definition declares; up to eight events in the log (twelve for FoundContinueOrder),
+-- as the definition declares; up to eight events in the log (nine for A_Action_wiring_97,
+-- twelve for A_Check_5_1 and ShowContinueOrder: two compensation run events with their
+-- attempts need nine, and the continue policy's order, a failure, its halt and the resume, twelve),
 -- either run's; up to eight keys (two runs' effects and compensations, Composition state 11,
 -- 12); both compensation failure policies. Both runs carrying one definition is the model's
 -- choice: two definitions would give the merged replay of the twin -merged-replay no more to
@@ -477,9 +488,10 @@ fun completionOf[st : Step] : set StepCompleted {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- startAdmits: the start admits the definition only without an unmarked irreversible step
--- (Primitive policy 12).
+-- (Primitive policy 12) and without an effect step marked read-only (Primitive policy 29).
 pred startAdmits {
     all st : Step | (some st.effect and no st.comp) implies some st.marker
+    no st : Step | some st.effect and st.marker = ReadOnly
 }
 
 -- spineWrites: the start instantiates the spine with the outcomes as its terminal states and
@@ -736,11 +748,11 @@ assert A_Invariant_2_1 {
 check A_Invariant_2_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_3_1: every step completion event of an effect step outside the roll-forward
--- steps carries exactly one compensation reference — over the steps not marked read-only,
--- the form the page settles (FOUND (1)).
+-- steps carries exactly one compensation reference — every such step, a step marked
+-- read-only being no effect step (Primitive policy 29; FOUND (1), cured).
 assert A_Invariant_3_1 {
     conforms implies all c : StepCompleted |
-        (some c.step.effect and c.step not in rollForward and c.step.marker != ReadOnly)
+        (some c.step.effect and c.step not in rollForward)
             implies one c.compRef
 }
 check A_Invariant_3_1 for 2 but 8 Event, 8 Key
@@ -783,6 +795,29 @@ assert A_Invariant_5_1 {
         implies some (CompAttempt & step.y & own[a])
 }
 check A_Invariant_5_1 for 2 but 8 Event, 8 Key
+
+-- A_Check_5_1: compensation run events land in the reverse of the step completion order, save
+-- where a compensation failure event names the newer step: wherever an older step's
+-- compensation run event precedes a newer step's in one run, a compensation failure event of
+-- that run names the newer step (Check 5.1, Invariant 5.1, Action wiring 97; FOUND (3), cured).
+assert A_Check_5_1 {
+    conforms implies all disj r1, r2 : CompRun, c1, c2 : StepCompleted |
+        (r1.wf = r2.wf and c1.wf = r1.wf and c2.wf = r1.wf
+            and c1.step = r1.step and c2.step = r2.step
+            and c1 in c2.earlier and r1 in r2.earlier)
+        implies some (CompFailed & runLog[r2.wf] & step.(r2.step))
+}
+check A_Check_5_1 for 2 but 12 Event, 8 Key
+
+-- A_Action_wiring_97: under the continue policy the compensating action of a step a standing
+-- failure names is run again only where no pending compensation stands: no resume marker
+-- re-opening a standing failure's compensation lands while a pending compensation stands.
+assert A_Action_wiring_97 {
+    conforms implies all a : resumes & CompAttempt |
+        (Deployment.policy = Continue and a.step in standingFail[own[a]])
+            implies no pending[own[a]]
+}
+check A_Action_wiring_97 for 2 but 9 Event, 8 Key
 
 -- A_Invariant_6_1: no log carries two terminal markers.
 assert A_Invariant_6_1 {
@@ -975,11 +1010,12 @@ run ShowUnresolvedStanding {
     phaseOf[Event] = Forward
 } for 2 but 8 Event, 8 Key
 
--- FoundReadOnlyEffectStep: FOUND (1) — an effect step marked read-only, declaring no
--- compensating action, admitted and completed with no compensation reference.
-run FoundReadOnlyEffectStep {
+-- ShowReadOnlyStep: a step marked read-only, no effect step and declaring no compensating
+-- action, is admitted and completes with a blank compensation reference (Primitive policy 29
+-- refuses only an effect step marked read-only; FOUND (1), cured).
+run ShowReadOnlyStep {
     conforms
-    some c : StepCompleted | some c.step.effect and c.step.marker = ReadOnly and no c.compRef
+    some c : StepCompleted | no c.step.effect and c.step.marker = ReadOnly and no c.compRef
 } for 2 but 8 Event, 8 Key
 
 -- ShowBlankReferenceClose: a step declaring no compensating action completes with a blank
@@ -1000,9 +1036,10 @@ run ShowSharedLog {
         and some (Commit & runLog[w1]) and some (Close & runLog[w2])
 } for 2 but 8 Event, 8 Key
 
--- FoundContinueOrder: FOUND (3) — under continue, an older step's compensation run event
--- lands before a newer step's, the newer one's run after the operator's resume.
-run FoundContinueOrder {
+-- ShowContinueOrder: under continue, an older step's compensation run event lands before a
+-- newer step's, the newer one's run after the operator's resume — the order Check 5.1 reads
+-- (Action wiring 97; FOUND (3), cured).
+run ShowContinueOrder {
     conforms
     some disj r1, r2 : CompRun | r1 in own[r2]
         and (completionOf[r1.step] & runLog[r1.wf]) in (completionOf[r2.step] & runLog[r2.wf]).earlier

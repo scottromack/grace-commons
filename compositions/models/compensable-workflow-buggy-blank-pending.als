@@ -334,9 +334,10 @@ fun completionOf[st : Step] : set StepCompleted {
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- startAdmits: the start admits the definition only without an unmarked irreversible step
--- (Primitive policy 12).
+-- (Primitive policy 12) and without an effect step marked read-only (Primitive policy 29).
 pred startAdmits {
     all st : Step | (some st.effect and no st.comp) implies some st.marker
+    no st : Step | some st.effect and st.marker = ReadOnly
 }
 
 -- spineWrites: the start instantiates the spine with the outcomes as its terminal states and
@@ -593,11 +594,11 @@ assert A_Invariant_2_1 {
 check A_Invariant_2_1 for 2 but 8 Event, 8 Key
 
 -- A_Invariant_3_1: every step completion event of an effect step outside the roll-forward
--- steps carries exactly one compensation reference — over the steps not marked read-only,
--- the form the page settles (FOUND (1)).
+-- steps carries exactly one compensation reference — every such step, a step marked
+-- read-only being no effect step (Primitive policy 29; FOUND (1), cured).
 assert A_Invariant_3_1 {
     conforms implies all c : StepCompleted |
-        (some c.step.effect and c.step not in rollForward and c.step.marker != ReadOnly)
+        (some c.step.effect and c.step not in rollForward)
             implies one c.compRef
 }
 check A_Invariant_3_1 for 2 but 8 Event, 8 Key
@@ -640,6 +641,29 @@ assert A_Invariant_5_1 {
         implies some (CompAttempt & step.y & own[a])
 }
 check A_Invariant_5_1 for 2 but 8 Event, 8 Key
+
+-- A_Check_5_1: compensation run events land in the reverse of the step completion order, save
+-- where a compensation failure event names the newer step: wherever an older step's
+-- compensation run event precedes a newer step's in one run, a compensation failure event of
+-- that run names the newer step (Check 5.1, Invariant 5.1, Action wiring 97; FOUND (3), cured).
+assert A_Check_5_1 {
+    conforms implies all disj r1, r2 : CompRun, c1, c2 : StepCompleted |
+        (r1.wf = r2.wf and c1.wf = r1.wf and c2.wf = r1.wf
+            and c1.step = r1.step and c2.step = r2.step
+            and c1 in c2.earlier and r1 in r2.earlier)
+        implies some (CompFailed & runLog[r2.wf] & step.(r2.step))
+}
+check A_Check_5_1 for 2 but 12 Event, 8 Key
+
+-- A_Action_wiring_97: under the continue policy the compensating action of a step a standing
+-- failure names is run again only where no pending compensation stands: no resume marker
+-- re-opening a standing failure's compensation lands while a pending compensation stands.
+assert A_Action_wiring_97 {
+    conforms implies all a : resumes & CompAttempt |
+        (Deployment.policy = Continue and a.step in standingFail[own[a]])
+            implies no pending[own[a]]
+}
+check A_Action_wiring_97 for 2 but 9 Event, 8 Key
 
 -- A_Invariant_6_1: no log carries two terminal markers.
 assert A_Invariant_6_1 {
@@ -832,11 +856,12 @@ run ShowUnresolvedStanding {
     phaseOf[Event] = Forward
 } for 2 but 8 Event, 8 Key
 
--- FoundReadOnlyEffectStep: FOUND (1) — an effect step marked read-only, declaring no
--- compensating action, admitted and completed with no compensation reference.
-run FoundReadOnlyEffectStep {
+-- ShowReadOnlyStep: a step marked read-only, no effect step and declaring no compensating
+-- action, is admitted and completes with a blank compensation reference (Primitive policy 29
+-- refuses only an effect step marked read-only; FOUND (1), cured).
+run ShowReadOnlyStep {
     conforms
-    some c : StepCompleted | some c.step.effect and c.step.marker = ReadOnly and no c.compRef
+    some c : StepCompleted | no c.step.effect and c.step.marker = ReadOnly and no c.compRef
 } for 2 but 8 Event, 8 Key
 
 -- ShowBlankReferenceClose: a step declaring no compensating action completes with a blank
@@ -857,9 +882,10 @@ run ShowSharedLog {
         and some (Commit & runLog[w1]) and some (Close & runLog[w2])
 } for 2 but 8 Event, 8 Key
 
--- FoundContinueOrder: FOUND (3) — under continue, an older step's compensation run event
--- lands before a newer step's, the newer one's run after the operator's resume.
-run FoundContinueOrder {
+-- ShowContinueOrder: under continue, an older step's compensation run event lands before a
+-- newer step's, the newer one's run after the operator's resume — the order Check 5.1 reads
+-- (Action wiring 97; FOUND (3), cured).
+run ShowContinueOrder {
     conforms
     some disj r1, r2 : CompRun | r1 in own[r2]
         and (completionOf[r1.step] & runLog[r1.wf]) in (completionOf[r2.step] & runLog[r2.wf]).earlier

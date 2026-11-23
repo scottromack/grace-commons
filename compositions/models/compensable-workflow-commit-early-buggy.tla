@@ -22,6 +22,14 @@
 \* write (Action wiring 93); the resume markers and the transition back commit as one
 \* transaction, and a fire's storage-failure names its position (Action wiring 94 to 96).
 \*
+\* Re-derived 2026-11-22 (unit `compositions/compensable-workflow.md two model findings`): the start
+\* admits a definition by Primitive policy 12 and 29 (`Admit`, over the effect steps `fx` and every
+\* set of steps marked read-only), so a step declaring no compensating action outside the
+\* roll-forward steps is no effect step and nothing of it lands at a target (`LandAt`); Invariant 4
+\* reads every step, the exemption of a step declaring no compensating action gone. Under the
+\* continue policy the failed newer step's compensation runs again only once no pending
+\* compensation stands (Action wiring 97, `Action_97_RerunAfterPending`), the order Check 5.1 reads.
+\*
 \* WHAT THIS MODEL CHECKS
 \* One compensable workflow of two steps, each with a compensating action unless the
 \* definition declares none for it (the step marked pivot, where the run has one, has none),
@@ -31,7 +39,9 @@
 \* the operator and the other run do:
 \*   - Invariant 4 (all-or-compensated)  a committed run has every effect landed and none
 \*                    reversed; a compensated run has every landed effect reversed, the one an
-\*                    indeterminate verdict left unrecorded included.
+\*                    indeterminate verdict left unrecorded included, no step exempt (Primitive
+\*                    policy 12 and 29 leave no effect step without a compensating action outside
+\*                    the roll-forward steps).
 \*   - Invariant 4.1, 4.2, 4.3, 4.4, 4.5  the close carries a compensation run for every completion
 \*                    whose compensation reference stands (is not blank); the
 \*                    commit a completion for every step and no onset; an effect that landed with no
@@ -62,12 +72,15 @@
 \*                    Invariant 2.1: a failed fire back leaves no marker standing).
 \*   - Action wiring 95, 96  a fire's or completion record's storage-failure names effect-landed
 \*                    where the invocation's effect stands unrecorded, none where none does.
+\*   - Action wiring 97 (with Check 5.1)  under the continue policy a standing failure's
+\*                    compensating action runs again only where no pending compensation stands.
 \*
 \* BOUND
 \* Two steps (enough for newest first, for a pivot that is the last step, and for a step with a
 \* blank compensation reference before or after one with a reference), both failure policies, both
-\* pivot shapes (none, the second step), every set of steps declaring no compensating action that
-\* Primitive policy 12 admits outside the roll-forward steps, every verdict at every effect, the lease
+\* pivot shapes (none, the second step), every definition Primitive policy 12 and 29 admit (the
+\* effect steps, the steps marked read-only and the steps declaring no compensating action outside
+\* the roll-forward steps), every verdict at every effect, the lease
 \* expiring at any point, a key lapsing while the run rests halted, a call's clock behind the start
 \* instant at any call, a fire back failing at any resume, and the other run advancing at any point
 \* to its commit. The space is exhaustive. The bound was set at two in 2026-11 because three steps ran
@@ -130,16 +143,19 @@
 \*   (`ClockBehind`), so the fault is unreachable (`flt`, Action_93_NoFaultHalt); the fire's
 \*   effect on Invariant 2.1 is kept (`sp`). A fire's storage-failure rolls its event back with it
 \*   (Execution Contract Constituent failure 1): `RecordStorageFail` and `ResumeFireFails`.
-\* - A step declaring no compensating action (a step that is no effect step, or one marked
-\*   read-only) completes with a blank compensation reference (Event schema 5); the model keeps
-\*   the set (`ro`) and never runs a compensation for one. Its own effect is counted like any
-\*   other, and Invariant 4 asks no reversal of it (Term step marker: read-only is for a step with
-\*   no external effect to reverse).
+\* - A step declaring no compensating action completes with a blank compensation reference (Event
+\*   schema 5); the model keeps the set (`ro`) and never runs a compensation for one. Outside the
+\*   roll-forward steps such a step is no effect step (`Admit`: Primitive policy 12 and 29; Term step
+\*   marker: read-only is for a step with no external effect to reverse), so its run lands nothing
+\*   at a target (`LandAt`) and Invariant 4 needs no exemption for it. Before 2026-11-22 the model
+\*   counted its effect and exempted it from Invariant 4, which let an effect step marked read-only
+\*   survive an abort: the finding Primitive policy 29 cures (twin -read-only-effect).
 \* - The start (validation, sizing, the payload cap, the instantiate) and the reads: single-call
 \*   refusals before any state is touched.
 \* - Invariant 1 (one event per recorded act), Invariant 3.1 (pairing) and Invariant 6.1 and 6.2
 \*   are by construction of the projection: a step is one event, a step outside `ro` carries its
-\*   compensation, the phase is one value, halted is a phase and never an outcome.
+\*   compensation (and an effect step outside the roll-forward steps is outside `ro`, `Admit`), the
+\*   phase is one value, halted is a phase and never an outcome.
 \* - The critical section's cross-node exclusion (Capability requirement 6) is the host's: the
 \*   model takes one holder at a time and lets the lease expire at any point (Capability
 \*   requirement 9 retired 2026-11-20).
@@ -180,9 +196,10 @@ VARIABLES
     pol,        \* the compensation failure policy: halt | continue
     ro,         \* the steps declaring no compensating action (a blank compensation reference)
     orun,       \* the other run sharing the log: its steps 1..orun completed; N + 1 its commit
-    flt         \* a fault halt stands (a halt event carrying a finding)
+    flt,        \* a fault halt stands (a halt event carrying a finding)
+    fx          \* the effect steps: a step whose result escapes the step log (Term effect step)
 
-vars == <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, sp, ov, op, viol, piv, pol, ro, orun, flt>>
+vars == <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, sp, ov, op, viol, piv, pol, ro, orun, flt, fx>>
 
 Verdicts == {"applied", "failed", "indet", "unknown"}
 
@@ -212,6 +229,24 @@ Land(e0, lapped, v) ==
     ELSE IF v = "failed" THEN (IF e0 = 0 THEN {0} ELSE {})
     ELSE IF v = "indet" THEN {e0, Ap(e0, lapped)}
     ELSE (IF e0 = 1 /\ ~lapped THEN {1} ELSE {})
+
+\* What lands at a target for a run of key k: a step that is no effect step (k <= N, outside f) has
+\* no result outside the step log (Term effect step), so nothing lands at any target and its count
+\* stays where it is; no target recognises its key, so it answers no unknown verdict. Every other key
+\* lands as Land says.
+LandAt(e0, lapped, v, k, f) ==
+    IF k <= N /\ k \notin f
+    THEN (IF v = "unknown" THEN {} ELSE {e0})
+    ELSE Land(e0, lapped, v)
+
+\* The start admits a definition (Primitive policy 12 and 29): pv the pivot, f the effect steps, rk
+\* the steps marked read-only, r the steps declaring no compensating action. An effect step
+\* declaring no compensating action outside the roll-forward steps must carry a step marker
+\* (Primitive policy 12: no unmarked irreversible step), and no effect step is marked read-only
+\* (Primitive policy 29). Together they leave no effect step in r outside the roll-forward steps.
+Admit(pv, f, rk, r) ==
+    /\ \A i \in Steps : (i \in f /\ i \in r /\ ~Roll(pv, i)) => i \in rk
+    /\ \A i \in rk : i \notin f
 
 \* The keys a halt names: the step's effect key in the forward phase, its compensation's otherwise.
 Named(h, s) == IF h = "forward" THEN s ELSE {N + i : i \in s}
@@ -269,6 +304,12 @@ ComplFlags(st, r, k, phs) ==
 SkipFlags(st, i) ==
     IF \E j \in Steps : j < i /\ st[j] = "open" THEN {"Replay_1"} ELSE {}
 
+\* The rule a re-entry breaks when it runs again the compensating action of a step a standing
+\* failure names while a pending compensation stands (Action wiring 97: under the continue policy
+\* the failed newer step's compensation runs after the older steps').
+ReRunFlags(st, r, k) ==
+    IF IsComp(k) /\ st[KStep(k)] = "fail" /\ Pending(st, r) /= {} THEN {"Action_97"} ELSE {}
+
 \* ----- state -----
 
 TypeOK ==
@@ -291,17 +332,22 @@ TypeOK ==
     /\ ro \subseteq Steps
     /\ orun \in 0..(N + 1)
     /\ flt \in BOOLEAN
+    /\ fx \subseteq Steps
 
 \* The run starts in the forward phase, nothing recorded, nothing applied, no invocation. The
-\* pivot, the failure policy and the steps declaring no compensating action are the deployment's
-\* and the definition's: the model takes each shape the page admits (Primitive policy 12 admits a
-\* step with no compensating action outside the roll-forward steps only marked read-only or as no
-\* effect step; a roll-forward step needs none, Invariant 3.1, and is never compensated). The other
-\* run sharing the log has its start event and nothing more.
+\* pivot, the failure policy, the effect steps and the steps declaring no compensating action are
+\* the deployment's and the definition's: the model takes each shape the start admits (Admit:
+\* Primitive policy 12 and 29, over every set of steps marked read-only, the pivot step excepted,
+\* which carries the other marker). A step with no compensating action outside the roll-forward
+\* steps is then no effect step; a roll-forward step is never compensated. A definition the start
+\* refuses answers invalid-definition and no run exists. The other run sharing the log has its
+\* start event and nothing more.
 Init ==
     /\ piv \in {0, N}
     /\ pol \in {"halt", "continue"}
     /\ ro \in {r \in SUBSET Steps : \A i \in r : ~Roll(piv, i)}
+    /\ fx \in SUBSET Steps
+    /\ \E rk \in SUBSET {i \in Steps : i /= piv} : Admit(piv, fx, rk, ro)
     /\ ph = "forward"
     /\ hp = "none"
     /\ hs = {}
@@ -332,7 +378,7 @@ Take ==
     /\ ph \in {"forward", "compensating", "halted"}
     /\ (ph = "halted") => (Parked(stp, att, hp, hs) \cap lap = {})
     /\ pc' = "held"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A call whose now precedes the start instant (a node whose clock lags the one that stamped the
 \* start event, within the clock allowance) answers invalid-request before any write (Action
@@ -360,7 +406,7 @@ Resume ==
     /\ op' = op \cup (hs \cap ov)
     /\ hp' = "none"
     /\ hs' = {}
-    /\ UNCHANGED <<stp, eff, lap, pc, cur, vd, ghost, ov, piv, pol, ro, orun, flt>>
+    /\ UNCHANGED <<stp, eff, lap, pc, cur, vd, ghost, ov, piv, pol, ro, orun, flt, fx>>
 
 \* The halted arm's fire back answers storage-failure: the resume markers are written with it as
 \* one transaction (Action wiring 94, Execution Contract Database 1), so none of them commits and
@@ -370,7 +416,7 @@ ResumeFireFails ==
     /\ pc = "held"
     /\ ph = "halted"
     /\ pc' = "idle"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* The re-entry arm (Action wiring 11, 15, 16, 19): an unresolved attempt is re-run under its own
 \* key, newest first, before any new effect; the re-run opens no marker, the one that stands is the
@@ -382,8 +428,9 @@ ReEntry ==
     /\ \E k \in att :
         /\ \A j \in att : j <= k
         /\ cur' = k
+        /\ viol' = viol \cup ReRunFlags(stp, ro, k)
     /\ pc' = "marked"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, vd, ghost, sp, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A forward advance with no unresolved attempt appends the attempt marker for the next step
 \* (Action wiring 22), before any effect (Action wiring 23). The next step is read from this run's
@@ -398,7 +445,7 @@ StartStep ==
         /\ cur' = i
         /\ viol' = viol \cup SkipFlags(stp, i)
     /\ pc' = "marked"
-    /\ UNCHANGED <<ph, hp, hs, stp, eff, lap, vd, ghost, sp, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, eff, lap, vd, ghost, sp, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A forward advance with no next step (read from this run's replay, Replay 1) appends the commit
 \* event (Action wiring 31) and fires the terminal transition. The run is committed.
@@ -409,7 +456,7 @@ Commit ==
     /\ ph' = "committed"
     /\ sp' = "committed"
     /\ pc' = "idle"
-    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A compensating advance with no unresolved attempt and a pending compensation appends the
 \* compensation attempt marker for the newest pending step (Action wiring 32 to 34, Invariant 5.1).
@@ -422,7 +469,7 @@ StartComp ==
         /\ att' = {N + i}
         /\ cur' = N + i
     /\ pc' = "marked"
-    /\ UNCHANGED <<ph, hp, hs, stp, eff, lap, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, eff, lap, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A compensating advance with nothing pending, no unresolved attempt and no standing failure
 \* appends the compensation close event (Action wiring 40). The run is compensated. A completed
@@ -437,7 +484,7 @@ Close ==
     /\ ph' = "compensated"
     /\ sp' = "compensated"
     /\ pc' = "idle"
-    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A compensating advance with nothing pending and no unresolved attempt but a standing failure
 \* appends a halt event naming every step a standing failure names (Action wiring 41).
@@ -452,7 +499,7 @@ HaltStanding ==
     /\ hp' = "compensating"
     /\ hs' = Fails(stp)
     /\ pc' = "idle"
-    /\ UNCHANGED <<stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<stp, att, eff, lap, cur, vd, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* The effect runs under its key (Action wiring 24, 35) and the target answers a verdict. The
 \* model reads the target's side from `eff` and `lap`. The composition runs no effect whose key is
@@ -460,12 +507,12 @@ HaltStanding ==
 RunEffect ==
     /\ pc = "marked"
     /\ \E v \in Verdicts :
-        \E e \in Land(eff[cur], cur \in lap, v) :
+        \E e \in LandAt(eff[cur], cur \in lap, v, cur, fx) :
             /\ vd' = v
             /\ eff' = [eff EXCEPT ![cur] = e]
     /\ viol' = viol \cup (IF Recorded(stp, cur) THEN {"Invariant_7_2"} ELSE {})
     /\ pc' = "ran"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, lap, cur, ghost, sp, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, lap, cur, ghost, sp, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* An applied verdict whose completion record lands: the step completion event (Action wiring 21,
 \* 25), carrying a blank compensation reference for a step declaring no compensating action (Event
@@ -480,7 +527,7 @@ RecordApplied ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<ph, hp, hs, eff, lap, ghost, sp, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, eff, lap, ghost, sp, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* An applied forward verdict whose reply carries reversal inputs larger than the step's input
 \* envelope (Primitive policy 19 to 22): the completion record lands with the inputs truncated and
@@ -503,7 +550,7 @@ RecordOverflow ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<eff, lap, ghost, op, piv, pol, ro, orun, flt>>
+    /\ UNCHANGED <<eff, lap, ghost, op, piv, pol, ro, orun, flt, fx>>
 
 \* An applied verdict whose completion record does not land: its append answers storage-failure
 \* (Action wiring 53), or its fire does and the record rolls back with the fire (Execution Contract
@@ -519,7 +566,7 @@ RecordStorageFail ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, ghost, sp, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, ghost, sp, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A failed verdict on a forward step before the pivot: the target answered the effect did not
 \* land, so a compensation onset event naming the step moves the run into the compensating phase
@@ -536,7 +583,7 @@ FailedOnset ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<hp, hs, stp, eff, lap, ghost, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<hp, hs, stp, eff, lap, ghost, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A failed verdict on a compensation under halt-and-surface: a halt event naming the compensating
 \* phase and the step; the attempt stays parked (Action wiring 37, Replay 12).
@@ -552,7 +599,7 @@ CompFailedHalt ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A failed verdict on a compensation under continue: a compensation failure event resolves the
 \* attempt and leaves the step a standing failure; the remaining compensations run (Action
@@ -567,7 +614,7 @@ CompFailedContinue ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<ph, hp, hs, eff, lap, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, eff, lap, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* A verdict the target has not settled is asked again under the same key: a failed verdict on a
 \* roll-forward step, an indeterminate one, an unknown one. Since 2026-11-20 the page runs an effect
@@ -582,7 +629,7 @@ Retry ==
           /\ Roll(piv, cur)
     /\ pc' = "marked"
     /\ vd' = "none"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, cur, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* The bound elapses on a failed roll-forward step: a halt event naming the forward phase and the
 \* step; the attempt stays parked (Action wiring 28). Never a compensation onset (Action wiring 30).
@@ -598,7 +645,7 @@ BoundFailedRoll ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* The bound elapses on an indeterminate effect: the invocation answers effect-indeterminate
 \* naming no-verdict. It writes nothing: no resolving event, no onset (Action wiring 43 to 45).
@@ -608,7 +655,7 @@ BoundIndet ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* The bound elapses on an unknown effect: a halt event naming the phase and the step, the attempt
 \* parked, and effect-indeterminate naming target-unknown (Action wiring 47, 48).
@@ -622,7 +669,7 @@ BoundUnknown ==
     /\ pc' = "idle"
     /\ cur' = 0
     /\ vd' = "none"
-    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<stp, att, eff, lap, ghost, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* ----- the critical section and the second writer -----
 
@@ -635,13 +682,13 @@ Expire ==
     /\ cur' = 0
     /\ vd' = "none"
     /\ ghost' = (IF pc = "ran" /\ vd = "applied" /\ ghost = 0 THEN cur ELSE ghost)
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* An expired invocation discards the effect reply it still holds (Action wiring 5).
 GhostDiscard ==
     /\ ghost /= 0
     /\ ghost' = 0
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* ----- cancel -----
 
@@ -661,7 +708,7 @@ Cancel ==
     /\ viol' = viol \cup (IF ph = "committed" THEN {"Invariant_4_3"} ELSE {})
                      \cup (IF att /= {} THEN {"Action_72"} ELSE {})
                      \cup (IF RollDone(piv, stp) THEN {"Action_73"} ELSE {})
-    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* ----- the horizon -----
 
@@ -675,7 +722,7 @@ Lapse ==
         /\ eff[k] >= 1
         /\ k \notin lap
         /\ lap' = lap \cup {k}
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, pc, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, pc, cur, vd, ghost, sp, viol, piv, pol, ov, op, ro, orun, flt, fx>>
 
 \* ----- the other run sharing the log -----
 
@@ -685,7 +732,7 @@ Lapse ==
 OtherAdvance ==
     /\ orun < N + 1
     /\ orun' = orun + 1
-    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, sp, ov, op, viol, piv, pol, ro, flt>>
+    /\ UNCHANGED <<ph, hp, hs, stp, att, eff, lap, pc, cur, vd, ghost, sp, ov, op, viol, piv, pol, ro, flt, fx>>
 
 Next ==
     \/ Take
@@ -720,13 +767,16 @@ Spec == Init /\ [][Next]_vars
 \* ----- the verification surface -----
 
 \* Invariant 4 — all-or-compensated, read against the world. A committed run has every effect
-\* landed and no compensation applied; a compensated run has every effect that landed reversed by
-\* its compensation, the one an indeterminate verdict left unrecorded included, but a step declaring
-\* no compensating action (read-only: no external effect to reverse). No completed external effect
-\* survives an abort uncompensated.
+\* step's effect landed once and no compensation applied; a compensated run has every effect that
+\* landed reversed by its compensation, the one an indeterminate verdict left unrecorded included.
+\* No step is exempt: a step declaring no compensating action outside the roll-forward steps is no
+\* effect step (Primitive policy 12 and 29, Admit), so nothing of it lands at a target (LandAt).
+\* Before 2026-11-22 the check exempted every step declaring no compensating action, so an effect
+\* step marked read-only was admitted and its effect survived an abort (the model's finding, cured
+\* by Primitive policy 29). No completed external effect survives an abort uncompensated.
 Invariant_4_AllOrCompensated ==
-    /\ (ph = "committed") => (\A i \in Steps : eff[i] = 1 /\ eff[N + i] = 0)
-    /\ (ph = "compensated") => (\A i \in Steps : (i \notin ro /\ eff[i] >= 1) => eff[N + i] >= 1)
+    /\ (ph = "committed") => (\A i \in Steps : eff[i] = (IF i \in fx THEN 1 ELSE 0) /\ eff[N + i] = 0)
+    /\ (ph = "compensated") => (\A i \in Steps : eff[i] >= 1 => eff[N + i] >= 1)
 
 \* Invariant 4.1 — a run carrying a compensation close event carries a compensation run event for
 \* every step completion event whose compensation reference does not equal blank: no completed
@@ -749,7 +799,9 @@ Invariant_4_3 ==
 Invariant_4_5 ==
     (ph \in {"committed", "compensated"}) => (att = {})
 
-\* Invariant 5.1 — under the reverse order, completed steps are compensated newest first.
+\* Invariant 5.1 — under the reverse order, completed steps are compensated newest first. A step a
+\* standing failure names is no pending compensation, so the older steps' compensations run past it
+\* and its own runs again after them (Action wiring 97, below): that is the order Check 5.1 reads.
 Invariant_5_1 == "Invariant_5_1" \notin viol
 
 \* Invariant 6.3 — a resume marker returns the run to the phase the newest halt event names.
@@ -831,5 +883,12 @@ Action_93_NoFaultHalt == ~flt
 \* Action wiring 95 and 96 — a storage-failure names effect-landed where the invocation's effect
 \* landed at its target with no completion record, never none.
 Action_95_FirePosition == "Action_95" \notin viol
+
+\* Action wiring 97, Check 5.1 — under the continue policy the compensating action of a step a
+\* standing failure names runs again only where no pending compensation stands: the operator's
+\* resume after the halt Action wiring 41 appends re-runs the failed newer step's compensation
+\* after the older steps', the order Check 5.1 reads (save where a compensation failure event
+\* names the newer step). Invariant_5_1 reads the reverse order of the other compensations.
+Action_97_RerunAfterPending == "Action_97" \notin viol
 
 ====
