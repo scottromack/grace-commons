@@ -27,8 +27,8 @@
 \*     otherwise writes the intent, which a refusal, an abandonment or an escalation does not stop;
 \*   issues the execution commit (Term execution commit): the guard read refuses already-fulfilled, or the
 \*     read fails state-unavailable — pre-commit, closed by the invocation refuse (Action wiring 47) — and
-\*     otherwise calls Defensible Retention's purge for R, re-invoked once after a retry answer
-\*     (Disposition 41), each answer landing R's purge reading (Term purge reading);
+\*     otherwise calls Defensible Retention's purge for R, re-invoked after a retry answer
+\*     (Disposition 41, 41a), each answer landing R's purge reading (Term purge reading);
 \*   commits the disclosure, the fulfilled event and the executed outcome in one transaction (Action wiring
 \*     46), which may fail and leave the act the sweep's;
 \*   or runs the re-entry bind (Action wiring 44, 49 through 52): one store transaction under its guard,
@@ -232,8 +232,8 @@ AnsHeld(c) ==
                    disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
 \* The purge answers storage-failure: the retention stays retained and the record may be gone all the same
-\* (Defensible Retention Atomic writes 8, 9). A first one is re-invoked once (Disposition 41); a second is
-\* unsettled (Term purge reading, Disposition 42).
+\* (Defensible Retention Atomic writes 8, 9). A first one is re-invoked (Disposition 41), a re-invocation's again (Disposition 41a); the
+\* last one the plan cap allows is unsettled (Term purge reading, Disposition 42).
 AnsStor(c, gone) ==
     /\ Stor /\ ph[c] = "call" /\ cs[c] \in {"fly", "retry"}
     /\ goneR' = IF gone THEN TRUE ELSE goneR
@@ -244,6 +244,16 @@ AnsStor(c, gone) ==
     /\ cs' = [cs EXCEPT ![c] = IF ~ReadErased /\ Unsettled /\ cs[c] = "fly" THEN "retry" ELSE "none"]
     /\ ph' = [ph EXCEPT ![c] = IF ~ReadErased /\ Unsettled /\ cs[c] = "fly" THEN "call" ELSE "commit"]
     /\ UNCHANGED <<int, plan, rset, issued, exR, probed, holder, retR, gateR,
+                   disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
+
+\* A storage-failure answering a re-invocation is re-invoked again while the plan cap admits a further
+\* planned call (Disposition 41a): the run goes on to the first answer other than storage-failure, and the
+\* storage-failure above (a plan cap that admits no further call) is its last answer (Term purge reading).
+AnsStorAgain(c, gone) ==
+    /\ Stor /\ Unsettled /\ ~ReadErased /\ ph[c] = "call" /\ cs[c] = "retry"
+    /\ goneR' = IF gone THEN TRUE ELSE goneR
+    /\ destBy' = IF gone THEN FirstDest(c) ELSE destBy
+    /\ UNCHANGED <<r, cs, ph, int, plan, rset, issued, exR, probed, holder, retR, gateR,
                    disc, seals, sealedR, sealAct, badCover, rec, sealBy, late, gap>>
 
 \* The purge answers no answer within the planned call latency: R unsettled (Term purge reading), the
@@ -450,6 +460,7 @@ Next ==
     \/ \E c \in Calls : AnsOk(c)
     \/ \E c \in Calls : AnsHeld(c)
     \/ \E c \in Calls, g \in BOOLEAN : AnsStor(c, g)
+    \/ \E c \in Calls, g \in BOOLEAN : AnsStorAgain(c, g)
     \/ \E c \in Calls : AnsNone(c)
     \/ \E c \in Calls : LateLand(c)
     \/ \E c \in Calls : NeverLand(c)
