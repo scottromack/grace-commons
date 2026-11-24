@@ -1722,9 +1722,12 @@ def map_findings(root: Path) -> list[Finding]:
 # call (`arms take: a, b / remaining: c`), a need meets an offer only if its pairs lie within the offer's carried
 # by and each of its arms is given by a call it lists (Bond 3), and a need of an app's atoms that meets no offer
 # of the app's atoms fails the app (Bond 10, B-app-unmet, gating); on an atom alone B-bond-unmet stays advisory.
+# Unit `bonds: journal` (Scott 2026-11-24 7:36 to 7:54 AM Central): the kind journal adds the typed field keep, and
+# needs reach down: a cycle in an app's graph of needs met by offers fails the app as an unmet need does
+# (bonds.md Direction 2, B-app-cycle, gating).
 BOND_LINE = re.compile(r"^Term (need|offer) ([a-z][\w -]*?):\s*(.*?)\.?$", re.M)
 BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", re.M)
-BOND_TYPED = ("key", "holder", "span")
+BOND_TYPED = ("key", "holder", "span", "keep")
 
 
 def bond_kinds(root: Path) -> dict[str, dict[str, list[str]]]:
@@ -1827,7 +1830,44 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
             if not any(o["side"] == "offer" and bond_meets(need, o, words, types) for o in mine):
                 findings.append(Finding(app, 1, "B-app-unmet",
                                         f"{need['path'].name}:{need['line']}: the {need['kind']} need meets no offer of the app's atoms (bonds.md Bond 10)"))
+        cycle = need_cycle(mine, words, types)
+        if cycle:
+            findings.append(Finding(app, 1, "B-app-cycle",
+                                    "needs met by offers run in a cycle: " + " -> ".join(cycle) + " (bonds.md Direction 2)"))
     return findings
+
+
+def need_cycle(lines: list[dict], words: dict[str, str], types: set[str]) -> list[str]:
+    """Direction 1 on the bonds page: an edge runs from a needing atom to each atom whose offer its need meets;
+    the first cycle found, as atom names from start back to start, or [] where the graph holds none."""
+    edges: dict[str, set[str]] = {}
+    for need in (b for b in lines if b["side"] == "need"):
+        for o in lines:
+            if o["side"] == "offer" and bond_meets(need, o, words, types):
+                edges.setdefault(need["path"].stem, set()).add(o["path"].stem)
+    state: dict[str, int] = {}
+    trail: list[str] = []
+
+    def visit(n: str) -> list[str]:
+        state[n] = 1
+        trail.append(n)
+        for m in sorted(edges.get(n, ())):
+            if state.get(m) == 1:
+                return trail[trail.index(m):] + [m]
+            if m not in state:
+                found = visit(m)
+                if found:
+                    return found
+        state[n] = 2
+        trail.pop()
+        return []
+
+    for n in sorted(edges):
+        if n not in state:
+            found = visit(n)
+            if found:
+                return found
+    return []
 
 
 def bond_findings(root: Path) -> list[Finding]:

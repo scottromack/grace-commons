@@ -311,7 +311,7 @@ Term filter: the selection a [Read] call scopes the answer by — a [Filter] nam
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Prove that every user who reached patient records joined through a documented invitation from an authorized administrator.* Filter the database to accepted invitations whose context names that system; each record carries the administrator who invited (inviter reference), when the join committed (acceptance instant) and the identity bound (accepting identity reference). Invariant 3.1 is what makes the last of those never empty, so every accepted invitation names the identity bound, the inviter and the instant; that every join went through an invitation, and that the inviter was authorized, these records do not prove — the composing pattern owns the first (Non-goal 8) and the composing policy layer the second (External check 3).
-- **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; the read answers every invitation accepted under that identity — Invariant 2.1 bounds each invitation to one resolution, and no rule bounds how many invitations one identity accepts — and each carries the instant its token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented the token whose digest the invitation carries at that instant and supplied that identity, and the composing [Audit Trail](../compositions/audit-trail.md) carries the device, the address and the credential registered alongside.
+- **Disputed onboarding.** *I never accepted an invitation — my account was made without me.* Filter by accepting identity reference; the read answers every invitation accepted under that identity — Invariant 2.1 bounds each invitation to one resolution, and no rule bounds how many invitations one identity accepts — and each carries the instant its token was presented. Whether that person or someone holding their token made the call is outside this atom — the record says a bearer presented the token whose digest the invitation carries at that instant and supplied that identity, and the device, the address and the credential registered alongside are an attestation's, outside this atom.
 - **Breach investigation.** Tokens for a high-security context were exposed in a log over a week. Filter by that context, keep from that answer the invitations whose initiation instant falls inside that week, and read each effective status against the investigation clock: the accepted ones are cross-checked against known staff, the still-live ones are revoked at once, and the lapsed ones need nothing — no write ever fired against them and an accept would answer expired. Invariant 5.1 and Invariant 12.2 are what make that triage possible from the database and a clock alone.
 
 ---
@@ -354,7 +354,7 @@ External check 2: A deployment needing an accepting identity reference matched t
 External check 3: A deployment needing the inviter's authority confirmed MUST read the Permissions instance the deployment composes (Non-goal 6, Non-goal 27, Non-goal 29).
 External check 4: A deployment needing the token's delivery to the invitee confirmed MUST read the Notification instance the deployment composes (Non-goal 4, Non-goal 30).
 External check 5: A deployment needing a declining actor identified MUST read the composing pattern's own record (Operation 27, Non-goal 12).
-External check 6: A deployment needing the database confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 20).
+External check 6: A deployment needing the database confirmed free of a retroactive edit MUST read the detection of Non-goal 20.
 External check 7: A deployment needing the accepting party's real-world identity confirmed MUST read the composing Party Identity proofing (Non-goal 18).
 ```
 
@@ -376,13 +376,13 @@ Non-goal 10: A deployment needing an accepting identity matched to an invitee MU
 Non-goal 11: The atom MUST NOT offer a second acceptance of one invitation.
 Non-goal 12: The atom MUST NOT record who declined.
 Non-goal 13: The atom MUST NOT record a transition history.
-Non-goal 14: A deployment needing the full transition history MUST compose Event Log.
+Non-goal 14: A deployment needing the full transition history MUST read the events the atom appends through the atom's journal need (Composition note 4, Composition note 5).
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
 Non-goal 16: A deployment needing a non-repudiable acceptance MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT verify an accepting party's real-world credentials.
 Non-goal 18: A deployment needing identity proofing MUST compose Party Identity.
 Non-goal 19: The atom MUST NOT detect a rewrite under the database.
-Non-goal 20: A deployment needing a rewrite detected MUST compose Tamper Evidence.
+Non-goal 20: A deployment needing a rewrite of the database detected MUST detect the rewrite outside the atom.
 Non-goal 21: The atom MUST NOT bound an invitation's retention.
 Non-goal 22: The atom MUST NOT record an answer the atom gave.
 Non-goal 23: The atom MUST NOT decide whether a token holder may pass the token on.
@@ -390,7 +390,7 @@ Non-goal 24: The atom MUST NOT guarantee that an invitation resolves.
 Non-goal 25: The atom MUST NOT bound two readers' effective status agreement.
 Non-goal 26: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 Non-goal 27: The atom MUST NOT decide who may call an action.
-Non-goal 28: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 28: A deployment needing a retention bound MUST bound retention outside the atom.
 Non-goal 29: A deployment needing the authority to invite and the authority to call an action decided MUST compose Permissions.
 Non-goal 30: A deployment needing the invitation token delivered MUST compose Notification.
 Non-goal 31: A deployment needing a credential registered for an accepting party MUST compose Credential.
@@ -432,14 +432,18 @@ NOTE: watch the cap's measure (Term string cap).
 Composition note 1: A composing External Onboarding MUST create the party record ONLY AFTER an admitted accept.
 Composition note 2: A composing External Onboarding MUST record the accepting identity reference beside the party record's id on the onboarding's completion record.
 Composition note 3: A composing External Onboarding MUST register the credential against the party record the accepted invitation's onboarding enrolled.
-Composition note 4: A composing Event Log MUST append an event on EVERY admitted action.
-Composition note 5: A composing Event Log MUST append an event on EVERY refused action.
+Composition note 4: The atom MUST append an admitted action event through the atom's journal need on EVERY admitted action.
+Composition note 5: The atom MUST append a refused action event through the atom's journal need on EVERY refused action.
 Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
 Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
-Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the database holds.
+Composition note 8: The detection of Non-goal 20 MUST cover EVERY reference the database holds.
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 Composition note 10: A composing Actor Identity MUST attest the actor behind an admitted revoke.
 ```
+
+The bond this atom needs, of a kind [Bonds](../bonds.md) states; which atom meets it is the app's choice.
+
+Term need journal: records admitted action event, refused action event; calls append; arms event_id.
 
 
 NOTE: composing patterns — [External Onboarding](../compositions/external-onboarding.md).
@@ -472,7 +476,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: invitation, invitation token, token material, token digest, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, window length, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank, string cap.
 
-Term composing pattern: [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Notification](./notification.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [Retention Window](./retention-window.md), [External Onboarding](../compositions/external-onboarding.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Notification](./notification.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [External Onboarding](../compositions/external-onboarding.md).
 
 Term resolution instant: acceptance instant | declination instant | revocation instant.
 

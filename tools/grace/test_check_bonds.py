@@ -34,6 +34,12 @@ Term section holder: opaque — a holder.
 Term invocation id: opaque — an id.
 """
 
+JOURNAL = """
+Term journal need fields: records, the records; calls, the calls; arms, the answers; keep, how long.
+
+Term journal offer fields: calls, the calls; arms, the answers; keep, how long; tamper, how a change shows; order, the order.
+"""
+
 OFFER = "Term offer guard: key opaque; holder opaque; span duration; calls take, remaining, release; arms take: expires_at / remaining: none / release: released.\n"
 NEED = "Term need guard: key section key; holder section holder; span duration; calls take, release; arms expires_at, released; writes closing record.\n"
 
@@ -133,6 +139,26 @@ class BondTest(unittest.TestCase):
         self.assertNotIn("B-app-unmet", check.ADVISORY)
         self.write("guard-offerer", atom("Guard Offerer", ""))
         self.assertEqual(self.codes(), ["B-app-unmet", "B-bond-unmet"])
+
+    def test_a_cycle_of_needs_met_by_offers_fails_the_app(self):
+        (self.root / "library" / "apps" / "pair").mkdir(parents=True)
+        app = self.root / "library" / "apps" / "pair" / "index.md"
+        app.write_text("# Pair\n\n- [Guard Offerer](../../atoms/guard-offerer.md)\n- [Guard Needer](../../atoms/guard-needer.md)\n")
+        self.assertEqual(self.codes(), [])
+        # the offerer comes to need what the needer offers: guard-needer -> guard-offerer -> guard-needer
+        self.write("guard-offerer", atom("Guard Offerer", OFFER + "\nTerm need key: key invocation id; pairs closing record.\n"))
+        self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm offer key: key invocation id; carried by closing record.\n"))
+        self.assertEqual(self.codes(), ["B-app-cycle"])
+        self.assertNotIn("B-app-cycle", check.ADVISORY)
+        self.assertEqual(check.need_cycle([], {}, set()), [])
+
+    def test_a_journal_need_meets_an_offer_whose_keep_is_the_type(self):
+        (self.root / "library" / "bonds.md").write_text(BONDS + JOURNAL)
+        self.write("log", atom("Log", "Term offer journal: calls append, read; arms append: place, too-large / read: records, bad-range; keep duration; tamper none; order per stream.\n"))
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append, read; arms place, records; keep duration.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append, read; arms place, records; keep forever.\n"))
+        self.assertEqual(self.codes(), ["B-bond-type", "B-bond-unmet"])
 
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]

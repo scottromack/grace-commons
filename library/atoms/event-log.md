@@ -309,6 +309,12 @@ Capability requirement 6: The deployment MUST begin a fresh log instance at the 
 
 Term payload cap: the per-instance bound on the number of bytes the composing pattern supplies as data, counted on the value as the call carries it; 65,536 bytes where a deployment declares none; a cap of 0 admits only empty data (Operation 5, Operation 6).
 
+## Offers
+
+The bonds this atom offers, each of a kind [Bonds](../bonds.md) states. Its own checks of whether a call may happen, data over the payload cap (Operation 5) and a malformed query (Operation 15), are rules of the offer, answered on its arms, and no need it declares (Bonds Direction 4).
+
+Term offer journal: calls append, read; arms append: event_id, invalid-payload / read: events, invalid-query; keep duration; tamper none; order sequence number.
+
 ## Left to others
 
 ```
