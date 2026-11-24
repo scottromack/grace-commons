@@ -174,6 +174,8 @@ The Grace Commons atom spec maps to the execution model through a direct section
 | A policy family — String policy, or a spec's own, such as Personal Todo's Description policy | PF normalization functions, called inside G before guard evaluation |
 | Identity model | id_t injection rule: generate once per creation event, inject into T |
 
+**Atom budget 1: An atom carries at most one of failure or concurrency.** An atom carries its records' create, read, update and delete, time, and who acts, and at most one of two harder things: failure, the outside world breaking part way through an action, or concurrency, two actors on one thing at once. A pattern that carries both is a split candidate: a round's triage flags it, and it is never split without a design review before the split (Scott, 2026-11-23 4:54 PM Central).
+
 **Invariant classes matter for code generation.** Single-state invariants (Invariant 7 timestamp ordering in Personal Todo, Invariant 2 event immutability in Event Log) compile to post-write assertions — pure functions the compiler emits immediately after `database.write` to check the new state satisfies the invariant before returning. Sequence-safety invariants (Invariant 1 membership exclusivity in Personal Todo, Invariant 7 reassign atomicity in Assignment) cannot be checked in isolation after a single write; the compiler must prove that no execution of T starting from a valid state can produce an invalid state, and the runtime must serialize transitions to prevent concurrent races from bypassing this guarantee.
 
 ---
@@ -408,13 +410,21 @@ Every specification keeps records, and every deployment keeps them in a database
 
 **Database 8: A check of one state holds at every commit.** Where a conformance check tests a property of one state of the records, such as that no two records share a name or an id, or that a record carries a field, it holds at every commit, not at head alone: each commit's state is read from the committed versions Database 5 keeps readable, so a deployment that broke the property at one commit and repaired it later fails the check as one that breaks it now does. A specification that relies on this cites Database 8 by its label; it does not restate it.
 
-### A particular family: Order
+### A family for every commit: Order
 
-One guarantee only some specifications need, and a specification that does not cite it may not assume it. A specification that rests on it names the label in its Capability requirement section.
+Which of two commits came first, and which of two writes wins, is the same for every specification, so it is written once, here, and holds for every specification as the Database rules do: a specification that relies on one of these rules cites it by its label, `Execution Contract Order 1`, and does not restate it. Until 2026-11-24 the family was one only some specifications cited, and a specification that did not cite it could not assume it (Scott, 2026-11-23 4:54 PM Central: order is not optional).
 
 **Order 1: Commits have one order.** Every commit carries a position in a single order that only ever increases and that every reader reads the same way, so two records' commits can always be compared.
 
+**Order 2: The commit order decides; a clock reading is only a stamp.** Where two writes compete, for one record, one key or one place in a line, which one wins is decided by their positions in the order Order 1 gives every commit, and never by a clock reading. A clock reading a write carries is a stamp: it says when the writer read its clock, and it decides nothing between two writes.
+
 On a database with no native version history, Database 5 is rendered as generated append-only version tables; on a database with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Database 1). Neither is a second database.
+
+### Offline time
+
+A device that works offline writes while it cannot reach the instance, and its writes reach the database later, when it syncs. Its clock is one the deployment does not hold to its guarantees (Logic confinement 7), so what its readings may decide is written once, here.
+
+**Offline 1: A device's offline time is a claim.** A device working offline may stamp its writes with its own clock, as a provisional claim. On sync each write takes its position in the commit order (Order 1), and the device's reading is kept only as the write's claimed time, checked as a specification checks an instant a caller supplies: against now plus the declared clock allowance (Logic confinement 18). A device's clock never decides order (Order 2). The atom stays pure: the claimed time reaches it as an injected input like any other (Logic confinement 3), and it reads no device clock.
 
 ### A family for every action: Read
 
