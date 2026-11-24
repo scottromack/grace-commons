@@ -274,8 +274,8 @@ Steps:
        close step 2.2b: [Close] MUST release.
        close step 2.2c: [Close] MUST return outcome event id and landing actor.
        close step 2.2d: IF the outcome carries resolving actor THEN [Close] MUST return landing actor set to operator.
-       close step 2.2e: IF the outcome carries recovery set to true AND no resolving actor THEN [Close] MUST return landing actor set to sweep.
-       close step 2.2f: IF the outcome carries no recovery set to true THEN [Close] MUST return landing actor set to invocation.
+       close step 2.2e: IF the outcome's recovery EQUALS true AND the outcome's resolving actor EQUALS blank THEN [Close] MUST return landing actor set to sweep.
+       close step 2.2f: IF the outcome's recovery EQUALS blank AND the outcome's resolving actor EQUALS blank THEN [Close] MUST return landing actor set to invocation.
    close step 2.3: WHEN the standing closing among the closing records naming the invocation id is an abandonment OR an escalation OR a refusal:
        close step 2.3a: [Close] MUST NOT adopt the record.
        close step 2.3b: [Close] MUST release and return recording-failure(outcome).
@@ -896,7 +896,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-24` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -904,9 +904,9 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-24
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-24 — Final Critique 6, a delta round (the reach of the diff since 3fe39f42, 19 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at b6ad4b52 — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample (Linus's finding 1, Term outcome shape's "no recovery_intended owed", read as a ban where an operator's closing follows a sweep's recovery_intended, so Check 2.5 and Check 2.6 can report a conforming run: cured by writing "whether or not a recovery_intended precedes it"; finding 2, intent data over the payload cap with no refusal in Primitive policy 13, placed refining since open step 1.4 refuses any sized record, cured by naming intent data in Primitive policy 13, open step 1.4 and Primitive policy 12; refining, cured: close step 2.2e and 2.2f key on recovery set to true, Term as the substrate measures a payload names an operator's abandonment; refined without change: Check 1.1 scopes to the horizon by Check 1.2, and Which closing stands 3 lets an operator's abandonment supersede an escalation); 2026-11-24 — Final Critique 5, a delta round (the reach of the diff since 75a0f408, 2 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 3fe39f42 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were placed by neither triage as foundational: Which closing stands 3 read as a ban on a resolving actor's supersession, when the field resolving actor is what the clause says carries no trigger and the clause's own example, an operator's abandonment superseding an escalation, carries it; and Which closing stands 2 read as leaving a cycle or a branch of supersessions undecided, when the journal assigns event ids, so no closing names a record not yet written, and Which closing stands 7 and Term standing closing give a branch of unsuperseded closings the lowest sequence number); cured as refining: rule 3 states the field and the example's field, and Term resolving actor is declared on the page)
+last gate: 2026-11-24 — Final Critique 7, a delta round (the reach of the diff since b6ad4b52, 14 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 1ba131fd — foundational count 0 after the blind second triage, clean, one sample (Linus's foundational report, that an outcome with recovery set to true and a resolving actor meets neither close step 2.2e nor close step 2.2f, was placed by neither triage as foundational: close step 2.2d, outside the reader's delta set, sets landing actor to operator for every outcome that carries resolving actor, and the proposed added rule would set a value Term value sets does not admit and contradict close step 2.2d; cured as refining: close step 2.2e and 2.2f are written in the blank form (Earned vocabulary 7) on the outcome's recovery and resolving actor, so close step 2.2d, 2.2e and 2.2f divide the outcomes between them and a record carrying a resolving actor with recovery absent has the one answer, operator; refined without change: Primitive policy 10c's field named for a Term entry reads as Primitive policy 10a and 10b do, and the recovery flag's EQUALS true is the corpus's form); 2026-11-24 — Final Critique 6, a delta round (the reach of the diff since 3fe39f42, 19 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at b6ad4b52 — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample (Linus's finding 1, Term outcome shape's "no recovery_intended owed", read as a ban where an operator's closing follows a sweep's recovery_intended, so Check 2.5 and Check 2.6 can report a conforming run: cured by writing "whether or not a recovery_intended precedes it"; finding 2, intent data over the payload cap with no refusal in Primitive policy 13, placed refining since open step 1.4 refuses any sized record, cured by naming intent data in Primitive policy 13, open step 1.4 and Primitive policy 12; refining, cured: close step 2.2e and 2.2f key on recovery set to true, Term as the substrate measures a payload names an operator's abandonment; refined without change: Check 1.1 scopes to the horizon by Check 1.2, and Which closing stands 3 lets an operator's abandonment supersede an escalation)
 open: none
 ```
 
