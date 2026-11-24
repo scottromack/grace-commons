@@ -1715,6 +1715,10 @@ def map_findings(root: Path) -> list[Finding]:
 # fields are typed by the words of declarations.md. A line naming a kind bonds.md does not state, a field the
 # kind does not carry, a typed value that is neither a declared word nor a declared type, or an atom's name
 # gates; a need that meets no offer, or more than one, by its declared types alone is reported, never forced.
+# Unit `bonds: five rulings` (Scott 2026-11-23 10:56 PM Central, "as recommended"): an offer names its arms per
+# call (`arms take: a, b / remaining: c`), a need meets an offer only if its pairs lie within the offer's carried
+# by and each of its arms is given by a call it lists (Bond 3), and a need of an app's atoms that meets no offer
+# of the app's atoms fails the app (Bond 10, B-app-unmet, gating); on an atom alone B-bond-unmet stays advisory.
 BOND_LINE = re.compile(r"^Term (need|offer) ([a-z][\w -]*?):\s*(.*?)\.?$", re.M)
 BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", re.M)
 BOND_TYPED = ("key", "holder", "span")
@@ -1758,9 +1762,25 @@ def bond_lines(path: Path, kinds: dict) -> list[dict]:
             part = part.strip()
             name = next((f for f in known if part == f or part.startswith(f + " ")), part.split(" ")[0])
             value = part[len(name):].strip()
-            fields[name] = value if name in BOND_TYPED else {w.strip() for w in value.split(",") if w.strip()}
+            if name in BOND_TYPED:
+                fields[name] = value
+            elif name == "arms" and m.group(1) == "offer":
+                fields[name] = per_call(value)
+            else:
+                fields[name] = {w.strip() for w in value.split(",") if w.strip()}
         out.append({"path": path, "line": text[:m.start()].count("\n") + 1, "side": m.group(1),
                     "kind": m.group(2), "fields": fields, "text": m.group(0)})
+    return out
+
+
+def per_call(value: str) -> dict[str, set[str]] | None:
+    """An offer's arms, named per call: `take: a, b / remaining: c` -> {call: {arms}}; None when not in that form."""
+    out: dict[str, set[str]] = {}
+    for part in value.split("/"):
+        call, sep, arms = part.partition(":")
+        if not sep or not call.strip():
+            return None
+        out[call.strip()] = {w.strip() for w in arms.split(",") if w.strip()}
     return out
 
 
@@ -1777,10 +1797,34 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
         nt, ot = words.get(nv, nv if nv in types else None), words.get(ov, ov if ov in types else None)
         if nt is None or nt != ot or (nv in words and ov in words and nv != ov):
             return False
-    for f in ("calls", "arms"):
-        if f in need["fields"] and not need["fields"][f] <= offer["fields"].get(f, set()):
+    calls = need["fields"].get("calls", set())
+    if not calls <= offer["fields"].get("calls", set()):
+        return False
+    if "arms" in need["fields"]:
+        given = offer["fields"].get("arms") or {}
+        if not isinstance(given, dict):
             return False
+        if any(not any(a in given.get(c, set()) for c in calls) for a in need["fields"]["arms"]):
+            return False
+    if "pairs" in need["fields"] and not need["fields"]["pairs"] <= offer["fields"].get("carried by", set()):
+        return False
     return True
+
+
+APP_ATOM = re.compile(r"\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
+
+
+def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, str], types: set[str]) -> list[Finding]:
+    """Bond 10: a need of an app's atoms that meets no offer of the app's atoms fails the app."""
+    findings: list[Finding] = []
+    for app in sorted((root / "apps").glob("*/index.md")):
+        names = set(APP_ATOM.findall(app.read_text(encoding="utf-8")))
+        mine = [b for b in lines if b["path"].stem in names and b["path"].parent.name == "atoms" and b["kind"] in kinds]
+        for need in (b for b in mine if b["side"] == "need"):
+            if not any(o["side"] == "offer" and bond_meets(need, o, words, types) for o in mine):
+                findings.append(Finding(app, 1, "B-app-unmet",
+                                        f"{need['path'].name}:{need['line']}: the {need['kind']} need meets no offer of the app's atoms (bonds.md Bond 10)"))
+    return findings
 
 
 def bond_findings(root: Path) -> list[Finding]:
@@ -1807,6 +1851,9 @@ def bond_findings(root: Path) -> list[Finding]:
             elif f in BOND_TYPED and v not in words and v not in types:
                 findings.append(Finding(b["path"], b["line"], "B-bond-type",
                                         f"`{v}` is neither a word nor a type declarations.md declares"))
+            elif f == "arms" and b["side"] == "offer" and (v is None or not set(v) <= b["fields"].get("calls", set())):
+                findings.append(Finding(b["path"], b["line"], "B-bond-arms",
+                                        "an offer names its arms per call (`call: arms / call: arms`), each call one of its calls (bonds.md Term per-call field)"))
         for t in titles:
             if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", b["text"]):
                 findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
@@ -1830,6 +1877,7 @@ def bond_findings(root: Path) -> list[Finding]:
             where = ", ".join(o["path"].name for o in met)
             findings.append(Finding(need["path"], need["line"], "B-bond-ambiguous",
                                     f"the {need['kind']} need meets {len(met)} offers ({where}); an app that composes them writes the bond"))
+    findings += app_findings(root, lines, kinds, words, types)
     return findings
 
 

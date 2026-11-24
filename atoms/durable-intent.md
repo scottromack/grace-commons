@@ -687,13 +687,11 @@ The bonds this atom needs, each of a kind [Bonds](../bonds.md) states, and the c
 
 Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
 
-Term need key: key act key; pairs intent record.
-
-Term contract need commit: asks the act under act key; answers pre-commit, committed, unknown; bound commit round trip.
+Term contract need commit: asks the act under act key, the key the app supplies and the intent record carries; answers pre-commit, committed, unknown; bound commit round trip.
 
 ## Offers
 
-Term offer key: key invocation id; carried by intent record, closing record.
+Term offer key: key invocation id; carried by intent record, recovery_intended, closing record.
 
 ## Left to others
 
