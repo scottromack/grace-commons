@@ -26,20 +26,27 @@ Term list field: a field whose value is a list of words, separated by commas; ca
 
 Term ambiguous need: of an app, a need that meets one offer of the app's atoms and a second.
 
+Term meets: a need meets an offer where the two lines satisfy Bond 1, Bond 2 and Bond 3.
+
+Term bond instance: the line an app writes naming an ambiguous need and the one offer that serves it.
+
 ```
 Bond 1: A need MAY meet an offer ONLY IF the two lines name one kind AND the two lines stand on two atoms.
-Bond 2: A need MAY meet an offer ONLY IF EVERY typed field of the need names a word of the type the offer's field names, or the word the offer's field names.
+Bond 2: A need MAY meet an offer ONLY IF EVERY typed field of the need names a word of the type the offer's field names, or names the same word the offer's field names.
 Bond 3: A need MAY meet an offer ONLY IF EVERY word of the need's calls and arms IS IN the offer's calls and arms.
-Bond 4: An app MUST write a bond ONLY IF a need of one of the app's atoms is an ambiguous need.
+Bond 4: An app MAY write a bond instance ONLY IF a need of one of the app's atoms is an ambiguous need.
 Bond 5: A bond instance MUST NOT stand outside an app.
 Bond 6: A need line MUST NOT name an atom.
+Bond 7: IF a need of one of the app's atoms is an ambiguous need THEN the app MUST write one bond instance for the need.
+Bond 8: IF a need of one of the app's atoms meets EXACTLY ONE offer of the app's atoms THEN that offer MUST serve the need.
+Bond 9: EXACTLY ONE instance of an atom MUST serve EVERY need of the app that meets one of the atom's offers.
 ```
 
 ## Guard
 
 Term guard: one holder at a time over a key, from a take until the holder releases the guard or the guard's instant passes.
 
-Term guard need fields: key, the key the needing atom takes the guard on; holder, the value its take names; span, how long its take asks for; calls, the guard calls it makes, and it makes no call the list leaves out; arms, the answers it reads, and it discards an answer the list leaves out; writes, the records it writes under the guard.
+Term guard need fields: key, the key the needing atom takes the guard on; holder, the value its take names; span, how long its take asks for; calls, the guard calls it makes, and it makes no call the list leaves out; arms, the guard's answers it reads, and it discards a guard answer the list leaves out, while a failure the Execution Contract answers, such as state-unavailable or storage-failure, is no answer of the guard and the needing atom lands it as the Execution Contract says (Read 1, Constituent failure 1 and Constituent failure 3); writes, the records it writes under the guard.
 
 Term guard offer fields: key, the keys the guard is given over; holder, the holder values a take may name; span, the length a take may ask for; calls, the guard calls offered; arms, every answer those calls give.
 
@@ -71,11 +78,11 @@ Term key offer fields: key, the value the offering atom mints; carried by, the r
 
 ```
 Key 1: EVERY record a key need names under pairs MUST carry the key the meeting offer mints.
-Key 2: EXACTLY ONE atom of an app MUST offer a given key, an ambiguous need the app writes the bond for excepted (Bond 4).
+Key 2: Two atoms of an app MUST NOT offer one key, an ambiguous need the app writes a bond instance for excepted (Bond 7).
 ```
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules. Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: four foundational cured (a bond now forms by rule, an ambiguous need gets one bond instance, the guard's answers are told from the Execution Contract's failures, one instance of an atom serves every need it meets), three filed as design questions for Scott (a need that meets no offer, key matching on pairs and carried by, arms tied to calls).
 
 NOTE: End of Bonds.
