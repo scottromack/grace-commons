@@ -82,7 +82,7 @@ One invocation may carry more than one closing record; one act key carries the c
 ```
 Which closing stands 1: This section IS AUTHORITATIVE FOR which of the closing records naming one invocation id is the invocation's.
 NOTE: watch addressable sections.
-Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names the other in supersedes.
+Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names that other closing record in supersedes and both closing records name the same invocation id.
 Which closing stands 3: resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment naming an escalation supersedes the escalation.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
 Which closing stands 5: EVERY surface MUST count the standing closing and every record reachable from the standing closing through supersedes as one closing.
@@ -907,7 +907,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 ```
 status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-24 — Final Critique 3, a delta round (the reach of the diff since cb0c954b, 102 rules and terms), one reader (Linus claude-sonnet-5-5), frozen at 7a2a4731 — foundational count 5, not clean, no sample (outcome data could carry a field the composition adds beyond the four 10a named; Check 2.3 grouped on act key where Invariant 3.2 pairs on invocation id alone; [Read Invocation] owed an entry for an invocation whose intent was purged; act closings kept a closing the substrate had purged; [Refuse]'s already-accounted carried an event id no term defined); the round's refining findings cured with them (Check 2.1 held only at act quiescence, a term now gone; Primitive policy 5 restated Invariant 3.2; close 6's outcome refs had no owner, now a binding; Term largest record named no abandonment; the invocation completion bound omitted [Close]'s step-2 re-read; open invocations 3 read closings from a read filtered to intents; read cap had no minimum; recording-failure(outcome) answered with one caller action in every case, left as the table states it)
+last gate: 2026-11-24 — Final Critique 4, a delta round (the reach of the diff since 7a2a4731, 98 rules and terms), one reader (Linus opencode/beam-free), frozen at 75a0f408 — foundational count 1, not clean, no sample (Which closing stands 2 let a closing of one invocation supersede a closing of another, leaving the first invocation with no standing closing and open invocations already cleared of it; the rule now requires both closings to name the same invocation id)
 open: none
 ```
 
