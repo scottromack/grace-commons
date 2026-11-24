@@ -62,7 +62,9 @@ Deleted: Clock semantics 3. State 13 owns it.
 ### Structure › Operations
 
 ```
+Deleted: Operation 3. The assign signature's answers line owns it (Closed vocabulary 21 and Closed vocabulary 25).
 Deleted: Operation 20. Execution Contract Database 1 owns it.
+Deleted: Operation 21. The reassign signature's answers line owns it (Closed vocabulary 21 and Closed vocabulary 25).
 Deleted: Operation 23. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Deleted: Operation 24. Execution Contract Read 4 and Execution Contract Database 3 own it: a refused call writes nothing, and a write that did not commit leaves nothing.
 Deleted: Operation 30a. Execution Contract Logic confinement 3 owns it.

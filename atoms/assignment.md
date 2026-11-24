@@ -118,7 +118,6 @@ history_for(task_ref)
 ```
 Operation 1: [Assign] MUST record EXACTLY ONE assignment per successful call.
 Operation 2: [Assign] MUST stand the assignment in active.
-Operation 3: [Assign] MUST answer assignment id.
 Operation 4: IF task reference EQUALS blank THEN [Assign] MUST answer invalid-request.
 Operation 5: IF assignee reference EQUALS blank THEN [Assign] MUST answer invalid-request.
 Operation 6: IF an active assignment EXISTS for the task reference THEN [Assign] MUST answer already-assigned.
@@ -135,7 +134,6 @@ Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST
 Operation 17: IF new assignee reference EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the old assignment's task reference.
-Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the database refuses either write THEN [Reassign] MUST answer storage-failure.
 Operation 25: [Active For] MUST answer the active assignment for the task reference.
 Operation 26: [Active For] MUST answer none for a task reference with no active assignment, a blank one included.
@@ -166,7 +164,7 @@ The case space, and the rule that owns each case:
 | [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's; its assignment id, task reference, assignee reference and assignment instant stand (Operation 11, Operation 12, Operation 39, Invariant 2.1) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
 | [Recall] | database refuses the write | [Storage Failure] | none — the assignment stays [Active] (Operation 13) |
-| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and its transfer instant stamped from the injected now; and a new [Active] one carrying the same task reference, the new assignee reference and an assignment instant stamped from the injected now (Operation 18, Operation 19, Operation 21, Operation 30b, Operation 38, State 7, Invariant 2.1, Invariant 8.3) |
+| [Reassign] | assignment active, new assignee reference present, database accepts | the new assignment id | old → [Transferred], its assignment id, task reference, assignee reference and assignment instant standing, and its transfer instant stamped from the injected now; and a new [Active] one carrying the same task reference, the new assignee reference and an assignment instant stamped from the injected now (Operation 18, Operation 19, Operation 30b, Operation 38, State 7, Invariant 2.1, Invariant 8.3) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22) |

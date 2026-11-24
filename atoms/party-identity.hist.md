@@ -65,6 +65,7 @@ Deleted: Operation 19. Execution Contract Refusal 1 owns it.
 Deleted: Operation 20. Execution Contract Refusal 1 owns it.
 Deleted: Operation 28. Operation 37 owns it.
 Deleted: Operation 38. Execution Contract Database 1 owns it.
+Deleted: Operation 39. Execution Contract Read 4 owns it.
 Deleted: Operation 40. Execution Contract Refusal 1 owns it.
 Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.

@@ -135,7 +135,6 @@ Term redemption failure: exhausted | expired | revoked | not-known — the reaso
 ```
 Operation 1: [Allocate] MUST record EXACTLY ONE capability per successful call.
 Operation 2: [Allocate] MUST stand the capability in allocated.
-Operation 3: [Allocate] MUST answer the capability token.
 Operation 4: IF allocator reference EQUALS blank THEN [Allocate] MUST answer invalid-request.
 Operation 5: IF scope EQUALS blank THEN [Allocate] MUST answer invalid-request.
 Operation 6: IF max redemptions EQUALS blank THEN [Allocate] MUST apply the single-use default.
@@ -150,7 +149,6 @@ Operation 14: [Allocate] MUST stamp allocation instant from the injected now.
 Operation 15: [Allocate] MUST stamp expiry instant from the expiry deadline.
 Operation 16: [Allocate] MUST NOT recompute expiry instant from a later clock reading.
 Operation 17: [Allocate] MUST set remaining redemptions to the max redemptions.
-Operation 18: IF the database refuses the write THEN [Allocate] MUST answer storage-failure.
 Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, a redemption failure, storage-failure.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
@@ -176,8 +174,6 @@ Operation 42: [Revoke] MUST stamp revocation instant from the injected now.
 Operation 43: [Revoke] MUST record revoked by reference on the capability.
 Operation 44: [Revoke] MUST record the reason as the revocation reason.
 Operation 46: [Revoke] MUST NOT lower remaining redemptions.
-Operation 47: [Revoke] MUST answer revoked.
-Operation 48: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 50: [Read] MUST answer EVERY capability the filter matches.
 Operation 51: [Read] MUST carry the effective status on EVERY answered capability.
 Operation 52: [Read] MUST NOT write.
@@ -186,7 +182,6 @@ Operation 54: A liveness query MUST NOT rest on the stored status alone.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
-Operation 63: IF the database refuses the write THEN [Redeem] MUST answer storage-failure.
 Operation 70: IF a supplied max redemptions is malformed OR a supplied ttl is malformed THEN [Allocate] MUST answer invalid-request (Execution Contract Input 1).
 Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
 Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
@@ -259,7 +254,7 @@ The case space, and the rule that owns each case:
 | [Revoke] | stored status is [Redeemed] or [Revoked] | [Already Terminal] | none (Operation 36, Operation 37) |
 | [Revoke] | stored [Allocated] past its deadline | [Already Terminal] | none — derived, nothing written (Operation 38) |
 | [Revoke] | revocable, blank or over-long attribution | [Invalid Request] | none (Operation 39, Operation 40, String 9, String 10) |
-| [Allocate], [Redeem], [Revoke] | database refuses the write | [Storage Failure] | none (Operation 18, Operation 48, Operation 63) |
+| [Allocate], [Redeem], [Revoke] | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no status, no stamp, no counter move (Expiry 2 through 5, Invariant 13.3) |
 | [Read] | a filter naming capability token, allocator reference, both or neither | the matching capabilities, each carrying its effective status | none (Operation 50, Operation 51, Term filter) |
 | [Read] | a filter naming a blank value, or a field other than capability token and allocator reference | no capability | none (Operation 50, Operation 68, Term filter) |
@@ -374,7 +369,7 @@ The window closes with two redemptions unspent. **Nothing is called and nothing 
 
 `redeem(cap_tok_forged)` → `invalid(not-known)`. No record for the token — and after a composed retention purge, the same answer covers a capability that once existed (Invariant 12.4).
 
-`redeem(cap_tok_b81c)` whose write the database refuses → storage-failure, and the counter is not lowered (Operation 63, Operation 31).
+`redeem(cap_tok_b81c)` whose write the database refuses → storage-failure, and the counter is not lowered (Execution Contract Read 4, Operation 31).
 
 ### Regulated adversarial scenarios
 

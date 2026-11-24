@@ -80,16 +80,21 @@ Deleted: Clock semantics 6. Non-goal 28 owns it.
 ### Structure › Operations
 
 ```
+Deleted: Operation 3. The allocate signature's answers line owns it (Closed vocabulary 21 and Closed vocabulary 25).
+Deleted: Operation 18. Execution Contract Read 4 owns it.
 Deleted: Operation 20. Invariant 3.1 owns it.
 Deleted: Operation 30. Operation 71 owns it.
 Deleted: Operation 34. Execution Contract Database 1 owns it.
 Deleted: Operation 45. Execution Contract Database 1 owns it.
+Deleted: Operation 47. The revoke signature's answers line owns it (Closed vocabulary 21 and Closed vocabulary 25).
+Deleted: Operation 48. Execution Contract Read 4 owns it.
 Deleted: Operation 49. Execution Contract Database 3 owns it.
 Deleted: Operation 55. Capability requirement 1 owns it.
 Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 61. Execution Contract Input 1 owns it.
 Deleted: Operation 62. Execution Contract Read 1 owns it.
+Deleted: Operation 63. Execution Contract Read 4 owns it.
 Deleted: Operation 64. Execution Contract Read 1 owns it: after the read, every refusal rule of [Allocate] answers invalid-request.
 Deleted: Operation 65. Operation 24, Operation 25 and Operation 26 own it: each holds in one status, so no two apply to one call and nothing is left to order.
 Deleted: Operation 66. Execution Contract Refusal 1 owns it.

@@ -182,7 +182,6 @@ Operation 34: A transitioning action MUST record the prior state, the new state,
 Operation 35: A reasoned action MUST record reason on the state change event.
 Operation 36: An admitted verify MUST NOT record a reason on a state change event.
 Operation 37: A transitioning action MUST answer the state change id.
-Operation 39: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 42: A refused [Enroll] MUST NOT record a party.
 Operation 43: A refused action MUST NOT append an event.
