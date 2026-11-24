@@ -39,7 +39,7 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 
 ### Bonds
 
-Bond kinds are the bonds page's, one source *(planned: the page does not exist yet)*; this app names the kinds it instantiates and defines none.
+Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names the kinds it instantiates and defines none.
 
 - **guard** — [Lease](../../atoms/lease.md): one writer per act. The critical section is keyed by `(kind, act_key)`; the invocation, the sweep and an operator's [Resolve] each take it before they write a closing (Durable Intent act section 8 through 10; Sweep act section 11 through 13; Invariant 2.2 below).
 - **key** — invocation id: every record the three atoms write for an invocation carries it, and every check and journal join pairs on it and no other field (Durable Intent Primitive policy 4 and 5; Invariant 3.1 and 3.2 of Durable Intent).
@@ -58,34 +58,13 @@ What belongs to no atom yet, moved from the old page as it stood. Every line car
 
 ```
 Capability requirement 11: IF the range read, read-your-writes or act section is absent THEN the composition MUST NOT start. {birth: bond candidate}
-Capability requirement 12: The deployment MUST supply the journal's database PER Execution Contract Database 1 through 4, Execution Contract Database 7 and Execution Contract Refusal 1. {birth: bond candidate}
 ```
 ### The act's critical section
 
-- **bindings**
-  Term bindings: the table of act kinds the instance serves, each with its full binding set. *Default:* none. {birth: bond candidate}
-
-  Term kind: the act kind an invocation belongs to — a key of the bindings table while the instance serves the kind, and the `<kind>` of every action reference the act's records carry (journal 2, journal 3). {birth: bond candidate}
-
 - **act section**
-  Term act section: an instance capability requirement: a [Lease](../../atoms/lease.md) host. *Default:* none. {birth: bond candidate}
-
-  ```
-  act section 1: The deployment MUST supply act section with the Lease atom's semantics. {birth: bond candidate}
-  act section 2: A host MUST NOT free the critical section on a holder's death (Lease Invariant 3). {birth: bond candidate}
-  act section 3: The deployment MUST share act section across every node of the instance. {birth: bond candidate}
-  ```
-  ```
-  act section 6: EVERY caller on this pattern MUST discard the atom's not-held arm. {birth: bond candidate}
-  act section 7: The composition MUST NOT use try_take. {birth: bond candidate}
-  ```
   ```
   act section 16: The composition MUST bind Lease Sizing 1 through 9 for EVERY unfenced write under the critical section, with pause bound as the atom's call pause bound, lease spend and sweep lease spend, each on the path with no retry and no lost reply, as the atom's work bounds, write floor and commit floor as the atom's start floors, and journal write bound and commit round trip, each behind one pause, as the units' bounds (Lease Composition note 8a). {birth: bond candidate}
-  act section 17: IF a take, a remaining or a release on act section answers no answer OR state-unavailable THEN the holder MUST read remaining as none for the rest of the grant (Lease Sizing 7). {birth: bond candidate}
-  act section 18: A holder MUST NOT issue a second time, under one lease, a lease call that answered no answer (Lease Sizing 8). {birth: bond candidate}
-  act section 19: The deployment MUST supply Lease Durable Intent Capability requirement 8 through 10 at the journal and at the adopter's database. {birth: bond candidate}
   ```
-  Term unfenced write: a write issued under a lease that carries no fence a fenced party judges (Lease Term unfenced write); on this pattern the bound commit and every journal write, which no fence reaches. {birth: bond candidate}
 
 ### Bounds the deployment declares
 
@@ -103,10 +82,6 @@ Capability requirement 12: The deployment MUST supply the journal's database PER
 
 ### Constituent invariants and the guard
 
-- **Invariant 2 — One writer per act.**
-  ```
-  Invariant 2.2: A writer MUST write a closing record ONLY IF the writer holds the act's critical section. {birth: bond candidate}
-  ```
 - **Invariant 9 — Constituent invariants preserved.**
   ```
   Invariant 9.1: Audit Trail Invariant 1 through 8 MUST hold over the journal instance. {birth: bond candidate}
@@ -200,7 +175,6 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes. The critical section is keyed by it; the sweep pairs by it; the pre-check reads by it. {birth: data}
 
   ```
-  act key 1: The adopter MUST know act key before [Open]. {birth: bond candidate}
   act key 2: An act whose key is minted by the commit MUST bind the key the adopter can name before the commit and declare the minted-key deviation. {birth: bond candidate}
   ```
 - **commit**
@@ -226,9 +200,6 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent. {birth: data}
 
   ```
-  pairing datum 1: intent data MUST carry pairing datum. {birth: bond candidate}
-  pairing datum 2: act probe MUST match on pairing datum by equality. {birth: bond candidate}
-  pairing datum 3: A journal join MUST NOT pair on pairing datum. {birth: bond candidate}
   pairing datum 4: The adopter MAY bind a seam-injected now as pairing datum ONLY IF no two serialized invocations of one act key carry the same reading on any node of the instance. {birth: bond candidate}
   pairing datum 5: The adopter MUST declare the obligation pairing datum 4 names where the datum is a seam-injected now. {birth: bond candidate}
   pairing datum 6: WHEN pairing datum EQUALS none: {birth: bond candidate}
@@ -330,7 +301,6 @@ Term conditions of instance start: condition 1 is Instance start 4; condition 2 
 ### Where the allowance goes
 
 ```
-Allowance 1: clock allowance IS AUTHORITATIVE FOR every comparison in Recoverable Invocation between a reading taken at one seam and a stamp or instant minted at another. {birth: bond candidate}
 Allowance 2: This section IS AUTHORITATIVE FOR where the allowance is spent. {birth: bond candidate}
 NOTE: watch addressable sections (Instance start 1).
 Allowance 4: A cross-seam comparison MUST take the allowance at the reading. {birth: bond candidate}

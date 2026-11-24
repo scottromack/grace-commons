@@ -18,12 +18,12 @@ toc: true
 
 ## What it is
 
-Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database. It closes an act as done only where the database answers that the act committed with exactly one matching record; where the act did not commit, or the database cannot say, the sweep records the act for a person to settle ([Escalation](./escalation.md)), and it never abandons an act.
+Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database. It closes an act as done only where the database answers that the act committed with exactly one matching record; where the act did not commit, or the database cannot say, the sweep records the act for a person to settle, and it never abandons an act.
 
 <details markdown="block">
 <summary>WHY</summary>
 
-A sweep that wrote what it could not know would be a second writer making up the first one's account, and one that read in-flight work as a crash would close an act its invocation still owns, because a dead invocation and a slow one look alike from outside. This atom is the sweep alone: it reads only aged intents (the lower edge) inside the retention horizon (the upper edge), writes a plan before an outcome, and answers what it cannot settle with an escalation, not a guess (Scott, 2026-11-23, ruling of 9:29 AM Central: the sweep closes only on committed with exactly one match; not-committed and undecidable escalate, and only a person abandons). The records it reads and the writer it must exclude are [Durable Intent](./durable-intent.md)'s.
+A sweep that wrote what it could not know would be a second writer making up the first one's account, and one that read in-flight work as a crash would close an act its invocation still owns, because a dead invocation and a slow one look alike from outside. This atom is the sweep alone: it reads only aged intents (the lower edge) inside the retention horizon (the upper edge), writes a plan before an outcome, and answers what it cannot settle with an escalation, not a guess (Scott, 2026-11-23, ruling of 9:29 AM Central: the sweep closes only on committed with exactly one match; not-committed and undecidable escalate, and only a person abandons).
 
 </details>
 
@@ -32,7 +32,7 @@ A sweep that wrote what it could not know would be a second writer making up the
 ### Derived indexes
 
 - **sweep closed ids**
-  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true` or an `<kind>.escalated` naming the id and carrying no resolving actor (an operator's closing carries one, Escalation resolve 21). *Derived index*, same rebuild. Past the horizon the set holds no id whose closing's payload the substrate destroyed, the rebuild reading the id from the payload (Durable Intent Primitive policy 4), and no reader needs one there: only the sweep reads the set, for an intent short of the intent's horizon edge (reconcile step 1.2), and every closing of that intent was recorded after the intent under the kind's one retention period (Recoverable Invocation journal 6).
+  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true` or an `<kind>.escalated` naming the id and carrying no resolving actor (an operator's closing carries one). *Derived index*, same rebuild. Past the horizon the set holds no id whose closing's payload the substrate destroyed, the rebuild reading the id from the payload, and no reader needs one there: only the sweep reads the set, for an intent short of the intent's horizon edge (reconcile step 1.2), and every closing of that intent was recorded after the intent under the kind's one retention period.
 
   ```
   sweep closed ids 1: The sweep MUST NOT write a closing BEFORE consulting sweep closed ids under the critical section (reconcile step 2.4 through 2.6).
@@ -88,7 +88,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
 1. **Enumerate between two edges.**
 
    ```
-   reconcile step 1.1: The run MUST rebuild open invocations, act closings and sweep closed ids from the substrate's range read (Durable Intent sequence high water 4 and 6).
+   reconcile step 1.1: The run MUST rebuild open invocations, act closings and sweep closed ids from the substrate's range read.
    reconcile step 1.2: The run MUST keep EVERY aged intent of a kind the bindings table serves for which now PRECEDES horizon edge, and no other intent.
    NOTE: watch applicability — the pass's domain is carried by a relative clause (reconcile step 1.2); the corpus has no WHERE.
    reconcile step 1.3: The run MUST make reconcile step 1.2's comparison from the sweep's seam reading against the substrate's stamp, under clock allowance.
@@ -102,10 +102,10 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
    NOTE: watch applicability (reconcile step 1.2).
    reconcile step 2.3: A take that fails after the wait, no answer included, MUST count the act in skipped.
    reconcile step 2.4: Under the critical section, the run MUST re-read open invocations and act closings at (kind, act key) and sweep closed ids from sequence high water.
-   NOTE: watch rule inheritance (Durable Intent refuse step 0.1).
+   NOTE: watch rule inheritance.
    reconcile step 2.5: IF the step-2 re-read finds a closing record naming the invocation id THEN the run MUST release.
    reconcile step 2.6: IF the step-2 re-read finds a closing record naming the invocation id THEN the run MUST count the act in closed already.
-   reconcile step 2.7: WHEN the step-2 re-read finds no closing record naming the invocation id AND service identity DOES NOT EQUAL none for the act's kind AND a remaining the run queried for the act (Durable Intent journal write bound 1) DOES NOT EXCEED write floor, a remaining of none or no answer included (Lease Term expired):
+   reconcile step 2.7: WHEN the step-2 re-read finds no closing record naming the invocation id AND service identity DOES NOT EQUAL none for the act's kind AND a remaining the run queried for the act DOES NOT EXCEED write floor, a remaining of none or no answer included:
        reconcile step 2.7a: The run MUST count the act in skipped.
        reconcile step 2.7b: The run MUST release.
    reconcile step 2.8: The run MUST NOT take the critical section for an intent reconcile step 2.1 excepts.
@@ -144,21 +144,21 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 3.13b: The run MUST release and count skipped.
        reconcile step 3.13c: The run MUST open or advance the instance finding store-unavailable for the act's kind.
    reconcile step 3.15: EVERY closing write's arms and EVERY recovery_intended write's arms MUST follow the outcome position.
-   reconcile step 3.15a: The run MUST query remaining((kind, act key), critical section holder) behind the act probe and again behind each journal write of step 3 that another write follows, as that write's own reading (Durable Intent journal write bound 1).
+   reconcile step 3.15a: The run MUST query remaining((kind, act key), critical section holder) behind the act probe and again behind each journal write of step 3 that another write follows, as that write's own reading.
    reconcile step 3.16: After invalid-request(step-4) (Audit Trail record action step 4.5), the run MUST read the record back by invocation id.
    reconcile step 3.16a: IF the read-back finds the record THEN the run MUST count the act in closed or escalated, as the write's arm counts the act and in place of any count the act held, with a hard alert.
    reconcile step 3.16b: IF the read-back finds nothing THEN the run MUST leave the write for the next run (reconcile step 3.17), with a hard alert.
    reconcile step 3.16c: IF the read-back answers unavailable or gives no answer THEN the run MUST leave the write for the next run (reconcile step 3.17), with a hard alert, and count the act in skipped.
    reconcile step 3.17: The run MUST leave EVERY step-2 arm and step-3 arm not landed within the lease for the next run.
    reconcile step 3.18: The run MUST surface an invalid-credential for a service identity on compliance surface at once, as a hard alert.
-   reconcile step 3.19: The run MUST NOT write further under the credential once a write under the credential has answered invalid-credential; the next run's first write under the credential tries the credential again, and a write that answers otherwise ends the finding credential-refused (Escalation Term findings).
+   reconcile step 3.19: The run MUST NOT write further under the credential once a write under the credential has answered invalid-credential; the next run's first write under the credential tries the credential again, and a write that answers otherwise ends the finding credential-refused.
    reconcile step 3.20: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) on a closing write or on a recovery_intended write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable, the write of that escalation excepted (reconcile step 3.23).
    reconcile step 3.21: The run MUST surface EVERY act the run closes as `<kind>.escalated` on compliance surface as the act finding escalated.
    reconcile step 3.22: The run MUST open or advance the instance finding journal-unavailable on compliance surface for EVERY recording-failure(step-2) and EVERY recording-failure(step-3) reconcile step 3.17 leaves for the next run.
    reconcile step 3.23: IF the escalation reconcile step 3.20 writes answers invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) THEN the run MUST leave the act for the next run with a hard alert.
    reconcile step 3.24: WHEN a write under a kind's service identity answers invalid-credential:
        reconcile step 3.24a: The run MUST open or advance the instance finding credential-refused on compliance surface for EVERY kind whose service identity EQUALS the service identity of the write.
-   reconcile step 3.24b: IF an instance finding credential-refused stands for a kind once the run's condition read is taken THEN the run MUST surface EVERY aged intent of the kind step 1 kept and the run did not close as the act finding closure-at-risk, for an operator to close through [Resolve] (Escalation Invariant 4.11); a standing finding alone owes the report, whatever a write of this run answered.
+   reconcile step 3.24b: IF an instance finding credential-refused stands for a kind once the run's condition read is taken THEN the run MUST surface EVERY aged intent of the kind step 1 kept and the run did not close as the act finding closure-at-risk, for an operator to close through [Resolve]; a standing finding alone owes the report, whatever a write of this run answered.
    reconcile step 3.25: IF the run leaves the act for the next run at step 3 THEN the run MUST release.
    reconcile step 3.26: The run MUST count EVERY act reconcile step 3.20 closes in escalated, in place of any count the act held.
    ```
@@ -218,7 +218,7 @@ reconcile 9a: IF a release on act section answers storage-failure THEN the run M
   Invariant 5.9: The sweep MUST escalate with candidates what the database cannot re-derive.
   Invariant 5.10: The sweep MUST NOT close an act whose database the sweep cannot read.
   ```
-  *Rests on:* service identity (Bindings); Audit Trail Invariant 1 (the attesting actor is verified); [Reconcile] step 3. Generation acceptance Escalation Check 6.4 rests on Escalation Invariant 4.9, and [Resolve]'s too-young guard on Escalation Invariant 5.8: an operator's abandonment is the operator's attestation (Escalation resolve 32), not the database's word.
+  *Rests on:* service identity (Bindings); Audit Trail Invariant 1 (the attesting actor is verified); [Reconcile] step 3.
 
 - **Invariant 7 — The sweep is bounded at both ends.**
   ```
@@ -260,13 +260,13 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
   sweep cadence 2: A run MUST start WITHIN sweep cadence of the previous run's return, the death of the process that ran the previous run excepted (sweep cadence 3).
   sweep cadence 3: IF the process that ran the previous run has died THEN a run MUST start WITHIN run interval of the previous run's start.
   ```
-  Term run interval: `(sweep_cadence + run_bound)` — the gap between two runs' starts that worst closure charges (Recoverable Invocation Instance start 4): a run's run bound, then the cadence.
+  Term run interval: `(sweep_cadence + run_bound)` — the gap between two runs' starts that worst closure charges: a run's run bound, then the cadence.
 
 - **closure latency**
   Term closure latency: the disclosed bound on one whole closure: re-read, act probe, `<kind>.recovery_intended`, the closing record, the index update. Condition 5. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
 - **run bound**
-  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which Lease's take ends at the waiter's last reading (reconcile step 2.3); a backlog past the one the deployment sizes for is a breach of the deployment's own sizing, and no bound is claimed for it. *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which the guard's take ends at the waiter's last reading (reconcile step 2.3); a backlog past the one the deployment sizes for is a breach of the deployment's own sizing, and no bound is claimed for it. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
   ```
   run bound 1: A node MUST NOT start a run beside the node's own run in flight.
@@ -277,6 +277,14 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
 - **probe round trip**
   Term probe round trip: the longest one act probe call takes from issue to answer; charged by sweep lease spend.
 
+## Needs
+
+The bonds this atom needs, each of a kind [Bonds](../bonds.md) states.
+
+Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
+
+Term need key: key invocation id; pairs closing record, recovery_intended.
+
 ## Left to others
 
 ### What the sweep never does
@@ -286,7 +294,7 @@ Sweep never 1: The sweep MUST NOT run adopter code other than act probe.
 Sweep never 2: The sweep MUST NOT write under a human's credential.
 Sweep never 3: The sweep MUST NOT read the adopter's database other than through act probe.
 ```
-NOTE: the owners — [Durable Intent](./durable-intent.md) (the intent, the outcome and which closing stands); [Escalation](./escalation.md) (what the sweep cannot close, and the operator's closing); [Recoverable Invocation](../apps/recoverable-invocation/index.md) (the adopter's act probe, the bounds and the instance's start).
+NOTE: the owners — the atom whose records the sweep follows by key (the intent, the outcome and which closing stands); a person's closing (what the sweep cannot close); the app (the adopter's act probe, the bounds and the instance's start).
 
 ## Example
 
@@ -338,13 +346,13 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Lease. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. write floor, examine edge, in-flight, hard alert, critical section holder: Durable Intent. act finding, instance finding, condition read, resolving actor: Escalation.
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. critical section key, critical section holder, invocation id: Declarations. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. write floor, examine edge, in-flight, hard alert: Durable Intent. act finding, instance finding, condition read, resolving actor: Escalation.
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 
 Term recovered outcome payload: the outcome payload with recovery set to true and acting actor reference set to the intent's actor reference added.
 
-Term acting actor reference: the original caller's actor reference, carried by an outcome the sweep or an operator writes (Invariant 5.2, Escalation Invariant 5.4).
+Term acting actor reference: the original caller's actor reference, carried by an outcome the sweep or an operator writes (Invariant 5.2).
 
 Term plan: the field of a `<kind>.recovery_intended` record naming the closing the sweep is about to write, set to outcome (reconcile step 3.2a).
 

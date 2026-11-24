@@ -133,6 +133,8 @@ The table titled *Heading tables* owns each heading's name, level, order and req
 
 10. **Composition notes.** The obligations this atom puts on a composing pattern, one labelled rule each (`Composition note 1`). The patterns that compose it are the Roadmap's and the graph's to list, not this section's.
 
+10a. **Needs** and **Offers** *(optional)*. What the atom needs of another atom and what it offers one, each a `Term need <kind>:` or `Term offer <kind>:` line of a bond kind [`bonds.md`](./bonds.md) states, its fields typed by the words of [`declarations.md`](./declarations.md); a line names a kind and never the atom that meets it, so an atom names no other atom (Scott, 2026-11-23 5:17 and 5:19 PM Central; unit `bonds: the fifty`). [`bonds.md`](./bonds.md) owns the line form and when a need meets an offer; `tools/grace/check.py` reads both sections.
+
 11. **Terms.** The spec's registry — the `Term` lines listing its actors, records, record verbs, value sets, bounds, cadences, qualifiers and terms — and *Vocabulary*, one `####` term entry per name a bracket marker lands on: the reader's copy of that name's declaration (the section titled *The term entry* below).
 
 12. **Standards references.** The regulatory or industry standards the atom's invariants satisfy or contribute toward, with section anchors where applicable. Cite only standards that genuinely apply at this layer; frame standards that belong to a composing pattern as the composing pattern's obligation.
@@ -290,6 +292,8 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | atom | Retention asymmetry | 3 | Edge cases | no | no |
 | atom | String policy | 3 | Edge cases | no | no |
 | atom | Composition notes | 2 | | yes | no |
+| atom | Needs | 2 | | no | no |
+| atom | Offers | 2 | | no | no |
 | atom | Terms | 2 | | yes | no |
 | atom | Vocabulary | 3 | Terms | yes | no |
 | atom | Standards references | 2 | | yes | no |
@@ -347,6 +351,8 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | atom tree | Retention asymmetry | 3 | While something is so | no | no |
 | atom tree | String policy | 3 | While something is so | no | no |
 | atom tree | Optional | 2 | | no | any order |
+| atom tree | Needs | 2 | | no | no |
+| atom tree | Offers | 2 | | no | no |
 | atom tree | Left to others | 2 | | yes | any order |
 | atom tree | Example | 2 | | yes | any order |
 | atom tree | Source | 2 | | yes | no |
@@ -490,6 +496,7 @@ Nothing is dropped: every line of a pattern in the section shape lands in one ro
 | Capability requirement | Optional | the rules, then the settings' Terms and their NOTE lines |
 | Non-goals | Left to others | the block, then its owners' NOTE line |
 | Composition notes | Left to others | after the Non-goals |
+| Needs, Offers | the same | unchanged, before Left to others |
 | Examples | Example | the scenes in the author's order; an action's rejection paths go to that action's branch; *Regulated adversarial scenarios* stays a `###` here |
 | Standards references | Source | with what the pattern inherits from |
 | Generation acceptance, Conformance checks, External checks | Proof, `### Generation acceptance`, then `#### Conformance checks` and `#### External checks` | unchanged |

@@ -23,7 +23,7 @@ Escalation is how a person finishes what the sweep could not: the findings the i
 <details markdown="block">
 <summary>WHY</summary>
 
-An act the database cannot certify is no act a program may close for the person who made it, because a guessed outcome in a regulated account is worse than a late one, and its findings must reach a person before the act's window ends. This atom holds the person's side: the findings, the operator's [Resolve] and the closure-at-risk finding, with the sweep's escalation records as what it reads (Scott, 2026-11-23, ruling of 9:29 AM Central). The findings register's protocol is owed to [Condition Register](./condition-register.md) and moves there when that atom is bonded; the rules stay here until the register's own text covers each (findings 3 through 13).
+An act the database cannot certify is no act a program may close for the person who made it, because a guessed outcome in a regulated account is worse than a late one, and its findings must reach a person before the act's window ends. This atom holds the person's side: the findings, the operator's [Resolve] and the closure-at-risk finding, with the sweep's escalation records as what it reads (Scott, 2026-11-23, ruling of 9:29 AM Central). The findings register's protocol is owed to an atom of its own and moves there when that atom is bonded; the rules stay here until that atom's own text covers each (findings 3 through 13).
 
 </details>
 
@@ -36,7 +36,7 @@ Term closing event id: closing_event_id — the event id of a closing record. Wh
 ### The findings register
 
 - **findings**
-  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named atom is the [Condition Register](./condition-register.md).
+  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*: an atom of its own is owed.
 
   ```
   findings 1: The deployment MUST persist a finding naming a kind the bindings table serves for at least the retention period of that kind.
@@ -56,7 +56,7 @@ Term closing event id: closing_event_id — the event id of a closing record. Wh
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
   findings 15: The register MUST open no second record for an act finding on the act finding's deduplication key.
-  NOTE: until the register moves onto the [Condition Register](./condition-register.md) (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
+  NOTE: until the register moves onto an atom of its own (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
 
@@ -98,15 +98,15 @@ resolve 2: The substrate MUST validate the operator's credential at the closing 
 resolve 3: A credential failure MUST land invalid-credential with the critical section released and nothing appended.
 resolve 4: [Resolve] MUST take the critical section: take((kind, act key), operator run id, sweep lease).
 resolve 4a: IF caller kind EQUALS service THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 6: A failed take, a storage-failure and no answer included (Execution Contract Constituent failure 1, Recoverable Invocation act section 17), MUST land section-unavailable.
-resolve 7: WHEN a remaining [Resolve] queried (Durable Intent journal write bound 1) DOES NOT EXCEED write floor:
+resolve 6: A failed take, a storage-failure and no answer included (Execution Contract Constituent failure 1, Bonds guard 2), MUST land section-unavailable.
+resolve 7: WHEN a remaining [Resolve] queried DOES NOT EXCEED write floor:
     resolve 7a: [Resolve] MUST NOT write.
     resolve 7b: [Resolve] MUST release.
     resolve 7c: [Resolve] MUST land section-unavailable.
 resolve 38: [Resolve] MUST NOT re-read BEFORE querying remaining((kind, act key), operator run id).
-resolve 39: [Resolve] MUST NOT write the closing record of resolve 21 BEFORE querying remaining((kind, act key), operator run id) again, behind the re-read of resolve 8, for the closing record (Durable Intent journal write bound 1).
+resolve 39: [Resolve] MUST NOT write the closing record of resolve 21 BEFORE querying remaining((kind, act key), operator run id) again, behind the re-read of resolve 8, for the closing record.
 resolve 8: [Resolve] MUST re-read the journal from sequence high water for the act key under the critical section.
-NOTE: watch rule inheritance (Durable Intent refuse step 0.1).
+NOTE: watch rule inheritance.
 resolve 9: IF an outcome or a refusal names the invocation id THEN [Resolve] MUST land already-accounted(closing event id), an outcome carrying a resolving actor excepted.
 resolve 10: An intent event id read_record answers not-known for MUST land not-known, an intent whose payload the substrate reports Purged excepted.
 resolve 11: [Resolve] MUST read the intent by read_record(intent event id).
@@ -130,7 +130,7 @@ resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the resolution position of resolve 24 through 29.
 resolve 24: After invalid-request(step-4), [Resolve] MUST read the record back by invocation id and return success with a hard alert.
 resolve 25: [Resolve] MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
-resolve 26: recording-failure(step-2) and a lost reply (a recording-failure(step-3) included, Durable Intent Primitive policy 32a) MUST land recording-failure(resolution), a lost reply whose read-back finds the record excepted (Durable Intent Primitive policy 36).
+resolve 26: recording-failure(step-2) and a lost reply (a recording-failure(step-3) included) MUST land recording-failure(resolution), a lost reply whose read-back finds the record excepted.
 resolve 27: invalid-request MUST carry the cause: malformed, candidates-over-cap, purged, already-abandoned, too-young.
 resolve 27a: IF the grounds of more than one cause of resolve 27 apply to one call THEN [Resolve] MUST carry the cause resolve 27 lists first.
 resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-request(candidates-over-cap).
@@ -178,23 +178,31 @@ Capability requirement 10: A read_record that cannot reach the journal MUST NOT 
 ```
 ```
 Capability requirement 18: A read_record that answers state-unavailable MUST land recording-failure(resolution) at [Resolve] (Execution Contract Read 1).
-NOTE: watch the constituent's failed read (Durable Intent Primitive policy 45).
+NOTE: watch the constituent's failed read.
 Capability requirement 19: A read_record at [Resolve] that returns nothing within read bound MUST land recording-failure(resolution).
 ```
 ### Bounds the deployment declares
 
 - **intent candidates cap**
-  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap (Sweep reconcile step 3.9, 3.10). Sizes the escalation (Durable Intent Invariant 6). *Default:* none.
+  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation. *Default:* none.
+
+## Needs
+
+The bonds this atom needs, each of a kind [Bonds](../bonds.md) states.
+
+Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
+
+Term need key: key invocation id; pairs closing record.
 
 ## Left to others
 
-NOTE: the owners — [Condition Register](./condition-register.md) (the findings register's protocol, findings 3 through 13, and the register's persistence in findings 1, findings 2 and findings 14; a bond owed, not yet written); [Durable Intent](./durable-intent.md) (the intent and which closing stands); [Sweep](./sweep.md) (what the sweep closes and escalates).
+NOTE: the owners — an atom of its own, owed (the findings register's protocol, findings 3 through 13, and the register's persistence in findings 1, findings 2 and findings 14; a bond owed, not yet written); the atom whose records this one follows by key (the intent and which closing stands); the sweep (what the sweep closes and escalates).
 
 ## Example
 
 ### The stall
 
-**The stall.** The run does not die; `SelectiveDisclosure.record` is slow, past the commit round trip the deployment disclosed — outside the bounds, and what follows is what the protocol still holds there. The database applies the write at eight seconds; the adopter, unanswered past its commit round trip, has already yielded and returned `recording-failure(outcome)` (Immutable Ledger Term commit round trip), and the sweep at thirty-five probes committed and closes it. Or the database never applied the write, and the act probe answers not-committed — not final, since a process paused past the lease could still land the commit at forty-five. The sweep writes escalated with `cause = not-observed`; the operator writes the abandonment through [Resolve] once the database has been quiet long enough. A write landing at fifty after a sweep read the database empty at thirty-five is survivable: the escalation stands, the operator's later run of the act probe finds the record, and the disposition is outcome.
+**The stall.** The run does not die; `SelectiveDisclosure.record` is slow, past the commit round trip the deployment disclosed — outside the bounds, and what follows is what the protocol still holds there. The database applies the write at eight seconds; the adopter, unanswered past its commit round trip, has already yielded and returned `recording-failure(outcome)`, and the sweep at thirty-five probes committed and closes it. Or the database never applied the write, and the act probe answers not-committed — not final, since a process paused past the lease could still land the commit at forty-five. The sweep writes escalated with `cause = not-observed`; the operator writes the abandonment through [Resolve] once the database has been quiet long enough. A write landing at fifty after a sweep read the database empty at thirty-five is survivable: the escalation stands, the operator's later run of the act probe finds the record, and the disposition is outcome.
 
 ## Source
 
@@ -243,7 +251,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Lease. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. caller kind, in-flight, standing closing, lost reply, critical section holder, hard alert, write floor, sequence high water, read path, invocation id, now: Durable Intent. aged, elapsed intent, horizon edge, sweep lease, acting actor reference, recovery_intended, database candidates: Sweep.
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. critical section key, critical section holder, invocation id, act key: Declarations. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. caller kind, in-flight, standing closing, lost reply, hard alert, write floor, sequence high water, read path, now: Durable Intent. aged, elapsed intent, horizon edge, sweep lease, acting actor reference, recovery_intended, database candidates: Sweep.
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. finding conditions = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = malformed | candidates-over-cap | purged | already-abandoned | too-young.
 
@@ -254,8 +262,6 @@ Term cause: not-committed | not-observed | undecidable | outcome-unrecordable �
 Term bindings table: the table of act kinds the instance serves, each with its binding set, which the deployment declares.
 
 Term kind: the act kind an invocation belongs to — a key of the bindings table while the instance serves the kind, and the `<kind>` of every action reference the act's records carry.
-
-Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity; the critical section is keyed by it, and a finding names it.
 
 Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none.
 

@@ -466,7 +466,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -1585,6 +1585,8 @@ def scan(path: Path) -> list[Finding]:
     for name, k in declared_terms(text).items():
         if name in VOCABULARY_CATEGORIES:
             continue  # the vocabulary's own categories (Closed vocabulary 1, Closed vocabulary 2)
+        if re.fullmatch(r"(need|offer) [a-z][\w -]*|[a-z][\w -]* (need|offer) fields", name):
+            continue  # a bond line and a kind's fields: bond_findings reads them
         pat = re.escape(name)
         # a declaration that mentions its own name is not a use of it
         elsewhere = "\n".join(x for j, x in enumerate(lines, start=1) if j != k)
@@ -1708,6 +1710,119 @@ def map_findings(root: Path) -> list[Finding]:
     return findings
 
 
+# the bonds (unit `bonds: the fifty`, Scott 2026-11-23 5:17 PM Central): a bond kind is stated once on bonds.md,
+# an atom states what it needs and offers on `Term need <kind>:` and `Term offer <kind>:` lines, and the
+# fields are typed by the words of declarations.md. A line naming a kind bonds.md does not state, a field the
+# kind does not carry, a typed value that is neither a declared word nor a declared type, or an atom's name
+# gates; a need that meets no offer, or more than one, by its declared types alone is reported, never forced.
+BOND_LINE = re.compile(r"^Term (need|offer) ([a-z][\w -]*?):\s*(.*?)\.?$", re.M)
+BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", re.M)
+BOND_TYPED = ("key", "holder", "span")
+
+
+def bond_kinds(root: Path) -> dict[str, dict[str, list[str]]]:
+    """kind -> {"need": [field names], "offer": [field names]}, read from bonds.md."""
+    path = root / "bonds.md"
+    kinds: dict[str, dict[str, list[str]]] = {}
+    if not path.exists():
+        return kinds
+    for m in BOND_FIELDS.finditer(path.read_text(encoding="utf-8")):
+        names = [part.split(",")[0].strip() for part in m.group(3).rstrip(".").split(";") if part.strip()]
+        kinds.setdefault(m.group(1), {})[m.group(2)] = names
+    return kinds
+
+
+def declared_words(root: Path) -> tuple[dict[str, str], set[str]]:
+    """The declaration space: word -> type, and the type names, read from declarations.md."""
+    path = root / "declarations.md"
+    if not path.exists():
+        return {}, set()
+    text = path.read_text(encoding="utf-8")
+    m = re.search(r"^Term declaration type:\s*(.*?)\.$", text, re.M)
+    types = {t.strip() for t in m.group(1).split("|")} if m else set()
+    words = {}
+    for d in re.finditer(r"^Term ([^:]+): (\w+) — ", text, re.M):
+        if d.group(2) in types:
+            words[d.group(1)] = d.group(2)
+    return words, types
+
+
+def bond_lines(path: Path, kinds: dict) -> list[dict]:
+    """Every need and offer line of one atom, its fields split: list fields as sets of words."""
+    out = []
+    text = path.read_text(encoding="utf-8")
+    for m in BOND_LINE.finditer(text):
+        fields: dict[str, object] = {}
+        known = sorted(kinds.get(m.group(2), {}).get(m.group(1), []), key=len, reverse=True)
+        for part in m.group(3).split(";"):
+            part = part.strip()
+            name = next((f for f in known if part == f or part.startswith(f + " ")), part.split(" ")[0])
+            value = part[len(name):].strip()
+            fields[name] = value if name in BOND_TYPED else {w.strip() for w in value.split(",") if w.strip()}
+        out.append({"path": path, "line": text[:m.start()].count("\n") + 1, "side": m.group(1),
+                    "kind": m.group(2), "fields": fields, "text": m.group(0)})
+    return out
+
+
+def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) -> bool:
+    """Bond 1 to Bond 3 on the bonds page: one kind, two atoms, the typed fields of one type, the lists inside."""
+    if need["kind"] != offer["kind"] or need["path"] == offer["path"]:
+        return False
+    for f in BOND_TYPED:
+        if f not in need["fields"]:
+            continue
+        nv, ov = need["fields"][f], offer["fields"].get(f)
+        if ov is None:
+            return False
+        nt, ot = words.get(nv, nv if nv in types else None), words.get(ov, ov if ov in types else None)
+        if nt is None or nt != ot or (nv in words and ov in words and nv != ov):
+            return False
+    for f in ("calls", "arms"):
+        if f in need["fields"] and not need["fields"][f] <= offer["fields"].get(f, set()):
+            return False
+    return True
+
+
+def bond_findings(root: Path) -> list[Finding]:
+    kinds = bond_kinds(root)
+    words, types = declared_words(root)
+    atoms = sorted((root / "atoms").glob("*.md"))
+    titles = set()
+    for p in atoms:
+        fm = _FRONT_MATTER.match(p.read_text(encoding="utf-8"))
+        t = re.search(r"^title:[ \t]*(.+)$", fm.group(1), re.M) if fm else None
+        if t:
+            titles.add(t.group(1).strip())
+    lines = [b for p in atoms if not p.match(HISTORY) for b in bond_lines(p, kinds)]
+    findings: list[Finding] = []
+    for b in lines:
+        if b["kind"] not in kinds:
+            findings.append(Finding(b["path"], b["line"], "B-bond-kind", f"`{b['kind']}` is no kind bonds.md states"))
+            continue
+        allowed = kinds[b["kind"]].get(b["side"], [])
+        for f, v in b["fields"].items():
+            if f not in allowed:
+                findings.append(Finding(b["path"], b["line"], "B-bond-field",
+                                        f"`{f}` is no {b['side']} field of the kind {b['kind']} (bonds.md)"))
+            elif f in BOND_TYPED and v not in words and v not in types:
+                findings.append(Finding(b["path"], b["line"], "B-bond-type",
+                                        f"`{v}` is neither a word nor a type declarations.md declares"))
+        for t in titles:
+            if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", b["text"]):
+                findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
+                                        f"the {b['side']} line names the atom {t} (bonds.md Bond 6)"))
+    for need in (b for b in lines if b["side"] == "need" and b["kind"] in kinds):
+        met = [o for o in lines if o["side"] == "offer" and bond_meets(need, o, words, types)]
+        if not met:
+            findings.append(Finding(need["path"], need["line"], "B-bond-unmet",
+                                    f"the {need['kind']} need meets no offer by its declared types"))
+        elif len(met) > 1:
+            where = ", ".join(o["path"].name for o in met)
+            findings.append(Finding(need["path"], need["line"], "B-bond-ambiguous",
+                                    f"the {need['kind']} need meets {len(met)} offers ({where}); an app that composes them writes the bond"))
+    return findings
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     gate = "--gate" in argv
@@ -1715,7 +1830,8 @@ def main(argv: list[str]) -> int:
     if args:
         paths = [Path(a) for a in args]
     else:
-        paths = [root / "GRACE-lang.md"]
+        # the bonds page and the declaration space are read as a pattern is (unit `bonds: the fifty`)
+        paths = [root / "GRACE-lang.md", root / "bonds.md", root / "declarations.md"]
         for d in ("atoms", "compositions"):
             for p in sorted((root / d).glob("*.md")):
                 if p.match(HISTORY):
@@ -1730,6 +1846,7 @@ def main(argv: list[str]) -> int:
     if not args:
         findings += pattern_id_findings(root)
         findings += map_findings(root)
+        findings += bond_findings(root)
     findings.sort(key=lambda f: (str(f.path), f.line, f.code))
     for f in findings:
         try:

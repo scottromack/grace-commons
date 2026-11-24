@@ -393,7 +393,11 @@ Composition note 10: A pattern that must prove a critical section was held MUST 
 Composition note 11: A pattern that needs the term to cover the pattern's work MUST state that obligation by Sizing 4a.
 ```
 
-NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md).
+## Offers
+
+The bond this atom offers, of a kind [Bonds](../bonds.md) states.
+
+Term offer guard: key opaque; holder opaque; span duration; calls take, try_take, remaining, release; arms expires_at, unavailable, taken, held, remaining_term, none, released, not-held, no answer.
 
 ## Terms
 
