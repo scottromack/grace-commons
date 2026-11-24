@@ -3,7 +3,7 @@
 `reverse_index.py` derives each atom's classification from the **Intent Graph**
 (the atoms + the `## Composes` edges every composition declares) instead of asserting
 it with a folder. It is the tool the flat-storage taxonomy depends on
-([`atoms/TAXONOMY.md`](../../atoms/TAXONOMY.md)): once the category subfolders dissolve,
+([`library/atoms/TAXONOMY.md`](../../library/atoms/TAXONOMY.md)): once the category subfolders dissolve,
 the per-category README catalogs and the docs nav become generated browse-by-overlay
 views of this index.
 
@@ -48,4 +48,4 @@ derived-regulated linter (any derived-regulated atom missing its overlay section
 *Regulated adversarial scenarios* / *Generation acceptance* — mirroring the conformance
 `--reconcile`). The one-pass flatten that made these views canonical landed
 2026-06-08; [`generate_views.py`](./generate_views.py) emits the browse-by-overlay
-catalog (`atoms/index.md`) from this index.
+catalog (`library/atoms/index.md`) from this index.

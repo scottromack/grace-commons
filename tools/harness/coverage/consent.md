@@ -1,6 +1,6 @@
 # Coverage matrix — `consent`
 
-- **Pattern:** `atoms/consent.md`
+- **Pattern:** `library/atoms/consent.md`
 - **Model:** `consent.als`, the static data model (+ 21 buggy twins `consent-buggy-<defect>.als`), and `consent.tla` + `consent.cfg`, the operation sequences (+ 9 buggy twins `consent-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 (reconsidered to English-only) and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (grant immutability), 2 (membership exclusivity), 3 (terminal absorption), 4 (revocation attribution), 5 (temporal ordering on revocation), 6 (expiry coherence), 7 (grant attribution), 8 (durability), 9 (revocation non-retroactivity), 10 (point-in-time faithfulness).

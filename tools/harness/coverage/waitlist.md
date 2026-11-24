@@ -1,6 +1,6 @@
 # Coverage matrix — `waitlist`
 
-- **Pattern:** `atoms/waitlist.md`
+- **Pattern:** `library/atoms/waitlist.md`
 - **Model:** `waitlist.als`, the static data model (+ 18 buggy twins `waitlist-buggy-<defect>.als`), and `waitlist.tla` + `waitlist.cfg`, the operation sequences (+ 41 buggy twins `waitlist-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-19; `Op23_CallNextAnswersFront` and `Op36_ReadWaitlistOnlyWaiting` re-derived 2026-11-19 with the cures of the open lines 2026-11-19-a and 2026-11-19-b
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-19; the Operation 23 and 36 rows by the builder of the unit that cured the two open lines, 2026-11-19. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** no vote: on the maintainer's ruling of 2026-11-09 every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences, and only the writing vetoes one. Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 through 9.

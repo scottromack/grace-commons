@@ -1,6 +1,6 @@
 # Coverage matrix — `lease`
 
-- **Pattern:** `atoms/lease.md`
+- **Pattern:** `library/atoms/lease.md`
 - **Model:** `lease.tla` + `lease-buggy-death.tla`, `lease-buggy-margin.tla`, `lease-buggy-fence.tla`, `lease-buggy-release.tla`, `lease-buggy-waiter.tla`, `lease-buggy-drift.tla` + probe `lease-probe-both.tla`; and `lease.als`, the static data model (+ 9 buggy twins `lease-buggy-<defect>.als`, 2026-11-12).
 - **Reviewer / date:** the model's author, same session as the grounding gate — 2026-10-04. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** Invariant 1 (one holder); Invariant 2 and 3 (the terminus is the instant, death is not observable); Invariant 6 (a fence carries its allowance); Sizing 2, 3, 3a (the write margin); Composition note 5c (no release with a call in flight).

@@ -1,6 +1,6 @@
 # Coverage matrix — `permissions`
 
-- **Pattern:** `atoms/permissions.md`
+- **Pattern:** `library/atoms/permissions.md`
 - **Model:** `permissions.als`, the static data model, re-derived 2026-11-12 and again 2026-11-19 over the rule of 2026-11-16 (+ 11 buggy twins `permissions-buggy.als` and `permissions-buggy-<defect>.als`), and `permissions.tla` + `permissions.cfg`, the operation sequences, 2026-11-12, re-derived 2026-11-19 over the same rule (+ 27 buggy twins `permissions-buggy-<defect>.tla`, each with its `.cfg`)
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12; the re-derivation's author — 2026-11-19 (unit `atoms/permissions.md formal layer`, over the maintainer's ruling of 2026-11-16: a pair is held once — Identity 7, Invariant 11.1, Operation 1, 33 and 34, Grant concurrency 1; Operation 6 and Grant concurrency 2 deleted); `GC1_ConcurrentGrantsRecordOne` restated the same day over the page's cure of Grant concurrency 1 (page-finding 41). Not a fresh-context read; the next scheduled rescan owes one. (The 2026-06-03 Alloy model was Claude Sonnet 4.6's; its matrix is in git.)
 - **Formal-layer vote load-bearing claims:** the 2026-06-03 vote named Invariant 2 (status monotonicity) and Invariant 3 (revocation is terminal). The maintainer's ruling of 2026-11-09 gives every page both models, an Alloy model of its valid states and a TLA+ model of its operation sequences; neither was vetoed here. The models take every Invariant the page states as load-bearing.

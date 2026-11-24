@@ -1,6 +1,6 @@
 # Coverage matrix — `provenance`
 
-- **Pattern:** `atoms/provenance.md`
+- **Pattern:** `library/atoms/provenance.md`
 - **Model:** `provenance.als`, the static data model, re-derived 2026-11-12 (+ 6 buggy twins `provenance-buggy-<defect>.als`), and `provenance.tla` + `provenance.cfg`, the operation sequences, 2026-11-12 (+ 13 buggy twins `provenance-buggy-<defect>.tla`, each with its `.cfg`). The twins `provenance-buggy.als` (dropped the `CustodyContinuity` fact) and `provenance-buggy-link.als` (the successor link one way) went with the model they were copies of.
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12 (unit `atoms/provenance.md formal layer`). Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** custody continuity (Invariant 4) first, then single origin (3), archived terminal (6), the append-only chain and its order (2, 5), custodian presence (7) and event-type validity (8). Since the maintainer's ruling of 2026-11-09 the page takes both models; neither is vetoed.

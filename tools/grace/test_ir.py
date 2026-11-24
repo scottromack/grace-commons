@@ -36,11 +36,11 @@ def entry(name: str, **kind: str) -> dict:
 def root_with(spec: str, contract: str | None = None) -> tuple[tempfile.TemporaryDirectory, Path]:
     tmp = tempfile.TemporaryDirectory()
     root = Path(tmp.name)
-    (root / "atoms").mkdir()
-    (root / "compositions").mkdir()
-    (root / "atoms" / "reaction.md").write_text(spec, encoding="utf-8")
+    (root / "library" / "atoms").mkdir(parents=True)
+    (root / "library" / "compositions").mkdir(parents=True)
+    (root / "library" / "atoms" / "reaction.md").write_text(spec, encoding="utf-8")
     if contract is not None:
-        (root / "execution-contract.md").write_text(contract, encoding="utf-8")
+        (root / "library" / "execution-contract.md").write_text(contract, encoding="utf-8")
     return tmp, root
 
 
@@ -262,8 +262,8 @@ class TreeOrder(unittest.TestCase):
         for name in ("tenure.md", "tenure.tree.md"):
             tmp, root = root_with("")
             with tmp:
-                (root / "atoms" / "tenure.md").write_text((HERE / "testdata" / name).read_text(encoding="utf-8"), encoding="utf-8")
-                cls.docs[name] = ir.parse(root / "atoms" / "tenure.md", root)
+                (root / "library" / "atoms" / "tenure.md").write_text((HERE / "testdata" / name).read_text(encoding="utf-8"), encoding="utf-8")
+                cls.docs[name] = ir.parse(root / "library" / "atoms" / "tenure.md", root)
 
     @staticmethod
     def bare(x):
@@ -284,7 +284,7 @@ class TreeOrder(unittest.TestCase):
     def test_same_reads_no_difference_between_the_shapes_and_names_a_changed_rule(self):
         tmp, root = root_with("")
         with tmp:
-            old, new = root / "atoms" / "tenure.md", root / "atoms" / "tenure-tree.md"
+            old, new = root / "library" / "atoms" / "tenure.md", root / "library" / "atoms" / "tenure-tree.md"
             old.write_text((HERE / "testdata" / "tenure.md").read_text(encoding="utf-8"), encoding="utf-8")
             tree = (HERE / "testdata" / "tenure.tree.md").read_text(encoding="utf-8")
             new.write_text(tree, encoding="utf-8")
@@ -303,7 +303,7 @@ class Corpus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp, cls.root = root_with(FIXTURE.read_text(encoding="utf-8"))
-        cls.doc = ir.parse(cls.root / "atoms" / "reaction.md", cls.root)
+        cls.doc = ir.parse(cls.root / "library" / "atoms" / "reaction.md", cls.root)
 
     @classmethod
     def tearDownClass(cls):
@@ -388,13 +388,13 @@ def read_part(name: str) -> dict:
     kind, stem, text, other = PART_GOLDENS[name]
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "compositions").mkdir()
-        (root / "execution-contract.md").write_text(T.IR_READER_CONTRACT, encoding="utf-8")
-        (root / kind / (stem + ".md")).write_text(text, encoding="utf-8")
+        (root / "library" / "atoms").mkdir(parents=True)
+        (root / "library" / "compositions").mkdir(parents=True)
+        (root / "library" / "execution-contract.md").write_text(T.IR_READER_CONTRACT, encoding="utf-8")
+        (root / "library" / kind / (stem + ".md")).write_text(text, encoding="utf-8")
         if other:
-            (root / other[0] / (other[1] + ".md")).write_text(other[2], encoding="utf-8")
-        return golden_of(ir.parse(root / kind / (stem + ".md"), root))
+            (root / "library" / other[0] / (other[1] + ".md")).write_text(other[2], encoding="utf-8")
+        return golden_of(ir.parse(root / "library" / kind / (stem + ".md"), root))
 
 
 class PartGoldens(unittest.TestCase):
@@ -425,7 +425,7 @@ if __name__ == "__main__":
         sys.argv.remove("--update-golden")
         tmp, root = root_with(FIXTURE.read_text(encoding="utf-8"))
         with tmp:
-            GOLDEN.write_text(json.dumps(golden_of(ir.parse(root / "atoms" / "reaction.md", root)), indent=1, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+            GOLDEN.write_text(json.dumps(golden_of(ir.parse(root / "library" / "atoms" / "reaction.md", root)), indent=1, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
         for name in PART_GOLDENS:
             (HERE / "testdata" / f"part-{name}.ir.json").write_text(json.dumps(read_part(name), indent=1, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
     unittest.main()

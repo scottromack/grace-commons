@@ -1,6 +1,6 @@
 # Coverage matrix — `tamper-evidence`
 
-- **Pattern:** `atoms/tamper-evidence.md`
+- **Pattern:** `library/atoms/tamper-evidence.md`
 - **Model:** `tamper-evidence.als`, the static data model (+ 15 buggy twins `tamper-evidence-buggy-<defect>.als`), and `tamper-evidence.tla` + `tamper-evidence.cfg`, the operation sequences (+ 16 buggy twins `tamper-evidence-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-12
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The coverage unit of 2026-11-10 named Invariant 1 (evidence immutability), 2 (detectability of tampering), 3 (record-set binding), 4 and 7 (verification self-containment and consistency under a fixed record set), with Invariant 8 (mechanism opacity) and 9 (durability) left (c); the models take every Invariant the page states as load-bearing.

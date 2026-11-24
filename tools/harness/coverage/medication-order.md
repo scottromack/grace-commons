@@ -1,6 +1,6 @@
 # Coverage matrix — `medication-order`
 
-- **Pattern:** `atoms/medication-order.md`
+- **Pattern:** `library/atoms/medication-order.md`
 - **Models:** `medication-order.als`, the static data model (+ buggy twins `medication-order-buggy.als`, `medication-order-buggy-link.als`, `medication-order-buggy-copy.als`); `medication-order.tla` + `medication-order.cfg`, the operation sequences, re-derived 2026-11-11 over the whole lifecycle (+ 17 buggy twins `medication-order-buggy.tla`, `medication-order-buggy-prior.tla` and `medication-order-buggy-<defect>.tla`, each with its `.cfg`)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03; GAP closure — 2026-06-04; the TLA+ model's re-derivation (unit `atoms/medication-order.md formal layer`, the formal layer sweep) — 2026-11-11, by the model's author, not a fresh-context read.
 - **Formal-layer vote load-bearing claims:** Invariant 5 (hold carries prior_state; reinstate returns to exactly it), Invariants 3/4 (pre-dispensing-only, linear amendment chains), Invariant 9 (On Hold accepts only reinstate). Since the maintainer's ruling of 2026-11-09 every Invariant the page states is taken as load-bearing; only the writing vetoes a model.

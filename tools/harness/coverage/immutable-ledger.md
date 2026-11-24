@@ -6,7 +6,7 @@
 > outcome and an absent sweep that are now Recoverable Invocation's protocol, proved in that page's
 > model; both files are replaced (Ledger 2026-08-29-a).
 
-- **Pattern:** `compositions/immutable-ledger.md`
+- **Pattern:** `library/compositions/immutable-ledger.md`
 - **Models:**
   - `immutable-ledger.tla` (the binding; re-derived 2026-11-22 under Execution Contract Database 3, the intent committed at the open ahead of the accounting write) + `-buggy-equalnow`, `-buggy-probekey`, `-buggy-probewindow`, `-buggy-bounded`, `-buggy-earlyanswer`, `-buggy-sendfirst` + probes `-probe-recovered`, `-probe-settled`, `-probe-sharedinstant`, `-probe-recoveredsent`, `-probe-falseclosing` (`-buggy-split` retired 2026-11-22: the write in flight it carried is now the page's reading)
   - `immutable-ledger-rebuild.tla` (the binding index and the horizon; 2026-11-22: a second outcome event of one disclosure id, linked or a duplicate, and the rebuild written by merge) + `-buggy-deadrun`, `-buggy-tight`, `-buggy-onwrite`, `-buggy-replace`, `-buggy-replacelive`, `-buggy-storeblocks`, `-buggy-silent`, `-buggy-frozen`, `-buggy-anydup` + probes `-probe-purgedbound`, `-probe-recoveredbound`, `-probe-storedown`, `-probe-honestloss`, `-probe-rebind`, `-probe-dupbeside` (`-probe-erased` retired 2026-11-22, now `-buggy-replacelive`)

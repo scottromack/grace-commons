@@ -24,7 +24,7 @@ from reverse_index import build_index  # noqa: E402  (same directory)
 
 
 def atom_title(root, slug):
-    p = root / "atoms" / f"{slug}.md"
+    p = root / "library" / "atoms" / f"{slug}.md"
     try:
         t = p.read_text(encoding="utf-8")
     except OSError:
@@ -53,10 +53,8 @@ def main():
     P = L.append
     P("---")
     P("title: Atomic Concepts")
-    P("nav_order: 8")
-    P("parent: The Library")
+    P("nav_order: 3")
     P("has_children: true")
-    P("permalink: /atoms/")
     P("has_toc: true")
     P("toc: true")
     P("---")
@@ -75,7 +73,7 @@ def main():
     P("</details>")
     P("")
     P("The freestanding semantic units of Grace Commons — each fully specifiable without naming "
-      "another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a "
+      "another atom. Atoms are stored flat (`library/atoms/<name>.md`); their classification is not a "
       "folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · "
       "standards) are read off the composition graph and **report usage, not essence** — a "
       "standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, "
@@ -181,7 +179,7 @@ def main():
     P("For structured assemblies of atoms, see [Compositions](../compositions/).")
     P("")
 
-    out = root / "atoms" / "index.md"
+    out = root / "library" / "atoms" / "index.md"
     out.write_text("\n".join(L), encoding="utf-8")
     sys.stderr.write(
         f"wrote {out}: {len(atoms)} atoms, {len(reg_atoms)} regulated, "

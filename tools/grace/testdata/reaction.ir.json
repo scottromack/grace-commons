@@ -518,8 +518,8 @@
      "forthcoming": false,
      "line": 263,
      "links": [
-      "atoms/session.md",
-      "atoms/permissions.md"
+      "library/atoms/session.md",
+      "library/atoms/permissions.md"
      ],
      "owner": "the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md)"
     }
@@ -533,8 +533,8 @@
      "forthcoming": false,
      "line": 263,
      "links": [
-      "atoms/session.md",
-      "atoms/permissions.md"
+      "library/atoms/session.md",
+      "library/atoms/permissions.md"
      ],
      "owner": "the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md)"
     }
@@ -560,7 +560,7 @@
      "forthcoming": false,
      "line": 263,
      "links": [
-      "atoms/notification.md"
+      "library/atoms/notification.md"
      ],
      "owner": "the composing pattern that tells the author, such as one built on [Notification](./notification.md)"
     }
@@ -598,7 +598,7 @@
      "forthcoming": false,
      "line": 263,
      "links": [
-      "atoms/favorite.md"
+      "library/atoms/favorite.md"
      ],
      "owner": "[Favorite](./favorite.md)"
     }

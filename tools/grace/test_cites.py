@@ -102,11 +102,11 @@ class Corpus:
         self._dir = tempfile.TemporaryDirectory()
         self.root = Path(self._dir.name)
         git(self.root, "init", "-q")
-        self.write("atoms/alpha-atom.md", ATOM)
-        self.write("compositions/beta-comp.md", POSSESSIVE)
-        self.write("compositions/delta-comp.md", LABELLED)
-        self.write("compositions/epsilon-comp.md", LINKED)
-        self.write("compositions/gamma-comp.md", UNREACHED)
+        self.write("library/atoms/alpha-atom.md", ATOM)
+        self.write("library/compositions/beta-comp.md", POSSESSIVE)
+        self.write("library/compositions/delta-comp.md", LABELLED)
+        self.write("library/compositions/epsilon-comp.md", LINKED)
+        self.write("library/compositions/gamma-comp.md", UNREACHED)
         git(self.root, "add", ".")
         git(self.root, "commit", "-q", "-m", "base")
         self.base = git(self.root, "rev-parse", "HEAD")
@@ -164,8 +164,8 @@ class ContractTest(unittest.TestCase):
     def setUp(self) -> None:
         self.corpus = Corpus()
         self.addCleanup(self.corpus.close)
-        self.corpus.write("execution-contract.md", CONTRACT)
-        self.corpus.write("compositions/zeta-comp.md", CONTRACT_CITER)
+        self.corpus.write("library/execution-contract.md", CONTRACT)
+        self.corpus.write("library/compositions/zeta-comp.md", CONTRACT_CITER)
         git(self.corpus.root, "add", ".")
         git(self.corpus.root, "commit", "-q", "-m", "contract")
         self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
@@ -177,7 +177,7 @@ class ContractTest(unittest.TestCase):
         return code, out.getvalue()
 
     def test_the_contract_parses_its_bold_labels_and_list_items(self) -> None:
-        spec = cites.parse(self.corpus.root / "execution-contract.md")
+        spec = cites.parse(self.corpus.root / "library/execution-contract.md")
         self.assertEqual(set(spec.rules), {"Logic confinement 1", "Logic confinement 3", "Conformance 1"})
         self.assertTrue(spec.text_of["Logic confinement 3"].startswith("Explicit inputs only."))
 
@@ -193,8 +193,8 @@ class ContractTest(unittest.TestCase):
         self.assertIn("no rule or term named", out)
 
     def test_a_change_to_a_contract_rule_reaches_the_rule_that_cites_it(self) -> None:
-        self.corpus.edit("execution-contract.md", "Explicit inputs only.", "Inputs are explicit.")
-        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.corpus.edit("library/execution-contract.md", "Explicit inputs only.", "Inputs are explicit.")
+        code, lines = self.corpus.reach("library/compositions/zeta-comp.md")
         self.assertEqual(code, 0)
         self.assertEqual(lines, ["Rule 1"])
 
@@ -202,44 +202,44 @@ class ContractTest(unittest.TestCase):
                "that found the page silent")
 
     def test_a_sentence_of_history_moved_to_the_record_reaches_nothing(self) -> None:
-        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+        self.corpus.edit("library/execution-contract.md", "as Logic confinement 1 says.",
                          f"as Logic confinement 1 says. {self.HISTORY}.")
         git(self.corpus.root, "add", ".")
         git(self.corpus.root, "commit", "-q", "-m", "history")
         self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
-        self.corpus.edit("execution-contract.md", f" {self.HISTORY}.", "")
-        self.corpus.write("execution-contract.hist.md", f"# Execution Contract: history\n\n{self.HISTORY}.\n")
-        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.corpus.edit("library/execution-contract.md", f" {self.HISTORY}.", "")
+        self.corpus.write("library/execution-contract.hist.md", f"# Execution Contract: history\n\n{self.HISTORY}.\n")
+        code, lines = self.corpus.reach("library/compositions/zeta-comp.md")
         self.assertEqual((code, lines), (1, ["nothing"]))
 
     def test_a_clause_of_history_cut_from_a_sentence_that_stays_reaches_nothing(self) -> None:
-        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+        self.corpus.edit("library/execution-contract.md", "as Logic confinement 1 says.",
                          "as Logic confinement 1 says, as nine specifications did before the cure was written down.")
         git(self.corpus.root, "add", ".")
         git(self.corpus.root, "commit", "-q", "-m", "clause")
         self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
-        self.corpus.edit("execution-contract.md", ", as nine specifications did before the cure was written down", "")
-        self.corpus.write("execution-contract.hist.md",
+        self.corpus.edit("library/execution-contract.md", ", as nine specifications did before the cure was written down", "")
+        self.corpus.write("library/execution-contract.hist.md",
                           "# history\n\nAs nine specifications did before the cure was written down.\n")
-        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        code, lines = self.corpus.reach("library/compositions/zeta-comp.md")
         self.assertEqual((code, lines), (1, ["nothing"]))
 
     def test_a_cut_the_record_does_not_hold_still_reaches_the_rule(self) -> None:
-        self.corpus.write("execution-contract.hist.md", "# history\n\nNothing moved here.\n")
-        self.corpus.edit("execution-contract.md", "Explicit inputs only.", "Inputs.")
-        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.corpus.write("library/execution-contract.hist.md", "# history\n\nNothing moved here.\n")
+        self.corpus.edit("library/execution-contract.md", "Explicit inputs only.", "Inputs.")
+        code, lines = self.corpus.reach("library/compositions/zeta-comp.md")
         self.assertEqual((code, lines), (0, ["Rule 1"]))
 
     def test_a_changed_word_beside_a_moved_sentence_still_reaches_the_rule(self) -> None:
-        self.corpus.edit("execution-contract.md", "as Logic confinement 1 says.",
+        self.corpus.edit("library/execution-contract.md", "as Logic confinement 1 says.",
                          f"as Logic confinement 1 says. {self.HISTORY}.")
         git(self.corpus.root, "add", ".")
         git(self.corpus.root, "commit", "-q", "-m", "history")
         self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
-        self.corpus.edit("execution-contract.md", f" {self.HISTORY}.", "")
-        self.corpus.edit("execution-contract.md", "Time is injected", "Time is read")
-        self.corpus.write("execution-contract.hist.md", f"# history\n\n{self.HISTORY}.\n")
-        code, lines = self.corpus.reach("compositions/zeta-comp.md")
+        self.corpus.edit("library/execution-contract.md", f" {self.HISTORY}.", "")
+        self.corpus.edit("library/execution-contract.md", "Time is injected", "Time is read")
+        self.corpus.write("library/execution-contract.hist.md", f"# history\n\n{self.HISTORY}.\n")
+        code, lines = self.corpus.reach("library/compositions/zeta-comp.md")
         self.assertEqual((code, lines), (0, ["Rule 1"]))
 
     def test_a_citation_of_a_missing_label_is_found(self) -> None:
@@ -299,12 +299,12 @@ class ContractHistoryTest(unittest.TestCase):
     def setUp(self) -> None:
         self.corpus = Corpus()
         self.addCleanup(self.corpus.close)
-        self.corpus.write("execution-contract.md", CONTRACT)
-        self.corpus.write("execution-contract.hist.md", CONTRACT_HISTORY)
-        self.corpus.write("compositions/theta-comp.md", CONTRACT_TOMB_CITER)
+        self.corpus.write("library/execution-contract.md", CONTRACT)
+        self.corpus.write("library/execution-contract.hist.md", CONTRACT_HISTORY)
+        self.corpus.write("library/compositions/theta-comp.md", CONTRACT_TOMB_CITER)
 
     def test_the_tombstones_are_read_and_are_no_rules(self) -> None:
-        spec = cites.parse(self.corpus.root / "execution-contract.md")
+        spec = cites.parse(self.corpus.root / "library/execution-contract.md")
         self.assertEqual(set(spec.rules), {"Logic confinement 1", "Logic confinement 3", "Conformance 1"})
         self.assertEqual({k: (v[0].name, v[2]) for k, v in spec.tombstones.items()}, {
             "Store 1": ("execution-contract.hist.md", "Database 1 owns it."),
@@ -328,7 +328,7 @@ class ContractHistoryTest(unittest.TestCase):
             code = cites.run(self.corpus.root, ["cites.py", "Store 2"])
         self.assertEqual(code, 2)
         self.assertIn("no rule named Store 2: Execution Contract tombstones it "
-                      "(execution-contract.hist.md:15): Database 2 owns it.", out.getvalue())
+                      "(library/execution-contract.hist.md:15): Database 2 owns it.", out.getvalue())
 
 
 # a pattern whose tombstones stand on the page and in its history file
@@ -370,8 +370,8 @@ class TombstoneTest(unittest.TestCase):
     def setUp(self) -> None:
         self.corpus = Corpus()
         self.addCleanup(self.corpus.close)
-        self.corpus.write("atoms/eta-atom.md", TOMBED)
-        self.corpus.write("atoms/eta-atom.hist.md", TOMBED_HISTORY)
+        self.corpus.write("library/atoms/eta-atom.md", TOMBED)
+        self.corpus.write("library/atoms/eta-atom.hist.md", TOMBED_HISTORY)
 
     def seed(self, label: str) -> tuple[int, str]:
         out = io.StringIO()
@@ -380,31 +380,31 @@ class TombstoneTest(unittest.TestCase):
         return code, out.getvalue()
 
     def test_both_places_are_read_and_no_tombstone_is_a_rule(self) -> None:
-        spec = cites.parse(self.corpus.root / "atoms/eta-atom.md")
+        spec = cites.parse(self.corpus.root / "library/atoms/eta-atom.md")
         self.assertEqual(set(spec.rules), {"Operation 2"})
-        hist = self.corpus.root / "atoms/eta-atom.hist.md"
+        hist = self.corpus.root / "library/atoms/eta-atom.hist.md"
         self.assertEqual({k: (v[0].name, v[2]) for k, v in spec.tombstones.items()}, {
             "Operation 5": ("eta-atom.md", "Operation 2 owns it."),
             "Operation 3": (hist.name, "Operation 2 owns it."),
             "Operation 4": (hist.name, "Alpha Atom Invariant 1 owns it.")})
 
     def test_the_section_is_read_alone(self) -> None:
-        lines = cites.deleted_rules(self.corpus.root / "atoms/eta-atom.md")
+        lines = cites.deleted_rules(self.corpus.root / "library/atoms/eta-atom.md")
         self.assertEqual([raw for _, raw in lines],
                          ["Deleted: Operation 3. Operation 2 owns it.",
                           "  Deleted: Operation 4. Alpha Atom Invariant 1 owns it."])
-        self.assertEqual(cites.deleted_rules(self.corpus.root / "atoms/alpha-atom.md"), [])
+        self.assertEqual(cites.deleted_rules(self.corpus.root / "library/atoms/alpha-atom.md"), [])
 
     def test_a_moved_label_names_its_owner(self) -> None:
         code, out = self.seed("Operation 4")
         self.assertEqual(code, 2)
-        self.assertIn("no rule named Operation 4: Eta Atom tombstones it (atoms/eta-atom.hist.md:15): "
+        self.assertIn("no rule named Operation 4: Eta Atom tombstones it (library/atoms/eta-atom.hist.md:15): "
                       "Alpha Atom Invariant 1 owns it.", out)
 
     def test_a_label_on_the_page_names_its_owner_too(self) -> None:
         code, out = self.seed("Operation 5")
         self.assertEqual(code, 2)
-        self.assertIn("Eta Atom tombstones it (atoms/eta-atom.md:6): Operation 2 owns it.", out)
+        self.assertIn("Eta Atom tombstones it (library/atoms/eta-atom.md:6): Operation 2 owns it.", out)
 
     def test_a_line_outside_the_section_reserves_nothing(self) -> None:
         code, out = self.seed("Operation 7")
@@ -418,58 +418,58 @@ class ReachTest(unittest.TestCase):
         self.addCleanup(self.corpus.close)
 
     def test_a_term_change_reaches_the_possessive_citation(self) -> None:
-        self.corpus.edit("atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
-        code, labels = self.corpus.reach("compositions/beta-comp.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
+        code, labels = self.corpus.reach("library/compositions/beta-comp.md")
         self.assertEqual((code, labels), (0, ["Composes 1"]))
 
     def test_a_term_change_reaches_the_marker_link(self) -> None:
-        self.corpus.edit("atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
-        code, labels = self.corpus.reach("compositions/epsilon-comp.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
+        code, labels = self.corpus.reach("library/compositions/epsilon-comp.md")
         self.assertEqual((code, labels), (0, ["Composes 1"]))
 
     def test_a_term_change_reaches_a_term_defined_over_it(self) -> None:
         # edge is defined over seam: a change to seam is a change to edge
-        self.corpus.edit("atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
-        code, labels = self.corpus.reach("atoms/alpha-atom.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
+        code, labels = self.corpus.reach("library/atoms/alpha-atom.md")
         self.assertEqual(code, 0)
         self.assertEqual(labels, ["Term seam", "Term edge", "Operation 1", "Operation 2"])
 
     def test_a_term_change_reaches_the_chain_as_another_spec_cites_it(self) -> None:
-        self.corpus.edit("compositions/beta-comp.md", "Alpha Atom's seam", "Alpha Atom's edge")
+        self.corpus.edit("library/compositions/beta-comp.md", "Alpha Atom's seam", "Alpha Atom's edge")
         git(self.corpus.root, "commit", "-qam", "beta cites the edge")
         self.corpus.base = git(self.corpus.root, "rev-parse", "HEAD")
-        self.corpus.edit("atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
-        code, labels = self.corpus.reach("compositions/beta-comp.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
+        code, labels = self.corpus.reach("library/compositions/beta-comp.md")
         self.assertEqual((code, labels), (0, ["Composes 1"]))
 
     def test_a_rule_change_reaches_the_label_citation(self) -> None:
-        self.corpus.edit("atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
-        code, labels = self.corpus.reach("compositions/delta-comp.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
+        code, labels = self.corpus.reach("library/compositions/delta-comp.md")
         self.assertEqual((code, labels), (0, ["Composes 1"]))
 
     def test_the_spec_s_own_change_is_in_its_reach(self) -> None:
-        self.corpus.edit("atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
-        code, labels = self.corpus.reach("atoms/alpha-atom.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
+        code, labels = self.corpus.reach("library/atoms/alpha-atom.md")
         self.assertEqual((code, labels), (0, ["Invariant 1"]))
 
     def test_a_composition_the_change_reaches_by_no_rule_is_unreached(self) -> None:
         # Gamma names Alpha Atom and cites Operation 3; the change is to Invariant 1, the seam and the edge
-        self.corpus.edit("atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
-        self.corpus.edit("atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
-        code, labels = self.corpus.reach("compositions/gamma-comp.md")
+        self.corpus.edit("library/atoms/alpha-atom.md", "MUST keep the record", "MUST keep the record whole")
+        self.corpus.edit("library/atoms/alpha-atom.md", "the boundary the host answers at", "the boundary the host injects at")
+        code, labels = self.corpus.reach("library/compositions/gamma-comp.md")
         self.assertEqual((code, labels), (1, ["nothing"]))
 
     def test_a_status_change_reaches_nothing(self) -> None:
-        self.corpus.edit("atoms/alpha-atom.md", "## Status\n", "## Status\n\nstatus: grounded on Final Critique 3\n")
-        for rel in ("compositions/beta-comp.md", "compositions/delta-comp.md", "compositions/epsilon-comp.md",
-                    "compositions/gamma-comp.md", "atoms/alpha-atom.md"):
+        self.corpus.edit("library/atoms/alpha-atom.md", "## Status\n", "## Status\n\nstatus: grounded on Final Critique 3\n")
+        for rel in ("library/compositions/beta-comp.md", "library/compositions/delta-comp.md", "library/compositions/epsilon-comp.md",
+                    "library/compositions/gamma-comp.md", "library/atoms/alpha-atom.md"):
             self.assertEqual(self.corpus.reach(rel), (1, ["nothing"]), rel)
 
     def test_a_spec_the_tools_do_not_read_is_no_reach(self) -> None:
-        self.corpus.write("compositions/zeta-comp.md", "# Zeta Comp\n\nno marker.\n")
+        self.corpus.write("library/compositions/zeta-comp.md", "# Zeta Comp\n\nno marker.\n")
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            code = cites.run(self.corpus.root, ["cites.py", "--reach", "compositions/zeta-comp.md", "--changed", self.corpus.base])
+            code = cites.run(self.corpus.root, ["cites.py", "--reach", "library/compositions/zeta-comp.md", "--changed", self.corpus.base])
         self.assertEqual(code, 2)
 
 

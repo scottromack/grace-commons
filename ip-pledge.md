@@ -17,4 +17,4 @@ Before this page goes live with a hosted service, the service must keep one prom
 
 *This page awaits an AI legal read.*
 
-See also [what is common and what is yours](./positioning.md#what-is-common-and-what-is-yours--the-corpus-draws-the-line), the engineering statement of the same line.
+See also [what is common and what is yours](./essays/positioning.md#what-is-common-and-what-is-yours--the-corpus-draws-the-line), the engineering statement of the same line.

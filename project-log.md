@@ -1,7 +1,6 @@
 ---
 title: Project Log
-nav_order: 12
-parent: The Library
+nav_order: 8
 has_children: true
 search_exclude: true
 ---

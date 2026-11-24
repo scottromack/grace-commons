@@ -1,0 +1,105 @@
+---
+title: Glossary
+nav_order: 5
+---
+
+# Glossary
+
+Strict definitions for the handful of words where English ambiguity actually
+leaks into specs. **Keep this small** (target ~20 terms). It is a precision tool,
+not a controlled grammar — past ~30 terms you are turning English into a formal
+language with keywords and killing the readable-SSOT thesis. When a spec uses one
+of these words in a load-bearing way, it means exactly what is below; if it needs
+a different sense, it must say so locally.
+
+## Emptiness / presence
+
+- **absent** — the field/value was never supplied; the key does not exist.
+- **empty** — the value exists and is the zero-length form (`""`, `[]`, `{}`).
+- **null** — an explicit "no value" marker distinct from absent and empty. A spec
+  must not use "null" to mean absent or empty without saying which.
+- **undefined** — outside the specified domain; behavior is not specified here.
+  An `undefined` case is a finding unless named as explicit out-of-scope.
+- **invalid** — present and well-typed but failing a stated precondition; produces
+  a named rejection, not undefined behavior.
+
+## Time
+
+- **immediately** — within the same atomic action, before it returns. Not "soon."
+- **eventually** — guaranteed to occur in finite time, with no stated bound.
+- **within X** — at or before X has elapsed, measured by the named monotonic clock.
+- **now** — the injected clock value at action time (never read inside the
+  transition — see execution-contract.md, Logic Confinement).
+- **after / before / most-recent** — by *insertion order* unless a spec explicitly
+  says wall-clock order (clocks may be non-monotonic; insertion order is authoritative).
+
+## Identity / equality
+
+- **same** — identical opaque identity (same id), not equal content.
+- **equivalent** — equal under a stated normalization, not necessarily the same id.
+- **matches** — satisfies a stated predicate; the predicate must be named.
+- **unique** — no two distinct entities share the value, across the stated scope
+  (name the scope: per-instance, per-database, system-wide, for-all-time).
+
+## Modality
+
+- **must** — a hard requirement; violation is a defect.
+- **may** — optional; both doing and not doing it are conformant.
+- **should** — recommended; a deviation must be justified. (Avoid in invariants —
+  an invariant is `must` or it is not an invariant.)
+
+## Concept, atom, composition, candidate concept
+
+The four terms the library is organized by, drawn as a diagram on [The Library](../corpus.md).
+
+- A **concept** is the unit of separation (Jackson's word, and this library's): one purpose, its own state, actions, and invariants, specifiable without naming anything else.
+- An **atom** is a concept realized in this library — freestanding, stored flat, naming no other pattern.
+- A **composition** is the wiring of concepts, never a new concept — it names atoms (or other compositions, as substrates) and owns only the emergent guarantees that appear when they work together.
+- A **candidate concept** is a proposal that has not yet survived triage — promoted to an atom by the freestanding test, or routed to reuse. It never outlives that decision.
+
+## Separation
+
+- **tombstone (2026-06-11)** — the corpus does not use the working noun from
+  "Separation of Concerns" (the ancestor principle's name, permitted only in that
+  title-case form — lint rule J). The unit of separation is the **concept**
+  (realized in the library as the **atom**; a composition is the wiring of
+  concepts, never a new concept — Jackson's wiring-not-primitive rule, made
+  structural by the composition-state rule); a
+  pre-triage item in the guided tool is a **candidate concept** (a stage, consumed
+  by triage — promoted or rejected, never outliving Phase 1). Atom and composition
+  are defined under *Concept, atom, composition, candidate concept* above; the thesis phrase is claimed in
+  [`the-spec-layer.md`](../essays/the-spec-layer.md).
+- **particle (2026-11-09)** — short for *sub-atomic particle*: a chunk of Grace
+  logic smaller than an atom, such as Compensable Workflow's compensating action,
+  a recorded closure. It lives inside the atoms and compositions that use it and
+  is no artifact of its own, so the canonical layer keeps its two artifact kinds
+  (lint rule K). The corpus does not write *sub-atomic* or *sub-atom*.
+- **ALL (2026-11-11)** — AI and humans reading and writing the corpus together,
+  each doing what it does best. Written in capitals; lowercase *all* keeps its
+  English sense, and the grammar's quantifier stays EVERY.
+- **application** — a deployed build output; output-level vocabulary only, never
+  a spec-layer artifact. The canonical layer has exactly two artifact kinds:
+  atomic concepts and compositions thereof (lint rule K). Component / module /
+  service are likewise projection-internal — generated, never authored.
+
+## Records
+
+Admitted 2026-10-21 by the maintainer's ruling, from the WHYs the rewrite onto
+the Database contract left. Each is a declared domain term, not grammar (the
+Watch list in [`GRACE-lang.md`](./GRACE-lang.md)).
+
+- **shred** — destroy the keys that decrypt a record's content, so the content
+  cannot be recovered while every stored version stays as written. A shred is
+  not an erasure: an erasure removes every version (Execution Contract
+  Database 5), a shred removes none.
+- **grant** — a live authorization that later acts rely on, such as a session,
+  a permission grant or a capability, which a revocation ends. A **record** is
+  a fact about a past act: nothing ends it, and revoking what made it only
+  stops new ones.
+- **provable** — shown by the records alone, never by a system's say-so.
+
+---
+
+*Status: stub, 2026-06-04.* Seeded from the recurring ambiguity classes (emptiness,
+time, identity, modality). Add a term only when a real spec ambiguity forced it —
+not speculatively.

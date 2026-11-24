@@ -1,6 +1,6 @@
 # Coverage matrix — `communication`
 
-- **Pattern:** `atoms/communication.md`
+- **Pattern:** `library/atoms/communication.md`
 - **Model:** `communication.als`, the static data model (+ 15 buggy twins `communication-buggy-<defect>.als`), and `communication.tla` + `communication.cfg`, the operation sequences (+ 45 buggy twins `communication-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-19
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-19. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** no vote: on the maintainer's ruling of 2026-11-09 every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences, and only the writing vetoes one. Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 through 3.

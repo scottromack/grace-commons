@@ -12,17 +12,18 @@
 //   none          the push touched no pattern, history or model file: audit nothing, and say so
 //   only <regex>  the patterns the push touched, as an `audit.mjs --only` regex
 //
-// A pattern is touched when its page (`atoms/x.md`), its history (`atoms/x.hist.md`), its coverage matrix
-// (`tools/harness/coverage/x.md`) or one of its models or twins (`atoms/models/x.tla`,
-// `atoms/models/x-buggy-y.als`, ...) is in the push. Recoverable Invocation
+// A pattern is touched when its page (`library/atoms/x.md`), its history (`library/atoms/x.hist.md`), its
+// coverage matrix (`tools/harness/coverage/x.md`) or one of its models or twins (`library/atoms/models/x.tla`,
+// `library/atoms/models/x-buggy-y.als`, ...) is in the push. The regex it prints names a pattern by its old
+// spelling (`atoms/x`), which audit.mjs still answers since `library: the files match the tree`. Recoverable Invocation
 // is left out: its models are audited by their own workflow (verify-recoverable-invocation.yml).
 import { existsSync, readdirSync } from "node:fs";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const FOLDERS = ["atoms", "compositions"];
+const FOLDERS = ["library/atoms", "library/compositions"];
 const NOT_PATTERNS = new Set(["README", "TAXONOMY", "index"]);
-const OWN_WORKFLOW = new Set(["compositions/recoverable-invocation"]);
+const OWN_WORKFLOW = new Set(["library/compositions/recoverable-invocation"]);
 
 // The pattern names of a folder: every page there but history files and the folder's own index pages.
 export function patternNames(root, folder) {
@@ -53,7 +54,7 @@ export function selection(paths, names = {}) {
     // tools/harness, and the workflow itself, change what every audit means
     const matrix = /^tools\/harness\/coverage\/([^/]+\.md)$/.exec(path);
     if (!matrix && (path.startsWith("tools/harness/") || path === ".github/workflows/verify.yml")) return { mode: "all" };
-    const m = matrix ? null : /^(atoms|compositions)\/(?:models\/)?([^/]+)$/.exec(path);
+    const m = matrix ? null : /^(library\/(?:atoms|compositions))\/(?:models\/)?([^/]+)$/.exec(path);
     if (!m && !matrix) continue;
     if (matrix) {
       const base = matrix[1].replace(/\.md$/, "");
@@ -70,7 +71,7 @@ export function selection(paths, names = {}) {
     if (name !== null && !OWN_WORKFLOW.has(`${folder}/${name}`)) touched.add(`${folder}/${name}`);
   }
   if (touched.size === 0) return { mode: "none" };
-  const alt = [...touched].map((t) => t.split("/")[1]).sort().join("|");
+  const alt = [...touched].map((t) => t.split("/").pop()).sort().join("|");
   return { mode: "only", only: `^(atoms|compositions)/(${alt})[-.]`, patterns: [...touched].sort() };
 }
 

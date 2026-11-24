@@ -1,6 +1,6 @@
 # Coverage matrix — `idempotent-reservation`
 
-- **Pattern:** `compositions/idempotent-reservation.md`
+- **Pattern:** `library/compositions/idempotent-reservation.md`
 - **Model:** `idempotent-reservation.tla` + thirteen buggy twins, `idempotent-reservation-buggy.tla`, `-buggy-seen`, `-buggy-failopen`, `-buggy-collision`, `-buggy-digest`, `-buggy-rerun`, `-buggy-uncached`, `-buggy-candidates`, `-buggy-place-rerun`, `-buggy-unmarked`, `-buggy-norecord`, `-buggy-replace`, `-buggy-unknown-unseen` (each `.tla` with its `.cfg`)
 - **Alloy (2026-11-12).** `idempotent-reservation.als`, the static data model, with **14 buggy twins** `idempotent-reservation-buggy-<name>.als`: `rerun`, `collision`, `digest`, `seen`, `failopen`, `young`, `norecord`, `uncached`, `reentry-ok`, `malformed`, `place-rerun`, `unknown-recorded`, `unmarked`, `candidates`.
 - **Reviewer / date:** the model's author, the session that landed it — 2026-11-08; Alloy layer 2026-11-12, its author. Not a fresh-context read; the next scheduled rescan owes one.

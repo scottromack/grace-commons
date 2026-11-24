@@ -24,21 +24,21 @@ Grace
    └─ Lean statements · proofs · codegen to two builds · generated tests (all planned)
 ```
 
-- **Grammar** — the controlled English the specs are written in. Example: [GRACE-lang](./GRACE-lang.md). A formal grammar (GF) *(planned)*.
-- **Sub-atomic** — the three primitives (state machine, pure function, direct effect), the four-step pipeline every action runs, and the database contract's families (Database, Order, Read, Refusal, Query, Input, Undo). Example: [Execution Contract](./execution-contract.md).
-- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Personal Todo](./atoms/personal-todo.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
-- **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./declarations.md). Example: [Lease](./atoms/lease.md) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
-- **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
+- **Grammar** — the controlled English the specs are written in. Example: [GRACE-lang](./how/GRACE-lang.md). A formal grammar (GF) *(planned)*.
+- **Sub-atomic** — the three primitives (state machine, pure function, direct effect), the four-step pipeline every action runs, and the database contract's families (Database, Order, Read, Refusal, Query, Input, Undo). Example: [Execution Contract](./library/execution-contract.md).
+- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Personal Todo](./library/atoms/personal-todo.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
+- **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./library/bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./library/declarations.md). Example: [Lease](./library/atoms/lease.md) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
+- **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./library/apps/recoverable-invocation/index.md).
 - **Data** *(planned)* — typed tables the checkers read, outside the prose of atoms and glue; Medication Order's clinical tables are planned as the first.
-- **Outside-world contracts** — what an app asks of a system that is not Grace's, stated once on one page, [Contracts](./contracts.md), and tested at the edge where that system connects, never trusted. Example: the adopter's commit and its act probe, which [Durable Intent](./atoms/durable-intent.md) and [Sweep](./atoms/sweep.md) need.
-- **Apps** — atoms, bond instances and marked glue, wired for one job. Example: [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md). The first whole app, the shared to-do list, *(planned)* will carry Lean statements that you review, proofs, code generated for two builds and generated tests. Not yet: `tools/lean`.
+- **Outside-world contracts** — what an app asks of a system that is not Grace's, stated once on one page, [Contracts](./library/contracts.md), and tested at the edge where that system connects, never trusted. Example: the adopter's commit and its act probe, which [Durable Intent](./library/atoms/durable-intent.md) and [Sweep](./library/atoms/sweep.md) need.
+- **Apps** — atoms, bond instances and marked glue, wired for one job. Example: [Recoverable Invocation as an app](./library/apps/recoverable-invocation/index.md). The first whole app, the shared to-do list, *(planned)* will carry Lean statements that you review, proofs, code generated for two builds and generated tests. Not yet: `tools/lean`.
 <!-- grace-map:end -->
 
 ---
 
 ## What Grace Commons is
 
-A public library of **atoms** and **compositions** written in [GRACE](./GRACE-lang.md), a small domain-specific language in controlled English: the spec is canonical, code is a derived build artifact. The thesis, philosophy, and inheritance are in [`the-spec-layer.md`](./the-spec-layer.md); the architecture overview is in [`why.md`](./why.md) (the vision page; `readme.md` is the site's Start Here landing/tour). Named for Grace Hopper, who first argued that business logic should be readable by the people who understand the business.
+A public library of **atoms** and **compositions** written in [GRACE](./how/GRACE-lang.md), a small domain-specific language in controlled English: the spec is canonical, code is a derived build artifact. The thesis, philosophy, and inheritance are in [`the-spec-layer.md`](./essays/the-spec-layer.md); the architecture overview is in [`why.md`](./why.md) (the vision page; `readme.md` is the site's Start Here landing/tour). Named for Grace Hopper, who first argued that business logic should be readable by the people who understand the business.
 
 ---
 
@@ -46,14 +46,14 @@ A public library of **atoms** and **compositions** written in [GRACE](./GRACE-la
 
 If you have no prior context, read in this order:
 
-1. **[`why.md`](./why.md)** — the front door's argument, in five minutes: why Grace exists and what it checks. (Atoms, compositions and the three layers: [`spec-format.md`](./spec-format.md) and the [Roadmap](./roadmap.md).) (`readme.md` is the Start Here landing/tour — orientation for humans, not canon.)
-2. **[`the-spec-layer.md`](./the-spec-layer.md)** — the manifesto, a dated essay: the argument, which owns no rule. The rules it once owned are on [`method.md`](./method.md) (the information-management triad and the bridge test), [`pressure-testing.md`](./pressure-testing.md) (the minimum-formalism principle and the three-tier formal verification stack) and [`spec-format.md`](./spec-format.md) (every visual has a plain text source; atoms are stored flat).
-3. **[`pressure-testing.md`](./pressure-testing.md)** — the three-pass methodology, round structure and grounding semantics, formal-layer machinery, regulated-pattern conventions, capability provenance, the no-snapshot rule.
-4. **[`spec-format.md`](./spec-format.md)** — the three spec shapes, required sections in order, and the cross-cutting authoring conventions (owned there as of 2026-06-11).
-5. **[`contributing.md`](./contributing.md)** — contribution shape, the three perspectives, quality bar, lifecycle, the workflow for adding a new pattern, and the implementation-discovered-findings discipline.
-6. **[`execution-contract.md`](./execution-contract.md)** — the deterministic compilation target: three primitives, four-step pipeline, atom-to-runtime mapping, conformance.
-7. **An example atom.** [`atoms/personal-todo.md`](./atoms/personal-todo.md) (simplest shape); [`atoms/actor-identity.md`](./atoms/actor-identity.md) (regulated shape).
-8. **An example application.** [`compositions/idempotent-reservation.md`](./compositions/idempotent-reservation.md) (two-atom); [`compositions/audit-trail.md`](./compositions/audit-trail.md) (the canonical regulated-audit stack).
+1. **[`why.md`](./why.md)** — the front door's argument, in five minutes: why Grace exists and what it checks. (Atoms, compositions and the three layers: [`spec-format.md`](./how/spec-format.md) and the [Roadmap](./log/roadmap.md).) (`readme.md` is the Start Here landing/tour — orientation for humans, not canon.)
+2. **[`the-spec-layer.md`](./essays/the-spec-layer.md)** — the manifesto, a dated essay: the argument, which owns no rule. The rules it once owned are on [`method.md`](./how/method.md) (the information-management triad and the bridge test), [`pressure-testing.md`](./how/pressure-testing.md) (the minimum-formalism principle and the three-tier formal verification stack) and [`spec-format.md`](./how/spec-format.md) (every visual has a plain text source; atoms are stored flat).
+3. **[`pressure-testing.md`](./how/pressure-testing.md)** — the three-pass methodology, round structure and grounding semantics, formal-layer machinery, regulated-pattern conventions, capability provenance, the no-snapshot rule.
+4. **[`spec-format.md`](./how/spec-format.md)** — the three spec shapes, required sections in order, and the cross-cutting authoring conventions (owned there as of 2026-06-11).
+5. **[`contributing.md`](./community/contributing.md)** — contribution shape, the three perspectives, quality bar, lifecycle, the workflow for adding a new pattern, and the implementation-discovered-findings discipline.
+6. **[`execution-contract.md`](./library/execution-contract.md)** — the deterministic compilation target: three primitives, four-step pipeline, atom-to-runtime mapping, conformance.
+7. **An example atom.** [`library/atoms/personal-todo.md`](./library/atoms/personal-todo.md) (simplest shape); [`library/atoms/actor-identity.md`](./library/atoms/actor-identity.md) (regulated shape).
+8. **An example application.** [`library/compositions/idempotent-reservation.md`](./library/compositions/idempotent-reservation.md) (two-atom); [`library/compositions/audit-trail.md`](./library/compositions/audit-trail.md) (the canonical regulated-audit stack).
 
 When drafting a new pattern, additionally read the most structurally adjacent existing pattern — mirror its shape.
 
@@ -61,62 +61,62 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 ## Canonical documents — where every rule lives
 
-- [`why.md`](./why.md) — the front door's argument, cut to about 300 words on 2026-11-14 (the atom and composition vocabulary lives in [`spec-format.md`](./spec-format.md)). [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
-- [`the-spec-layer.md`](./the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./method.md) — the method's loops and its principles: the information-management triad and the bridge test.
-- [`pressure-testing.md`](./pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models (every pattern carries both), the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
-- [`spec-format.md`](./spec-format.md) — the two spec shapes, required sections, reading tiers, authoring conventions, the term entry, the workflow for adding a new pattern.
-- [`contributing.md`](./contributing.md) — contribution lifecycle, and where each kind of contribution goes; the workflow, the findings rule and the model conventions it once held are in `spec-format.md` and `pressure-testing.md`.
-- [`marketing.md`](./marketing.md) — the rules for anything said in Grace's name outside the library; read before writing or changing a front-door page.
-- [`execution-contract.md`](./execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
-- [`roadmap.md`](./roadmap.md) — the library's state, printed: a pattern's own Status line is the source of its state and roadmap.md prints it, beside the retired names, the forthcoming patterns and the open method work.
-- [`open-questions.md`](./open-questions.md) — only what is open: the deliberately-deferred decisions and the classes the grammar is still accumulating, each with what would decide it; the answered ones are in [`open-questions.hist.md`](./open-questions.hist.md). Read before touching anything it names.
-- [`discoveries.md`](./discoveries.md) — dated findings log (the mirror of open-questions: found things vs. open things).
-- [`risks.md`](./risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
-- [`changelog.md`](./changelog.md) — dated change records through 2026-07-12; closed 2026-10-07. What changed since is in the commit that made it and in each pattern's Decisions.
-- [`governance.md`](./governance.md) — draft admission/sealing proposal. [`measurement.md`](./measurement.md) — token-cost ledger. [`demos.md`](./demos.md) — live renders. [`glossary.md`](./glossary.md) — strict definitions for load-bearing English. [`ai-usage-log.md`](./ai-usage-log.md) — AI-assistance disclosure.
-- [`atoms/index.md`](./atoms/index.md) — generated browse-by-overlay catalog (regenerate via `python3 tools/taxonomy/generate_views.py .`). [`compositions/README.md`](./compositions/README.md) — compositions catalog.
+- [`why.md`](./why.md) — the front door's argument, cut to about 300 words on 2026-11-14 (the atom and composition vocabulary lives in [`spec-format.md`](./how/spec-format.md)). [`readme.md`](./readme.md) — the Start Here landing/tour at the site root.
+- [`the-spec-layer.md`](./essays/the-spec-layer.md) — the architectural manifesto, a dated essay that owns no rule. [`method.md`](./how/method.md) — the method's loops and its principles: the information-management triad and the bridge test.
+- [`pressure-testing.md`](./how/pressure-testing.md) — three-pass methodology; the section titled *What DONE means* (the round and the status words); formal models (every pattern carries both), the coverage cross-check; capability provenance; regulated-pattern conventions; the no-snapshot rule.
+- [`spec-format.md`](./how/spec-format.md) — the two spec shapes, required sections, reading tiers, authoring conventions, the term entry, the workflow for adding a new pattern.
+- [`contributing.md`](./community/contributing.md) — contribution lifecycle, and where each kind of contribution goes; the workflow, the findings rule and the model conventions it once held are in `spec-format.md` and `pressure-testing.md`.
+- [`marketing.md`](./essays/marketing.md) — the rules for anything said in Grace's name outside the library; read before writing or changing a front-door page.
+- [`execution-contract.md`](./library/execution-contract.md) — runtime semantics; composition state; substrate invocation; testing model; conformance.
+- [`roadmap.md`](./log/roadmap.md) — the library's state, printed: a pattern's own Status line is the source of its state and roadmap.md prints it, beside the retired names, the forthcoming patterns and the open method work.
+- [`open-questions.md`](./how/open-questions.md) — only what is open: the deliberately-deferred decisions and the classes the grammar is still accumulating, each with what would decide it; the answered ones are in [`open-questions.hist.md`](./how/open-questions.hist.md). Read before touching anything it names.
+- [`discoveries.md`](./log/discoveries.md) — dated findings log (the mirror of open-questions: found things vs. open things).
+- [`risks.md`](./log/risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
+- [`changelog.md`](./log/changelog.md) — dated change records through 2026-07-12; closed 2026-10-07. What changed since is in the commit that made it and in each pattern's Decisions.
+- [`governance.md`](./how/governance.md) — draft admission/sealing proposal. [`measurement.md`](./evidence/measurement.md) — token-cost ledger. [`demos.md`](./evidence/demos.md) — live renders. [`glossary.md`](./how/glossary.md) — strict definitions for load-bearing English. [`ai-usage-log.md`](./log/ai-usage-log.md) — AI-assistance disclosure.
+- [`library/atoms/index.md`](./library/atoms/index.md) — generated browse-by-overlay catalog (regenerate via `python3 tools/taxonomy/generate_views.py .`). [`library/compositions/README.md`](./library/compositions/README.md) — compositions catalog.
 
 ---
 
 ## Vocabulary — load-bearing terms
 
-Moved — no mirror kept. Atom (atomic concept), composition and freestanding are defined in [`glossary.md`](./glossary.md), emergent invariant in [`spec-format.md`](./spec-format.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./spec-format.md); strict spec-language terms in [`glossary.md`](./glossary.md).
+Moved — no mirror kept. Atom (atomic concept), composition and freestanding are defined in [`glossary.md`](./how/glossary.md), emergent invariant in [`spec-format.md`](./how/spec-format.md); GRID, the three passes, `grounded`, and the Ledger in [`pressure-testing.md`](./how/pressure-testing.md); the three shapes and regulated overlay in [`spec-format.md`](./how/spec-format.md); strict spec-language terms in [`glossary.md`](./how/glossary.md).
 
 ## Authoring conventions
 
-Moved — owned by the section titled *Cross-cutting authoring conventions* in [`spec-format.md`](./spec-format.md) (as of 2026-06-11). Deviations are review findings, not stylistic choices.
+Moved — owned by the section titled *Cross-cutting authoring conventions* in [`spec-format.md`](./how/spec-format.md) (as of 2026-06-11). Deviations are review findings, not stylistic choices.
 
 ## The three-pass review
 
-Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definitions, and the section titled *What DONE means* (the round, the rule that makes a pattern done, and the status words `todo`, `doing`, `done`).
+Moved — owned by [`pressure-testing.md`](./how/pressure-testing.md): pass definitions, and the section titled *What DONE means* (the round, the rule that makes a pattern done, and the status words `todo`, `doing`, `done`).
 
 ## Regulated-pattern conventions
 
-Moved — owned by the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md) (the two required sections and when they apply); the overlay's one Examples subsection sits in the shapes of [`spec-format.md`](./spec-format.md).
+Moved — owned by the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./how/pressure-testing.md) (the two required sections and when they apply); the overlay's one Examples subsection sits in the shapes of [`spec-format.md`](./how/spec-format.md).
 
 ## Current state of the library
 
-Moved — a pattern's own Status line is the source of its state, and [`roadmap.md`](./roadmap.md) prints it. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md).
+Moved — a pattern's own Status line is the source of its state, and [`roadmap.md`](./log/roadmap.md) prints it. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./how/pressure-testing.md).
 
-Whole systems already run from these patterns. [`demos.md`](./demos.md) lists them: the Beacon Clinical Research Portal (118 tests), Multi-Party Approval (67) and Attributed Permissions Admin (35), each live; the counts are as `demos.md` states them. Beacon is rendered on four different stacks from the same patterns, and an audit chain written by one render verifies byte for byte under another. Before saying what Grace has not built, read `demos.md`. The one true limit: those renders were written to the patterns, by hand and by AI, and are not yet produced mechanically from a pattern.
+Whole systems already run from these patterns. [`demos.md`](./evidence/demos.md) lists them: the Beacon Clinical Research Portal (118 tests), Multi-Party Approval (67) and Attributed Permissions Admin (35), each live; the counts are as `demos.md` states them. Beacon is rendered on four different stacks from the same patterns, and an audit chain written by one render verifies byte for byte under another. Before saying what Grace has not built, read `demos.md`. The one true limit: those renders were written to the patterns, by hand and by AI, and are not yet produced mechanically from a pattern.
 
 Built code changes only by changing what it is built from and building again (Scott, 2026-11-16: "We don't hack code ever"). No hand patches, demos included: a demo's code is a render of the patterns and its own written specification, and an edit to the render alone is a defect, not a fix. A fix that cannot be made by building again names what is missing from the patterns or the specification, writes it there first, and then builds.
 
 ## Workflow for adding a new pattern
 
-Moved — owned by the section titled *Workflow for adding a new pattern* in [`spec-format.md`](./spec-format.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)).
+Moved — owned by the section titled *Workflow for adding a new pattern* in [`spec-format.md`](./how/spec-format.md) (as of 2026-11-14; before that, [`contributing.md`](./community/contributing.md)).
 
 ## Open architectural questions
 
-Moved — [`open-questions.md`](./open-questions.md) lists what is open, and [`open-questions.hist.md`](./open-questions.hist.md) what was answered. No list is mirrored here: the last mirrored list in this file went stale (it carried two questions as open after they were resolved and executed on 2026-06-08).
+Moved — [`open-questions.md`](./how/open-questions.md) lists what is open, and [`open-questions.hist.md`](./how/open-questions.hist.md) what was answered. No list is mirrored here: the last mirrored list in this file went stale (it carried two questions as open after they were resolved and executed on 2026-06-08).
 
 ## Implementation-discovered findings
 
-Moved — owned by the section titled *Implementation-discovered findings* in [`pressure-testing.md`](./pressure-testing.md) (as of 2026-11-14; before that, [`contributing.md`](./contributing.md)). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
+Moved — owned by the section titled *Implementation-discovered findings* in [`pressure-testing.md`](./how/pressure-testing.md) (as of 2026-11-14; before that, [`contributing.md`](./community/contributing.md)). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
 
 ## Tone
 
-Moved — the bridges-over-walls principle (the bridge test) and the information-management triad are owned by the section titled *Principles* in [`method.md`](./method.md); complete-over-concise and the reading tiers by [`spec-format.md`](./spec-format.md). The verbosity-preserves-meaning argument is in the essay [`the-spec-layer.md`](./the-spec-layer.md) (the section titled *The Architecture*), which owns no rule. The litmus test for any addition: *does this build a bridge, or does it build a wall?*
+Moved — the bridges-over-walls principle (the bridge test) and the information-management triad are owned by the section titled *Principles* in [`method.md`](./how/method.md); complete-over-concise and the reading tiers by [`spec-format.md`](./how/spec-format.md). The verbosity-preserves-meaning argument is in the essay [`the-spec-layer.md`](./essays/the-spec-layer.md) (the section titled *The Architecture*), which owns no rule. The litmus test for any addition: *does this build a bridge, or does it build a wall?*
 
 ---
 
@@ -130,11 +130,11 @@ Moved — the bridges-over-walls principle (the bridge test) and the information
 
 The same rule applies to review *outputs*: a review's findings go into the pattern's Ledger as open lines (or are fixed, with the reasoning in the commit message), not into a standalone review file alongside the pattern.
 
-**Never create a directory.** The repo's top level is a closed set — `apps` (an app's page and its marked glue, one folder each: Scott, 2026-11-23, ruling of 05:35Z), `atoms`, `compositions`, `demos`, `grants`, `internal`, `tools`, `working-ideas`, `build-terms`, `build` (the derived IR, ignored by git), `node_modules` and `_site` (the site's own build, ignored by git), and the Jekyll `_data` / `_includes` / `_layouts` / `_sass` — and inside the two pattern folders there is one directory each, `atoms/models` and `compositions/models`, which hold the formal models (Scott, 2026-11-13). A file belongs in one of those or it does not belong in the repo; a new directory is never the answer to *where does this go*, because the answer is either an existing home or the chat. `lint.py`'s `M-stray-directory` enforces it, the two models folders included, and adding a directory means changing that rule deliberately rather than discovering the directory months later.
+**Never create a directory.** The repo's top level is a closed set — `library/apps` (an app's page and its marked glue, one folder each: Scott, 2026-11-23, ruling of 05:35Z), `library/atoms`, `library/compositions`, `demos`, `grants`, `internal`, `tools`, `working-ideas`, `build-terms`, `build` (the derived IR, ignored by git), `node_modules` and `_site` (the site's own build, ignored by git), and the Jekyll `_data` / `_includes` / `_layouts` / `_sass` — and inside the two pattern folders there is one directory each, `library/atoms/models` and `library/compositions/models`, which hold the formal models (Scott, 2026-11-13). A file belongs in one of those or it does not belong in the repo; a new directory is never the answer to *where does this go*, because the answer is either an existing home or the chat. `lint.py`'s `M-stray-directory` enforces it, the two models folders included, and adding a directory means changing that rule deliberately rather than discovering the directory months later.
 
-The directory named `Claude outputs/` is what this rule exists to prevent. A past session created it and then filed real work inside it — Recoverable Invocation's formal models and their configurations, gate review records, verification scripts — where no instrument read them, no reading order named them, and the composition's own Ledger pointed at a model sitting outside the corpus tree. It is being emptied of anything meaningful and then deleted. A formal model belongs in its folder's models folder (`atoms/models/` or `compositions/models/`), with its twins and configurations; a gate record belongs in the Ledger or the commit; a verification script belongs in `tools/`; a draft belongs in the chat.
+The directory named `Claude outputs/` is what this rule exists to prevent. A past session created it and then filed real work inside it — Recoverable Invocation's formal models and their configurations, gate review records, verification scripts — where no instrument read them, no reading order named them, and the composition's own Ledger pointed at a model sitting outside the corpus tree. It is being emptied of anything meaningful and then deleted. A formal model belongs in its folder's models folder (`library/atoms/models/` or `library/compositions/models/`), with its twins and configurations; a gate record belongs in the Ledger or the commit; a verification script belongs in `tools/`; a draft belongs in the chat.
 
-The only prompt-shaped content that belongs in the repo is methodology — the three-pass question sets and authoring rubric in [`pressure-testing.md`](./pressure-testing.md). That content is canonical, reviewed, and edited like any other library document. Everything else is chat.
+The only prompt-shaped content that belongs in the repo is methodology — the three-pass question sets and authoring rubric in [`pressure-testing.md`](./how/pressure-testing.md). That content is canonical, reviewed, and edited like any other library document. Everything else is chat.
 
 ---
 

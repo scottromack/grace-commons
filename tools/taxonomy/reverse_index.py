@@ -146,7 +146,7 @@ def parse_composition(path):
 
 
 def build_index(root):
-    atoms_dir, comps_dir = root / "atoms", root / "compositions"
+    atoms_dir, comps_dir = root / "library" / "atoms", root / "library" / "compositions"
 
     atom = {}  # name -> {folder, domain}
     # Layout-agnostic: rglob matches both atoms/<cat>/<name>.md (pre-flatten) and

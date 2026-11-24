@@ -1,10 +1,10 @@
-# Coverage matrix — `compositions/kyc-customer-onboarding.md`
+# Coverage matrix — `library/compositions/kyc-customer-onboarding.md`
 
-- **Pattern:** `compositions/kyc-customer-onboarding.md`
+- **Pattern:** `library/compositions/kyc-customer-onboarding.md`
 - **Model:** `kyc-customer-onboarding.tla` + buggy twin `kyc-customer-onboarding-buggy.tla`
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03
 - **Formal-layer vote load-bearing claims:** Invariant 3 (adverse-trigger ordering — monitoring-triggered event precedes any resulting suspend), Invariant 7 (open-trigger ⟺ Suspended biconditional)
-- **Retired 2026-11-10** (unit `tooling: every check has a twin that breaks it`): the page is `compositions/customer-onboarding.md` and its model `customer-onboarding.tla`; `kyc-customer-onboarding.tla` and its twin no longer exist. That page's matrix counts its rules, so every row here reads `retired` and `coverage.py` counts none of them.
+- **Retired 2026-11-10** (unit `tooling: every check has a twin that breaks it`): the page is `library/compositions/customer-onboarding.md` and its model `customer-onboarding.tla`; `kyc-customer-onboarding.tla` and its twin no longer exist. That page's matrix counts its rules, so every row here reads `retired` and `coverage.py` counts none of them.
 
 ## Step 1 — harness re-run (must pass)
 

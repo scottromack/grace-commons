@@ -1,6 +1,6 @@
 # Coverage matrix — `login`
 
-- **Pattern:** `compositions/login.md`
+- **Pattern:** `library/compositions/login.md`
 - **Model:** `login.tla` + `login.cfg` (TLA+; one `Safety` invariant of six checks, and `PROPERTY Session_Credential_Traceability` since 2026-11-10; seven buggy twins since 2026-11-10); and `login.als`, the static data model (2026-11-12: one state of the credential and session records, the login event log with each entry's login event, the two maps — each login's map write a commit of its own, which may fail, and the sweep's backfill — the logouts and the cascades with their sets, answers, counts and events, every commit in the store's one order) + 11 twins `login-buggy-<defect>.als` (2026-11-18: the twin `abandons-completed` retired, `initiation-uncompleted` added, so eleven still)
 - **Reviewer / date:** mayor, from the page at fc78924 and the model as it stands — 2026-11-10 (unit `formal: more coverage for the yes votes`, step 1; the page had no matrix). Alloy layer 2026-11-12 (unit `compositions/login.md formal layer`), the model's author.
 - **Formal-layer vote load-bearing claims:** the Ledger reads `formal: verified — login.tla, no twin, 2026-05-23`; the model header names the credential gate, cascade completeness (including the Final Critique 1 Logout-versus-cascade interleaving), map inverse consistency and cascade audit ordering.
@@ -36,7 +36,7 @@ One row per numbered rule of *Composition-level invariants* (the page's numberin
 | Composition state 4, 5; Action wiring 17, 37; Check 2.3 | no | `unstatable` nothing testable in Alloy | Alloy (2026-11-12): 4 and 5 compare two states (the TLA+ `PROPERTY` holds 5, the row above); 17 and 37 order writes inside one transaction, which one state cannot show; Check 2.3 waits on the reconciliation window, a clock reading. |
 | Invariants 4.1, 4.2 | — | `retired` deleted | The page deleted both (Composition state 10; Execution Contract Database 1). |
 
-Out-of-scope residual, named: Audit Trail's own completeness (this page's Invariant 5 delegates to `compositions/models/audit-trail.tla`, covered there); `Credential.verify`'s internals; storage failure of the session write (the action does not fire); cross-system clock skew (one logical clock); the order of the cascade's per-session revokes (the model's cascade is one atomic step).
+Out-of-scope residual, named: Audit Trail's own completeness (this page's Invariant 5 delegates to `library/compositions/models/audit-trail.tla`, covered there); `Credential.verify`'s internals; storage failure of the session write (the action does not fire); cross-system clock skew (one logical clock); the order of the cascade's per-session revokes (the model's cascade is one atomic step).
 
 ## Step 3 — bound saturation
 

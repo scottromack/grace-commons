@@ -5,7 +5,7 @@ nav_exclude: true
 
 # Tenure
 
-> A trial layout of [`atoms/tenure.md`](../atoms/tenure.md) in the order of the rough draft's form: the same page, every rule with its label and its words as the atom has them, reordered. Staging, not canon (Scott, 2026-11-18, trial: Tenure as a tree, in the rough draft's order).
+> A trial layout of [`atoms/tenure.md`](../library/atoms/tenure.md) in the order of the rough draft's form: the same page, every rule with its label and its words as the atom has them, reordered. Staging, not canon (Scott, 2026-11-18, trial: Tenure as a tree, in the rough draft's order).
 
 ## What it is
 
@@ -591,7 +591,7 @@ Non-goal 11: The atom MUST NOT destroy a tenure.
 Non-goal 12: The atom MUST NOT make a tenure tamper-evident; a withdrawn tenure stands unchanged by Invariant 4.1, which is no seal.
 ```
 
-NOTE: the owners — [Party Identity](./party-identity.md) and [Actor Identity](./actor-identity.md) (Non-goal 1; External check 1); Catalog *(forthcoming)* (Non-goal 2; External check 2); [Permissions](./permissions.md), which a deployment needing roles calls once the deployment resolves the role to grants (Non-goal 3); [Assignment](./assignment.md) (Non-goal 4); Scheduler *(forthcoming)* (Non-goal 5); the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 6); [Event Log](./event-log.md) (Non-goal 7); [Calendar Time](./calendar-time.md) (Non-goal 8); Reverse Index *(forthcoming)* (Non-goal 9); [Retention Window](./retention-window.md) (Non-goal 10); [Defensible Retention](../compositions/defensible-retention.md) and [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12).
+NOTE: the owners — [Party Identity](./party-identity.md) and [Actor Identity](./actor-identity.md) (Non-goal 1; External check 1); Catalog *(forthcoming)* (Non-goal 2; External check 2); [Permissions](./permissions.md), which a deployment needing roles calls once the deployment resolves the role to grants (Non-goal 3); [Assignment](./assignment.md) (Non-goal 4); Scheduler *(forthcoming)* (Non-goal 5); the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 6); [Event Log](./event-log.md) (Non-goal 7); [Calendar Time](./calendar-time.md) (Non-goal 8); Reverse Index *(forthcoming)* (Non-goal 9); [Retention Window](./retention-window.md) (Non-goal 10); [Defensible Retention](../library/compositions/defensible-retention.md) and [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12).
 
 Where the atom breaks down: what a role lets a person do, which is a grant in Permissions; one person responsible for one piece of work, which is an assignment; a company's tie to another company, which is no one person's role.
 

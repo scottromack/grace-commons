@@ -15,6 +15,7 @@ author: Scott Romack
 
 plugins:
   - jekyll-include-cache
+  - jekyll-redirect-from
   - jekyll-relative-links
   - jekyll-seo-tag
   - jekyll-sitemap
@@ -44,10 +45,16 @@ nav_sort: case_insensitive
 
 markdown: kramdown
 
-# Derived pattern cards: atoms/ and compositions/ pages get the theme's `pattern` layout
+# Derived pattern cards: library/atoms/ and library/compositions/ pages get the theme's `pattern` layout
 # (which injects its pattern-card.html from _data/patterns.json) via defaults,
 # so the canonical pattern files themselves are never edited. Regenerate the data
 # with `python3 tools/taxonomy/generate_graph.py .`.
+#
+# The menu follows the folders (unit `library: the files match the tree`, Scott 2026-11-23 10:00 PM
+# Central): every menu section is a folder, and the folder sets a page's parent here, so no page
+# carries a `parent:` line. A section's own page stands at the root beside its folder (corpus.md
+# beside library/, evidence.md beside evidence/), since Jekyll's defaults cannot take a parent away
+# from one page of a folder; an index inside library/ is set apart by a scope of its own path.
 defaults:
   - scope:
       path: "" # all pages (GitHub Pages adds this implicitly; plain Jekyll does not)
@@ -55,13 +62,43 @@ defaults:
     values:
       layout: "default"
   - scope:
-      path: "atoms"
+      path: "library/"
     values:
-      layout: "pattern"
+      parent: "The Library"
   - scope:
-      path: "compositions"
+      path: "library/atoms"
     values:
       layout: "pattern"
+      parent: "Atomic Concepts"
+  - scope:
+      path: "library/atoms/index.md"
+    values:
+      parent: "The Library"
+  - scope:
+      path: "library/compositions"
+    values:
+      layout: "pattern"
+      parent: "Conceptual Compositions"
+  - scope:
+      path: "library/compositions/README.md"
+    values:
+      parent: "The Library"
+  - scope:
+      path: "how/"
+    values:
+      parent: "How Grace Works"
+  - scope:
+      path: "evidence/"
+    values:
+      parent: "Evidence"
+  - scope:
+      path: "community/"
+    values:
+      parent: "Community"
+  - scope:
+      path: "log/"
+    values:
+      parent: "Project Log"
 
 # What is not the site. This list replaces Jekyll's own default one, so it names the build's files
 # too (Gemfile, vendor/, node_modules/). Jekyll's watcher takes it as the paths to ignore: the
@@ -78,6 +115,9 @@ exclude:
   - .vscode/
   - AGENTS.md
   - CLAUDE.md
+  - CODE_OF_CONDUCT.md
+  - CONTRIBUTING.md
+  - SECURITY.md
   - Gemfile
   - Gemfile.lock
   - build/

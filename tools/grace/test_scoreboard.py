@@ -116,7 +116,7 @@ class ScoreboardTest(unittest.TestCase):
     def test_the_first_sentence_gives_the_totals(self):
         page = (ROOT / scoreboard.PAGE).read_text(encoding="utf-8")
         states = [scoreboard.state(lab, self.advisory) for lab, _ in
-                  scoreboard.sentences((ROOT / "GRACE-lang.md").read_text(encoding="utf-8"))]
+                  scoreboard.sentences((ROOT / "how" / "GRACE-lang.md").read_text(encoding="utf-8"))]
         want = (f"has {len(states)} rules that say the parser MUST reject something: the checker gates "
                 f"{states.count('gates')} of them, gates {states.count('gates in part')} in part, and only counts "
                 f"{states.count('only counted')}.")
@@ -129,8 +129,9 @@ class ScoreboardTest(unittest.TestCase):
             (root / "tools/linter").mkdir(parents=True)
             for rel in ("tools/grace/check.py", "tools/grace/normalize.py", "tools/linter/lint.py"):
                 (root / rel).write_text((ROOT / rel).read_text(encoding="utf-8"), encoding="utf-8")
-            grammar = (ROOT / "GRACE-lang.md").read_text(encoding="utf-8")
-            (root / "GRACE-lang.md").write_text(
+            grammar = (ROOT / "how" / "GRACE-lang.md").read_text(encoding="utf-8")
+            (root / "how").mkdir()
+            (root / "how" / "GRACE-lang.md").write_text(
                 grammar + "\nHard invariant 99: The parser MUST reject a thing no row holds.\n", encoding="utf-8")
             self.assertEqual(["Hard invariant 99: GRACE-lang.md says the parser MUST reject, and ROWS has no row for it"],
                              scoreboard.verify(root, self.advisory))

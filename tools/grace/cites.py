@@ -60,6 +60,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# layout.py sits beside this file; `python3 -I cites.py` (pin-count.py runs it so) leaves this folder off sys.path
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 LABEL = re.compile(
     r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
@@ -141,6 +145,9 @@ def in_range(label: str, family: str, first: str, last: str) -> bool:
 
 
 CONTRACT = "execution-contract.md"
+# where the two method documents the tools read sit (unit `library: the files match the tree`)
+CONTRACT_PATH = "library/execution-contract.md"
+GRAMMAR_PATH = "how/GRACE-lang.md"
 # the contract's rules are bold labelled paragraphs, `**Logic confinement 7: Title.** Text`,
 # or bold labelled list items, `- **Conformance 1:** Text`
 CONTRACT_RULE = re.compile(
@@ -410,7 +417,7 @@ def rule_families(spec_format_path=None) -> list[dict[str, str]]:
     a second list beside spec-format's heading tables that disagreed with them
     (the review of 2026-11-10); the table now holds the one list, beside the
     headings its families label, and the Term line names the table."""
-    f = Path(spec_format_path) if spec_format_path else Path(__file__).resolve().parents[2] / "spec-format.md"
+    f = Path(spec_format_path) if spec_format_path else Path(__file__).resolve().parents[2] / "how" / "spec-format.md"
     try:
         text = f.read_text(encoding="utf-8")
     except OSError:
@@ -583,8 +590,8 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
     if paths:
         candidates = paths
     else:
-        candidates = [root / "GRACE-lang.md", root / CONTRACT] + sorted(root.glob("atoms/*.md")) + \
-                     sorted(root.glob("compositions/*.md"))
+        candidates = [root / GRAMMAR_PATH, root / CONTRACT_PATH] + sorted(root.glob("library/atoms/*.md")) + \
+                     sorted(root.glob("library/compositions/*.md"))
     out = []
     for p in candidates:
         if not p.exists() or p.match(HISTORY):
@@ -607,13 +614,13 @@ def contract_labels(root: Path) -> dict[str, set[str]]:
     and a pattern's dated Decisions still cite them (`Execution Contract Store 1
     through 4`). An empty set for a document the root does not carry."""
     out: dict[str, set[str]] = {}
-    for owner, name in (("Execution Contract", CONTRACT), ("GRACE-lang", "GRACE-lang.md")):
+    for owner, name in (("Execution Contract", CONTRACT_PATH), ("GRACE-lang", GRAMMAR_PATH)):
         path = root / name
         if not path.exists():
             out[owner] = set()
             continue
         spec = parse(path)
-        out[owner] = set(spec.rules) | (set(spec.tombstones) if name == CONTRACT else set())
+        out[owner] = set(spec.rules) | (set(spec.tombstones) if name == CONTRACT_PATH else set())
     return out
 
 
@@ -646,11 +653,21 @@ def contract_citations(text: str, labels: dict[str, set[str]]) -> list[tuple[str
 
 
 def changed_seeds(root: Path, rev: str, spec: Spec) -> set[str]:
+    """The rules and terms of `spec` whose lines differ from `rev`. The page is read at `rev`
+    under the path it had then, and both copies are compared link-neutral (tools/grace/layout.py):
+    `library: the files match the tree` moved every page and rewrote its links, which changed no
+    rule, so a move reaches nothing; any other change shows as before."""
+    import layout
     rel = spec.path.relative_to(root).as_posix()
-    diff = subprocess.run(["git", "--no-optional-locks", "-C", str(root), "diff", "-U0", rev, "--", rel],
-                          capture_output=True, text=True).stdout
+    before, at = layout.found_at(root, rev, rel)
+    now = spec.path.read_text(encoding="utf-8")
+    if before is None:
+        lines = ["+" + ln for ln in now.split("\n")]
+    else:
+        lines = [ln for ln in difflib.unified_diff(layout.neutral(before, at).split("\n"),
+                                                    layout.neutral(now, rel).split("\n"), lineterm="", n=0)]
     seeds: set[str] = set()
-    for line in diff.split("\n"):
+    for line in lines:
         if not line or line[0] not in "+-" or line.startswith(("+++", "---")):
             continue
         body = line[1:].strip()
@@ -678,10 +695,9 @@ def moved_to_record(root: Path, rev: str, spec: Spec, seeds: set[str]) -> set[st
     hist = history_file(spec.path)
     if not hist.exists():
         return set()
-    rel = spec.path.relative_to(root).as_posix()
-    shown = subprocess.run(["git", "--no-optional-locks", "-C", str(root), "show", f"{rev}:{rel}"],
-                           capture_output=True, text=True)
-    if shown.returncode != 0:
+    import layout
+    shown = layout.text_at(root, rev, spec.path.relative_to(root).as_posix())
+    if shown is None:
         return set()
     record = _squash(hist.read_text(encoding="utf-8"))
 
@@ -693,7 +709,7 @@ def moved_to_record(root: Path, rev: str, spec: Spec, seeds: set[str]) -> set[st
                 out.setdefault(lm.group(1), line.strip())
         return out
 
-    before = paragraphs(shown.stdout)
+    before = paragraphs(shown)
     after = paragraphs(spec.path.read_text(encoding="utf-8"))
     same: set[str] = set()
     for label in seeds:
@@ -939,7 +955,7 @@ def run(root: Path, argv: list[str]) -> int:
                     target = m.group(1)
                     if f"{m.group(1)} {m.group(2)}" in spec.rules:
                         continue  # the citing spec's own label family, not a citation
-                    if target not in migrated and (root / "atoms" / (target.lower().replace(" ", "-") + ".md")).exists():
+                    if target not in migrated and (root / "library" / "atoms" / (target.lower().replace(" ", "-") + ".md")).exists():
                         counts[target] = counts.get(target, 0) + 1
         if not counts:
             print("— every spec the corpus cites by label is migrated.")

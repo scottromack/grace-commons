@@ -1,6 +1,6 @@
 # Coverage matrix — `condition-register`
 
-- **Pattern:** `atoms/condition-register.md`
+- **Pattern:** `library/atoms/condition-register.md`
 - **Model:** `condition-register.als`, the static data model (+ 14 buggy twins `condition-register-buggy-<defect>.als`), and `condition-register.tla` + `condition-register.cfg`, the operation sequences (+ 10 buggy twins `condition-register-buggy-<defect>.tla`, each with its `.cfg`; no twin shares a base name with an Alloy twin), 2026-11-11
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-11-02 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (what was seen stays seen), 2 (one sighting per subject), 3 (one open span per condition and scope), 4 (a span runs forward), 5 (every record names its run).

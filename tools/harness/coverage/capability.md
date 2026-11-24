@@ -1,6 +1,6 @@
 # Coverage matrix — `capability`
 
-- **Pattern:** `atoms/capability.md`
+- **Pattern:** `library/atoms/capability.md`
 - **Model:** `capability.als` (Alloy structural) + 12 buggy twins: `capability-buggy.als` and eleven `capability-buggy-<defect>.als` (2026-11-10); `capability.tla` + `capability.cfg`, the operation sequences, + 12 buggy twins `capability-buggy-<defect>.tla`, each with its `.cfg` (2026-11-11, unit `atoms/capability.md formal layer`)
 - **Reviewer / date:** TLA+ rows added 2026-11-11 by the model's author, the session that landed it (not a fresh-context read; the next scheduled rescan owes one); before that regenerated 2026-06-23 against the post-refactor model (execution/render-time refactor, 2026-06-21; `now`/`id_t` reverted to pipeline-injected, 2026-06-23). Supersedes the 2026-06-10 matrix, which described the pre-refactor model (stored `Expired`, an `expire` transition, four reachable statuses, 22 checks, and the now-deleted `A_ExpirePreservesImmutable` / `A_TerminalAbsorbing` / `A_NoRedeemerField` constructs).
 - **Formal-layer vote load-bearing claims:** the structural invariant set — counter/status consistency (Invariants 2, 4 structural half), revocation attribution (Invariant 9), terminal-mode distinguishability (Invariant 6), token uniqueness within a store snapshot (Invariant 12), the derived-expiry coherence and lapsed-cannot-be-redeemed guarantees (Invariant 13), and the two emergent properties (zero-counter ⇒ Redeemed; Revoked ⇒ remaining > 0).

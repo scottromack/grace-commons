@@ -47,14 +47,14 @@ class BondTest(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
         self.root = Path(self._tmp.name)
-        (self.root / "atoms").mkdir()
-        (self.root / "bonds.md").write_text(BONDS)
-        (self.root / "declarations.md").write_text(DECLARATIONS)
+        (self.root / "library" / "atoms").mkdir(parents=True)
+        (self.root / "library" / "bonds.md").write_text(BONDS)
+        (self.root / "library" / "declarations.md").write_text(DECLARATIONS)
         self.write("guard-offerer", atom("Guard Offerer", OFFER))
         self.write("guard-needer", atom("Guard Needer", NEED))
 
     def write(self, name: str, text: str) -> None:
-        (self.root / "atoms" / f"{name}.md").write_text(text)
+        (self.root / "library" / "atoms" / f"{name}.md").write_text(text)
 
     def codes(self):
         return sorted(f.code for f in check.bond_findings(self.root))
@@ -98,7 +98,7 @@ class BondTest(unittest.TestCase):
         self.assertEqual(self.codes(), ["B-bond-unmet"])
 
     def test_a_contract_need_names_a_contract_the_contracts_page_states(self):
-        (self.root / "contracts.md").write_text("# Contracts\n\nTerm commit contract: the call that makes an act.\n")
+        (self.root / "library" / "contracts.md").write_text("# Contracts\n\nTerm commit contract: the call that makes an act.\n")
         self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm contract need commit: asks the act; answers committed; bound commit round trip.\n"))
         self.assertEqual(self.codes(), [])
         self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm contract need ledger: asks a row; answers ok; bound read bound.\n"))
@@ -124,8 +124,8 @@ class BondTest(unittest.TestCase):
         self.assertEqual(self.codes(), ["B-bond-unmet"])
 
     def test_an_unmet_need_of_an_apps_atoms_fails_the_app(self):
-        (self.root / "apps" / "pair").mkdir(parents=True)
-        app = self.root / "apps" / "pair" / "index.md"
+        (self.root / "library" / "apps" / "pair").mkdir(parents=True)
+        app = self.root / "library" / "apps" / "pair" / "index.md"
         app.write_text("# Pair\n\n- [Guard Offerer](../../atoms/guard-offerer.md)\n- [Guard Needer](../../atoms/guard-needer.md)\n")
         self.assertEqual(self.codes(), [])
         app.write_text("# Pair\n\n- [Guard Needer](../../atoms/guard-needer.md)\n")

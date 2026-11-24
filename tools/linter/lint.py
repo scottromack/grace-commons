@@ -158,7 +158,18 @@ from pathlib import Path
 # Corpus model
 # --------------------------------------------------------------------------- #
 
-PATTERN_DIRS = ("atoms", "compositions")
+PATTERN_DIRS = ("library/atoms", "library/compositions")
+# the folders the site's sections live in since `library: the files match the tree` (2026-11-23):
+# a check that read "the root pages" reads these too, the same pages in their new folders
+SECTION_DIRS = ("library", "how", "evidence", "community", "log", "essays")
+
+
+def root_pages(root: Path) -> list[Path]:
+    """The pages that sat at the root before the move: the root's own and each section folder's."""
+    out = sorted(root.glob("*.md"))
+    for d in SECTION_DIRS:
+        out += sorted((root / d).glob("*.md"))
+    return out
 # a spec's history sits beside it as `<spec name>.hist.md` and is no pattern:
 # every walk that reads atoms/ and compositions/ as specs skips it
 HISTORY_FILE = "*.hist.md"
@@ -619,7 +630,7 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
     this* and no one is listed. Linked markers are skipped; they are D's.
     """
     findings: list[Finding] = []
-    roadmap = root / "roadmap.md"
+    roadmap = root / "log" / "roadmap.md"
     if not roadmap.exists():
         return findings
     # A *row* on the planning surface, not a passing mention: a name that
@@ -1300,7 +1311,7 @@ SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 # `node_modules` and `_site` are the site's own build, ignored by git: the stylesheet's
 # dependencies and Jekyll's output (2026-11-15), so a tree where the site has been built
 # lints as clean as a fresh checkout.
-KNOWN_DIRS = {"apps", "atoms", "compositions", "demos", "grants", "internal", "tools",
+KNOWN_DIRS = {"library", "how", "evidence", "community", "log", "essays", "_plugins", "demos", "grants", "internal", "tools",
               "working-ideas", "build-terms", "build", "_data", "_includes", "_layouts",
               "_sass", "assets", ".github", "node_modules", "_site"}
 
@@ -1416,13 +1427,13 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     spec-format.md since v0.72 (Standard label 1), read by
     `standard_label_families`."""
     findings: list[Finding] = []
-    watch = root / "watch-list.md"
+    watch = root / "essays" / "watch-list.md"
     try:
         text = watch.read_text(encoding="utf-8")
     except OSError:
         return findings
     try:
-        spec_format_text = (root / "spec-format.md").read_text(encoding="utf-8")
+        spec_format_text = (root / "how" / "spec-format.md").read_text(encoding="utf-8")
     except OSError:
         spec_format_text = ""
     census: dict[str, int] = {}
@@ -1702,7 +1713,7 @@ def check_term_kind(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     Scott 2026-11-14). Advisory because a done pattern is not edited for it; the
     entries it finds are the council's v3 batch (entry 15)."""
     try:
-        tables = term_entry_tables((root / "spec-format.md").read_text(encoding="utf-8"))
+        tables = term_entry_tables((root / "how" / "spec-format.md").read_text(encoding="utf-8"))
     except OSError:
         return []
     if tables is None:
@@ -1955,7 +1966,7 @@ def check_council_register(root: Path) -> list[Finding]:
     is record since it closed on 2026-09-30, and it is read where it moved:
     governance.hist.md (unit `governance.md: the register moves to the record`)."""
     findings: list[Finding] = []
-    reg = root / "governance.hist.md"
+    reg = root / "how" / "governance.hist.md"
     try:
         text = reg.read_text(encoding="utf-8")
     except OSError:
@@ -2156,8 +2167,8 @@ STANDARDS_PROPER_NOUNS = re.compile(
     r"|Application Security Verification Standard"
     r"|System and Application Access Control"
     r"|software applications?")
-OUTPUT_NOUN_CORE_DOCS = ("readme.md", "the-spec-layer.md", "pressure-testing.md",
-                         "spec-format.md", "contributing.md")
+OUTPUT_NOUN_CORE_DOCS = ("readme.md", "essays/the-spec-layer.md", "how/pressure-testing.md",
+                         "how/spec-format.md", "community/contributing.md")
 
 
 def check_banned_application(root: Path) -> list[Finding]:
@@ -2742,7 +2753,7 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
     promoted families to it, and nothing read either — which is how Idempotent
     Reservation's `Housekeeping` sat second for a day and how `Clock semantics`
     came to live at two depths (council read 80)."""
-    sf_text = (root / "spec-format.md").read_text(encoding="utf-8")
+    sf_text = (root / "how" / "spec-format.md").read_text(encoding="utf-8")
     tables = heading_standard(sf_text)
     retired = retired_heading_names(sf_text)
     findings: list[Finding] = []
@@ -2840,7 +2851,7 @@ def check_section_classification(root: Path) -> list[Finding]:
     classifies is still a heading spec-format.md names. Both directions read by
     case-insensitive containment, which is what a classification written as
     prose admits."""
-    sf_path, ec_path = root / "spec-format.md", root / "execution-contract.md"
+    sf_path, ec_path = root / "how" / "spec-format.md", root / "library" / "execution-contract.md"
     sf, ec = sf_path.read_text(encoding="utf-8"), ec_path.read_text(encoding="utf-8")
     m = re.search(r"\*\*Every section name spec-format requires is classified exactly once\*\*(.*?)"
                   r"\*\*The section-name lint check", ec, re.S)
@@ -2896,8 +2907,8 @@ _RANGE_NOT_FAMILY = {"NOTE", "WHY", "UX", "PROVISIONAL"}
 
 def label_families(root: Path) -> set[str]:
     fams: set[str] = set()
-    sources = [root / "GRACE-lang.md"]
-    for d in ("atoms", "compositions"):
+    sources = [root / "how" / "GRACE-lang.md"]
+    for d in PATTERN_DIRS:
         sources += sorted(p for p in (root / d).glob("*.md") if not p.match(HISTORY_FILE))
     for src in sources:
         if not src.exists():
@@ -3076,7 +3087,7 @@ def check_section_titles(root: Path) -> list[Finding]:
         return cache[path]
 
     out: list[Finding] = []
-    for sub in ("atoms", "compositions"):
+    for sub in PATTERN_DIRS:
         for md in sorted((root / sub).glob("*.md")):
             if md.match(HISTORY_FILE):
                 continue
@@ -3086,9 +3097,7 @@ def check_section_titles(root: Path) -> list[Finding]:
                     known = set(titles(md))
                     fm = SECTION_FILE.search(raw[m.end():m.end() + 140])
                     if fm:
-                        named = md.parent / fm.group(1)
-                        if not named.exists():
-                            named = root / fm.group(1)
+                        named = _named_file(root, md, fm.group(1))
                         known |= titles(named) | titles(_history_sibling(named))
                     cited = re.split(r" in \[?[\w./-]+\.md|[.,;:)]", seg)[0].strip()
                     if any(seg.startswith(t) for t in known) or (
@@ -3112,7 +3121,7 @@ def contract_label_set(root: Path) -> set[str] | None:
     there (unit `execution-contract.md: history and stale names go to the
     record`), and a citation of one still resolves. None where the root carries
     no contract."""
-    ec = root / "execution-contract.md"
+    ec = root / "library" / "execution-contract.md"
     try:
         text = ec.read_text(encoding="utf-8")
     except OSError:
@@ -3134,7 +3143,7 @@ def check_contract_labels(root: Path) -> list[Finding]:
     if labels is None:
         return []
     out: list[Finding] = []
-    for sub in ("atoms", "compositions"):
+    for sub in PATTERN_DIRS:
         for md in sorted((root / sub).glob("*.md")):
             if md.match(HISTORY_FILE):
                 continue
@@ -3261,7 +3270,7 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
     # every commit that changed how often "migrated" appears, oldest first, with
     # the files it touched: the migration commit of a spec is among them
     log = git("log", "--reverse", "--format=@%h", "--name-only", "-S", "migrated",
-              "--", "atoms", "compositions") or ""
+              "--", "library/atoms", "library/compositions") or ""
     candidates: dict[str, list[str]] = {}
     commit = None
     for ln in log.splitlines():
@@ -3376,17 +3385,17 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
     """0-based indexes of the lines inside a historical record."""
     rel = path.relative_to(root).as_posix()
     rec: set[int] = set()
-    if rel.startswith(("atoms/", "compositions/")) and path.suffix == ".md":
+    if rel.startswith(("library/atoms/", "library/compositions/")) and path.suffix == ".md":
         on = False
         for i, l in enumerate(lines):
             if h2_name(l) is not None:
                 on = h2_name(l) == "Decisions"
             if on or l.startswith("formal:"):
                 rec.add(i)
-    elif rel == "GRACE-lang.md":
+    elif rel == "how/GRACE-lang.md":
         c = next((i for i, l in enumerate(lines) if l.startswith("### 23. Changes")), len(lines))
         rec |= set(range(c + 1, len(lines)))
-    elif rel == "GRACE-lang.hist.md":
+    elif rel == "how/GRACE-lang.hist.md":
         # the grammar's Changes section, moved beside it at v0.66; Section 23 points here
         on = False
         for i, l in enumerate(lines):
@@ -3394,10 +3403,10 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
                 on = h2_name(l) == "Changes"
             if on:
                 rec.add(i)
-    elif rel == "roadmap.hist.md":
+    elif rel == "log/roadmap.hist.md":
         # the roadmap's dated record, moved whole out of roadmap.md on 2026-11-13
         rec |= set(range(len(lines)))
-    elif rel == "governance.hist.md":
+    elif rel == "how/governance.hist.md":
         # the register, moved whole out of governance.md on 2026-11-13
         on = False
         for i, l in enumerate(lines):
@@ -3405,7 +3414,9 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
                 on = l.startswith("- **Council read")
             if on:
                 rec.add(i)
-    elif path.suffix == ".md" and re.search(r"^parent:\s*Project Log\s*$", "\n".join(lines[:12]), re.M):
+    elif path.suffix == ".md" and (rel.startswith("log/")
+                                   or re.search(r"^parent:\s*Project Log\s*$", "\n".join(lines[:12]), re.M)):
+        # a Project Log page: its folder sets its parent since `library: the files match the tree`
         head = ""
         start = 0
         for i, l in enumerate(lines):
@@ -3428,6 +3439,33 @@ def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
             if dated:
                 rec.add(i)
     return rec
+
+
+def _named_file(root: Path, md: Path, fname: str) -> Path:
+    """The file a citation names by its file name: beside the citing page, where the move put a
+    page that sat at the root or that the citing page's link reached before the move (unit
+    `library: the files match the tree`; tools/grace/layout.py: `execution-contract.md` is
+    library/execution-contract.md), or at the root. The map comes before the root, since the root's
+    one-line pointers (CONTRIBUTING.md) answer an old name on a disk that ignores case."""
+    import posixpath
+    named = md.parent / fname
+    if named.exists() and named.resolve().parent != root.resolve():
+        return named
+    grace = str(Path(__file__).resolve().parents[1] / "grace")
+    if grace not in sys.path:
+        sys.path.insert(0, grace)
+    import layout
+    try:
+        here = md.parent.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        here = ""
+    for rel in (posixpath.normpath(posixpath.join(here, fname)), posixpath.normpath(fname)):
+        moved = layout.new_path(rel, str(root))
+        if moved != rel and (root / moved).exists():
+            return root / moved
+    if named.exists():
+        return named
+    return root / fname
 
 
 def check_retired_sign(root: Path) -> list[Finding]:
@@ -3486,7 +3524,7 @@ def check_page_citations(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for md in _tracked(root, {".md"}):
         rel = md.relative_to(root).as_posix()
-        if rel.startswith(("atoms/", "compositions/")):
+        if rel.startswith(("library/atoms/", "library/compositions/")):
             continue
         lines = md.read_text(encoding="utf-8").splitlines()
         rec = _record_lines(root, md, lines)
@@ -3499,16 +3537,14 @@ def check_page_citations(root: Path) -> list[Finding]:
                 known = set(titles(md))
                 if fm:
                     fname = fm.group(1) or fm.group(2)
-                    named = md.parent / fname
-                    if not named.exists():
-                        named = root / fname
+                    named = _named_file(root, md, fname)
                     known |= titles(named)
                 else:
                     # the file may be named earlier in the sentence
                     for f in re.findall(r"([\w./-]+\.md)", raw[:m.start()]):
-                        for named in (md.parent / f, root / f):
-                            if named.exists():
-                                known |= titles(named)
+                        named = _named_file(root, md, f)
+                        if named.exists():
+                            known |= titles(named)
                 if any(t == name or t.startswith(name) for t in known):
                     continue
                 out.append(Finding(md, i + 1, "X-page-citation",
@@ -3524,9 +3560,9 @@ _LIVE_COUNT = re.compile(
     r"|\b(?:\d{2,}|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)-plus\s+"
     r"(?:specifications|specs)\b", re.IGNORECASE)
 # the dated ledgers and registers, where a number is the count at the date it was written
-_LIVE_LEDGERS = {"roadmap.hist.md", "changelog.md", "project-log.md", "ai-usage-log.md", "RELEASES.md",
-                 "governance.hist.md", "measurement.md", "open-questions.md", "discoveries.md",
-                 "watch-list.md"}
+_LIVE_LEDGERS = {"log/roadmap.hist.md", "log/changelog.md", "project-log.md", "log/ai-usage-log.md", "RELEASES.md",
+                 "how/governance.hist.md", "evidence/measurement.md", "how/open-questions.md", "log/discoveries.md",
+                 "essays/watch-list.md"}
 
 
 def check_live_counts(root: Path) -> list[Finding]:
@@ -3537,8 +3573,8 @@ def check_live_counts(root: Path) -> list[Finding]:
     own count). A line carrying an ISO date is a dated record, a code span and a fenced
     block are quoted text, and a history file is a ledger: none is checked."""
     out: list[Finding] = []
-    for path in sorted(root.glob("*.md")):
-        if path.name in _LIVE_LEDGERS or path.name.endswith(".hist.md"):
+    for path in root_pages(root):
+        if path.relative_to(root).as_posix() in _LIVE_LEDGERS or path.name.endswith(".hist.md"):
             continue
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
@@ -3574,11 +3610,15 @@ def check_audit_claim(root: Path) -> list[Finding]:
         rows = ledger.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeDecodeError):
         return []
+    grace = str(Path(__file__).resolve().parents[1] / "grace")
+    if grace not in sys.path:
+        sys.path.insert(0, grace)
+    import layout  # a row written before the move names the model's old path: the same file
     latest: dict[str, list[str]] = {}
     for row in rows:
         c = row.split("\t")
         if not row.startswith("#") and len(c) >= 12:
-            latest[c[1]] = c
+            latest[layout.new_path(c[1], str(root))] = c
     want = {"model": "HOLDS", "twin": "CAUGHT"}
     return [Finding(page, 1, "S-audit-claim",
                     f"says zero failures, but {c[1]} ({c[2]}) is {c[11]} in tools/harness/states.tsv, "
@@ -3596,7 +3636,7 @@ def check_views_current(root: Path) -> list[Finding]:
     import shutil
     import subprocess
     import tempfile
-    views = ["graph.md", "atoms/index.md", "_data/patterns.json", "_data/stats.json", "enforcement.md"]
+    views = ["library/graph.md", "library/atoms/index.md", "_data/patterns.json", "_data/stats.json", "evidence/enforcement.md"]
 
     def view_text(path: Path, name: str) -> str:
         text = path.read_text(encoding="utf-8")
@@ -3609,11 +3649,16 @@ def check_views_current(root: Path) -> list[Finding]:
     out: list[Finding] = []
     with tempfile.TemporaryDirectory() as tmp:
         t = Path(tmp)
-        for d in ("atoms", "compositions", "tools/taxonomy", "tools/grace", "tools/linter"):
+        for d in ("library", "tools/taxonomy", "tools/grace", "tools/linter"):
             if (root / d).is_dir():       # a fixture root carries only what its case reads
                 shutil.copytree(root / d, t / d, ignore=shutil.ignore_patterns("__pycache__"))
-        for f in root.glob("*.md"):
-            shutil.copy(f, t / f.name)
+        for f in root_pages(root):
+            if not (t / f.relative_to(root)).exists():
+                (t / f.relative_to(root)).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(f, t / f.relative_to(root))
+        if (root / "_data" / "moves.json").exists():
+            (t / "_data").mkdir(exist_ok=True)
+            shutil.copy(root / "_data" / "moves.json", t / "_data" / "moves.json")
         ledger = root / "tools/harness/states.tsv"      # stats.json totals it
         if ledger.exists():
             (t / "tools/harness").mkdir(parents=True, exist_ok=True)
@@ -3627,7 +3672,7 @@ def check_views_current(root: Path) -> list[Finding]:
         sb = (subprocess.run([sys.executable, str(scoreboard), str(t)], capture_output=True, text=True, timeout=120)
               if scoreboard.exists() else None)
         if sb and sb.returncode:
-            out.append(Finding(root / "enforcement.md", 1, "V-views-current",
+            out.append(Finding(root / "evidence" / "enforcement.md", 1, "V-views-current",
                 "scoreboard.py cannot generate the page: " + sb.stderr.strip().splitlines()[-1][:200]
                 if sb.stderr.strip() else "scoreboard.py cannot generate the page"))
         for v in views:
@@ -3637,7 +3682,7 @@ def check_views_current(root: Path) -> list[Finding]:
             if not a.exists() or view_text(a, v) != view_text(b, v):
                 out.append(Finding(a, 1, "V-views-current",
                     "the generated view differs from what its generator produces now — "
-                    + ("regenerate with tools/grace/scoreboard.py" if v == "enforcement.md"
+                    + ("regenerate with tools/grace/scoreboard.py" if v == "evidence/enforcement.md"
                        else "regenerate with tools/taxonomy/generate_graph.py and generate_views.py")))
     return out
 
@@ -3818,7 +3863,7 @@ _PAGE_STAYS = re.compile(
     r"|page shows|is the page's|preferences page|settings page|\{pages?\b[^}]*\}|\"page\"", re.I)
 _PAGE_DATED = re.compile(r"^(NOTE: open \d{4}-|Status:|\*\*Status)")
 _PAGE_SKIP_SECTIONS = {"Ledger", "Decisions", "Deleted rules", "Examples", "Example"}
-_PAGE_METHOD = ("execution-contract.md", "GRACE-lang.md", "pressure-testing.md", "spec-format.md")
+_PAGE_METHOD = ("library/execution-contract.md", "how/GRACE-lang.md", "how/pressure-testing.md", "how/spec-format.md")
 _PAGE_TOOLS = ("tools/grace/check.py", "tools/grace/ir.py", "tools/grace/cites.py",
                "tools/linter/lint.py", "tools/harness/coverage.py")
 
@@ -3850,7 +3895,7 @@ def check_pattern_not_page(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
             if section in _PAGE_SKIP_SECTIONS or _PAGE_DATED.match(raw) or not _PAGE_WORD.search(raw):
                 continue
             rest = _PAGE_STAYS.sub("", raw)
-            if path.parent == root:
+            if path.parent == root or path.relative_to(root).as_posix() in _PAGE_METHOD:
                 rest = _PAGE_ROOT.sub("", rest)
             if _PAGE_WORD.search(rest):
                 out.append(_page_message(path, i, raw))
@@ -4016,11 +4061,11 @@ def main(argv: list[str]) -> int:
     if "--census" in flags:
         return census(root, patterns)
     # link / forthcoming / count checks also scan the top-level canonical docs
-    extra_docs = [root / n for n in ("roadmap.md", "readme.md", "CLAUDE.md",
-                                     "pressure-testing.md", "contributing.md",
-                                     "spec-format.md")]
+    extra_docs = [root / n for n in ("log/roadmap.md", "readme.md", "CLAUDE.md",
+                                     "how/pressure-testing.md", "community/contributing.md",
+                                     "how/spec-format.md")]
     pattern_files = [p.path for p in patterns.values()]
-    readme_files = [root / d / "README.md" for d in PATTERN_DIRS] + [root / "compositions" / "README.md"]
+    readme_files = [root / d / "README.md" for d in PATTERN_DIRS] + [root / "library" / "compositions" / "README.md"]
     scan = pattern_files + [f for f in extra_docs if f.exists()] + [f for f in readme_files if f.exists()]
     # de-dup
     scan = sorted(set(scan))

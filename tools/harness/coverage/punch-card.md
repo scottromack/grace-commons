@@ -1,6 +1,6 @@
 # Coverage matrix — `punch-card`
 
-- **Pattern:** `atoms/punch-card.md`
+- **Pattern:** `library/atoms/punch-card.md`
 - **Model:** `punch-card.als`, the static data model (+ 11 buggy twins `punch-card-buggy-<defect>.als`), and `punch-card.tla` + `punch-card.cfg`, the operation sequences (+ 23 buggy twins `punch-card-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-13
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-13. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast yes on 2026-11-13, on the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (a punch card never holds more stamps than its goal), 2 (a punch card keeps its code and its goal, and its redemptions never fall), 3 (a refused call changes nothing).

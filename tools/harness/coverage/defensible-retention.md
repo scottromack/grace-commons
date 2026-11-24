@@ -1,6 +1,6 @@
 # Coverage matrix — `defensible-retention`
 
-- **Pattern:** `compositions/defensible-retention.md`
+- **Pattern:** `library/compositions/defensible-retention.md`
 - **Model:** `defensible-retention.tla` + `-buggy`, `-buggy-sibling`, `-buggy-gate`, `-buggy-margin`, `-buggy-release`, `-buggy-retry-ungated` + probes `-probe-after`, `-probe-withheld`. One module body, nine files, since 2026-11-18: the purge's outcome and the sweep leg are gone (Execution Contract Database 1, the Login ruling of 2026-11-17), and the record destruction pattern's retry is the third party.
 - **Alloy (2026-11-12, re-derived 2026-11-18).** `defensible-retention.als`, the static data model, with **14 buggy twins** `defensible-retention-buggy-<name>.als`: `strict-proceeds`, `refused-read-empty`, `eligibility-before-gate`, `outcome-unnamed`, `gate-unrecorded-answered`, `count-of-list`, `refusal-abandoned`, `intent-before-gate`, `release-whole-record`, `hold-state-per-record`, `unavailable-as-zero`, `sibling-unchecked`, `purge-without-outcome`, `outcome-twice`. The 2026-11-18 re-derivation retired four (`recovery-rereads-holds`, `sweep-recovers-closed`, `pending-unnamed`, `intent-lacks-hcr`: their defects sat in the sweep's rules) and added two.
 - **Reviewer / date:** the model's author, same session as the re-derivation — 2026-10-04; Alloy layer 2026-11-12, its author. Not a fresh-context read; the next scheduled rescan owes one.

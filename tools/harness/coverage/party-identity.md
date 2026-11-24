@@ -1,6 +1,6 @@
 # Coverage matrix — `party-identity`
 
-- **Pattern:** `atoms/party-identity.md`
+- **Pattern:** `library/atoms/party-identity.md`
 - **Model:** `party-identity.tla` + `party-identity.cfg` (TLA+, one party, `MaxEvents = 6`; `Safety` = TypeOK, Inv2, Inv3, Inv4, Inv6) + buggy twin `party-identity-buggy.tla` (drops the Reinstate guard) and three more (2026-11-10); and `party-identity.als`, the static data model (+ 14 buggy twins `party-identity-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** mayor, from the page at fc78924 and the model as it stands — 2026-11-10 (unit `formal: more coverage for the yes votes`, step 1; the page had no matrix, though the coverage cross-check of 2026-06-03 promoted Inv 6 on it, see the README)
 - **Formal-layer vote load-bearing claims:** Invariant 4 (a verified party rests on a passed verification after the most recent suspend, in insertion order) is the model's stated load-bearing claim; the 2026-06-03 sweep promoted Invariant 6 (append-only) and Invariant 3 (closed absorbing, history-flag form) to explicit checks.

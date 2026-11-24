@@ -158,8 +158,8 @@ function twinsFor(correctPath) {
 
 // ---- main -------------------------------------------------------------------
 const onlyArg = process.argv.slice(2).find((a, i, all) => !a.startsWith("--") && all[i - 1] !== "--engine");
-let correctModels = walkTla(join(REPO, "atoms"))
-  .concat(walkTla(join(REPO, "compositions")))
+let correctModels = walkTla(join(REPO, "library", "atoms"))
+  .concat(walkTla(join(REPO, "library", "compositions")))
   .filter((p) => !/buggy/i.test(basename(p)))
   .sort();
 if (onlyArg) correctModels = correctModels.filter((p) => p.endsWith(onlyArg) || p === onlyArg);

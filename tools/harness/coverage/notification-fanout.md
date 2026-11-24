@@ -1,6 +1,6 @@
 # Coverage matrix — `notification-fanout`
 
-- **Pattern:** `compositions/notification-fanout.md`
+- **Pattern:** `library/compositions/notification-fanout.md`
 - **Model:** `notification-fanout.als`, the static data model (+ 16 buggy twins `notification-fanout-buggy-<defect>.als`), and `notification-fanout.tla` + `notification-fanout.cfg`, the operation sequences (+ 10 buggy twins `notification-fanout-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-12
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every composition-level Invariant the page states as load-bearing: Invariant 1 (fanout coverage), 2 (payload consistency), 3 (no cross-notification coupling), 4 (at most one notification per subscriber per fanout), 5 (the subscription records are read-only), 8 (fanout invocation uniqueness). Invariant 3.3 cannot be stated in either tool (its row says why).

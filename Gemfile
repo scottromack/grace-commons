@@ -19,3 +19,5 @@ gem "jekyll-include-cache"
 gem "jekyll-relative-links"
 gem "jekyll-seo-tag"
 gem "jekyll-sitemap"
+
+gem "jekyll-redirect-from", "~> 0.17.0"

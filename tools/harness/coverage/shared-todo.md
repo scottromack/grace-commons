@@ -1,6 +1,6 @@
-# Coverage matrix — `compositions/shared-todo.md`
+# Coverage matrix — `library/compositions/shared-todo.md`
 
-- **Pattern:** `compositions/shared-todo.md`
+- **Pattern:** `library/compositions/shared-todo.md`
 - **Model:** `shared-todo.tla` + buggy twin `shared-todo-buggy.tla` **The Alloy model** (2026-11-12, unit `compositions/shared-todo.md formal layer`): `shared-todo.als`, the static data model — one call of the composition with what its transaction reads (Permissions' answers, the task ids Personal Todo carries, the assignments Assignment holds active) and what it leaves (the constituent calls it makes, the records it changes, a read's answer) — with **8 buggy twins** `shared-todo-buggy-<name>.als`: `wrong-scope`, `finer-unchecked`, `read-before-gate`, `delete-no-recall`, `assign-unchecked`, `unassigned-for-unknown`, `answer-from-history`, `delete-revokes`.
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03 Alloy layer 2026-11-12 (unit `compositions/shared-todo.md formal layer`), the model's author.
 - **Formal-layer vote load-bearing claims:** Invariant 3 (cascade-on-delete — Active assignment recalled before task deleted; no dangling assignment post-delete), Invariant 2 (at-most-one-responsible-actor, inherited from Assignment atom)

@@ -1,6 +1,6 @@
 # Coverage matrix — `erasure-tombstone`
 
-- **Pattern:** `atoms/erasure-tombstone.md`
+- **Pattern:** `library/atoms/erasure-tombstone.md`
 - **Model:** `erasure-tombstone.als`, the static data model (+ 16 buggy twins `erasure-tombstone-buggy-<defect>.als`), and `erasure-tombstone.tla` + `erasure-tombstone.cfg`, the operation sequences (+ 13 buggy twins `erasure-tombstone-buggy-<defect>.tla`, each with its `.cfg`; no twin shares a base name with an Alloy twin), 2026-11-11
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-11-02 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (a tombstone never changes), 2 (one per destroyed record), 3 (no content of the destroyed record), 4 (authority and actor on every destruction), 5 (listing is deterministic).

@@ -1,6 +1,6 @@
 # Coverage matrix — `session`
 
-- **Pattern:** `atoms/session.md`
+- **Pattern:** `library/atoms/session.md`
 - **Model:** `session.als`, the static data model (+ 17 buggy twins `session-buggy-<defect>.als`), and `session.tla` + `session.cfg`, the operation sequences (+ 14 buggy twins `session-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11; both re-derived over the session token digest 2026-11-21 (unit `session: keyed by the digest of the session token (Logic confinement 21)`: the one key is the digest the host computes at the seam, the session token itself outside both models; every check, twin and bound otherwise unchanged)
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 (reconsidered to English-only: "conjunction of record fields; interleaving lives in Session-Gated Authorization") and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The coverage unit of 2026-11-10 named Invariant 3 (the validity bound is conjunctive, by derivation), 4 and 5 (revocation and stored terminals absorbing), 6 (four distinct validate outcomes), 7 (token uniqueness), 10 to 12 (finite lifetime, expiry absorbing, expiry derived); the models take every Invariant the page states as load-bearing.

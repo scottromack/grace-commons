@@ -1,6 +1,6 @@
 # Coverage matrix — `preference`
 
-- **Pattern:** `atoms/message-preference.md`
+- **Pattern:** `library/atoms/message-preference.md`
 - **Model:** `message-preference.tla` (+ buggy twin `message-preference-buggy.tla`) and `message-preference.als`, the static data model (+ 22 buggy twins `message-preference-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03; Alloy layer 2026-11-11
 - **Formal-layer vote load-bearing claims:** Invariant 3 (at most one currently-in-effect record per principal), Invariant 4 (supersession atomicity — new record Active + prior → Deleted in one operation)

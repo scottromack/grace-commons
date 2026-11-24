@@ -1,6 +1,6 @@
 # Coverage matrix — `event-log`
 
-- **Pattern:** `atoms/event-log.md`
+- **Pattern:** `library/atoms/event-log.md`
 - **Model:** `event-log.tla` (+ buggy twin `event-log-buggy.tla`) and `event-log.als`, the static data model (+ 11 buggy twins `event-log-buggy-<defect>.als`, 2026-11-12)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03
 - **Formal-layer vote load-bearing claims:** Invariant 4 (sequence-number monotonicity), Invariant 1 (append-only)

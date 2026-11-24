@@ -33,7 +33,7 @@ def contract_rules(root: str, stamp: int) -> dict[str, dict]:
     its text, its line. Empty where the root carries no contract. `stamp`, the
     file's mtime, keeps a cached read from outliving an edit."""
     try:
-        lines = (Path(root) / "execution-contract.md").read_text(encoding="utf-8").split("\n")
+        lines = (Path(root) / "library" / "execution-contract.md").read_text(encoding="utf-8").split("\n")
     except OSError:
         return {}
     out = {}
@@ -47,7 +47,7 @@ def contract_rules(root: str, stamp: int) -> dict[str, dict]:
 
 def contract_of(root: Path) -> dict[str, dict]:
     try:
-        stamp = (root / "execution-contract.md").stat().st_mtime_ns
+        stamp = (root / "library" / "execution-contract.md").stat().st_mtime_ns
     except OSError:
         return {}
     return contract_rules(str(root.resolve()), stamp)

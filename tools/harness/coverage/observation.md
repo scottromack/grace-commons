@@ -1,6 +1,6 @@
-# Coverage matrix — `atoms/observation.md`
+# Coverage matrix — `library/atoms/observation.md`
 
-- **Pattern:** `atoms/observation.md`
+- **Pattern:** `library/atoms/observation.md`
 - **Models:** `observation.als`, the static data model (+ buggy twins `observation-buggy.als` (amend without a state check: `set` successor, relaxed `AmendedIffHasSuccessor`), `observation-buggy-link.als` and `observation-buggy-copy.als` (both 2026-11-10)); `observation.tla` + `observation.cfg`, the operation sequences, written 2026-11-11 (+ 14 buggy twins `observation-buggy-<defect>.tla`, each with its `.cfg`; the retraction instant and its two twins 2026-11-20)
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03; the TLA+ model (unit `atoms/observation.md formal layer`, the formal layer sweep) — 2026-11-11, by the model's author, not a fresh-context read.
 - **Formal-layer vote load-bearing claims:** Invariant 3 (amendment chains are linear — at most one successor, at most one predecessor, no branching, no cycles), Invariant 2 (amend creates successor without modifying original; Amended ⟺ has-successor). Since the maintainer's ruling of 2026-11-09 every Invariant the page states is taken as load-bearing; only the writing vetoes a model.

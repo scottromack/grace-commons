@@ -1,6 +1,6 @@
-# Coverage matrix — `atoms/notification.md`
+# Coverage matrix — `library/atoms/notification.md`
 
-- **Pattern:** `atoms/notification.md`
+- **Pattern:** `library/atoms/notification.md`
 - **Model:** `notification.als`, the static data model (+ buggy twins `notification-buggy.als`, `notification-buggy-no-pending-guard.als`, `notification-buggy-stray-timestamps.als`, `notification-buggy-write-lost.als`, `notification-buggy-payload-rewritten.als`, the last four 2026-11-10), and `notification.tla` + `notification.cfg`, the operation sequences (+ 30 buggy twins `notification-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03 (the Alloy rows); the TLA+ model's author, the session that landed it — 2026-11-11 (the TLA+ rows). Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** Invariant 2 (status monotonicity — Pending → exactly one terminal; no return or inter-terminal transition), Invariant 3 (terminal states are exclusive — at most one terminal timestamp), Invariant 4 (terminal timestamps match status — biconditional). The maintainer's ruling of 2026-11-09 gives every page both models; the 2026-11-10 coverage note owed the TLA+ half (Invariant 5, 6, 8, 9 and the expiry, all across steps).

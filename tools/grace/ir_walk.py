@@ -495,7 +495,7 @@ def walk_composes(rel: str, lines: list[str]) -> list[dict]:
         if not link:
             continue
         target = posixpath.normpath(posixpath.join(base, link.group(2)))
-        if target.startswith(("atoms/", "compositions/")) and target not in seen:
+        if target.startswith(("library/atoms/", "library/compositions/")) and target not in seen:
             seen.add(target)
             role = ln.split(" — ", 1)[1].strip() if " — " in ln else ""
             out.append({"name": link.group(1), "path": target, "role": role, "line": k + 1})

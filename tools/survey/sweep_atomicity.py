@@ -7,7 +7,7 @@ sentence and ask whether an audit write is named inside it.
 import io, os, re, glob
 
 ROOT = '/home/claude/repo'
-FILES = [f for f in sorted(glob.glob(ROOT + '/atoms/*.md')) + sorted(glob.glob(ROOT + '/compositions/*.md'))
+FILES = [f for f in sorted(glob.glob(ROOT + '/library/atoms/*.md')) + sorted(glob.glob(ROOT + '/library/compositions/*.md'))
          if not f.endswith('.hist.md')]
 
 CLAIM = re.compile(r'[^.]*?(?:together or not at all|host transaction boundar|commits? (?:them |the \w+ )?atomically|atomic(?:ally)? (?:with|under|commit))[^.]*\.', re.I)

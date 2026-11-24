@@ -1,0 +1,599 @@
+---
+title: Spec Format
+nav_order: 4
+has_toc: true
+toc: true
+---
+
+# Spec Format
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+> The canonical reference for the shape of a Grace Commons spec. Every grounded atom and composition in the library conforms to one of the two shapes enumerated here. This document is the authoritative source for what sections a spec must contain, what each section is for, and which sections are required versus optional. The drafter agent in the council reads from this document; future contributors — human or AI — derive a complete spec by following it.
+
+---
+
+## Three reading tiers
+
+Every Grace Commons spec is written for three audiences simultaneously, and each section belongs to exactly one tier:
+
+- **Tier 1 — Summary (anyone).** Plain language. Zero unexplained jargon. Every acronym spelled out and defined at first use, except the short common-acronym whitelist (see Authoring conventions). No assumed vocabulary. A non-engineer with domain knowledge (a compliance officer, a clinician, a product manager) should be able to read the Summary and understand what the pattern does, what it guarantees, and when they would use it. The formal layer carries the precision; the Summary carries the accessibility.
+- **Tier 2 — Main text (technical readers).** Intent, state machine, action wiring, invariants, examples, edge cases. Can use domain and engineering terms, but every term that is not everyday English must be defined inline at its first appearance in the spec. Acronyms must be spelled out at first use globally — not just in the Summary, but anywhere they first appear in the document — except the short common-acronym whitelist (see Authoring conventions). "Emergent invariant" must be defined the first time it appears; so must GRID, EOS, HIPAA, PCI DSS, and every other initialisation or term-of-art. The main text is complete and defended; the formal layer can supersede it for precision but does not replace it for human communication.
+- **Tier 3 — Formal models (experts only).** Alloy, TLA+, and associated artifacts. Dense and tight. Readers at this tier are expected to bring the vocabulary. These files are companions of the canonical spec, kept in its folder's models folder (`atoms/models/`, `compositions/models/`), not sections within it.
+
+This three-tier discipline reflects the library's core bridge principle: the same canonical artifact must serve the compliance officer and the formal-methods engineer. Tier 1 is the bridge to the first; Tier 3 is the bridge to the second; Tier 2 is the shared crossing.
+
+---
+
+## Purpose and scope
+
+The Grace Commons library expresses every pattern in GRACE, a small domain-specific language in controlled English, with a fixed set of named sections in a fixed order. Section names are load-bearing — they signal to humans and AI readers what kind of content lives where, and they let the pressure-testing methodology (GRID structural completeness, EOS conceptual independence, Linus adversarial scrutiny) operate against predictable structure. Deviations from the canonical shape are review findings, not stylistic choices.
+
+This document does not duplicate the methodology — see [`pressure-testing.md`](./pressure-testing.md) for what each pass checks. It enumerates the *containers*; the methodology checks the *contents*.
+
+Two shapes are canonical; the [Glossary](./glossary.md#concept-atom-composition-candidate-concept) says what an atom and a composition are:
+
+1. **Atom shape** — a freestanding concept's specification. Specification does not name another atom. Files live flat in `atoms/` (`atoms/<name>.md`); classification is derived, not a folder (see [`atoms/TAXONOMY.md`](../library/atoms/TAXONOMY.md)).
+2. **Composition shape** — a composition of two or more atoms. Specification names the atoms it composes. Files live in `compositions/`.
+
+The regulated overlay is no third shape: every pattern carries Generation acceptance, regulated or not. The overlay adds one optional Examples subsection, *Regulated adversarial scenarios*, owed by a pattern whose acceptance bar an external evaluator sets (the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md)).
+
+### Atoms are stored flat; classification is derived
+
+*The axes question — resolved (2026-06-08).* The Grace Commons categories began as folders that deliberately mixed conceptual axes — some behavioral (temporal), some regulatory (compliance), some tier-of-difficulty (productivity primitives), some structural (resource-lifecycle). That mixing is now resolved structurally rather than by re-cutting folders: atoms are stored flat, cross-cutting classification (regulated, security, standards) is **derived** from the composition graph as overlays, and `domain` is the single intrinsic, EOS-gated axis. The earlier discipline — defer the structural cut until content forces it, rather than relocate the same confusion under new labels — is exactly what made the derivation trustworthy when the cut finally came: the usage-derived taxonomy ([`atoms/TAXONOMY.md`](../library/atoms/TAXONOMY.md)) reads classification off a reviewed substrate (the composition graph) instead of guessing one folder per atom. The same posture pressure-testing applies to atoms holds one level up — and here it paid off as a derivation that needed no relabeling.
+
+---
+
+## Every visual has a plain text source
+
+**Every visual representation has a plain text source. The text is canonical. The visual is a view.** Diagrams, models, entity maps, flow charts — all are generated from the spec, not maintained alongside it. A diagram that exists independently of its plain text source is an artifact waiting to drift. The failure mode is familiar: a Lucidchart box-and-arrow drawing becomes the de facto spec, nobody knows if the system still matches it, and the drawing is too far from the code to verify. In the Spec Layer, diagrams are rendered from text the same way code is compiled from spec — on demand, from the canonical source, never hand-maintained in parallel.
+
+Exploration can be multimodal. Truth must be textual. Sketch in anything. Canonize in text.
+
+---
+
+## Ownership seam with the Execution Contract
+
+Two core documents describe a Grace Commons spec, and every rule about specs lives in exactly one of them. **This document owns the containers**: which sections exist, what each is for, their required order, the two shapes, and the three reading tiers. **The Execution Contract owns the runtime semantics of section contents**: what each section means to a conforming implementation — how it compiles, what it obligates at runtime, and what state a composition may carry ([`execution-contract.md`](../library/execution-contract.md)). Where a subsection here states what content must be present (a container question), the Contract states what that content means when lowered (a semantics question). No rule is stated in both documents. A rule that appears in both is a finding against whichever statement is not the owner's — this seam was assigned 2026-06-10 precisely because composition-state semantics had come to be claimed by both documents at once, and the two claims had diverged.
+
+**The Contract's mapping tables are the SSOT bridge.** The Contract's two section-mapping tables — atom section → compilation target, and spec section → test type — are the canonical record of the correspondence between this document's section names and the runtime, together with the section-name classification that accompanies them there (the section titled *Section-name classification* in `execution-contract.md`). This document never restates that correspondence. A section renamed or added here without a corresponding classification entry there is silent drift — the same failure class as a mirrored library-state count — and the section-name lint check specified alongside the Contract's classification exists to catch it mechanically.
+
+**Merge the view, not the source.** If a single unified "language reference" spanning containers and semantics is ever wanted, it is generated as a projection of this document and the Contract — text-canonical / views-derived, the library's own diagram discipline (the section titled *Every visual has a plain text source* above) applied to its own documentation. The two sources do not merge: they serve different audiences (drafters versus implementers) and change at different rates, and a merged source would bury the human-bridge material in runtime semantics.
+
+### Where a rule lives
+
+A pattern's rule has two homes. A rule only that pattern needs, its own seams among them, stays on its pattern. A form that repeats across patterns is flagged and counted on the [Watch list](../essays/watch-list.md), under the rule in [`GRACE-lang.md`](./GRACE-lang.md) Section 18; at five patterns (the table titled *Thresholds* in [`method.md`](./method.md)) it is stated once in the Execution Contract, and every pattern that carries it cites it and deletes its copy. A composition is its constituents, its own seams and its citations: the sharing is by relocation into the one shared contract, never by minting a new atom or component. The three entries that say the parts are the paragraph *One home for a shared obligation*, moved to [`execution-contract.hist.md`](../library/execution-contract.hist.md) with the contract's history, the Watch list note in [`GRACE-lang.md`](./GRACE-lang.md), and the entry *No abstraction without recurrence* in [`pressure-testing.md`](./pressure-testing.md); none of their rules is restated here.
+
+```
+  a rule in a pattern
+          |
+          v
+  only this pattern needs it? --yes--> stays on its pattern
+          |                            (its own rules, its seams)
+          no: it repeats
+          v
+  Watch list counts it   1 . 2 . 3 . 4 . 5
+                                         | at five (method.md, Thresholds)
+                                         v
+  +------------------------------------------+
+  |  EXECUTION CONTRACT: stated once         |
+  |  one rulebook, shared by every pattern   |
+  +------------------------------------------+
+     ^ cites  ^ cites  ^ cites  ^ cites  ^ cites
+     atom     atom     comp     comp     ... (300+)
+
+  composition = atoms + its own seams + citations
+```
+
+---
+
+## Atom shape
+
+Reference examples: [`atoms/personal-todo.md`](../library/atoms/personal-todo.md) for the simplest shape; [`atoms/actor-identity.md`](../library/atoms/actor-identity.md) for a regulated atom, with the overlay's Examples subsection.
+
+### Required sections, in order
+
+The table titled *Heading tables* owns each heading's name, level, order and requirement, in the rows whose shape is atom; this list says what each holds.
+
+1. **Frontmatter** (Jekyll: `title`, `id`, `audience`, `parent`, `has_toc`, `toc`). Drives site rendering. No `nav_order` is required: the site lists patterns by its own index.
+
+2. **Title.** The atom's name as an H1. No summary blockquote follows it: the Summary (item 3) is the one-paragraph summary of what the atom is, what responsibility it isolates and what its load-bearing contribution to a composing system is, and a blockquote above it would say it twice.
+
+3. **Summary.** *(Done specs only — write the Summary as part of grounding confirmation, when the spec is stable enough to anchor from.)* **Tier 1 — plain language for anyone.** 3–6 sentences answering: what is this, what does it do, and what does it guarantee? Zero unexplained jargon. Every acronym spelled out and defined inline at first use, except the short common-acronym whitelist (see Authoring conventions). Every technical term that is not everyday English — including "invariant", "state machine", "composition", "atom" — defined in plain language the first time it appears in the Summary. The formal layer and the main text carry the precision; the Summary carries the accessibility. A Summary that a non-engineer with domain knowledge cannot read without a glossary is a Pass 1 finding.
+
+4. **Intent.** Several paragraphs of prose explaining the business or regulatory problem the atom addresses, why that problem recurs across domains, and what the atom does and does not commit to. The Intent must be testable — falsifiable by observable behavior of an implementation. This is GRID's Intent node.
+
+5. **Structure.** The atom's obligations, as rules, in these subsections:
+
+   - **Identity model** — what identifies an instance of the atom's primary record. State explicitly whether identity is an opaque system-generated id (the usual answer) and which fields are immutable properties set on the creating action. Never use a content field (description, name, reason) as identity. Identity model precision is the single most common Pass 3 finding when missing.
+
+   - **State** — the declared states and the rules over them: every state named, the terminal states named, what each record carries in each state. What changes a state, and under what condition, is stated by the Operations rules that change it. This is GRID's State node.
+
+   - **Capability requirement** — what the deployment supplies, such as the clock reading at the seam, an id source, a database or a settable bound, each with the rule the deployment sets it by.
+
+   - **Operations** — a signature block, one signature per action: its inputs, an `answers` line and a `refuses` line naming every rejection reason, in the signature form [`GRACE-lang.md`](./GRACE-lang.md) declares. Then the `Operation` rules: which condition answers which refusal, what each action records or changes, and what it answers. A decision table may stand beside the rules as reader sugar, each row citing the rule that owns it — a table is a completeness argument, which a list of rules does not make on its own. This is GRID's Flow, Decision, Behavior and Feedback nodes.
+
+   - **Invariants** — each `- **Invariant N — Descriptive name.**`, then a fence of its `Invariant N.M` rules. Named descriptively first, then numbered; never letter-prefix codes (no Invariant A.1, B.2). A deleted invariant keeps its number through a `Deleted:` line naming the owner, in the pattern's file until the pattern is done and then under *Deleted rules* in its history file (GRACE-lang Hard invariant 25). Each invariant holds across every reachable state of the atom; together they are what an implementation must produce records to prove. This is GRID's Proof node.
+
+   - A policy family the atom's inputs need, as an unplaced heading after the placed ones — Personal Todo's *Description policy* is the worked example.
+
+6. **Examples.** A happy-path walkthrough and at least one rejection-path walkthrough using concrete values. Examples expose what the actions actually look like in use; happy-path-only examples are a Pass 3 finding.
+
+7. **Generation acceptance.** What a derived implementation must produce, in *Conformance checks* and, where the atom has them, *External checks* — the structure and the records-alone bar the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md) owns, which every spec carries.
+
+8. **Non-goals.** Out-of-scope responsibilities named explicitly, each pointing at the composing pattern or external mechanism that owns it, by link, with `*(forthcoming)*` if the referenced pattern hasn't landed yet.
+
+9. **Edge cases.** The hard cases the atom handles — in scope, each with the rules that handle it. Omitted when there are none. The families the table places come first, in its order; a case the table does not place is an unplaced heading after them.
+
+10. **Composition notes.** The obligations this atom puts on a composing pattern, one labelled rule each (`Composition note 1`). The patterns that compose it are the Roadmap's and the graph's to list, not this section's.
+
+10a. **Needs** and **Offers** *(optional)*. What the atom needs of another atom and what it offers one, each a `Term need <kind>:` or `Term offer <kind>:` line of a bond kind [`bonds.md`](../library/bonds.md) states, its fields typed by the words of [`declarations.md`](../library/declarations.md); a line names a kind and never the atom that meets it, so an atom names no other atom (Scott, 2026-11-23 5:17 and 5:19 PM Central; unit `bonds: the fifty`). [`bonds.md`](../library/bonds.md) owns the line form and when a need meets an offer; `tools/grace/check.py` reads both sections. A contract an atom needs of a system that is not Grace's stands under Needs too, as a `Term contract need <contract>:` line naming a contract [`contracts.md`](../library/contracts.md) states.
+
+11. **Terms.** The spec's registry — the `Term` lines listing its actors, records, record verbs, value sets, bounds, cadences, qualifiers and terms — and *Vocabulary*, one `####` term entry per name a bracket marker lands on: the reader's copy of that name's declaration (the section titled *The term entry* below).
+
+12. **Standards references.** The regulatory or industry standards the atom's invariants satisfy or contribute toward, with section anchors where applicable. Cite only standards that genuinely apply at this layer; frame standards that belong to a composing pattern as the composing pattern's obligation.
+
+13. **Status.** One line: exactly one token of the canonical status grammar, then `— see the Ledger.` The section titled *What DONE means* in [`pressure-testing.md`](./pressure-testing.md) owns the token forms and their semantics; this document requires only the container (`## Status` section, token-first line). The token is derived from the Ledger and the linter refuses disagreement.
+
+14. **Ledger.** The countable record of the pattern's health, in a fenced block with a fixed grammar the linter parses (the section titled *Where the journey gets recorded* in [`pressure-testing.md`](./pressure-testing.md)): `status:` (identical to the Status token), `formal:` (the model files and their verification date, or why none applies), `last gate:` (date, kind, result), and `open:` — one line per open finding, `id · class · where · defect → fix`, ids date-based, or `open: none`. A closed finding's line is deleted; that it existed is in git.
+
+15. **Decisions.** Directional changes only — the turns a future reader must know the pattern took, each `- **date — title.** *Chose:* … *Over:* … *Because:* …`. The test is whether the pattern would be a different pattern had it gone the other way. Everything smaller lives in the commit that made it; the section may have no entries. The entries live in the pattern's history file (`<name>.hist.md`, under its `## Decisions` heading), and the pattern's own `## Decisions` section is that heading and one line pointing there, so a reader of the pattern does not read them (unit `library: the Decisions block moves to the history file`, Scott 2026-11-16 7:08 AM Central, "YY"). The narrative history these two sections replaced — the per-round Lineage notes — lives in `git log -- <file>`.
+
+---
+
+## Composition shape
+
+Reference examples: [`compositions/idempotent-reservation.md`](../library/compositions/idempotent-reservation.md) for the simplest two-atom composition; [`compositions/audit-trail.md`](../library/compositions/audit-trail.md) and [`compositions/defensible-retention.md`](../library/compositions/defensible-retention.md) for the regulated four- and three-atom canonical examples, each with the overlay's Examples subsection.
+
+### Required sections, in order
+
+The table titled *Heading tables* owns each heading's name, level, order and requirement, in the rows whose shape is composition; this list says what each holds.
+
+1. **Frontmatter and title.** Same as atom shape, with no summary blockquote: the Summary (item 2) names what the composition wires together and what the emergent guarantee is.
+
+2. **Summary.** *(Done specs only.)* Same Tier 1 rule as the atom shape: plain language for anyone, 3–6 sentences, zero unexplained jargon, every acronym spelled out and defined inline. For compositions, name what the composition wires together and what the resulting guarantee is — the property no single constituent can provide alone — in plain terms. "Composition guarantees that only appear when the atoms work together" is the plain-language form of "emergent invariant"; use whichever fits the sentence, but define the term the first time it appears.
+
+3. **Intent.** Several paragraphs explaining the friction at the boundary between the composed atoms, the emergent rule the composition exists to enforce, and what the composition is *not* (typically: not a new primitive — the constituent atoms are unchanged).
+
+4. **Composes.** A linked list of the constituent atoms (or substrate compositions — see *Compositions of compositions* below), then the wiring as rules. Each list entry is the constituent's name, linked, and **one line** naming the role it plays — a noun phrase, not a paragraph. The entry does **not** restate the constituent's actions: the atom's signature block already declares them, a hand-copied list drifts the moment the atom gains an arm, and `tools/grace/cites.py` can generate the link line from the constituent set.
+
+    The wiring itself is normative and belongs in a `Composes` block under the list — instance multiplicity, which constituent actions the composition wraps, which it passes through unchanged, which surfaces it reads and must not write. `Composes` is one of the standard label families (the table titled *Rule families* below), and [Audit Trail](../library/compositions/audit-trail.md) is the worked example:
+
+    ```
+    Composes 1: EXACTLY ONE Event Log instance MUST serve the composition.
+    Composes 5: The composition MUST call ActorIdentity.attest at [Record Action] step 2 alone.
+    Composes 7: The composition MUST read an attestation's surviving fields through Actor Identity's declared read.
+    Composes 8: The composition MUST NOT delete an attestation.
+    ```
+
+    Wiring stated this way is checkable rather than trusted: every constituent action a `Composes` rule names must appear in that constituent's signature block, which is what catches a composition still calling an arm its atom has dropped.
+
+5. **Composition logic.** The main body of the composition's specification. Carries the following named subsections, in the order and with the requirements the section titled *Heading standard* fixes:
+
+   - **Composition state** — the emergent state the composition carries (maps, indexes, derived records) that does not belong to any single constituent. What a composition may carry, and what each classification *means*, are runtime semantics **owned by the Execution Contract** — see the section titled *Composition state — the derived-index rule and the extraction rule* in [`execution-contract.md`](../library/execution-contract.md); this document does not restate them. This subsection is the container. For each state element: what it maps, what populates it, what removes it, what reads it, and its Contract classification — *derived index* or *extraction-pending* — per that section, supplying the per-element detail that section requires (the rebuild procedure for a derived index; the proposed atom for an extraction-pending element). The State node's completeness rule (*what changes and under what condition*) is verified against this subsection. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.72; the table titled *Rule families* states the family's meaning.
+
+   - **Capability requirement** — what the deployment supplies, deployment-settable knobs among it. Each knob: its name, type, default value, and the rule the deployment uses to set it (regulated deployments must use *X*; deployments under regulation *Y* must not configure *Z*). The configuration surface is what a deployment touches to specialize the composition; if the spec is silent, the runtime fills the gap silently — a Pass 3 finding.
+
+   - **Primitive policy** — composition-boundary input validation rules for every string-typed input the composition accepts (record references, actor references, credentials, reasons, identifiers, optional timestamps). For each input: empty allowed? whitespace? normalization? case-sensitivity? length cap? where validation occurs (composition layer or propagated from a constituent)? This subsection forecloses the "but what does *X* mean exactly?" Pass 3 finding by stating the rules up front. Added as a canonical subsection in Defensible Retention's Round 3.
+
+   - **Identity** — what identifies an instance of the composition's own records, where the composition mints any. A standard label family (the table titled *Rule families* below).
+
+   - **Audit arm** — how the composition maps its audit substrate's rejection taxonomy at its own boundary: which arm is retryable, which arm arrives with the record already appended (so a blind retry double-appends), which is a pageable deployment fault, and what the composition exports for each. Applies to a composition that records through an audit substrate; omitted by one that does not.
+
+   - **Action wiring** — the orchestrating actions the composition exposes. Each action: its signature (`action(args)`, then `answers result`, then `refuses reason | reason`, in the signature form [`GRACE-lang.md`](./GRACE-lang.md) declares), then the `Action wiring` rules that walk its flow — the constituent calls, the emergent state updates, the audit recordings and the answers, each a rule; a `####` step block may group them. Every constituent rejection is accounted for at the composition's boundary, mapped per the Contract's rejection-mapping rule (see the section titled *Substrate composition invocation* in [`execution-contract.md`](../library/execution-contract.md)); silent rejection-code drift is a Pass 1 reference-graph finding. The action surface may include **emergent actions** — actions that belong to no single constituent atom and exist only because the composition wires its constituents together. `fanout()` in Notification Fanout is the canonical example: neither Subscription nor Notification has an action that finds the subscribers of an event and creates a notification for each; the composition introduces it as the action that makes the two atoms coherent. Emergent actions are expected and correct; their presence does not indicate over-absorption. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.72; the table titled *Rule families* states the family's meaning.
+
+     The subsection's first `####` block is the **closure table**, a required part: for every action, every constituent call it makes, and for each call its answer, its refusals, a failed read and a call that never answers, each with the rule that lands it — the Execution Contract's default (Constituent failure 1, Constituent failure 2, Read 1, Error model 1) or the composition's own code. A column whose every cell is the same Execution Contract default is stated once, in the line above the table, naming the rule, and dropped; a row that departs from the default brings the column back for the whole table, and every cell still has an owning rule. A cell no rule owns is a finding against the pattern. [Recoverable Invocation](../library/compositions/recoverable-invocation.md)'s and [Audit Trail](../library/compositions/audit-trail.md)'s are the models, and the table is drafted before any rule (the step *Premodel* in the section titled *Workflow for adding a new pattern* below). A composition that carries none yet gains one in its next round.
+
+   - **Wiring decision** — the structural reason the composition exists. Each composition turns on one decision the constituents cannot make alone (a quorum evaluation, a hold-blocks-purge gate, a cascade rule). This subsection states the decision as rules — one naming it positively, and one or more forbidding the wiring it rejected — and defends it in its WHY in four parts: *Principle* (the rule the decision enforces), *Likely objection* (the question a sharp reader would ask), *Mechanism that resolves it* (why the decision lives at the composition layer rather than being pushed into a constituent or out to the calling layer), and *Result* (what the decision produces structurally — typically a records-alone-defensible signal). The defended-in-line discipline prevents Pass 3 from re-litigating a settled architectural choice; the choice is made visible and justified up front.
+
+   - **Reconciliation** — the leg the composition runs outside every invocation whose output something awaits within a promised window: what it examines, the two edges that bound it (a declared completion bound below, the audit horizon above), what it may commit and under whose identity, and the window within which it closes or escalates. A leg whose output nothing awaits is `Housekeeping`, its declared pair — the boundary is the question *does anything await you?*, not the leg's resemblance to a member.
+
+   - **Housekeeping** — the leg the composition runs outside every invocation whose output **nothing** awaits: what it examines, the edges that bound it, what it may report or remove, and — load-bearing — what it may not do, since a leg that repaired what it found would be a second writer over an act the invocation owns. Which of the two a leg belongs to is settled by one question — *does anything await its output?* — and not by the leg's inherited name or by what sibling compositions call theirs.
+
+   - **Scope vocabulary** — the scopes the composition defines for its Permissions instance, and which action each gates — including a gate it deliberately does not add.
+
+   - **Verdict** — how a verification read resolves the evidence it reads into its answer: the classes or outcomes, which one each piece of evidence produces, and what never counts as one.
+
+6. **Composition-level invariants.** The emergent invariants — properties that arise only at composition time and belong to no single constituent. Written as the atom shape writes invariants: a descriptive name, a number, a fence of sub-rules, and a `Deleted:` line for a number retired to its owner, which moves to the history file once the pattern is done. Each invariant should reference the constituent invariants it depends on and the action wiring that establishes it. The composition's defending claim is that each of these invariants holds; the Generation acceptance section is how an auditor verifies it.
+
+7. **Examples.** A walkthrough using concrete values (an end-to-end run of the load-bearing action sequence) plus several domain examples that exercise different regulatory regimes or different parameter combinations. The walkthrough must show the load-bearing wiring decision firing in both its accepting and rejecting modes if applicable; happy-path-only examples are a Pass 3 finding.
+
+8. **Generation acceptance.** *Conformance checks* and *External checks*, as the atom shape's Generation acceptance describes them.
+
+9. **Non-goals.** Same structure as atom shape — out-of-scope responsibilities named explicitly with the composing pattern or external mechanism that owns each.
+
+10. **Edge cases.** Same structure as atom shape. Cross-record consistency under partial failure (for compositions that write several constituents' records in sequence) is a canonical edge case every multi-step action addresses.
+
+11. **Composition notes.** The obligations this composition puts on a composing pattern, in the form of the atom shape's; present when another pattern composes this one.
+
+12. **Terms.** Same form as atom shape.
+
+13. **Standards references.** Regulations and industry standards the composition satisfies — typically broader than any single constituent because the composition is what produces the records-alone defensibility the regulation actually requires.
+
+14. **Status.** Same form as atom shape.
+
+15. **Ledger.** Same form as atom shape.
+
+16. **Decisions.** Same form as atom shape. The forthcoming-link debts a new composition retires — which previous patterns' `*(forthcoming)*` references it resolves — are named in the commit that lands it, not in the spec.
+
+### Compositions of compositions
+
+A composition may name another composition as a substrate rather than re-listing its constituent atoms. Audit Trail composes four atoms; Defensible Retention names *Audit Trail* in its Composes section rather than re-listing the four. The convention: a substrate composition is named in Composes the same way an atom is named, noting that its constituents are reached transitively. Instance topology — one shared instance by default, or deliberately declared multiple instances of the same atom — is a runtime-semantics rule owned by the Execution Contract; see the section titled *Substrate composition invocation* in [`execution-contract.md`](../library/execution-contract.md).
+
+---
+
+## The term entry
+
+Every term the registry declares has an entry under `## Terms`: a `####` heading, the reader's prose, then fields, one to a line, written `Name: value`. The `Term` declaration owns the definition and the entry is the reader's copy of it ([`GRACE-lang.md`](./GRACE-lang.md) Surface 25 through 27); an entry that states an obligation the declaration does not is a defect in the card. `Kind` says which of five things the entry is, and the other fields say what it belongs to and how it is spelled. Counted on 2026-11-14 over the 62 patterns: 1,305 entries, 1,304 of them with a `Kind`.
+
+| Field | What it says | Required with | Also found with |
+|---|---|---|---|
+| `Kind` | which of the five kinds the entry is | every kind | |
+| `Field of` | the Type the field belongs to | Field | |
+| `Parameter of` | the operation, or the operations, the parameter belongs to | Parameter | |
+| `Member of` | the value set the member belongs to | Member | |
+| `Projection` | the spelling the term takes where a record or a call carries it: a field's name, a parameter's name, a member's token | Field, Parameter, Member | Type (11 of 40) |
+| `Role` | what a member is in the pattern's answers, one value of the closed value set of `Outcome`, `Rejection` and `Scope`; a Member that is not something in the pattern's answers, such as an audit event kind, a quorum rule or a holding state, carries none | | Member |
+| `Wire` | `pinned`: the Projection is a literal the wire fixes | | Member (1 of 472) |
+
+| Kind | What it means | Entries |
+|---|---|---|
+| Type | a record or a value the pattern declares | 40 |
+| Field | a field of a Type | 410 |
+| Member | one member of a value set the pattern declares, such as an outcome or a rejection | 472 |
+| Operation | an action or a query the pattern declares; it carries no field beside `Kind` | 296 |
+| Parameter | an input an operation takes | 86 |
+
+Where the patterns differed and no rule decided, the maintainer ruled (2026-11-14): a Member carries a Projection, and Role stands with a Member only and takes one of three values; the patterns that do not yet keep to it are cured as each next reopens. The linter's `O-term-kind` advisory reads these two tables and reports an entry with no `Kind`, a kind outside the five, or a field the entry's kind neither requires nor lists; it is advisory because a done pattern is not edited for it.
+
+---
+
+## Heading standard
+
+A spec's headings are its structure. Each heading is an element and its level is its nesting, so a reader — or a tool — knows the address of a fact before opening the spec: the section, the family inside it, the rule. The table titled *Heading tables* is the one owner of every heading name, level, parent, order and requirement for a spec rewritten in GRACE lang, and the table titled *Rule families* the one owner of the standard label families; the numbered lists above describe what each container holds. `tools/linter/lint.py` reads these tables directly (`H-heading`, and `W-stale-census` for the families), as `tools/grace/cites.py` reads *Rule families*, so a heading renamed or a family promoted here is renamed or promoted for the instrument in the same edit.
+
+**Levels.** `#` is the spec's name, once. `##` is a row of the table with no parent. `###` is a row whose parent is the `##` above it, or an *unplaced* heading where that parent admits one. `####` is free: it nests under a `###` and carries whatever that `###` holds — a term entry under `Vocabulary`, a step block under `Action wiring`, a scenario under a worked example. No other level carries meaning.
+
+**Order.** Rows appear in table order. Inside a parent, the unplaced headings follow every placed one, in alphabetical order — compared case-insensitively, letter by letter, punctuation ignored and a space sorting before any letter. Alphabetical is the interim order for what the table does not place; ordering them by importance is the stated upgrade, and it changes this paragraph and nothing else. `Examples` is the one parent whose children keep the author's order, because a walkthrough reads first. Order carries no normative meaning (`GRACE-lang.md` Timing 13).
+
+**Required.** `yes` — the heading is present. `when done` — present once the Status token is `done`. `no` — present only when the spec has something to put there. A required heading that the spec cannot fill is a finding against the spec, never a reason to drop the row.
+
+### Heading tables
+
+One table, one row a heading, the shape that carries it first. A heading a row names for both shapes is two rows, one a shape. The rows whose shape is `atom tree` or `composition tree` are the tree order's (the section titled *The tree order* below); a pattern whose first `##` heading is `What it is` is read against them, and every other pattern against the rows of its section shape.
+
+| Shape | Heading | Level | Inside | Required | Unplaced children |
+|---|---|---|---|---|---|
+| atom | Summary | 2 | | when done | no |
+| atom | Intent | 2 | | yes | no |
+| atom | Structure | 2 | | yes | yes |
+| atom | Identity model | 3 | Structure | yes | no |
+| atom | State | 3 | Structure | yes | no |
+| atom | Capability requirement | 3 | Structure | no | no |
+| atom | Operations | 3 | Structure | yes | no |
+| atom | Invariants | 3 | Structure | yes | no |
+| atom | Examples | 2 | | yes | any order |
+| atom | Generation acceptance | 2 | | yes | yes |
+| atom | Conformance checks | 3 | Generation acceptance | yes | no |
+| atom | External checks | 3 | Generation acceptance | no | no |
+| atom | Non-goals | 2 | | yes | yes |
+| atom | Edge cases | 2 | | no | yes |
+| atom | Atomic writes | 3 | Edge cases | no | no |
+| atom | Clock dependence | 3 | Edge cases | no | no |
+| atom | Clock semantics | 3 | Edge cases | no | no |
+| atom | Concurrency | 3 | Edge cases | no | no |
+| atom | Indeterminate outcome | 3 | Edge cases | no | no |
+| atom | Retention asymmetry | 3 | Edge cases | no | no |
+| atom | String policy | 3 | Edge cases | no | no |
+| atom | Composition notes | 2 | | yes | no |
+| atom | Needs | 2 | | no | no |
+| atom | Offers | 2 | | no | no |
+| atom | Terms | 2 | | yes | no |
+| atom | Vocabulary | 3 | Terms | yes | no |
+| atom | Standards references | 2 | | yes | no |
+| atom | Status | 2 | | yes | no |
+| atom | Ledger | 2 | | yes | no |
+| atom | Decisions | 2 | | yes | no |
+| composition | Summary | 2 | | when done | no |
+| composition | Intent | 2 | | yes | no |
+| composition | Composes | 2 | | yes | yes |
+| composition | Composition logic | 2 | | yes | yes |
+| composition | Composition state | 3 | Composition logic | yes | no |
+| composition | Capability requirement | 3 | Composition logic | no | no |
+| composition | Primitive policy | 3 | Composition logic | no | no |
+| composition | Identity | 3 | Composition logic | no | no |
+| composition | Audit arm | 3 | Composition logic | no | no |
+| composition | Action wiring | 3 | Composition logic | yes | no |
+| composition | Wiring decision | 3 | Composition logic | yes | no |
+| composition | Reconciliation | 3 | Composition logic | no | no |
+| composition | Housekeeping | 3 | Composition logic | no | no |
+| composition | Scope vocabulary | 3 | Composition logic | no | no |
+| composition | Verdict | 3 | Composition logic | no | no |
+| composition | Composition-level invariants | 2 | | yes | no |
+| composition | Examples | 2 | | yes | any order |
+| composition | Generation acceptance | 2 | | yes | yes |
+| composition | Conformance checks | 3 | Generation acceptance | yes | no |
+| composition | External checks | 3 | Generation acceptance | yes | no |
+| composition | Non-goals | 2 | | yes | yes |
+| composition | Edge cases | 2 | | no | yes |
+| composition | Atomic writes | 3 | Edge cases | no | no |
+| composition | Clock dependence | 3 | Edge cases | no | no |
+| composition | Clock semantics | 3 | Edge cases | no | no |
+| composition | Concurrency | 3 | Edge cases | no | no |
+| composition | Indeterminate outcome | 3 | Edge cases | no | no |
+| composition | Retention asymmetry | 3 | Edge cases | no | no |
+| composition | String policy | 3 | Edge cases | no | no |
+| composition | Composition notes | 2 | | no | no |
+| composition | Terms | 2 | | yes | no |
+| composition | Vocabulary | 3 | Terms | yes | no |
+| composition | Standards references | 2 | | yes | no |
+| composition | Status | 2 | | yes | no |
+| composition | Ledger | 2 | | yes | no |
+| composition | Decisions | 2 | | yes | no |
+| atom tree | What it is | 2 | | yes | no |
+| atom tree | What it keeps | 2 | | yes | any order |
+| atom tree | What people do | 2 | | yes | any order |
+| atom tree | Every action | 3 | What people do | no | no |
+| atom tree | What is and what should never be (Invariants) | 2 | | yes | any order |
+| atom tree | When something happens | 2 | | no | any order |
+| atom tree | Atomic writes | 3 | When something happens | no | no |
+| atom tree | Concurrency | 3 | When something happens | no | no |
+| atom tree | Indeterminate outcome | 3 | When something happens | no | no |
+| atom tree | While something is so | 2 | | no | any order |
+| atom tree | Clock dependence | 3 | While something is so | no | no |
+| atom tree | Clock semantics | 3 | While something is so | no | no |
+| atom tree | Retention asymmetry | 3 | While something is so | no | no |
+| atom tree | String policy | 3 | While something is so | no | no |
+| atom tree | Optional | 2 | | no | any order |
+| atom tree | Needs | 2 | | no | no |
+| atom tree | Offers | 2 | | no | no |
+| atom tree | Left to others | 2 | | yes | any order |
+| atom tree | Example | 2 | | yes | any order |
+| atom tree | Source | 2 | | yes | no |
+| atom tree | Proof | 2 | | yes | no |
+| atom tree | Generation acceptance | 3 | Proof | yes | no |
+| atom tree | Vocabulary | 3 | Proof | yes | no |
+| atom tree | Status | 2 | | yes | no |
+| atom tree | Ledger | 2 | | yes | no |
+| atom tree | Decisions | 2 | | yes | no |
+| composition tree | What it is | 2 | | yes | no |
+| composition tree | Composes | 3 | What it is | yes | no |
+| composition tree | Wiring decision | 3 | What it is | yes | no |
+| composition tree | What it keeps | 2 | | yes | any order |
+| composition tree | Composition state | 3 | What it keeps | yes | no |
+| composition tree | Identity | 3 | What it keeps | no | no |
+| composition tree | What people do | 2 | | yes | any order |
+| composition tree | Every action | 3 | What people do | yes | no |
+| composition tree | Scope vocabulary | 3 | What people do | no | no |
+| composition tree | Verdict | 3 | What people do | no | no |
+| composition tree | What is and what should never be (Invariants) | 2 | | yes | any order |
+| composition tree | When something happens | 2 | | no | any order |
+| composition tree | Audit arm | 3 | When something happens | no | no |
+| composition tree | Reconciliation | 3 | When something happens | no | no |
+| composition tree | Housekeeping | 3 | When something happens | no | no |
+| composition tree | Atomic writes | 3 | When something happens | no | no |
+| composition tree | Concurrency | 3 | When something happens | no | no |
+| composition tree | Indeterminate outcome | 3 | When something happens | no | no |
+| composition tree | While something is so | 2 | | no | any order |
+| composition tree | Primitive policy | 3 | While something is so | no | no |
+| composition tree | Clock dependence | 3 | While something is so | no | no |
+| composition tree | Clock semantics | 3 | While something is so | no | no |
+| composition tree | Retention asymmetry | 3 | While something is so | no | no |
+| composition tree | String policy | 3 | While something is so | no | no |
+| composition tree | Optional | 2 | | no | any order |
+| composition tree | Left to others | 2 | | yes | any order |
+| composition tree | Example | 2 | | yes | any order |
+| composition tree | Source | 2 | | yes | no |
+| composition tree | Proof | 2 | | yes | no |
+| composition tree | Generation acceptance | 3 | Proof | yes | no |
+| composition tree | Vocabulary | 3 | Proof | yes | no |
+| composition tree | Status | 2 | | yes | no |
+| composition tree | Ledger | 2 | | yes | no |
+| composition tree | Decisions | 2 | | yes | no |
+
+The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `Retention asymmetry`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name. Which of them are standard label families, and what each of those means, is the table titled *Rule families* below; the rest are promotion candidates (`GRACE-lang.md` Standard label 4), and each carries the meaning of its heading (Standard label 3).
+
+- `Clock dependence`: *whether, and under what condition, a guard's decision may depend on the current clock reading* (the maintainer's ruling of 2026-09-15, council read 75).
+- `Clock semantics`: the family `Clock dependence` was cut out of on 2026-09-15; it "answers at least five questions", and `Clock dependence` is "the first" (council read 75).
+
+### Rule families
+
+A rule's label names its family, which is the heading's own words where they agree and the family's where they differ: the heading *Identity model* carries the label `Identity 1`.
+
+The standard label families: a rule's label names its family, the family names the heading the rule sits under, and the family carries the meaning below, stated here once (`GRACE-lang.md` Standard label 1, Standard label 8). A specification does not redeclare one (Standard label 2). A family missing from this table is not standard: it carries the meaning of its heading (Standard label 3), and at three specifications (the table titled *Thresholds* in [`method.md`](./method.md)) it stands as a promotion candidate, which `tools/grace/cites.py --drift` counts and the maintainer decides (Standard label 4 through 7). The shape is the heading table that places the heading; a row's order carries nothing, since a family's position is its heading's row in the table above (Standard label 9, Standard label 10). The first seventeen rows moved from the grammar's `Term standard label family` line at GRACE-lang v0.72; Composition state, Action wiring, Concurrency and String were promoted at the same version, on the maintainer's ruling of 2026-11-13.
+
+| Family | Heading it labels | Shape | Meaning |
+|---|---|---|---|
+| Identity | Identity model (atom); Identity (composition) | both | what identifies a record |
+| State | State | atom | what the spec holds |
+| Operation | Operations | atom | one action's rules |
+| Invariant | Invariants (atom); Composition-level invariants (composition) | both | a property of every reachable state |
+| Check | Conformance checks | both | an acceptance check |
+| External check | External checks | both | a check needing evidence the records do not carry |
+| Non-goal | Non-goals | both | what the spec does not do, and who owns it instead |
+| Composition note | Composition notes | both | an obligation on a composing pattern |
+| Composes | Composes | composition | a constituent's role |
+| Capability requirement | Capability requirement | both | what the deployment supplies |
+| Wiring decision | Wiring decision | composition | the decision a composition exists to make, and the wiring the decision rejects |
+| Audit arm | Audit arm | composition | how a composition maps the audit substrate's rejection taxonomy at the composition's own boundary |
+| Reconciliation | Reconciliation | composition | the leg running outside every invocation whose output something awaits within a promised window |
+| Housekeeping | Housekeeping | composition | the leg running outside every invocation whose output nothing awaits |
+| Scope vocabulary | Scope vocabulary | composition | the scopes a composition defines for its Permissions instance, and which action each gates |
+| Verdict | Verdict | composition | how a verification read resolves the evidence it reads into its answer |
+| Retention asymmetry | Retention asymmetry | both | how a spec answers where a record outlives the audit events that attest it |
+| Composition state | Composition state | composition | the emergent state a composition carries that belongs to no single constituent |
+| Action wiring | Action wiring | composition | the flow of an orchestrating action a composition exposes |
+| Concurrency | Concurrency | both | the hard case of calls that overlap, and the rules that handle it |
+| String | String policy | both | how a spec compares, reads and bounds a string input |
+
+### Retired heading names
+
+A name below is the row's name under an older spelling or an older shape. A migrated spec that carries one carries a second name for one thing, and `H-heading` reports it; so does a heading that differs from a row's name only by a plural. The list grows when a ruling renames a heading, and a synonym nobody has ruled on is a reader's finding, not the instrument's.
+
+| Retired name | Row |
+|---|---|
+| Capability requirements | Capability requirement |
+| Configuration | Capability requirement |
+| Instance capability requirement | Capability requirement |
+| Instance capability requirements | Capability requirement |
+| Primitive policies | Primitive policy |
+| Record checks | Conformance checks |
+| The load-bearing wiring decision | Wiring decision |
+| String input policy | String policy |
+| Indeterminate outcomes | Indeterminate outcome |
+| Standards | Standards references |
+
+---
+
+## The tree order
+
+Every pattern moves, one at a time, from the section shape above to the tree order: the rough draft's headings ([`rough-draft.md`](../essays/rough-draft.md)) filled out, one branch for each action, and each name declared where it is first used. The maintainer approved the shape on 2026-11-18 on a trial layout of Tenure ("Yes this is WAY better"; "mirror the rough draft we started with just filled out"), and `working-ideas/tenure-tree.md` in the repository, which the site does not publish, is the model. The order of the headings, both shapes:
+
+**What it is**, **What it keeps**, **What people do** (an `### Every action` branch, then one `###` branch for each action), **What is and what should never be (Invariants)**, **When something happens**, **While something is so**, **Optional**, **Left to others**, **Example**, **Source**, **Proof**, then **Status**, **Ledger** and **Decisions**, the Ledger and the Decisions each folded (below).
+
+The rows of the table titled *Heading tables* whose shape is `atom tree` or `composition tree` own each heading's level, parent, order and requirement. A pattern is in the tree order when its first `##` heading is `What it is`; until its reorganisation it keeps the section shape, and both shapes are canonical while the sweep runs. A pattern changes shape only by the unit that reorganises it, and that unit changes the order and the sentences of the standard forms ([`GRACE-lang.md`](./GRACE-lang.md), the section titled *Standard sentences*) and nothing of the meaning: every label, every rule's obligation, every term entry, every signature and every case stays.
+
+### The jobs each section does
+
+Each fact about a pattern is stated once, in the section whose job it is (the maintainer, 2026-11-21, "you must now remove 90% of the overlap"; "What is and what should never be (Invariants)", "This reads well to ALL and puts Invariants and negative Invariants together"; "Yes good idea about history collapse").
+
+- **What it is** says what the pattern is and does, in plain sentences. **WHY**, the folded block under it (folded by default), says only why the shape recurs, why each load-bearing decision is so, and what the pattern leaves to others; it restates no effect What it is states. A sentence of the WHY that says again what a stamp, a hold or a refusal does is cut.
+- A **`Term` line** defines the name. Its **term entry** adds only what the line does not say (a bound, a form, an example) and repeats nothing the line states.
+- A **case table** is the action's rendering of its rules, one row for each case, and stays; a check keeps its rows true to the rules they cite (`tools/linter/lint.py`, `Y-case-row`).
+- An action's **example bullets** show one call each. The **Example** section is one short story that repeats no bullet.
+- **What is and what should never be (Invariants)** is one `##` section, in both tree shapes: first the invariants that say what the records hold in every reachable state, then those that forbid an act. A rule keeps its number and its text.
+- The **Ledger** and the **Decisions** are each folded the way the WHY is: `<details markdown="block">` around the section, its `<summary>` holding the heading as an `<h2>`, `<h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>` and `<h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>`, the fenced block unchanged inside. A reader of the pattern sees a closed fold; the tools find the section by either form of the heading.
+- **The order of a sentence's parts.** The words of free text stay free; the order of a sentence's parts is fixed (the maintainer, 2026-11-22, "for the 10% prose we can't lock down or we will loose flexibility for the uncommon cases but we can enforce strict ordering that will help AI knowing where to looks"; "Yes — adopt that order"). A WHY sentence says its point first, then its reason (`because …`), then who decided it and when, in a parenthesis that closes the sentence. A term entry's prose says what kind of thing the term is first, then what sets it apart. A `NOTE:` or `UX:` line names what it is about first, then what it says. The rules already keep this order (GRACE-lang.md, Term statement shape); this rule says so once for free text. `tools/linter/lint.py` reads two signals as `P-part-order`, advisory: a sentence that opens with its reason, and a parenthesis naming a person and a date that stands mid-sentence; the term entry's order and the NOTE's are not read, since nothing measures them yet. The warning becomes a finding when it reads clean across the corpus.
+
+### Where each section goes
+
+Nothing is dropped: every line of a pattern in the section shape lands in one row below.
+
+| In the section shape | In the tree order | How |
+|---|---|---|
+| Frontmatter, Title | the same | unchanged |
+| Summary | What it is | the opening prose, the same Tier 1 rule |
+| Intent | What it is | after the Summary, in a folded block whose summary line is WHY |
+| Composes (composition) | What it is, `### Composes` | the list and the Composes block |
+| Wiring decision (composition) | What it is, `### Wiring decision` | the rules and the four-part defence |
+| Identity model; Identity (composition) | What it keeps; a composition's `### Identity` | each Identity rule after the term entry of the field the rule rules over, or of the record where the rule rules over the record |
+| State | What it keeps | each record's Type entry, then the record's Field entries, then the State rules |
+| Composition state (composition) | What it keeps, `### Composition state` | each element as the section shape gives it |
+| A `Term` line and its term entry | where the name is first used | a record's and a field's under What it keeps, an action's and its answers' in the action's branch, a setting's under Optional, any other where its first rule stands |
+| Operations | What people do | one `###` branch for each action, in the order of the signature blocks: the action's term entry (`Kind: Operation`) under the branch's heading, then its signature, its Operation rules, its rows of the decision table and its answers' term entries at `####`, then the action's own examples; the rules and rows that cover several actions go under `### Every action` |
+| Action wiring (composition) | What people do | the closure table and the rules over several actions under `### Every action`, then one branch for each action, as Operations go |
+| Scope vocabulary; Verdict (composition) | What people do, `### Scope vocabulary` and `### Verdict` | unchanged |
+| Invariants; Composition-level invariants | What is and what should never be (Invariants) | one section: the invariants that say what the records hold in every reachable state first, then those that forbid an act (`MUST NOT change`, `MUST NOT remove`, `MUST NOT reuse`); numbers and rule text unchanged |
+| Edge cases | When something happens, While something is so, or Optional | a case an event sets off (Atomic writes, Concurrency, Indeterminate outcome, a handover) under When something happens; a case of a standing condition (Clock dependence, Clock semantics, Retention asymmetry, String policy) under While something is so; a case of a setting under Optional; each keeps its heading at `###` |
+| Audit arm, Reconciliation, Housekeeping (composition) | When something happens | at `###`, unchanged |
+| Primitive policy (composition) | While something is so | at `###`, unchanged |
+| Capability requirement | Optional | the rules, then the settings' Terms and their NOTE lines |
+| Non-goals | Left to others | the block, then its owners' NOTE line |
+| Composition notes | Left to others | after the Non-goals |
+| Needs, Offers | the same | unchanged, before Left to others |
+| Examples | Example | the scenes in the author's order; an action's rejection paths go to that action's branch; *Regulated adversarial scenarios* stays a `###` here |
+| Standards references | Source | with what the pattern inherits from |
+| Generation acceptance, Conformance checks, External checks | Proof, `### Generation acceptance`, then `#### Conformance checks` and `#### External checks` | unchanged |
+| Terms: the category lines (`Term actors:` and the rest) and the registry's link lines | Proof, `### Vocabulary` | unchanged |
+| Status, Ledger, Decisions | the same, last | Status unchanged; the Ledger and the Decisions each folded, as the section titled *The jobs each section does* gives |
+
+A family the table titled *Rule families* does not list (a policy family such as Personal Todo's *Description policy*, or a step block) keeps its own heading at `###` under the tree heading its rules answer to: a policy on a stored string under While something is so, a policy on an input under the action's branch.
+
+### The parser reads by form
+
+The parser reads each entry by its form, not its position (the maintainer, 2026-11-18: "should the parser be that brittle?"; `GRACE-lang.md` Timing 13 and Hard invariant 15 already forbid reading meaning from order). A rule is read by its label and its fence, a term entry by its heading and its `Kind:` line wherever the entry stands, a signature by its form, a Check by its label, a Non-goal's owners by the line `NOTE: the owners —`, a case by its table row, and the Summary by the opening prose of What it is. A label names its family ([`GRACE-lang.md`](./GRACE-lang.md), Term label family): on a pattern in the section shape that family is the heading the rule sits under, and on a pattern in the tree order a family the table titled *Rule families* lists names the rule wherever the rule stands, so an Identity rule after a field's term entry is still `Identity 3`. `tools/grace/ir.py` reads a pattern in either shape to the same rules, terms, term entries, signatures, checks, Non-goals with their owners, and case rows, with only their order and their line numbers changed; that equality is the receipt of every reorganisation.
+
+---
+
+## Cross-cutting authoring conventions — and what's not in this document
+
+This document enumerates sections — and, as of 2026-06-11, it **owns the cross-cutting authoring conventions** every section must honor (ownership moved here from the session-bootstrap index — now `AGENTS.md`, reached via the `CLAUDE.md` shim — which carries only a pointer). [`pressure-testing.md`](./pressure-testing.md) enforces these conventions through its Pass 1 and Pass 3 questions without restating them, with one named exception: the defended-in-line *rubric* (Principle / Likely objection / Mechanism / Result) is methodology and stays owned by the section titled *Defending each claim in-line* in [`pressure-testing.md`](./pressure-testing.md) — the bullet below points there. The conventions, regardless of which shape:
+
+- **Labels are words.** A rule's label is the name of the heading it sits under plus a number — `Non-goal 4`, `Invariant 2.3`, `record_action step 3.2` — so a reader knows where to look; never an abbreviation ([`GRACE-lang.md`](./GRACE-lang.md) Rule shape 7 and 8).
+- **Three reading tiers, always.** The section *Three reading tiers* above states them once.
+- **Audience.** Every pattern's front matter carries `audience: common` (a pattern for anyone's software) or `audience: internal` (a pattern Grace runs on itself); a new pattern takes `common` unless it governs Grace's own machinery, and the site's catalogs list internal patterns apart, under "How Grace runs itself".
+- **Never leave an acronym unexplained — except the common-acronym whitelist.** Every acronym or initialisation (HIPAA, GDPR, EOS, GRID, NFC, PCI DSS, FATF, BSA, AML, CDD, KYC…) must be spelled out and briefly glossed the first time it appears in the document — in any section, not just the Summary. A reader who encounters an undefined acronym has hit a wall; the library's bridge principle requires a door instead. **The one exception is a short whitelist of universally-known acronyms,** fixed by an external test rather than a reviewer's taste: an acronym is exempt from spell-out only if it is a headword in a general English dictionary (equivalently, one a general-audience publication leaves undefined on first use). The seed list is **SMS, GPS, URL, HTML, US/USA, ID, PDF, FAQ**; it grows only by amending this line under the same test, never case-by-case inside a pattern. Everything domain-, legal-, or library-specific stays spelled out — the HIPAA/GDPR/GRID/KYC class above is exactly what the rule exists for — and a borderline term of art (API, OCAP) resolves toward spelling out, since the Tier-1 reader is a compliance officer or clinician, not an engineer. Conversely, *glossing* a whitelisted acronym (`SMS (Short Message Service…)`) is redundant noise and is itself a finding (the linter flags it).
+- **Never mint an acronym.** Never coin an acronym, initialism or short-code for a concept. Names are for humans and ids are for machines; there is nothing in between. A homegrown sigil is write-once and read-never: it saves the author three seconds and taxes every later reader with a lookup. If you find yourself reaching for initials, the name is carrying too much: fix the name, do not abbreviate it. Two exceptions and no others: an established term the field already speaks, which is the whitelist in the bullet above, and the stable id of a registry, which a machine reads and which is never a token written in prose. When in doubt, write the name out in full.
+- **Complete over concise (main text).** In the main text, a section is done when it fully conveys its intent — not when it hits a line count. Brevity that loses meaning is a defect; length that preserves it is a feature. This rule does *not* apply to the Summary, where concision is the discipline.
+- **Assume intelligence, not vocabulary.** Write for a smart reader who may not share your specific technical vocabulary. Define key terms inline at first use — in the Summary, in the Intent, and anywhere a term is load-bearing. The spec should teach the reader the vocabulary it needs them to know, not assume they already have it. This is the mechanism by which the library teaches itself: each spec that defines its terms consistently builds the reader's vocabulary without requiring them to look anything up elsewhere.
+- Invariants named descriptively first, then numbered (never letter-prefix codes)
+- Identity model explicit, opaque-id over content-field
+- Action signatures explicit, with every rejection reason named. Queries with multiple legitimate outcomes use first-class result tags rather than a success-or-reject pair; the tag set is per-query — two outcomes (`permitted | denied`), three (`verified | failed-verification(reason) | not-known`), or more (`granted | revoked | expired | not-known`) — no arm or arity is mandatory beyond fitting the query's real outcome space
+- **All references explicit in all directions.** Any step, invariant, or claim that depends on content defined elsewhere must name that section explicitly. Any section that defines a mechanism used elsewhere must be named by those users. Implicit "you know where to look" cross-references are a Pass 3 finding.
+- **Structural-relation invariants.** When a spec declares a relation — across constituents or self-referential — its required invariants are drawn from a fixed canonical set (referential integrity, orphan-freedom, inverse consistency, acyclicity / well-foundedness), surfaced with plain-language descriptions and precise forms in the section titled *Structural-relation invariant templates* below. The governing semantics remain the methodology's Relations line (the entry *Relations* under Pass 3 in [`pressure-testing.md`](./pressure-testing.md)).
+- Defended-in-line: every architectural claim follows the four-step rubric (principle, likely objection, mechanism, result) owned by the section titled *Defending each claim in-line* in [`pressure-testing.md`](./pressure-testing.md)
+- Edge cases name composing patterns by link
+- Standards inheritance is selective (cite what genuinely applies at this layer)
+
+This document also does not enumerate the *content* expected at each pass. That is the methodology's job — Pass 1's GRID completeness rules, Pass 2's EOS extraction questions, Pass 3's adversarial question set. See [`pressure-testing.md`](./pressure-testing.md).
+
+Nor does it state the runtime semantics of any section's contents — those belong to the Execution Contract per the ownership seam above (see *Ownership seam with the Execution Contract*).
+
+---
+
+## Structural-relation invariant templates
+
+Most of a spec describes one record's lifecycle. But the moment a record *points at another* — a composition wiring two constituents, or a record referencing its own kind — the **pointing itself** has to stay honest, and keeping it honest is no single record's own invariant. These are the small, fixed set of truth-conditions that do it: the relation-integrity primitives of the spec layer. When a spec declares a relation — its cardinality and modality, per the entry *Relations* under Pass 3 in [`pressure-testing.md`](./pressure-testing.md) — it draws its required invariants from this set rather than each author re-inventing the phrasing.
+
+The property that defines the whole family — and the reason they live here as templates rather than as atoms — is that **a relation invariant owns no state of its own.** It is always a constraint *on a relation that some atom or composition already declares*, so it always has a host concept. (That is the exact line that kept *acyclicity* from becoming an atom: it constrains state owned elsewhere; it owns none itself.)
+
+| Template | What it keeps honest | When it applies | Owns state? |
+|---|---|---|---|
+| **Referential integrity** | Every pointer leads somewhere real — no reference to a record that isn't there. | Any reference between records. | No |
+| **Orphan-freedom** | A required link is never silently left dangling; if a failure breaks it, that is surfaced and repaired within the compensation window, not ignored. | Only where a side of the relation is *mandatory*. | No |
+| **Inverse consistency** | "What points at me" agrees with "what I point at" — the relation reads the same from both ends. | Any relation read from both directions. | No — the inverse is a derived index |
+| **Acyclicity / well-foundedness** | A thing can't contain itself, directly or down a chain — so the structure bottoms out and can be fully expanded. | Only where the relation is *self-referential* (a record related to its own kind: hierarchies, bills-of-materials, groupings). | No — the expanded view is a derived index |
+
+**Precise forms — the verification surface under the plain language above.** *Referential integrity:* every reference resolves to an existing record of the named constituent. *Orphan-freedom* (only where a side is mandatory), stated **at quiescence** — safety (no action of this composition leaves a mandatory side unbound) plus liveness (a binding orphaned by partial failure is surfaced and reconciled within the declared compensation window), modulo declared compensation and the retention horizon — never a static "always both sides." *Inverse consistency:* the inverse direction agrees with the forward references, classified per the section titled *Composition state* in [`execution-contract.md`](../library/execution-contract.md) (derived index by default). *Acyclicity / well-foundedness* (only where the relation is self-referential — a constituent related to its own kind, directly or transitively): no record is its own ancestor under the relation's transitive closure, so the closure is well-founded and finite (a forest where single-parent, a DAG where multi-parent); the flattened / exploded view is a derived index per the section titled *Composition state* in [`execution-contract.md`](../library/execution-contract.md), and where edges carry quantities the rollup sums diamond-correctly.
+
+These are **owned here so tooling that auto-inserts them cites one home rather than minting phrasing; the governing semantics remain the methodology's Relations line** (the entry *Relations* under Pass 3 in [`pressure-testing.md`](./pressure-testing.md)). The set is fixed but extensible: referential integrity, orphan-freedom, and inverse consistency landed 2026-06-11 (guided-tool design review, F4); *acyclicity / well-foundedness* landed 2026-06-13, routed here by the concept-recovery exercise rather than promoted to a new atom precisely because it owns no state — the State Machine atom precedent was weighed and declined (see the section titled *Concept-recovery atom backlog* in [`roadmap.md`](../log/roadmap.md)). A fifth member earns its place the same way: a relation-wide truth-condition that recurs and owns no state.
+
+---
+
+## When to deviate
+
+The canonical shape is the default. A pattern may legitimately omit a section if the section is *not applicable*. A pattern may *not* legitimately omit a section because the author hasn't thought through what would go there; that's a draft-quality issue and a Pass 1 finding once the spec enters review.
+
+A pattern in `draft` or `partially resolved` status may carry a section labeled explicitly `not-yet-drafted` so the pressure-testing rounds can act on the gap as a finding rather than missing it as silent omission. This is the discipline the drafter agent in the council uses: produce every required section or mark the section's content `not-yet-drafted`.
+
+---
+
+## Workflow for adding a new pattern
+
+*(Ownership moved here 2026-06-11 from the session-bootstrap index — now `AGENTS.md`, reached via the `CLAUDE.md` shim.)*
+
+1. **Triage atom vs. composition.** Apply the directory-placement test (does the specification name another pattern?) and confirm against EOS Pass 2. The deeper criterion: does the responsibility have its own state machine, recur across many domains, deserve its own atom?
+2. **Identify the closest existing pattern.** Read it carefully; mirror its shape, vocabulary, and conventions. [Actor Identity](../library/atoms/actor-identity.md) and [Retention Window](../library/atoms/retention-window.md) are the references for new regulated atoms; [Personal Todo](../library/atoms/personal-todo.md) is the reference for productivity primitives; [Idempotent Reservation](../library/compositions/idempotent-reservation.md) and [Audit Trail](../library/compositions/audit-trail.md) are the references for compositions.
+3. **Premodel.** For compositions only, before any rule is drafted:
+   - **Constituents grounded first.** List each constituent and its status. A constituent not yet grounded grounds first, or the composition records in its first Decisions entry that it accepts the ripple. This list and the call surface (each call's answers and refusals) stay with the draft and git, never on the published pattern.
+   - **Bindings.** Name each constituent parameter the composition binds and to what. A branch no adopter binds is not written.
+   - **Closure table.** For every action, every constituent call it makes, and for each call its answer, its refusals, a failed read and a call that never answers, each with the rule that lands it: the Execution Contract's default (in [`execution-contract.md`](../library/execution-contract.md), Constituent failure 1 for a constituent's storage-failure, Constituent failure 2 for its registry-unavailable, Read 1 for a failed read, Error model 1 for a call that never answers) or the composition's own code. The table is drafted before the rules, goes in the pattern as Action wiring's first `####` block, where [Recoverable Invocation](../library/compositions/recoverable-invocation.md) keeps its (a column of one default on every row is stated once above the table, as [`spec-format.md`](./spec-format.md) says), and every rule the draft writes fills a cell.
+4. **Draft.** For regulated atoms or compositions that compose them, bake in *Regulated adversarial scenarios* and *Generation acceptance* from the first draft, and honor the cross-cutting authoring conventions owned by the section titled *Cross-cutting authoring conventions* in [`spec-format.md`](./spec-format.md) (identity model and action signatures explicit; invariants named descriptively then numbered; the rest of that list).
+5. **Run the three passes in order and iterate** — GRID, then EOS, then Linus — until a complete round surfaces no new findings, per the section titled *Order and iteration* in [`pressure-testing.md`](./pressure-testing.md), which owns the round structure. The commit that lands each round records what the pass found and how it was resolved; the Ledger carries what is still open.
+6. **Resolve forthcoming-links.** Any existing pattern that names the new one as `*(forthcoming)*` gets the marker removed and the reference linked. (Discovery method: search the corpus for `(forthcoming)` near your pattern's name; the commit that lands the new pattern lists what it retires — see the section titled *Composition shape* in [`spec-format.md`](./spec-format.md).)
+7. **Update the catalog surfaces — three different mechanisms.** (a) Add nothing to [`roadmap.md`](../log/roadmap.md) by hand: the pattern's own Status line is the source of its state, and the Roadmap prints it from `_data/patterns.json`, which `python3 tools/taxonomy/generate_graph.py .` regenerates. (b) Regenerate the browse-by-overlay catalog: `python3 tools/taxonomy/generate_views.py .` — this rewrites `atoms/index.md` and nothing else; atom classification is derived, never hand-edited. (c) For compositions only: hand-add a one-line entry naming the composition and the standards it anchors to `compositions/README.md`. (`readme.md` carries no library-state snapshot by rule — see the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md); there is nothing to update there.)
+
+---
+
+## Reference: canonical examples by shape
+
+| Shape | Canonical example | Why it's the reference |
+|-------|-------------------|-----------------------|
+| Atom — simplest | [`Personal Todo`](../library/atoms/personal-todo.md) | Smallest atom |
+| Atom — regulated | [`Actor Identity`](../library/atoms/actor-identity.md) | Carries both regulated-overlay conventions |
+| Composition — simplest | [`Idempotent Reservation`](../library/compositions/idempotent-reservation.md) | Two-atom composition with all required sections |
+| Composition — substrate use | [`Audit Trail`](../library/compositions/audit-trail.md) | Composes four atoms; the canonical regulated-audit substrate other compositions name |
+| Composition — composition-of-composition | [`Defensible Retention`](../library/compositions/defensible-retention.md) | Names Audit Trail as a substrate composition rather than re-listing its four atoms; carries the full regulated overlay including the Generation acceptance split |
+
+When drafting a new pattern, additionally read the most structurally adjacent existing pattern — mirror its shape. The canonical examples above are the references for *new* patterns; existing patterns in the same category are the references for *extensions* of an established pattern family.
+
+---
+
+## Status.
+
+`grounded — 2026-05-20` — first version of the canonical spec format reference. Enumerates the two shapes (atom, composition) as exercised across the grounded corpus through Defensible Retention's Round 3 — [`roadmap.md`](../log/roadmap.md) is the single source of truth for the corpus's current contents and counts; this document states no library-state snapshot.

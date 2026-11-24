@@ -1,6 +1,6 @@
 # Coverage matrix — `recurrence`
 
-- **Pattern:** `atoms/recurrence.md`
+- **Pattern:** `library/atoms/recurrence.md`
 - **Models:** `recurrence.als`, the static data model, + 10 buggy twins: `recurrence-buggy.als` and nine `recurrence-buggy-<defect>.als` (2026-11-10); `recurrence.tla` + `recurrence.cfg`, the operation sequences, written 2026-11-11 (+ 15 buggy twins `recurrence-buggy-<defect>.tla`, each with its `.cfg`)
 - **Reviewer / date:** the model's author, the session that landed it — 2026-11-08. Not a fresh-context read; the next scheduled rescan owes one. The TLA+ model (unit `atoms/recurrence.md formal layer`, the formal layer sweep) — 2026-11-11, by the model's author, not a fresh-context read.
 - **Formal-layer vote load-bearing claims:** the vote was cast yes on the maintainer's ruling of 2026-11-06 (after-grounding item 14: "Recurrence gets an Alloy model (it is mostly shape)"), which names the page's shape and no one invariant. The model therefore takes every Invariant the page states as load-bearing: Invariant 1.1, 1.2 (a series is one repeat); Invariant 2.1, 2.2 (a series keeps its parts, and ends only sooner); Invariant 3.1 through 3.4 (an occurrence is a date the series generates). Since the maintainer's ruling of 2026-11-09 every page gets both models; only the writing vetoes one.

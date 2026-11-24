@@ -1,6 +1,6 @@
 # Coverage matrix — `shared-cart`
 
-- **Pattern:** `compositions/shared-cart.md`
+- **Pattern:** `library/compositions/shared-cart.md`
 - **Model:** `shared-cart.als`, the static data model (+ 27 buggy twins `shared-cart-buggy-<defect>.als`), and `shared-cart.tla` + `shared-cart.cfg`, the operation sequences (+ 4 buggy twins `shared-cart-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-12; the Alloy model's Action wiring 8 re-derived 2026-11-20 (the page's cure of open 2026-11-04-a: [Open Cart] answers its grant ids; Composes 13)
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-10-30 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every composition-level Invariant the page states as load-bearing: Invariant 1 (permission enforcement), 2 (every grant names an open cart), 3 (every change is attributed), 4 (unsharing keeps the lines).

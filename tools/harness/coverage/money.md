@@ -1,6 +1,6 @@
 # Coverage matrix — `money`
 
-- **Pattern:** `atoms/money.md`
+- **Pattern:** `library/atoms/money.md`
 - **Model:** `money.als`, the static data model (+ 6 buggy twins `money-buggy-<defect>.als`), and `money.tla` + `money.cfg`, each action as a function of the call's inputs and the calls around it (+ 28 buggy twins `money-buggy-<defect>.tla`, each with its `.cfg`), with TLAPS proofs in `money.tla`'s section PROOFS, 2026-11-13
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-13. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast yes on 2026-11-13, on the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (no answer mixes two currencies), 2 (a split adds back up), 3 (no part a whole minor unit off its exact share), 4 (the leftover always finds a short part), 5 (a round trip changes nothing), 6 (a refund is the exact negation of the charge), 7 (no answer passes the number cap). Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 are claimed at every size (Generation acceptance): each is checked by TLC at the bounds below and proved for every size by TLAPS.

@@ -1,6 +1,6 @@
-# Coverage matrix — `atoms/subscription.md`
+# Coverage matrix — `library/atoms/subscription.md`
 
-- **Pattern:** `atoms/subscription.md`
+- **Pattern:** `library/atoms/subscription.md`
 - **Model:** `subscription.als`, the static data model (+ buggy twins `subscription-buggy.als`, rebuilt 2026-11-10 from the current model, and `subscription-buggy-cancelled-at-unbound.als`, 2026-11-10), and `subscription.tla` + `subscription.cfg`, the operation sequences (+ 32 buggy twins `subscription-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11; the audience cap (Operation 33, Term audience cap) added 2026-11-20, every twin re-derived on the model as it now stands
 - **Reviewer / date:** Claude Sonnet 4.6 — 2026-06-03 (the Alloy rows); the TLA+ model's author, the session that landed it — 2026-11-11 (the TLA+ rows); the builder of the audience cap — 2026-11-20 (the Operation 6, Operation 33 and Term audience cap rows). Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** Invariant 6 (at-most-one-Active per (subscriber_ref, event_scope) pair), Invariant 2 (status monotonicity Active → Cancelled), Invariant 4 (new subscribe after cancel produces a new distinct id / no id reuse). The maintainer's ruling of 2026-11-09 gives every page both models; the 2026-11-10 coverage note owed the TLA+ half (Invariant 1, 4, 5, 8 and 9, all across steps).

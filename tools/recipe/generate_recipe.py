@@ -23,6 +23,8 @@ Usage:  python3 generate_recipe.py <repo_root> <out_dir>
 """
 
 import sys, os, re, json, glob, datetime
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "grace"))
+import layout  # noqa: E402  a demo quotes a spec by the path it had when the demo was built
 
 SPEC_PATH_RE = re.compile(r'(?:\.\./)*((?:atoms|compositions)/[A-Za-z0-9_\-/]+\.md)')
 ATOM_HDR_RE  = re.compile(r'//\s*Atom:\s*(.+)')
@@ -74,9 +76,9 @@ def direct_constituents(repo, comp_rel):
     sec = composes_section(repo, comp_rel)
     paths = set()
     for m in SPEC_PATH_RE.finditer(sec):
-        paths.add(m.group(1))
+        paths.add(layout.new_path(m.group(1)))
     for m in re.finditer(r'\]\(\./([A-Za-z0-9_\-]+\.md)\)', sec):
-        paths.add("compositions/" + m.group(1))
+        paths.add("library/compositions/" + m.group(1))
     return paths
 
 
@@ -88,9 +90,9 @@ def transitive_atoms(repo, comp_rel, seen=None):
     seen.add(comp_rel)
     atoms = set()
     for p in direct_constituents(repo, comp_rel):
-        if p.startswith("atoms/"):
+        if p.startswith("library/atoms/"):
             atoms.add(p)
-        elif p.startswith("compositions/"):
+        elif p.startswith("library/compositions/"):
             atoms |= transitive_atoms(repo, p, seen)
     return atoms
 
@@ -112,7 +114,7 @@ def parse_app(repo, app, title_index):
             app_entities.append(base); continue
         label_m = ATOM_HDR_RE.search(head)
         label = label_m.group(1).strip() if label_m else None
-        found = [m.group(1) for m in SPEC_PATH_RE.finditer(head) if m.group(1).startswith("atoms/")]
+        found = [layout.new_path(m.group(1)) for m in SPEC_PATH_RE.finditer(head) if m.group(1).startswith("atoms/")]
         for p in found:
             atom_paths.setdefault(p, set()).add(base)
             atom_labels[p] = lib_title(repo, p) or label
@@ -137,10 +139,10 @@ def main():
     today = datetime.date.today().isoformat()
 
     # a spec's history file, `<spec name>.hist.md`, is no spec
-    atom_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "atoms", "**", "*.md"), recursive=True)
+    atom_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "atoms", "**", "*.md"), recursive=True)
                   if os.path.basename(p).lower() not in ("readme.md", "index.md", "taxonomy.md")
                   and not p.endswith(".hist.md")]
-    comp_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "compositions", "*.md"))
+    comp_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "compositions", "*.md"))
                   if os.path.basename(p).lower() not in ("readme.md", "index.md")
                   and not p.endswith(".hist.md")]
     title_index = {}
@@ -165,7 +167,7 @@ def main():
 
         if not app_atoms and not app_entities:
             # spec-derived fallback: match demo name to a composition spec
-            cand = f"compositions/{app}.md"
+            cand = f"library/compositions/{app}.md"
             if cand in comp_atoms:
                 lineage = "spec-derived (demo declares no `// Atom:` headers - add them)"
                 app_atoms = set(comp_atoms[cand])

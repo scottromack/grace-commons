@@ -1,6 +1,6 @@
 # Coverage matrix — `execute-gated-workflow`
 
-- **Pattern:** `compositions/execute-gated-workflow.md`
+- **Pattern:** `library/compositions/execute-gated-workflow.md`
 - **Model:** `execute-gated-workflow.tla` + thirteen buggy twins, `execute-gated-workflow-buggy.tla`, `-buggy-reuse`, `-buggy-unmooted`, `-buggy-unmarked`, `-buggy-mispaired`, `-buggy-decision-join`, `-buggy-unrecorded`, `-buggy-unbounded-sweep`, `-buggy-norecall`, `-buggy-second-outcome`, `-buggy-double-moot`, `-buggy-unassigned`, `-buggy-stale-history` (each `.tla` with its `.cfg`)
 - **Alloy (2026-11-12).** `execute-gated-workflow.als`, the static data model, with **13 buggy twins** `execute-gated-workflow-buggy-<name>.als`: `found-by-machine`, `record-before-event`, `leg-ignores-key-count`, `pair-by-opener`, `unpaired-unflagged`, `leg-rerecords`, `leg-refires`, `mark-from-intent`, `rebuild-first-opening`, `assignment-from-openings`, `rebuild-from-empty`, `unassigned`, `norecall`.
 - **Reviewer / date:** the model's author, the session that landed it — 2026-11-08; Alloy layer 2026-11-12, its author. Not a fresh-context read; the next scheduled rescan owes one.

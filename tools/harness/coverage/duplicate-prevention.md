@@ -1,6 +1,6 @@
 # Coverage matrix — `duplicate-prevention`
 
-- **Pattern:** `atoms/duplicate-prevention.md`
+- **Pattern:** `library/atoms/duplicate-prevention.md`
 - **Model:** `duplicate-prevention.tla` + `duplicate-prevention-buggy.tla`, and `duplicate-prevention.als`, the static data model (+ 8 buggy twins `duplicate-prevention-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** Claude Sonnet 4.6 (fresh-context) — 2026-06-03; Alloy layer 2026-11-11
 - **Formal-layer vote load-bearing claims:** Invariant 2 (single-recording — `record` does not extend the window for an already-recorded identity; original `recorded_at` preserved); Invariant 1 (window monotonicity — anything in `recorded` satisfies `now − recorded_at < window`)

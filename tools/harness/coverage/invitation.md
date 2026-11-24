@@ -1,6 +1,6 @@
 # Coverage matrix — `invitation`
 
-- **Pattern:** `atoms/invitation.md`
+- **Pattern:** `library/atoms/invitation.md`
 - **Model:** `invitation.tla` (TLA+ state-machine) + two isolated buggy twins — `invitation-buggy.tla` (single-resolution) and `invitation-buggy-derivation.tla` (positive read-time derivation, FC F2); and `invitation.als`, the static data model (+ 13 buggy twins `invitation-buggy-<defect>.als`, 2026-11-11).
 - **Reviewer / date:** regenerated 2026-06-23 against the post-refactor model (execution/render-time refactor, 2026-06-21; `now`/`id_t` reverted to pipeline-injected per the Final Critique council, 2026-06-23). Supersedes the 2026-06-03 matrix, which described the pre-refactor model (stored `Expired`, an `Expire` action, four reachable terminal states, no clock variable, and an over-claimed single-resolution-as-concurrency reading).
 - **Formal-layer vote load-bearing claims:** Invariant 2 (single-resolution — at most one stored-terminal write, immutable thereafter) and Invariant 12 (expiry is derived, never written — the refactor's load-bearing render-time guarantee).

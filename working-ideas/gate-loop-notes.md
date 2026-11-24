@@ -1,6 +1,6 @@
 # Notes — the cold-reader gate loop (opened 2026-10-02)
 
-> **Status: internal, running notes. Not canonical.** Append dated lines; do not rewrite earlier ones. Opened after the complexity-ratchet decision of 2026-10-02 (`pressure-testing.md`, *Triage fields for a gate round*) to record what the new process does and does not do, round by round, on [Audit Trail](../compositions/audit-trail.md).
+> **Status: internal, running notes. Not canonical.** Append dated lines; do not rewrite earlier ones. Opened after the complexity-ratchet decision of 2026-10-02 (`pressure-testing.md`, *Triage fields for a gate round*) to record what the new process does and does not do, round by round, on [Audit Trail](../library/compositions/audit-trail.md).
 
 ## Rounds under the new template
 

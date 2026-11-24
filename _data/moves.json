@@ -1,0 +1,52 @@
+{
+ "_about": "The library's layout since `library: the files match the tree` (Scott 2026-11-23 9:57 and 10:00 PM Central): each moved page's old path and its new one. The one source: the site's redirects (_plugins/moved.rb), tools/grace/layout.py and the council's scripts read it. A section's own page stays at the root beside its folder, as corpus.md stands beside library/.",
+ "dirs": {
+  "atoms/": "library/atoms/",
+  "compositions/": "library/compositions/",
+  "apps/": "library/apps/"
+ },
+ "files": {
+  "execution-contract.md": "library/execution-contract.md",
+  "execution-contract.hist.md": "library/execution-contract.hist.md",
+  "declarations.md": "library/declarations.md",
+  "bonds.md": "library/bonds.md",
+  "contracts.md": "library/contracts.md",
+  "graph.md": "library/graph.md",
+  "method.md": "how/method.md",
+  "GRACE-lang.md": "how/GRACE-lang.md",
+  "GRACE-lang.hist.md": "how/GRACE-lang.hist.md",
+  "spec-format.md": "how/spec-format.md",
+  "spec-format.hist.md": "how/spec-format.hist.md",
+  "glossary.md": "how/glossary.md",
+  "pressure-testing.md": "how/pressure-testing.md",
+  "pressure-testing.hist.md": "how/pressure-testing.hist.md",
+  "governance.md": "how/governance.md",
+  "governance.hist.md": "how/governance.hist.md",
+  "open-questions.md": "how/open-questions.md",
+  "open-questions.hist.md": "how/open-questions.hist.md",
+  "demos.md": "evidence/demos.md",
+  "verify.md": "evidence/verify.md",
+  "status.md": "evidence/status.md",
+  "enforcement.md": "evidence/enforcement.md",
+  "measurement.md": "evidence/measurement.md",
+  "contributing.md": "community/contributing.md",
+  "CODE_OF_CONDUCT.md": "community/CODE_OF_CONDUCT.md",
+  "SECURITY.md": "community/SECURITY.md",
+  "ACCESSIBILITY.md": "community/ACCESSIBILITY.md",
+  "roadmap.md": "log/roadmap.md",
+  "roadmap.hist.md": "log/roadmap.hist.md",
+  "changelog.md": "log/changelog.md",
+  "discoveries.md": "log/discoveries.md",
+  "risks.md": "log/risks.md",
+  "ai-usage-log.md": "log/ai-usage-log.md",
+  "the-spec-layer.md": "essays/the-spec-layer.md",
+  "positioning.md": "essays/positioning.md",
+  "marketing.md": "essays/marketing.md",
+  "interview.md": "essays/interview.md",
+  "rough-draft.md": "essays/rough-draft.md",
+  "watch-list.md": "essays/watch-list.md"
+ },
+ "deleted": {
+  "requested.md": "readme.md"
+ }
+}

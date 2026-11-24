@@ -65,7 +65,13 @@ const families = twinsOf(all.filter((m) => !isTwin(m) && !expectsViolation(m)), 
 // A pattern's models sit in its folder's models folder (atoms/models/, compositions/models/;
 // Scott, 2026-11-13, ruling 6). A model answers --only and --except by its path and by its
 // page's folder, so a pattern is named by its page's path without `.md`, as before the move.
-const spellings = (rel) => [rel, rel.split(sep).join("/").replace(/^(atoms|compositions)\/models\//, "$1/")];
+// Since `library: the files match the tree` (2026-11-23) the folders sit under library/; a pattern is
+// also named by its old path (atoms/lease), so a name written before the move still picks it.
+const spellings = (rel) => {
+  const s = rel.split(sep).join("/");
+  const page = s.replace(/^((?:library\/)?(?:atoms|compositions))\/models\//, "$1/");
+  return [s, page, page.replace(/^library\//, "")];
+};
 const picked = new Set(all.filter((m) => {
   const names = spellings(relative(REPO, m));
   return (!only || names.some((n) => only.test(n))) && (!except || !names.some((n) => except.test(n)));

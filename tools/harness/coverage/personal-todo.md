@@ -1,6 +1,6 @@
 # Coverage matrix — `personal-todo`
 
-- **Pattern:** `atoms/personal-todo.md`
+- **Pattern:** `library/atoms/personal-todo.md`
 - **Model:** `personal-todo.als`, the static data model (+ 18 buggy twins `personal-todo-buggy-<defect>.als`), and `personal-todo.tla` + `personal-todo.cfg`, the operation sequences (+ 11 buggy twins `personal-todo-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 2.1 and 3.1 (what stands in pending and in done), 4.1 (delete is terminal), 5.2 (an edit changes nothing else), 6.1 (active-set description uniqueness), 7.1 through 7.3 (timestamp monotonicity), 8.2 and 8.3 (id stability).

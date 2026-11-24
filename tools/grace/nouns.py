@@ -304,13 +304,13 @@ def main(argv: list[str]) -> int:
         return 2
     only = argv[argv.index("--spec") + 1] if "--spec" in argv else None
     paths = []
-    for d in ("atoms", "compositions"):
+    for d in ("library/atoms", "library/compositions"):
         for p in sorted((ROOT / d).glob("*.md")):
             if p.match(C.HISTORY) or (only and p.stem != only):
                 continue
             if C.MIGRATED.search(p.read_text(encoding="utf-8")):
                 paths.append(p)
-    rep = read(paths, ROOT / "GRACE-lang.md", tagger)
+    rep = read(paths, ROOT / "how" / "GRACE-lang.md", tagger)
     rep["environment"] = environment(nltk)
     if "--json" in argv:
         print(json.dumps(rep, indent=1, default=list))

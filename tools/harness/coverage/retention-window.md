@@ -1,6 +1,6 @@
 # Coverage matrix — `retention-window`
 
-- **Pattern:** `atoms/retention-window.md`
+- **Pattern:** `library/atoms/retention-window.md`
 - **Model:** `retention-window.als`, the static data model (+ 18 buggy twins `retention-window-buggy-<defect>.als`), and `retention-window.tla` + `retention-window.cfg`, the operation sequences (+ 23 buggy twins `retention-window-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-12; re-derived 2026-11-21 over the page's ten cured open lines ([Read] carries a query; Identity 5, State 7 and State 8 deleted; Capability requirement 17 and 18 new)
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12; the re-derivation's builder — 2026-11-21. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 (reconsidered to English-only: "no-early-purge — single-action time-gated precondition; hold-blocks-purge race lives in Defensible Retention") and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The coverage unit of 2026-11-10 named Invariant 1 (membership exclusivity), 3 (terminal absorption), 6 (retention window monotonicity), 7 (no early purge), 8 (purge timestamp consistency) and 11 (purge eligibility derived, never stored), with Invariant 10 (durability) a host duty; the models take every Invariant the page states as load-bearing.

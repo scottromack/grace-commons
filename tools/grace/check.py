@@ -48,7 +48,7 @@ _CATEGORY_LINE = re.compile(r"^Term category:(.+)$", re.M)
 
 def vocabulary_categories(grammar_path=None):
     """The plural category names a Terms section may carry, from GRACE-lang.md."""
-    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "how", "GRACE-lang.md")
     try:
         m = _CATEGORY_LINE.search(open(p, encoding="utf-8").read())
     except OSError:
@@ -96,9 +96,12 @@ def reserved_capitals(grammar_path=None):
     beside the grammar since v0.70) — forms the grammar has named and not admitted, so
     one in a rule is a finding and never a proper noun.
     """
-    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "how", "GRACE-lang.md")
     g = open(p, encoding="utf-8").read()
+    # the watch list sits beside the grammar in a fixture, in essays/ in the library
     wp = os.path.join(os.path.dirname(p), "watch-list.md")
+    if not os.path.exists(wp):
+        wp = os.path.join(os.path.dirname(p), "..", "essays", "watch-list.md")
     w = open(wp, encoding="utf-8").read() if os.path.exists(wp) else ""
     reserved: set[str] = set()
     for name in _RESERVED_SOURCES:
@@ -202,7 +205,7 @@ VALUE_EXISTS = re.compile(r"(?:^|\b(?:IF|WHEN|AND|OR|ONLY IF) )(?:(?:the|a|an|no
 # writes each under its own name — *argument* was a second name for input
 # (council read 100).
 def rule_nouns(grammar_path=None) -> set[str]:
-    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "how", "GRACE-lang.md")
     try:
         m = re.search(r"^Term rule noun:.*? — (.+)\.$", open(p, encoding="utf-8").read(), re.M)
     except OSError:
@@ -830,7 +833,7 @@ def standard_families() -> set[str]:
     if _STANDARD_FAMILIES is None:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "linter"))
         from lint import standard_label_families
-        sf = Path(__file__).resolve().parents[2] / "spec-format.md"
+        sf = Path(__file__).resolve().parents[2] / "how" / "spec-format.md"
         _STANDARD_FAMILIES = standard_label_families(sf.read_text(encoding="utf-8")) if sf.exists() else set()
     return _STANDARD_FAMILIES
 
@@ -1598,7 +1601,7 @@ def scan(path: Path) -> list[Finding]:
 
 # the permanent id of each pattern (governance.md, *Permanent ids*): `id: N` in the
 # front matter, listed once in _data/pattern-ids.yml with the file that holds it
-INDEX_PAGES = {"atoms/index.md", "atoms/TAXONOMY.md", "compositions/README.md"}
+INDEX_PAGES = {"library/atoms/index.md", "library/atoms/TAXONOMY.md", "library/compositions/README.md"}
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 _ID_LINE = re.compile(r"^id:[ \t]*(\S*)[ \t]*$", re.M)
 
@@ -1606,7 +1609,7 @@ _ID_LINE = re.compile(r"^id:[ \t]*(\S*)[ \t]*$", re.M)
 def pattern_files(root: Path) -> list[Path]:
     """Every atom and composition: not a history file, not an index page."""
     out = []
-    for d in ("atoms", "compositions"):
+    for d in ("library/atoms", "library/compositions"):
         for p in sorted((root / d).glob("*.md")):
             if p.match(HISTORY) or p.relative_to(root).as_posix() in INDEX_PAGES:
                 continue
@@ -1726,7 +1729,7 @@ BOND_TYPED = ("key", "holder", "span")
 
 def bond_kinds(root: Path) -> dict[str, dict[str, list[str]]]:
     """kind -> {"need": [field names], "offer": [field names]}, read from bonds.md."""
-    path = root / "bonds.md"
+    path = root / "library" / "bonds.md"
     kinds: dict[str, dict[str, list[str]]] = {}
     if not path.exists():
         return kinds
@@ -1738,7 +1741,7 @@ def bond_kinds(root: Path) -> dict[str, dict[str, list[str]]]:
 
 def declared_words(root: Path) -> tuple[dict[str, str], set[str]]:
     """The declaration space: word -> type, and the type names, read from declarations.md."""
-    path = root / "declarations.md"
+    path = root / "library" / "declarations.md"
     if not path.exists():
         return {}, set()
     text = path.read_text(encoding="utf-8")
@@ -1817,7 +1820,7 @@ APP_ATOM = re.compile(r"\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
 def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, str], types: set[str]) -> list[Finding]:
     """Bond 10: a need of an app's atoms that meets no offer of the app's atoms fails the app."""
     findings: list[Finding] = []
-    for app in sorted((root / "apps").glob("*/index.md")):
+    for app in sorted((root / "library" / "apps").glob("*/index.md")):
         names = set(APP_ATOM.findall(app.read_text(encoding="utf-8")))
         mine = [b for b in lines if b["path"].stem in names and b["path"].parent.name == "atoms" and b["kind"] in kinds]
         for need in (b for b in mine if b["side"] == "need"):
@@ -1830,7 +1833,7 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
 def bond_findings(root: Path) -> list[Finding]:
     kinds = bond_kinds(root)
     words, types = declared_words(root)
-    atoms = sorted((root / "atoms").glob("*.md"))
+    atoms = sorted((root / "library" / "atoms").glob("*.md"))
     titles = set()
     for p in atoms:
         fm = _FRONT_MATTER.match(p.read_text(encoding="utf-8"))
@@ -1860,8 +1863,8 @@ def bond_findings(root: Path) -> list[Finding]:
                                         f"the {b['side']} line names the atom {t} (bonds.md Bond 6)"))
     # a contract need names a contract contracts.md states (unit `contracts: the outside world`)
     stated = set()
-    if (root / "contracts.md").exists():
-        stated = set(re.findall(r"^Term ([a-z][\w -]*?) contract:", (root / "contracts.md").read_text(encoding="utf-8"), re.M))
+    if (root / "library" / "contracts.md").exists():
+        stated = set(re.findall(r"^Term ([a-z][\w -]*?) contract:", (root / "library" / "contracts.md").read_text(encoding="utf-8"), re.M))
     for p in atoms:
         text = p.read_text(encoding="utf-8")
         for m in re.finditer(r"^Term contract need ([a-z][\w -]*?):", text, re.M):
@@ -1889,8 +1892,9 @@ def main(argv: list[str]) -> int:
         paths = [Path(a) for a in args]
     else:
         # the bonds page and the declaration space are read as a pattern is (unit `bonds: the fifty`)
-        paths = [root / "GRACE-lang.md", root / "bonds.md", root / "declarations.md", root / "contracts.md"]
-        for d in ("atoms", "compositions"):
+        paths = [root / "how" / "GRACE-lang.md", root / "library" / "bonds.md", root / "library" / "declarations.md",
+                 root / "library" / "contracts.md"]
+        for d in ("library/atoms", "library/compositions"):
             for p in sorted((root / d).glob("*.md")):
                 if p.match(HISTORY):
                     continue

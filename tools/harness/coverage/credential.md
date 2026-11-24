@@ -1,6 +1,6 @@
 # Coverage matrix — `credential`
 
-- **Pattern:** `atoms/credential.md`, grounded in English on Final Critique 12 (2026-09-29).
+- **Pattern:** `library/atoms/credential.md`, grounded in English on Final Critique 12 (2026-09-29).
 - **Model:** `credential.tla` + four isolated twins: `credential-buggy.tla` (Invariant 7.1), `credential-buggy-toctou.tla` (Capability requirement 8), `credential-buggy-overdue.tla` (Capability requirement 23), `credential-buggy-rotate-race.tla` (Operation 65); and `credential.als`, the static data model (+ 13 buggy twins `credential-buggy-<defect>.als`, 2026-11-11).
 - **Reviewer / date:** re-derived 2026-09-29, closing the Ledger's formal line: per-credential deadlines, a call's reading held from its start to its commit, the pair's critical section with an overdue holder, and revoke outside the section. Supersedes the 2026-06-21 matrix, whose model carried one deadline for every credential and one reading per step.
 - **Formal-layer vote load-bearing claims:** Invariant 2.1 at a settled reading, Invariant 7.1, and Invariant 12 (expiry derived, never stored).

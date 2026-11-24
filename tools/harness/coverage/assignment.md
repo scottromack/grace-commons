@@ -1,6 +1,6 @@
 # Coverage matrix — `assignment`
 
-- **Pattern:** `atoms/assignment.md`
+- **Pattern:** `library/atoms/assignment.md`
 - **Model:** `assignment.tla` (+ buggy twin `assignment-buggy.tla`) and `assignment.als`, the static data model (+ 11 buggy twins `assignment-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03
 - **Formal-layer vote load-bearing claims:** Invariant 7 (reassign atomicity — no observable both/neither Active state), Invariant 1 (at-most-one-Active per task)

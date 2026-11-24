@@ -7,7 +7,7 @@ itself total, in a corpus whose substrate destroys those payloads at the horizon
 import io, os, re, glob
 
 ROOT = '/home/claude/repo'
-FILES = [f for f in sorted(glob.glob(ROOT + '/atoms/*.md')) + sorted(glob.glob(ROOT + '/compositions/*.md'))
+FILES = [f for f in sorted(glob.glob(ROOT + '/library/atoms/*.md')) + sorted(glob.glob(ROOT + '/library/compositions/*.md'))
          if not f.endswith('.hist.md')]
 
 # a rebuild that reads the event payload

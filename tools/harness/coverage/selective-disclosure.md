@@ -1,6 +1,6 @@
 # Coverage matrix — `selective-disclosure`
 
-- **Pattern:** `atoms/selective-disclosure.md`
+- **Pattern:** `library/atoms/selective-disclosure.md`
 - **Model:** `selective-disclosure.als`, the static data model (+ 19 buggy twins `selective-disclosure-buggy-<defect>.als`), and `selective-disclosure.tla` + `selective-disclosure.cfg`, the operation sequences (+ 18 buggy twins `selective-disclosure-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-12
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-12. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-06-03 and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The coverage unit of 2026-11-10 named Invariant 1 (record immutability), 2 and 3 (authority and field completeness), 4 (temporal soundness) and 6 (record durability and append-only nature), and Invariant 5 (unrecorded transmissions) as a claim about what no record shows; the models take every Invariant the page states as load-bearing.

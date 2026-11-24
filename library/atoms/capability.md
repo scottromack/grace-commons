@@ -1,0 +1,817 @@
+---
+title: Capability
+id: 32
+audience: common
+has_toc: true
+toc: true
+---
+
+# Capability
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+## Summary
+
+Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it. Each capability ties a scope — what it authorizes, handed back on each use but never interpreted — to how many times it may be used (once, unless its creator asks for more) and until when, and it is named by a token drawn at random so that no one can guess it. Who created a capability is always recorded and who used it never is, so the record reads *allocated by X, scope Y, redeemed N times* — never *redeemed by Z*. A capability ends in one of three clearly separated ways: it runs out of uses or is deliberately cancelled, each an end state written into the record, or its window passes and it is shown expired, a status worked out by comparing the clock with the deadline and never written down. This is the mechanism behind password-reset links, pre-signed file URLs, scoped API (Application Programming Interface) tokens and OAuth (Open Authorization — the web's delegated-authorization framework) authorization codes. It deliberately does not decide when a capability should be issued, interpret what it authorizes or record what was done after it was used, and where using one must bind an identity, that is [Invitation](./invitation.md), not this pattern.
+
+---
+
+## Intent
+
+<details markdown="block">
+<summary>WHY</summary>
+
+Many authorization problems are not about *who is asking* but about *what is being presented*. A password-reset link grants the right to set a new password to whoever holds the link — the account owner who received it by email, a friend who was handed it, or an attacker who intercepted it. A pre-signed URL grants read access to anyone with the URL for its lifetime. In each case the authorization is embedded in the token, and the holder's identity is irrelevant by design.
+
+[Permissions](./permissions.md) is the library's other authorization model and it is identity-keyed: a check gates on who is asking, matching an actor reference against a list. That is the right model when authorization is principal-bound. It is the wrong model for a bearer token — modelling a password-reset link as a permission grant would mean creating a principal for the recipient before the link is sent, which defeats the point of a bearer credential. The two primitives are structurally distinct and belong to separate atoms.
+
+So this atom isolates the bearer-token primitive, and it is the library's expression of object-capability theory (OCAP — a security model in which unforgeable references carry their own authority, needing no separate access control list). [Allocate] creates a capability, records who created it and what it authorizes, and answers a token. [Redeem] accepts the token, checks that it is live and not exhausted, and answers the [Scope] — with no identity argument and no identity record. The asymmetry between allocator, always known, and redeemer, intentionally unknown, is structural rather than accidental, and it is this atom's primary contribution to a composing system's audit record.
+
+Two disciplines carry the rest. The redemption counter is the only field that moves between allocation and a terminal write, so the authorization envelope is readable from one immutable record. And lapsing is derived, not written: there is no `expire` action, no `expired_at` column and no stored [Expired] status, so the stored state space stays three values and no flag can lag the clock it idealizes.
+
+</details>
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a capability by the capability token.
+Identity 2: The capability token MUST serve as the bearer credential [Redeem] accepts.
+Identity 3: The capability token MUST serve as the bearer credential [Revoke] accepts.
+Identity 4: The host MUST allocate a capability token at the seam.
+Identity 6: The atom MUST NOT reuse a capability token any retained capability carries.
+Identity 7: The atom MUST NOT change a capability token.
+Identity 9: The deployment MUST draw a capability token from a cryptographically secure random source.
+Identity 10: The deployment MUST NOT draw a capability token from the capability's public properties.
+Identity 12: The atom MUST NOT interpret an allocator reference.
+```
+
+NOTE: watch the allocation ban (Execution Contract Logic confinement 3).
+
+Term capability: one bearer-token authorization with a redemption envelope — the record this atom holds.
+
+Term capability token: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocated at the seam, and the capability [Redeem] and [Revoke] accept.
+
+Term allocator reference: the opaque reference naming the actor that created the capability — an [Allocator Reference].
+
+Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
+
+Term seam: the atom's I/O (input and output) boundary per Execution Contract Logic confinement 14; the host injects the clock reading and the capability token's random material here.
+
+Term transition: the atom's evaluation of one call against the capability records, per Execution Contract Logic confinement 14.
+
+### State
+
+```
+State 1: EVERY capability MUST stand in EXACTLY ONE OF allocated, redeemed, revoked.
+State 2: EVERY capability MUST carry capability token, allocator reference, scope, max redemptions, remaining redemptions, allocation instant, expiry instant and status.
+State 4: A redeemed capability MUST carry a redemption instant.
+State 6: An allocated capability MUST NOT carry a redemption instant.
+State 7: An allocated capability MUST NOT carry a revocation field.
+State 11: The atom MUST NOT offer a transition out of redeemed.
+State 12: The atom MUST NOT offer a transition out of revoked.
+State 13: The atom MUST NOT remove a capability from the database.
+State 15: The atom MUST NOT hold an authorization policy.
+```
+
+Term revocation field: revocation instant | revoked by reference | revocation reason — what [Revoke] writes and nothing else does.
+
+Term status: allocated | redeemed | revoked — redeemable, exhausted, or cancelled. expired is not a value of it.
+
+#### Expiry
+
+```
+Expiry 2: A lapse MUST NOT fire a transition.
+Expiry 3: A lapse MUST NOT lower remaining redemptions.
+Expiry 4: The atom MUST NOT stamp an expiry.
+Expiry 5: The deployment MUST NOT schedule a lapse.
+Expiry 6: The atom MUST derive a lapse from expiry instant against now.
+Expiry 7: [Read] MUST surface a lapse as the effective status.
+```
+
+### Capability requirement
+
+```
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the capability records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Input 1.
+Capability requirement 6: The deployment MAY configure a default capability ttl ONLY IF the default capability ttl EXCEEDS the zero duration.
+Capability requirement 7: The deployment MUST configure a default capability ttl.
+Capability requirement 8: The token entropy MUST NOT EXCEED the capability token's random material.
+Capability requirement 9: The deployment MUST declare which composing patterns the deployment wired in.
+```
+
+NOTE: watch the deployment's composition note (Capability requirement 9).
+
+Term token entropy: 128 bits of cryptographically secure random material — the floor a capability token is drawn from, sufficient for negligible collision probability and for unguessability.
+
+### Operations
+
+```
+allocate(allocator_ref, scope, optional max_redemptions, optional ttl)
+  answers capability_token
+  refuses invalid-request | storage-failure
+
+redeem(capability_token)
+  answers redeemed(scope, allocator_ref) | invalid(redemption failure)
+  refuses storage-failure
+
+revoke(capability_token, revoked_by_ref, reason)
+  answers revoked
+  refuses not-known | already-terminal | invalid-request | storage-failure
+
+read(filter)
+  answers the matching capabilities
+```
+
+Term redemption failure: exhausted | expired | revoked | not-known — the reasons [Redeem] gives for an invalid capability.
+
+```
+Operation 1: [Allocate] MUST record EXACTLY ONE capability per successful call.
+Operation 2: [Allocate] MUST stand the capability in allocated.
+Operation 4: IF allocator reference EQUALS blank THEN [Allocate] MUST answer invalid-request.
+Operation 5: IF scope EQUALS blank THEN [Allocate] MUST answer invalid-request.
+Operation 6: IF max redemptions EQUALS blank THEN [Allocate] MUST apply the single-use default.
+Operation 7: [Allocate] MUST accept a max redemptions ONLY IF the max redemptions EXCEEDS zero.
+Operation 8: IF zero EXCEEDS max redemptions THEN [Allocate] MUST answer invalid-request.
+Operation 9: IF max redemptions EQUALS zero THEN [Allocate] MUST answer invalid-request.
+Operation 10: IF ttl EQUALS blank THEN [Allocate] MUST apply the default capability ttl.
+Operation 11: IF the default capability ttl EQUALS blank THEN [Allocate] MUST answer invalid-request.
+Operation 12: [Allocate] MUST accept a ttl ONLY IF the ttl EXCEEDS the zero duration.
+Operation 13: IF ttl DOES NOT EQUAL blank AND the ttl DOES NOT EXCEED the zero duration THEN [Allocate] MUST answer invalid-request.
+Operation 14: [Allocate] MUST stamp allocation instant from the injected now.
+Operation 15: [Allocate] MUST stamp expiry instant from the expiry deadline.
+Operation 16: [Allocate] MUST NOT recompute expiry instant from a later clock reading.
+Operation 17: [Allocate] MUST set remaining redemptions to the max redemptions.
+Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, a redemption failure, storage-failure.
+Operation 21: [Redeem] MUST NOT accept an identity input.
+Operation 22: [Redeem] MUST NOT record a redeemer's identity.
+Operation 23: IF no capability EXISTS for the capability token THEN [Redeem] MUST answer not-known.
+Operation 24: IF the capability's status EQUALS redeemed THEN [Redeem] MUST answer exhausted.
+Operation 25: IF the capability's status EQUALS revoked THEN [Redeem] MUST answer revoked.
+Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
+Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUALS allocated.
+Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
+Operation 29: [Redeem] MUST carry the scope and the allocator reference in a redeemed answer.
+Operation 71: A redeeming [Redeem] MUST lower remaining redemptions by one.
+Operation 31: A [Redeem] answering a redemption failure MUST NOT lower remaining redemptions.
+Operation 32: IF remaining redemptions reaches zero THEN [Redeem] MUST stand the capability in redeemed.
+Operation 33: IF remaining redemptions reaches zero THEN [Redeem] MUST stamp redemption instant from the injected now.
+Operation 35: IF no capability EXISTS for the capability token THEN [Revoke] MUST answer not-known.
+Operation 36: IF the capability's status EQUALS redeemed THEN [Revoke] MUST answer already-terminal.
+Operation 37: IF the capability's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
+Operation 38: IF the capability is lapsed THEN [Revoke] MUST answer already-terminal.
+Operation 39: IF the capability is revocable AND revoked by reference EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 40: IF the capability is revocable AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 41: [Revoke] MUST stand the capability in revoked.
+Operation 42: [Revoke] MUST stamp revocation instant from the injected now.
+Operation 43: [Revoke] MUST record revoked by reference on the capability.
+Operation 44: [Revoke] MUST record the reason as the revocation reason.
+Operation 46: [Revoke] MUST NOT lower remaining redemptions.
+Operation 50: [Read] MUST answer EVERY capability the filter matches.
+Operation 51: [Read] MUST carry the effective status on EVERY answered capability.
+Operation 52: [Read] MUST NOT write.
+Operation 53: A liveness query MUST rest on the effective status.
+Operation 54: A liveness query MUST NOT rest on the stored status alone.
+Operation 58: The atom MUST NOT offer an expire action.
+Operation 59: The atom MUST NOT offer a re-scope action.
+Operation 60: The atom MUST NOT offer an extend action.
+Operation 70: IF a supplied max redemptions is malformed OR a supplied ttl is malformed THEN [Allocate] MUST answer invalid-request (Execution Contract Input 1).
+Operation 68: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no capability.
+Operation 69: IF the capability's effective status EQUALS allocated THEN [Redeem] MUST answer redeemed.
+```
+
+Term now: the deployment's clock reading at the call — a [Now], as Execution Contract Logic confinement 11 declares it.
+
+Term business caller: the business caller per Execution Contract Logic confinement 14.
+
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
+
+Term max redemptions: the number of redemptions the capability permits — a [Max Redemptions]; a whole count, set at allocation, never changed.
+
+Term single-use default: a max redemptions of one — what [Allocate] applies where the call supplies none.
+
+Term remaining redemptions: the redemptions the capability has left — a [Remaining Redemptions]; the one field that moves between allocation and a terminal write.
+
+Term ttl: the validity duration an [Allocate] call asks for, a window length — a [TTL] (time-to-live); consumed to compute the expiry deadline, never stored under this name.
+
+Term default capability ttl: the validity duration [Allocate] applies where the call supplies no ttl, a window length; deployment configuration, and its absence is a misconfiguration rather than an operating state.
+
+Term window length: a whole number of seconds — what a ttl and the default capability ttl carry.
+
+Term zero duration: a duration of no length — the floor a ttl must exceed, which refuses zero and every negative value.
+
+Term zero: the count of nothing — the floor a max redemptions must exceed, and the value remaining redemptions reaches at exhaustion.
+
+Term whole count: a whole number of zero or more, with no fractional part — what a supplied max redemptions must be.
+
+Term allocation instant: the instant the capability was recorded — an [Allocation Instant].
+
+Term expiry deadline: `(allocated_at + ttl)` — what [Allocate] stores as expiry instant, computed once at allocation.
+
+Term expiry instant: the instant the capability's window closes — an [Expiry Instant]; stamped at allocation, never changed, never absent.
+
+Term lapsed: the capability's status EQUALS allocated and now is no earlier than the capability's expiry instant — the condition the guards derive and never stamp.
+
+Term revocable: the capability's status EQUALS allocated and the capability is not lapsed — what [Revoke] requires.
+
+Term effective status: expired where the capability is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the capability and now, never stored.
+
+Term redemption instant: the instant the capability exhausted — a [Redemption Instant].
+
+Term revocation instant: the instant the capability was cancelled — a [Revocation Instant].
+
+Term revoked by reference: the opaque reference naming the actor that cancelled the capability — a [Revoked By Reference].
+
+Term revocation reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
+
+Term reason: the [Revoke] input the capability keeps as revocation reason — a [Reason].
+
+Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming capability token, allocator reference, both OR no field; a capability matches a filter when it carries EVERY value the filter names (String 1) and the filter names no other field, so a filter naming no field matches EVERY capability; consumed per call, never stored.
+
+Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the database |
+|---|---|---|---|
+| [Allocate] | both references present, a default configured, count and duration positive or defaulted, database accepts | the new capability token | one record lands in [Allocated], the counter set to [Max Redemptions] (Operation 1, Operation 17) |
+| [Allocate] | a blank or over-long reference, a count that is not a whole number above zero, a duration that is no window length or is not positive, or no configured default | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 9, Operation 11, Operation 13, String 7, Operation 70) |
+| [Redeem] | token names nothing | `invalid(not-known)` | none (Operation 23) |
+| [Redeem] | stored status is [Redeemed] | `invalid(exhausted)` | none (Operation 24) |
+| [Redeem] | stored status is [Revoked] | `invalid(revoked)` | none (Operation 25) |
+| [Redeem] | stored [Allocated], now has reached expiry instant | `invalid(expired)` | **none** — derived, and the counter is untouched (Operation 26, Operation 31) |
+| [Redeem] | stored [Allocated], window open, counter above one | `redeemed(scope, allocator_ref)` | the counter falls by one; status unchanged; the capability's other recorded fields stand (Operation 69, Operation 71, Invariant 1.1, Invariant 8.1) |
+| [Redeem] | stored [Allocated], window open, counter at one | `redeemed(scope, allocator_ref)` | the counter reaches zero and the status moves to [Redeemed]; the capability's other recorded fields stand (Operation 69, Operation 32, Operation 33, Invariant 1.1, Invariant 8.1) |
+| [Revoke] | token names a revocable capability, attribution present | revoked | [Allocated] → [Revoked], three fields stamped, counter untouched; the capability's other recorded fields stand (Operation 41 through 44, Operation 46, Invariant 1.1, Invariant 8.1) |
+| [Revoke] | token names nothing | [Not Known] | none (Operation 35) |
+| [Revoke] | stored status is [Redeemed] or [Revoked] | [Already Terminal] | none (Operation 36, Operation 37) |
+| [Revoke] | stored [Allocated] past its deadline | [Already Terminal] | none — derived, nothing written (Operation 38) |
+| [Revoke] | revocable, blank or over-long attribution | [Invalid Request] | none (Operation 39, Operation 40, String 9, String 10) |
+| [Allocate], [Redeem], [Revoke] | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
+| *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no status, no stamp, no counter move (Expiry 2 through 5, Invariant 13.3) |
+| [Read] | a filter naming capability token, allocator reference, both or neither | the matching capabilities, each carrying its effective status | none (Operation 50, Operation 51, Term filter) |
+| [Read] | a filter naming a blank value, or a field other than capability token and allocator reference | no capability | none (Operation 50, Operation 68, Term filter) |
+
+### Invariants
+
+- **Invariant 1 — Allocation provenance immutability.**
+  ```
+  Invariant 1.1: A recorded capability's capability token, allocator reference, scope, max redemptions, allocation instant and expiry instant MUST NOT change.
+  ```
+- **Invariant 2 — Redemption counter monotonic.**
+  ```
+  Invariant 2.1: A capability's remaining redemptions MUST NOT rise.
+  Invariant 2.3: A capability's remaining redemptions MUST NOT EXCEED the max redemptions.
+  Invariant 2.5: A capability's remaining redemptions MUST NOT fall below zero.
+  ```
+- **Invariant 3 — Bearer redemption.**
+  ```
+  Invariant 3.1: [Redeem] MUST accept the capability token as the whole call.
+  Invariant 3.2: [Redeem] MUST NOT accept an identity claim.
+  Invariant 3.3: [Redeem] MUST NOT check an identity claim.
+  Invariant 3.4: A capability MUST NOT carry a redeemer's identity.
+  ```
+- **Invariant 4 — Exhaustion atomicity.**
+  ```
+  Invariant 4.4: The successful [Redeem] calls on one capability MUST NOT EXCEED the max redemptions.
+  ```
+- **Invariant 5 — Audit asymmetry.**
+  ```
+  Invariant 5.1: EVERY capability MUST carry the allocator reference.
+  Invariant 5.2: An auditor MUST NOT find a redeemer's identity in the capability records.
+  Invariant 5.3: The atom MUST NOT infer a redeemer's identity.
+  ```
+- **Invariant 6 — Three structurally distinct terminal modes, two stored and one derived.**
+  ```
+  Invariant 6.1: A redeemed capability MUST carry a redemption instant AND a remaining redemptions of zero.
+  Invariant 6.2: A revoked capability MUST carry revocation instant, revoked by reference and revocation reason.
+  Invariant 6.3: A lapsed capability MUST NOT carry a redemption instant.
+  Invariant 6.4: A lapsed capability MUST NOT carry a revocation field.
+  Invariant 6.5: An implementation MUST NOT merge two terminal modes.
+  Invariant 6.6: A redeemed capability MUST NOT carry a revocation field.
+  Invariant 6.7: A revoked capability MUST NOT carry a redemption instant.
+  ```
+- **Invariant 7 — Stored terminal state absorbing.**
+  ```
+  Invariant 7.1: A redeemed capability MUST NOT leave redeemed.
+  Invariant 7.2: A revoked capability MUST NOT leave revoked.
+  Invariant 7.3: A lapsed capability MUST NOT admit a write.
+  Invariant 7.4: A lapsed capability MUST stand in allocated.
+  ```
+- **Invariant 8 — Scope immutability.**
+  ```
+  Invariant 8.1: A recorded scope MUST NOT change.
+  ```
+- **Invariant 9 — Revocation attribution completeness.**
+  ```
+  Invariant 9.1: EVERY revoked capability MUST carry a revocation instant.
+  Invariant 9.2: EVERY revoked capability's revoked by reference MUST stand non-blank.
+  Invariant 9.3: EVERY revoked capability's revocation reason MUST stand non-blank.
+  ```
+- **Invariant 10 — Every capability has a finite lifetime.**
+  ```
+  Invariant 10.1: EVERY capability MUST carry an expiry instant.
+  Invariant 10.2: The atom MUST NOT record a capability carrying no expiry instant.
+  ```
+- **Invariant 11 — Capability durability over this atom's own surface.**
+  ```
+  Invariant 11.1: The atom MUST NOT offer a removal surface.
+  Invariant 11.2: An action the atom offers MUST NOT reduce the capability count.
+  ```
+- **Invariant 12 — Capability token uniqueness.**
+  ```
+  Invariant 12.1: Two capabilities MUST NOT share a capability token.
+  Invariant 12.2: The database MUST NOT accept a write that would reuse a capability token any retained capability carries.
+  Invariant 12.4: Invariant 12.1 MUST range over the capabilities the database retains.
+  ```
+- **Invariant 13 — Expiry is derived, never written.**
+  ```
+  Invariant 13.1: A capability MUST NOT carry a stored expired status.
+  Invariant 13.2: A capability MUST NOT carry an expiry timestamp beside expiry instant.
+  Invariant 13.3: A lapse MUST NOT write to the capability.
+  Invariant 13.4: The effective status MUST rest on the stored status, the expiry instant and now.
+  ```
+
+Invariants 1 and 3 together give the *authorization envelope* property — a capability's full authorization is readable from one immutable record, and no identity check contaminates the bearer semantics. Invariants 2 and 4, with Operation 71, give *redemption integrity* — the counter falls exactly once per redemption. Invariants 5, 6 and 13 give *audit clarity* — the record always answers who allocated and what was authorized, never who redeemed; the two stored terminals are unambiguous; and the derived [Expired] is reproducible from the deadline and the read-time clock. Invariant 12 gives *lookup determinism* — [Redeem] resolves to one capability or none.
+
+Two properties are entailed rather than stated, and the formal model ([`capability.als`](./models/capability.als), this spec's sibling) confirms both. A remaining redemptions of zero is reachable only through the exhausting move, which stands the capability in [Redeemed] — [Revoke] does not lower the counter and a lapse never writes — so a zero counter outside [Redeemed] is unreachable (Operation 71, Operation 32, Operation 46, Expiry 3). And a [Revoked] capability always carries a counter above zero, because [Revoke] requires a revocable capability and preserves the counter, and the stored terminals are absorbing (Invariant 7.1, Invariant 7.2, Operation 46).
+
+---
+
+## Examples
+
+### Single-use password-reset link
+
+An account-recovery service allocates a reset capability: `allocate(allocator_ref: recovery_svc_r01, scope: "reset-password::acct_a9931", max_redemptions: 1, ttl: 3600)` → `cap_tok_7f3a`, with the host injecting `now: 2026-09-01T09:00:00Z` and the token's random material at the seam. The record lands in [Allocated] with `remaining_redemptions: 1` and `expires_at: 10:00:00Z`. The service emails the link.
+
+The user clicks it twelve minutes later. `redeem(cap_tok_7f3a)` → `redeemed(scope: "reset-password::acct_a9931", allocator_ref: recovery_svc_r01)`. The counter reaches zero and the status moves to [Redeemed] with `redeemed_at: 09:12:00Z`. The reset page opens. **No redeemer identity is recorded** — the database cannot say whether the account owner clicked the link or somebody who intercepted the email did, and that is the model working as designed (Invariant 5.2).
+
+A second click on the same link → `invalid(exhausted)` (Operation 24).
+
+### Multi-use pre-signed read token
+
+A document service allocates a five-use read token: `allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 5, ttl: 604800)` → `cap_tok_b81c`. Three fetches over the week each answer `redeemed(...)` and leave the counter at 2, with the status still [Allocated] (Operation 71).
+
+The window closes with two redemptions unspent. **Nothing is called and nothing is written.** A [Read] now reports `effective_status: expired`; the counter still reads 2, because a lapse forfeits the remaining redemptions by derivation rather than by spending them (Expiry 3, Invariant 6.3). A fourth fetch answers `invalid(expired)`.
+
+### Rejection paths
+
+`allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 0, ttl: 3600)` → invalid-request. A capability redeemable zero times authorizes nothing (Operation 9).
+
+`revoke(cap_tok_7f3a, revoked_by_ref: admin_a01, reason: "incident")` against the exhausted reset token → already-terminal (Operation 36). The same call against a capability whose window has merely closed answers the same way, by derivation, writing nothing (Operation 38) — the one place this atom and [Session](./session.md) part company on identical mechanics, since Session's revoke accepts a lapsed session and records its revocation.
+
+`redeem(cap_tok_forged)` → `invalid(not-known)`. No record for the token — and after a composed retention purge, the same answer covers a capability that once existed (Invariant 12.4).
+
+`redeem(cap_tok_b81c)` whose write the database refuses → storage-failure, and the counter is not lowered (Execution Contract Read 4, Operation 31).
+
+### Regulated adversarial scenarios
+
+- **Regulator audit — who authorized a disclosure.** An auditor asks under what authority a document was released. The database yields the capability: `allocator_ref: share_svc_s02`, `scope: "read::document::doc_d448"`, `max_redemptions: 5`, allocation instant, expiry instant. Invariant 1.1 is the answer — the envelope is immutable and readable from one record. What the database *cannot* answer is who fetched the document, and the auditor must be told that up front: attribution for the redemption side lives in the composing [Audit Trail](../compositions/audit-trail.md), never here (Invariant 5.2, Composition note 4).
+- **Disputed reset — the account owner denies resetting.** The database shows `cap_tok_7f3a` allocated to `recovery_svc_r01` at `09:00`, redeemed at `09:12`, exhausted. It does not show who redeemed it, and no amount of reading will make it. That is the structural finding, not a gap: the capability is evidence that *someone holding the link* reset the password within the window, which is exactly what a bearer credential attests (Invariant 3.4, Invariant 5.3).
+- **Breach triage — which capabilities are still redeemable.** Tokens appear in an exposed log. The investigator reads each record's effective status against the investigation clock: which are live, which lapsed, which exhausted or revoked. Every live one is revoked with attribution. The lapsed ones **cannot** be revoked — they answer [Already Terminal] — so the attributed closure a [Session](./session.md) breach response can record is not available here, and the triage record has to lean on the [Audit Trail](../compositions/audit-trail.md) instead (Operation 38).
+
+---
+
+## Generation acceptance
+
+This atom's acceptance is provable: an external auditor clears it from the capability records, with their committed versions (Execution Contract Generation acceptance 1), and the read-time clock.
+
+### Conformance checks
+
+```
+Check 1.1: An auditor MUST find EVERY capability's allocator reference, scope, max redemptions, allocation instant and expiry instant present (Invariant 5.1, Invariant 10.1).
+Check 1.2: An auditor MUST find one allocator reference, scope, max redemptions, allocation instant and expiry instant per capability across the capability's whole life (Invariant 1.1, Invariant 8.1; Execution Contract Generation acceptance 1).
+Check 2.1: An auditor MUST find no capability's remaining redemptions below zero (Invariant 2.5).
+Check 2.2: An auditor MUST find EVERY capability's remaining redemptions no higher than the max redemptions (Invariant 2.3).
+Check 2.3: An auditor MUST find a remaining redemptions of zero AND a redemption instant on EVERY redeemed capability (Invariant 6.1).
+Check 2.4: An auditor MUST find a remaining redemptions above zero on EVERY allocated capability (Operation 32).
+Check 3.1: An auditor MUST find no redeemer identity in any capability field (Invariant 3.4, Invariant 5.2).
+Check 4.1: An auditor MUST find no stored expired status on any capability (Invariant 13.1).
+Check 4.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 13.2).
+Check 4.3: An auditor MUST reproduce the effective status from the stored status and the expiry instant against the read-time clock (Invariant 13.4).
+Check 5.1: An auditor MUST find no terminal field written by a lapse (Invariant 13.3, Invariant 6.3, Invariant 6.4).
+Check 5.2: An auditor MUST find EVERY revoked capability's remaining redemptions above zero (Operation 46, Operation 31, Operation 32, Invariant 7.2).
+Check 6.1: An auditor MUST find a revocation instant, a revoked by reference and a revocation reason on EVERY revoked capability (Invariant 9.1, Invariant 9.2, Invariant 9.3).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+
+#### External checks
+
+```
+External check 1: An auditor needing a [Redeem] answering a redemption failure shown MUST read that call from the composing Audit Trail, where the deployment composes one (Operation 23 through 26).
+External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
+```
+
+## Non-goals
+
+```
+Non-goal 1: The atom MUST NOT confirm an allocator reference's authority.
+Non-goal 2: A deployment gating allocation MUST compose Permissions.
+Non-goal 3: The atom MUST NOT evaluate a scope.
+Non-goal 5: The atom MUST NOT record a redeemer's identity.
+Non-goal 6: A deployment needing redemption attribution MUST record the attribution outside the atom.
+Non-goal 7: The atom MUST NOT deliver a capability token.
+Non-goal 8: The atom MUST NOT protect a capability token in transit.
+Non-goal 9: The atom MUST NOT narrow a scope for a third party.
+Non-goal 10: A bearer delegating a narrowed authorization MUST call [Allocate].
+Non-goal 11: The atom MUST NOT notify a bearer of a revocation.
+Non-goal 12: The atom MUST NOT notify an allocator reference of a revocation.
+Non-goal 13: The atom MUST NOT gate a redemption on an identity.
+Non-goal 14: A deployment needing identity-keyed authorization MUST compose Permissions.
+Non-goal 15: The atom MUST NOT bind an identity at redemption.
+Non-goal 16: A deployment needing an identity bound at redemption MUST compose Invitation.
+Non-goal 17: The atom MUST NOT record a bearer's act beyond the redemption.
+Non-goal 18: A deployment needing a post-redemption record MUST compose Audit Trail.
+Non-goal 19: The atom MUST NOT seal a capability against modification.
+Non-goal 20: A deployment needing court-admissible records MUST compose Tamper Evidence.
+Non-goal 21: The atom MUST NOT purge a terminal capability.
+Non-goal 22: The atom MUST NOT forbid a deployment purging a terminal capability.
+Non-goal 23: The atom MUST NOT distinguish a purged capability token from an unallocated capability token.
+Non-goal 24: The atom MUST NOT guarantee a replay bound beyond max redemptions and expiry instant.
+Non-goal 25: The atom MUST NOT attest an allocator reference.
+Non-goal 26: The atom MUST NOT attest a revoked by reference.
+Non-goal 27: A deployment needing an attested actor MUST compose Actor Identity.
+Non-goal 28: The atom MUST NOT reconcile two readers disagreeing across the deadline.
+Non-goal 29: A deployment re-scoping an authorization MUST call [Allocate].
+```
+
+NOTE: the owners — [Audit Trail](../compositions/audit-trail.md) (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 13, Non-goal 14); [Invitation](./invitation.md) (Non-goal 15, Non-goal 16); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 20); [Retention Window](./retention-window.md) (Non-goal 21, Non-goal 22); the deployment (Non-goal 23, Non-goal 29); [Actor Identity](./actor-identity.md) (Non-goal 25, Non-goal 27); Execution Contract Logic confinement 7 (Non-goal 28).
+
+## Edge cases
+
+### Clock dependence
+
+```
+Clock dependence 1: A guard MAY read now ONLY IF the guard derives a lapse.
+Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant.
+```
+
+### Concurrency
+
+### String policy
+
+```
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The deployment MUST set a maximum length per string input.
+String 7: IF a string input EXCEEDS the maximum length THEN [Allocate] MUST answer invalid-request.
+String 9: IF the capability is revocable AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
+String 10: IF the capability is revocable AND reason EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
+```
+
+## Composition notes
+
+```
+Composition note 2: A composing pattern MUST own the scope's meaning.
+Composition note 3: A composing pattern MUST own the authority to allocate for a scope.
+Composition note 4: A composing pattern MUST own the redemption's attribution.
+Composition note 5: A composing pattern MUST own the capability token's delivery.
+Composition note 6: A composing pattern MUST own the retention of the capability records.
+Composition note 8: A composing pattern MUST NOT record a redeemer's identity on a capability.
+```
+
+NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
+
+## Terms
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a bearer; a redeemer; an allocator; an auditor; the database; a capability; a status; a lapse; a liveness query; a write; an action; a string input; an opaque reference; the capability count; the capability token's random material.
+
+Term records: capability — one bearer-token authorization, carrying capability token, allocator reference, scope, max redemptions, remaining redemptions, allocation instant, expiry instant, status and, once terminal, redemption instant or revocation instant with revoked by reference and revocation reason.
+
+Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, reconcile, attest, declare, call, configure, name, match, retain, wire.
+
+Term value sets: status = allocated | redeemed | revoked. revocation field = revocation instant | revoked by reference | revocation reason. redemption failure is declared above and cited here (GRACE-lang Closed vocabulary 15). action outcome = not-known. Revoke rejection = already-terminal. action rejection = invalid-request | storage-failure. derived effective status = allocated | redeemed | revoked | expired.
+
+Term bounds: default capability ttl (the validity duration [Allocate] applies where the call supplies none); single-use default (the max redemptions [Allocate] applies where the call supplies none); zero duration (the floor a ttl must exceed); zero (the floor a max redemptions must exceed); whole count (the whole numbers a supplied max redemptions is drawn from); window length (the whole numbers of seconds a ttl and the default capability ttl carry); token entropy (the floor a capability token's random material is drawn from); maximum length (the deployment's cap per string input).
+
+Term cadences: empty.
+
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Term terms: capability, capability token, allocator reference, scope, seam, transition, token entropy, now, business caller, max redemptions, single-use default, remaining redemptions, ttl, default capability ttl, window length, zero duration, zero, whole count, allocation instant, expiry deadline, expiry instant, lapsed, revocable, effective status, redemption instant, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, redeem refusal order, status, revocation field, maximum length, redemption failure, committed version.
+
+#### Allocate
+
+The behavior an allocating actor invokes to create a new capability and receive its [Capability Token]. It records the [Allocator Reference], [Scope], [Max Redemptions], [Allocation Instant], and [Expiry Instant] = [Allocation Instant] + [TTL], sets [Remaining Redemptions] = [Max Redemptions], enters the record in [Allocated], and returns the [Capability Token] (or a rejection). It makes no policy judgment about whether the allocation is appropriate.
+
+Kind: Operation
+
+#### Redeem
+
+The behavior a bearer invokes to exercise a capability, presenting only the [Capability Token] — no identity argument. On a live capability it decrements [Remaining Redemptions] and returns `redeemed(scope, allocator_ref)`; the call that brings the counter to zero transitions the record to [Redeemed]. It is not idempotent and records no redeemer identity. Its five outcomes (redeemed, `invalid(exhausted | expired | revoked | not-known)`) are all first-class, and one refusal stands beside them: [Storage Failure] where the database refuses its write, which lowers nothing.
+
+Kind: Operation
+
+#### Revoke
+
+The behavior invoked to cancel a still-live capability, with attribution. Permitted only while stored [Status] = [Allocated] and [Now] < [Expiry Instant]; it transitions the record to [Revoked] and stamps [Revocation Instant], [Revoked By Reference], and [Revocation Reason]. On a stored terminal or a lapsed window it returns [Already Terminal].
+
+Kind: Operation
+
+#### Read
+
+The render-time behavior that returns the matching capability records, each carrying its derived [Effective Status]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Allocated] with [Expiry Instant] in the past reads [Expired], not live.
+
+Kind: Operation
+
+#### Capability Token
+
+The opaque, cryptographically random, immutable, system-generated value [Allocate] produces — both the record's identity and the bearer credential presented to [Redeem] and [Revoke]. It is the injected `id_t`; no two retained records share one, and it is not reused while any retained capability carries it.
+
+Kind:       Field
+Field of:   Capability
+Projection: capability_token
+
+#### Allocator Reference
+
+The opaque reference to the actor or mechanism that allocated the capability — the one identity the record permanently carries (the audit asymmetry). Set on [Allocate], immutable thereafter. The atom does not validate that it is an active principal.
+
+Kind:       Field
+Field of:   Capability
+Projection: allocator_ref
+
+#### Scope
+
+The opaque value describing what the capability authorizes, returned to the bearer by [Redeem]. The atom stores and returns it but never interprets it; the composing pattern defines and reads scope values. Set on [Allocate], immutable thereafter.
+
+Kind:       Field
+Field of:   Capability
+Projection: scope
+
+#### Max Redemptions
+
+The total number of redemptions permitted, a whole number of one or more, set on [Allocate] (or 1 if null — the single-use default). Immutable thereafter; [Remaining Redemptions] is initialised from it.
+
+Kind:       Field
+Field of:   Capability
+Projection: max_redemptions
+
+#### Remaining Redemptions
+
+The redemptions still available — the one mutable field between allocation and a stored terminal. Set to [Max Redemptions] on [Allocate], decremented by exactly 1 on each successful [Redeem], never increasing; reaching 0 is the exhaustion transition to [Redeemed].
+
+Kind:       Field
+Field of:   Capability
+Projection: remaining_redemptions
+
+#### Allocation Instant
+
+The wall-time [Allocate] was called, stamped from the injected [Now]. Immutable thereafter. [Expiry Instant] is computed once as [Allocation Instant] + [TTL].
+
+Kind:       Field
+Field of:   Capability
+Projection: allocated_at
+
+#### Expiry Instant
+
+The absolute expiry time, set on [Allocate] as [Allocation Instant] + [TTL]. Never null and never mutated. It is the sole stored input to the expiry derivation: a still-[Allocated] record reads [Expired] once [Now] ≥ [Expiry Instant].
+
+Kind:       Field
+Field of:   Capability
+Projection: expires_at
+
+#### Status
+
+The stored status of a capability: [Allocated], [Redeemed], or [Revoked]. Set to [Allocated] on [Allocate]; transitions once to a stored terminal and never returns. The derived [Expired] is *not* a value of this field — it appears only in the [Effective Status] read projection.
+
+Kind:       Field
+Field of:   Capability
+Projection: status
+
+#### Redemption Instant
+
+The wall-time the capability exhausted (its counter reached zero), stamped from the injected [Now]. Present only in [Redeemed]; null otherwise; immutable once set.
+
+Kind:       Field
+Field of:   Capability
+Projection: redeemed_at
+
+#### Revocation Instant
+
+The wall-time the capability was revoked, stamped from the injected [Now] on [Revoke]. Present only in [Revoked]; null otherwise; immutable once set.
+
+Kind:       Field
+Field of:   Capability
+Projection: revoked_at
+
+#### Revoked By Reference
+
+The opaque reference to the actor or mechanism that performed the revocation. Required at [Revoke]; null until revocation; immutable once set.
+
+Kind:       Field
+Field of:   Capability
+Projection: revoked_by_ref
+
+#### Revocation Reason
+
+The caller-supplied reason recorded for the revocation (from the [Reason] parameter). Required at [Revoke]; null until revocation; immutable once set.
+
+Kind:       Field
+Field of:   Capability
+Projection: revocation_reason
+
+#### Effective Status
+
+The status [Read] attaches to each returned record: [Expired] when [Status] = [Allocated] ∧ [Now] ≥ [Expiry Instant], otherwise the stored [Status]. A pure projection over the record and the injected [Now] — derived at read time, never stored — and what makes [Redeem] return `invalid(expired)`. Every liveness query applies it.
+
+Kind:       Field
+Field of:   Capability
+Projection: effective_status
+
+#### TTL
+
+The validity duration, a whole number of seconds, [Allocate] consumes to compute [Expiry Instant] ([Allocation Instant] + [TTL]). Supplied per call; if null, the deployment's default applies; a value that is no whole number of seconds, zero or negative is rejected. It is never stored under its own name — only the computed [Expiry Instant] is stored.
+
+Kind:         Parameter
+Parameter of: Allocate
+Projection:   ttl
+
+#### Reason
+
+The caller-supplied reason string [Revoke] consumes, written into [Revocation Reason]. Required (non-null, non-empty); not stored under this name.
+
+Kind:         Parameter
+Parameter of: Revoke
+Projection:   reason
+
+#### Now
+
+The current clock reading every action consumes — the pipeline's `clock_t`, injected at the I/O seam, never read inside a transition and never a signature parameter. It stamps the immutable write timestamps ([Allocation Instant], [Redemption Instant], [Revocation Instant]) and drives the pure expiry derivation in guards and [Read] (no write).
+
+Kind:         Parameter
+Parameter of: Allocate, Redeem, Revoke and Read
+Projection:   now
+
+#### Filter
+
+The selection a caller passes to [Read] to scope which capability records are returned: a [Capability Token], an [Allocator Reference], both or neither. A capability matches when it carries every value the filter names, and a filter naming no field matches every capability; a filter naming a blank value, or any other field, matches none. Consumed per call; never stored.
+
+Kind:         Parameter
+Parameter of: Read
+Projection:   filter
+
+#### Allocated
+
+The single non-terminal stored state: the capability may be redeemed, with [Remaining Redemptions] > 0. A record enters [Allocated] on [Allocate] and leaves it only by a write — exhaustion to [Redeemed], revocation to [Revoked]. A still-[Allocated] record past [Expiry Instant] reads [Expired] by derivation.
+
+Kind:      Member
+Member of: the capability status
+Role:      Outcome
+
+#### Redeemed
+
+The stored terminal a capability reaches when its redemption counter hits zero (exhaustion). Carries [Redemption Instant] and [Remaining Redemptions] = 0. Absorbing: no transition leaves it.
+
+Kind:      Member
+Member of: the capability status
+Role:      Outcome
+
+#### Revoked
+
+The stored terminal a capability reaches when it is explicitly cancelled within its window. Carries [Revocation Instant], [Revoked By Reference], and [Revocation Reason]. Absorbing: no transition leaves it.
+
+Kind:      Member
+Member of: the capability status
+Role:      Outcome
+
+#### Expired
+
+The derived terminal mode — never stored. A still-[Allocated] record whose window has lapsed ([Now] ≥ [Expiry Instant]) reads [Expired] via the [Effective Status] projection; no field is written and the counter is never decremented by lapse.
+
+Kind:      Member
+Member of: the derived effective status
+Role:      Outcome
+
+#### Not Known
+
+The outcome returned when the supplied [Capability Token] references no record — `invalid(not-known)` from [Redeem], a [Not Known] rejection from [Revoke]. A lookup miss; after external purge it also subsumes once-allocated-but-purged records.
+
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: not-known
+
+#### Already Terminal
+
+The refusal [Revoke] returns when the capability is not revocable — a stored terminal ([Redeemed] or [Revoked]) *or* a still-[Allocated] record whose window has lapsed (which reads [Expired]). A pure derivation that writes nothing.
+
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: already-terminal
+
+#### Invalid Request
+
+The refusal [Allocate] or [Revoke] returns when an argument is malformed — on [Allocate], a null, empty or over-long [Allocator Reference] or [Scope], a [Max Redemptions] that is not a whole number above zero, a [TTL] that is no whole number of seconds or is zero or negative, or an absent deployment default; on [Revoke], a null, empty or over-long [Revoked By Reference] or [Reason] on a revocable capability. A guard rejection before any database write; no record is created or changed.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
+
+#### Storage Failure
+
+The refusal [Allocate], [Redeem] or [Revoke] returns when the database write fails after the preconditions pass; a refused [Redeem] write lowers nothing. A write reusing a capability token any retained capability carries is also rejected here (Invariant 12).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
+     auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
+     kramdown; no plugin required. -->
+
+[Allocate]: #allocate
+[Redeem]: #redeem
+[Revoke]: #revoke
+[Read]: #read
+[Capability Token]: #capability-token
+[Allocator Reference]: #allocator-reference
+[Scope]: #scope
+[Max Redemptions]: #max-redemptions
+[Remaining Redemptions]: #remaining-redemptions
+[Allocation Instant]: #allocation-instant
+[Expiry Instant]: #expiry-instant
+[Status]: #status
+[Redemption Instant]: #redemption-instant
+[Revocation Instant]: #revocation-instant
+[Revoked By Reference]: #revoked-by-reference
+[Revocation Reason]: #revocation-reason
+[Effective Status]: #effective-status
+[TTL]: #ttl
+[Reason]: #reason
+[Now]: #now
+[Filter]: #filter
+[Allocated]: #allocated
+[Redeemed]: #redeemed
+[Revoked]: #revoked
+[Expired]: #expired
+[Not Known]: #not-known
+[Already Terminal]: #already-terminal
+[Invalid Request]: #invalid-request
+[Storage Failure]: #storage-failure
+
+## Standards references
+
+- **Daniel Jackson, *Software Abstractions*** — `Capability [Resource]` is a concept in Jackson's concept catalog. The atom's scope field (what the capability authorizes), allocate and redeem actions, and the bearer-key semantics correspond directly to Jackson's formulation. Grace Commons expresses this concept in the atom format; the structural decisions are inherited from the concept catalog.
+- **Mark Miller and the object-capability (OCAP) literature** — the formal theoretical grounding for bearer-key authorization. The principle *"an unforgeable reference to an object carries the authority to use that object"* is the foundation. Miller's work on capability-based security, including the E language and the Waterken server, establishes the invariants this atom formalizes.
+- **Levy, H.M. (1984), *Capability-Based Computer Systems*** — the canonical reference for capability-based security systems. Levy establishes the three properties of capabilities: unforgeability, transferability, and access control by possession. The atom satisfies unforgeability (the capability token — cryptographically random, opaque, system-generated) and access-control-by-possession (the bearer semantics of redeem); transferability and attenuation are deliberately outside the atom's surface — the atom neither prohibits, tracks, nor models token sharing or scope-narrowing delegation (see Edge cases — Capability chaining), so its claim on the OCAP literature is the bearer/unforgeability subset, not full conformance.
+- **Birgisson, A., Politz, J.G., Erlingsson, Ú., Taly, A., Vrable, M., Lentczner, M. (2014), *Macaroons: Cookies with Contextual Caveats for Decentralized Authorization in the Cloud*** — Macaroons are a constrained Capability variant: a capability token that can be attenuated (scope narrowed) by adding caveats before being passed to a third party. The atom models the base Capability concept without macaroon-style attenuation; composing patterns that need contextual caveats may build on this atom.
+- **RFC (Request for Comments — the Internet's numbered standards series) 6749 section 1.4 (OAuth 2.0 — Access Tokens)** — OAuth 2.0 (the open authorization framework, version 2.0) access tokens are a widely deployed capability-adjacent pattern: a bearer token scoped to specific resources, with limited lifetime, that grants access without per-request identity verification. Cited with explicit caveats: OAuth 2.0 conflates bearer-token authorization with identity-bound flows (the authorization server authenticates the client; the token is identity-linked in practice even if the resource server checks only the token). This atom defines the pure OCAP surface — the token IS the authorization, with no identity linkage — which is a stricter and simpler model than OAuth 2.0 in full. Composing patterns that implement OAuth 2.0-compatible flows will compose this atom with identity-aware patterns.
+- **GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 32 (Security of Processing)** — capability tokens are an access-control mechanism for regulated data disclosures. The allocator reference and scope fields, immutably recorded and provable from the capability records, contribute toward the "appropriate technical measures" requirement by demonstrating that disclosures were authorized.
+- **HIPAA (Health Insurance Portability and Accountability Act) section 164.514(d) (Minimum Necessary Standard)** — the HIPAA requirement that disclosures be limited to the minimum necessary information. A capability's scope is the mechanism for encoding the minimum necessary field set; the composing Capability-Backed Sharing pattern is where the minimum-necessary constraint is enforced against the disclosure.
+
+Inherited from:
+
+- **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of separating bearer-key authorization (Capability) from identity-keyed authorization (Permissions) and from identity-binding onboarding (Invitation).
+- **Eiffel's design-by-contract** — named rejection reasons; preconditions on allocate and revoke; first-class redeem outcomes.
+
+---
+
+## Status
+
+`done — 2026-11-20` — see the Ledger.
+
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
+
+```
+status: done — 2026-11-20
+formal: verified — capability.als + 12 twins (the static data model, 2026-06-23; coverage 2026-11-10, unit formal: more coverage for the yes votes); capability.tla + 12 twins (across steps: Invariant 1.1, 2.1, 2.3, 2.5, 4.4, 6.1, 7.1 through 7.3, 9, 10, 11.2, 12.1 and 13.3, Operation 31 and 71, and the two entailed properties, a zero counter only in redeemed and a revoked capability's counter above zero, over every sequence of calls as the clock moves), 2026-11-11
+last gate: 2026-11-20 — Final Critique 13, a delta round, one reader (Linus claude-haiku-5-5), frozen at b3cc5b70 — foundational count 0 after the blind second triage, clean, one sample; Linus's three held questions placed refuted by both triages (a zero counter outside [Redeemed] is unreachable, Operation 32, Operation 46, Operation 36 through 38; Term redemption failure declares expired among its members; Operation 23 through 26 answer on the answers line); External check 1 names the call by its answer; 2026-11-17 — Final Critique 12, a delta round, frozen at 5a146b13 — foundational count 0 after the blind second triage, clean, no sample
+
+open: none
+```
+
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
+
+Decisions are kept in [the pattern's history](./capability.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/capability.md`.
+
+</details>
+
+NOTE: End of Capability.

@@ -1,6 +1,6 @@
 # Coverage matrix — `verified-repair`
 
-- **Pattern:** `compositions/verified-repair.md`
+- **Pattern:** `library/compositions/verified-repair.md`
 - **Models:** `verified-repair.tla` (the commit path) + `-buggy-nocas`, `-buggy-nostale`, `-buggy-basetree`, `-buggy-lateread` + probes `-probe-inflight`, `-probe-conflict`, `-probe-both`; `verified-repair-settle.tla` (the round's settling) + `-buggy-unaged`, `-buggy-latefinding`, `-buggy-oneactor`, `-buggy-onesort` + probes `-probe-displaced`, `-probe-parted`, `-probe-opens`; `verified-repair-budget.tla` (the round budget) + `-buggy-young`, `-buggy-unbounded`, `-buggy-ruledany` + probes `-probe-pastbudget`, `-probe-ruled`, `-probe-reset`
 - **Alloy (2026-11-12).** `verified-repair.als`, the static data model, with **11 buggy twins** `verified-repair-buggy-<name>.als`: `nostale-report`, `stale-head`, `nogate-target`, `nogate-declared`, `ruling-any-round`, `noside`, `settled-first`, `triage-any-engine`, `malformed-any-verifier`, `intent-cures-only`, `fresh-nonce`.
 - **Reviewer / date:** the models' author, the session that drafted them — 2026-10-17; Alloy layer 2026-11-12, its author. Not a fresh-context read; the next scheduled rescan owes one.

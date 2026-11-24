@@ -1,6 +1,6 @@
 # Coverage matrix — `provisional-commitment`
 
-- **Pattern:** `atoms/provisional-commitment.md`
+- **Pattern:** `library/atoms/provisional-commitment.md`
 - **Model:** `provisional-commitment.tla` (+ two isolated buggy twins: `provisional-commitment-buggy.tla` (resolution hazard), `provisional-commitment-buggy-window.tla` (window hazard), and two more of 2026-11-10) and `provisional-commitment.als`, the static data model (+ 13 buggy twins `provisional-commitment-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03; Inv8 closed — 2026-06-04; **derive-expiry refactor reverted, model restored to Final Critique 4 stored-Expired shape and re-aligned — 2026-06-23**
 - **Formal-layer vote load-bearing claims:** Invariant 7 (confirmation within the window — `confirm`/`release` rejected if `now ≥ expires_at`, `expire` rejected if `now < expires_at`), Invariant 2 (single-resolution), Invariant 8 (transition timestamps strictly after placement), Invariant 3 (terminal absorption)

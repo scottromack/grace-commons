@@ -7,7 +7,7 @@
    ],
    "constituent": "Lamp",
    "line": 11,
-   "path": "atoms/lamp.md",
+   "path": "library/atoms/lamp.md",
    "rule": "Action wiring 2"
   },
   {
@@ -17,7 +17,7 @@
    ],
    "constituent": "Lamp",
    "line": 13,
-   "path": "atoms/lamp.md",
+   "path": "library/atoms/lamp.md",
    "rule": "Action wiring 4"
   }
  ],
@@ -43,7 +43,7 @@
    "constituent": "Lamp",
    "line": 10,
    "modal": "MUST",
-   "path": "atoms/lamp.md",
+   "path": "library/atoms/lamp.md",
    "rule": "Action wiring 1"
   }
  ],
@@ -53,7 +53,7 @@
   {
    "line": 5,
    "name": "Lamp",
-   "path": "atoms/lamp.md",
+   "path": "library/atoms/lamp.md",
    "role": "the light."
   }
  ],

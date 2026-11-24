@@ -1,6 +1,6 @@
 # Coverage matrix — `state-machine`
 
-- **Pattern:** `atoms/state-machine.md`
+- **Pattern:** `library/atoms/state-machine.md`
 - **Models:** `state-machine.als`, the static data model (Alloy: one declaration and one linear history chain; 2 checks, 4 runs since 2026-11-10, 10 before) + buggy twins `state-machine-buggy.als` (drops `TerminalNoOutgoingDecl`; until 2026-11-10 it also dropped `EveryEntryDeclared` and `ChainConsistency`) and `state-machine-buggy-link.als` (the history linked by successor pointer alone); `state-machine.tla` + `state-machine.cfg`, the operation sequences, written 2026-11-11 (+ 21 buggy twins `state-machine-buggy-<defect>.tla`, each with its `.cfg`)
 - **Reviewer / date:** mayor, from the page at fc78924 and the model as it stands — 2026-11-10 (unit `formal: more coverage for the yes votes`, step 1; the page had no matrix). The TLA+ model (unit `atoms/state-machine.md formal layer`, the formal layer sweep) — 2026-11-11, by the model's author, not a fresh-context read.
 - **Formal-layer vote load-bearing claims:** the Alloy model's header names Invariant 3 (only declared transitions fire), Invariant 4 (terminal absorption), Invariant 7 (replay determinism), declaration determinism and chain consistency. It put guard gating (Invariant 8) out of scope as an action-enablement property; the TLA+ model states it. Since the maintainer's ruling of 2026-11-09 every page gets both models; only the writing vetoes one.

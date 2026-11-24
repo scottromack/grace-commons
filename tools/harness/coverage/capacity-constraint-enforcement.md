@@ -1,6 +1,6 @@
 # Coverage matrix — `capacity-constraint-enforcement`
 
-- **Pattern:** `atoms/capacity-constraint-enforcement.md`
+- **Pattern:** `library/atoms/capacity-constraint-enforcement.md`
 - **Model:** `capacity-constraint-enforcement.tla` (+ 2 buggy twins: `capacity-constraint-enforcement-buggy.tla`, `-buggy-toctou`) and `capacity-constraint-enforcement.als`, the static data model (+ 14 buggy twins `capacity-constraint-enforcement-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03; updated 2026-06-04 (release action added; Inv 14 vote reconsidered)
 - **Formal-layer vote load-bearing claims:** Invariant 4 (bounded arithmetic `allocated ≤ capacity` under serializable concurrency), Invariant 5 (non-negativity)

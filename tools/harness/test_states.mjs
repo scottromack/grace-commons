@@ -11,8 +11,8 @@ import { statesIn, runTlc } from "./tlc.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DAY = new Date("2026-11-09T13:00:00Z");
-// A pattern's models sit in its folder's models folder (atoms/models/; Scott, 2026-11-13, ruling 6).
-const REL = (name) => "atoms/models/" + name;
+// A pattern's models sit in its folder's models folder (library/atoms/models/ since `library: the files match the tree`; Scott, 2026-11-13, ruling 6).
+const REL = (name) => "library/atoms/models/" + name;
 const MODEL = (name) => join(HERE, "../..", REL(name));
 
 test("a TLA+ line carries the states and the cap, and dashes for Alloy's columns", () => {

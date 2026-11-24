@@ -1,6 +1,6 @@
 # Coverage matrix — `approval-step`
 
-- **Pattern:** `atoms/approval-step.md`
+- **Pattern:** `library/atoms/approval-step.md`
 - **Model:** `approval-step.tla` (+ 3 buggy twins: `approval-step-buggy.tla`, `-subject`, `-withdraw`) and `approval-step.als`, the static data model (+ 10 buggy twins `approval-step-buggy-<defect>.als`, 2026-11-11)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03
 - **Formal-layer vote load-bearing claims:** Invariant 4 (approver exclusivity), Invariant 5 (submitter exclusivity), Invariant 9 (concurrent step independence)

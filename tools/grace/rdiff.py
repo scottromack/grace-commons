@@ -82,7 +82,7 @@ def show(root: Path, rev: str | None, path: str) -> str | None:
 
 def touched(root: Path, base: str, head: str | None) -> list[str]:
     """The specs a change between two commits touched."""
-    cmd = ["git", "diff", "--name-only", base] + ([head] if head else []) + ["--", "atoms", "compositions"]
+    cmd = ["git", "diff", "--name-only", base] + ([head] if head else []) + ["--", "library/atoms", "library/compositions"]
     r = subprocess.run(cmd, cwd=root, capture_output=True, text=True, check=True)
     return sorted(p for p in r.stdout.split() if p.endswith(".md") and not p.endswith(".hist.md")
                   and Path(p).name.lower() not in CATALOGUES)

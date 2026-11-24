@@ -32,6 +32,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
+def _w(path: Path) -> Path:
+    """A fixture page in a section folder (library/, how/, log/, ...): its folder made first."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import (  # noqa: E402
     check_retired_sign,
@@ -584,10 +590,10 @@ def check_r_synthetic(problems: list[str]) -> None:
         ("R_HIST_DECISION_FORM", "- **2026-08-26 — Title.** *Chose:* a because c.", True),
     ):
         with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "atoms").mkdir()
-            f = Path(d) / "atoms" / "h.md"
+            (Path(d) / "library" / "atoms").mkdir(parents=True)
+            f = Path(d) / "library" / "atoms" / "h.md"
             f.write_text(page, encoding="utf-8")
-            (Path(d) / "atoms" / "h.hist.md").write_text(
+            (Path(d) / "library" / "atoms" / "h.hist.md").write_text(
                 "# H — history\n\n## Decisions\n\n" + good + "\n\n" + entry + "\n\n## Ledger\n\nx\n", encoding="utf-8")
             pat = Pattern(path=f, text=page, invariant_count=1, done=False)
             fired = any(x.code == "R-decisions-grammar" and x.path.name == "h.hist.md" for x in check_ledger({f: pat}))
@@ -603,12 +609,12 @@ def check_history_file_synthetic(problems: list[str]) -> None:
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        for sub in ("atoms", "compositions"):
-            (root / sub).mkdir()
+        for sub in ("library/atoms", "library/compositions"):
+            (root / sub).mkdir(parents=True)
             (root / sub / "x.md").write_text("# X\n", encoding="utf-8")
             (root / sub / "x.hist.md").write_text("# X — history\n", encoding="utf-8")
         loaded = sorted(p.relative_to(root).as_posix() for p in load_patterns(root))
-        if loaded != ["atoms/x.md", "compositions/x.md"]:
+        if loaded != ["library/atoms/x.md", "library/compositions/x.md"]:
             problems.append(f"history file: load_patterns read {loaded}, want the two specs alone")
 
 
@@ -629,8 +635,8 @@ def model_findings(files: dict[str, str]) -> list[tuple[str, str]]:
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        for sub in ("atoms", "compositions"):
-            (root / sub).mkdir()
+        for sub in ("library/atoms", "library/compositions"):
+            (root / sub).mkdir(parents=True)
         for rel, text in files.items():
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             (root / rel).write_text(text, encoding="utf-8")
@@ -642,38 +648,38 @@ def model_findings(files: dict[str, str]) -> list[tuple[str, str]]:
 MODEL_FIXTURES = [
     # (what, files, the findings it must give)
     ("the model and its twin in atoms/models/", {
-        "atoms/x.md": MODEL_PAGE, "atoms/models/x.tla": X_TLA.format(name="x"),
-        "atoms/models/x-buggy.tla": X_TLA.format(name="x-buggy"), "atoms/models/x.cfg": "INIT Init\n"}, []),
+        "library/atoms/x.md": MODEL_PAGE, "library/atoms/models/x.tla": X_TLA.format(name="x"),
+        "library/atoms/models/x-buggy.tla": X_TLA.format(name="x-buggy"), "library/atoms/models/x.cfg": "INIT Init\n"}, []),
     ("the same in compositions/models/", {
-        "compositions/x.md": MODEL_PAGE, "compositions/models/x.tla": X_TLA.format(name="x"),
-        "compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")}, []),
-    ("no model anywhere", {"atoms/x.md": MODEL_PAGE},
-     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md")]),
+        "library/compositions/x.md": MODEL_PAGE, "library/compositions/models/x.tla": X_TLA.format(name="x"),
+        "library/compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")}, []),
+    ("no model anywhere", {"library/atoms/x.md": MODEL_PAGE},
+     [("C-model-missing", "library/atoms/x.md"), ("M-model-misplaced", "library/atoms/x.md")]),
     ("a model with no twin in its folder", {
-        "atoms/x.md": MODEL_PAGE, "atoms/models/x.tla": X_TLA.format(name="x")},
-     [("C-twin-missing", "atoms/x.md")]),
+        "library/atoms/x.md": MODEL_PAGE, "library/atoms/models/x.tla": X_TLA.format(name="x")},
+     [("C-twin-missing", "library/atoms/x.md")]),
     ("a model in another pattern folder's models folder", {
-        "atoms/x.md": MODEL_PAGE, "compositions/models/x.tla": X_TLA.format(name="x"),
-        "compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")},
-     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md")]),
+        "library/atoms/x.md": MODEL_PAGE, "library/compositions/models/x.tla": X_TLA.format(name="x"),
+        "library/compositions/models/x-buggy.tla": X_TLA.format(name="x-buggy")},
+     [("C-model-missing", "library/atoms/x.md"), ("M-model-misplaced", "library/atoms/x.md")]),
     ("a module name that is not its file's, and a model with none, in a models folder", {
-        "atoms/models/y.tla": X_TLA.format(name="z"), "atoms/models/w.als": "sig A {}\n"},
-     [("M-model-name", "atoms/models/y.tla"), ("M-model-unnamed", "atoms/models/w.als")]),
+        "library/atoms/models/y.tla": X_TLA.format(name="z"), "library/atoms/models/w.als": "sig A {}\n"},
+     [("M-model-name", "library/atoms/models/y.tla"), ("M-model-unnamed", "library/atoms/models/w.als")]),
     ("a directory in a pattern folder other than models/", {
-        "atoms/drafts/x.tla": X_TLA.format(name="x"), "compositions/models/keep.cfg": "INIT Init\n"},
-     [("M-stray-directory", "atoms/drafts")]),
+        "library/atoms/drafts/x.tla": X_TLA.format(name="x"), "library/compositions/models/keep.cfg": "INIT Init\n"},
+     [("M-stray-directory", "library/atoms/drafts")]),
     ("the site's build directories at the top level", {
         "node_modules/p/index.js": "x\n", "_site/index.html": "x\n"}, []),
 ]
 # A model file beside the patterns is misplaced, and is not read as the page's model.
 MODEL_FIXTURES_BESIDE = [
     ("the model, its twin and its configuration beside the spec", {
-        "atoms/x.md": MODEL_PAGE, "atoms/x.tla": X_TLA.format(name="x"),
-        "atoms/x-buggy.tla": X_TLA.format(name="x-buggy"), "atoms/x.cfg": "INIT Init\n"},
-     [("C-model-missing", "atoms/x.md"), ("M-model-misplaced", "atoms/x.md"), ("M-model-misplaced", "atoms/x.tla"),
-      ("M-model-misplaced", "atoms/x-buggy.tla"), ("M-model-misplaced", "atoms/x.cfg")]),
-    ("an Alloy model beside a composition, its name not read", {"compositions/y.als": "module z\n"},
-     [("M-model-misplaced", "compositions/y.als")]),
+        "library/atoms/x.md": MODEL_PAGE, "library/atoms/x.tla": X_TLA.format(name="x"),
+        "library/atoms/x-buggy.tla": X_TLA.format(name="x-buggy"), "library/atoms/x.cfg": "INIT Init\n"},
+     [("C-model-missing", "library/atoms/x.md"), ("M-model-misplaced", "library/atoms/x.md"), ("M-model-misplaced", "library/atoms/x.tla"),
+      ("M-model-misplaced", "library/atoms/x-buggy.tla"), ("M-model-misplaced", "library/atoms/x.cfg")]),
+    ("an Alloy model beside a composition, its name not read", {"library/compositions/y.als": "module z\n"},
+     [("M-model-misplaced", "library/compositions/y.als")]),
 ]
 
 
@@ -690,7 +696,7 @@ def check_models_folder_synthetic(problems: list[str]) -> int:
 # governance.md, *Permanent ids*: `id: N` in the front matter, listed once in
 # _data/pattern-ids.yml with the file that holds it. Each failure the gate names
 # fires on its own; the clean root, an index page and a history file stay silent.
-ID_LIST = "patterns:\n  - id: 1\n    file: atoms/a.md\n  - id: 2\n    file: compositions/c.md\n  - id: 3\n    retired: true\n    last_name: Gone\n"
+ID_LIST = "patterns:\n  - id: 1\n    file: library/atoms/a.md\n  - id: 2\n    file: library/compositions/c.md\n  - id: 3\n    retired: true\n    last_name: Gone\n"
 
 
 def check_pattern_ids_synthetic(problems: list[str]) -> int:
@@ -701,10 +707,10 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
     def run(pages: dict[str, str], listing: str = ID_LIST) -> set[str]:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "_data").mkdir()
+            (root / "_data").mkdir(parents=True)
             (root / "_data" / "pattern-ids.yml").write_text(listing, encoding="utf-8")
-            for sub in ("atoms", "compositions"):
-                (root / sub).mkdir()
+            for sub in ("library/atoms", "library/compositions"):
+                (root / sub).mkdir(parents=True)
             for name, text in pages.items():
                 (root / name).write_text(text, encoding="utf-8")
             return {f.code for f in pattern_id_findings(root)}
@@ -712,18 +718,18 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
     def page(n) -> str:
         return f"---\ntitle: T\n{'' if n is None else f'id: {n}' + chr(10)}parent: P\n---\n\n# T\n"
 
-    clean = {"atoms/a.md": page(1), "compositions/c.md": page(2)}
+    clean = {"library/atoms/a.md": page(1), "library/compositions/c.md": page(2)}
     cases = [
         ("a clean root", clean, ID_LIST, set()),
-        ("an index page and a history file carry no id", {**clean, "atoms/index.md": "# Index\n",
-         "atoms/TAXONOMY.md": "# T\n", "compositions/README.md": "# R\n", "atoms/a.hist.md": "# H\n"}, ID_LIST, set()),
-        ("a pattern with no id", {**clean, "atoms/b.md": page(None)}, ID_LIST, {"G-id-missing"}),
-        ("a pattern with no front matter", {**clean, "atoms/b.md": "# B\n"}, ID_LIST, {"G-id-missing"}),
-        ("two files share an id", {**clean, "atoms/b.md": page(1)}, ID_LIST, {"G-id-shared", "G-id-moved"}),
-        ("an id the list does not hold", {**clean, "atoms/b.md": page(4)}, ID_LIST, {"G-id-unlisted"}),
-        ("an id listed under another file", {"atoms/a.md": page(2), "compositions/c.md": page(1)}, ID_LIST,
+        ("an index page and a history file carry no id", {**clean, "library/atoms/index.md": "# Index\n",
+         "library/atoms/TAXONOMY.md": "# T\n", "library/compositions/README.md": "# R\n", "library/atoms/a.hist.md": "# H\n"}, ID_LIST, set()),
+        ("a pattern with no id", {**clean, "library/atoms/b.md": page(None)}, ID_LIST, {"G-id-missing"}),
+        ("a pattern with no front matter", {**clean, "library/atoms/b.md": "# B\n"}, ID_LIST, {"G-id-missing"}),
+        ("two files share an id", {**clean, "library/atoms/b.md": page(1)}, ID_LIST, {"G-id-shared", "G-id-moved"}),
+        ("an id the list does not hold", {**clean, "library/atoms/b.md": page(4)}, ID_LIST, {"G-id-unlisted"}),
+        ("an id listed under another file", {"library/atoms/a.md": page(2), "library/compositions/c.md": page(1)}, ID_LIST,
          {"G-id-moved"}),
-        ("a retired id on a live file", {**clean, "atoms/b.md": page(3)}, ID_LIST, {"G-id-moved"}),
+        ("a retired id on a live file", {**clean, "library/atoms/b.md": page(3)}, ID_LIST, {"G-id-moved"}),
     ]
     for label, pages, listing, want in cases:
         got = run(pages, listing)
@@ -739,11 +745,11 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
 def check_pattern_not_page_synthetic(problems: list[str]) -> int:
     import tempfile
 
-    def run(text: str, name: str = "atoms/a.md") -> int:
+    def run(text: str, name: str = "library/atoms/a.md") -> int:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            for sub in ("atoms", "compositions"):
-                (root / sub).mkdir()
+            for sub in ("library/atoms", "library/compositions"):
+                (root / sub).mkdir(parents=True)
             (root / name).write_text(text, encoding="utf-8")
             return len(check_pattern_not_page(root, load_patterns(root)))
 
@@ -758,7 +764,7 @@ def check_pattern_not_page_synthetic(problems: list[str]) -> int:
         ("a history file is not read", "# A\n\nThe page says it.\n", 0),
     ]
     for label, text, want in cases:
-        got = run(text, "atoms/a.hist.md" if label.startswith("a history") else "atoms/a.md")
+        got = run(text, "library/atoms/a.hist.md" if label.startswith("a history") else "library/atoms/a.md")
         if got != want:
             problems.append(f"Y-pattern-not-page: {label}: {got} finding(s), want {want}")
     return len(cases)
@@ -774,9 +780,9 @@ def check_part_order_synthetic(problems: list[str]) -> int:
     def run(text: str) -> int:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            for sub in ("atoms", "compositions"):
-                (root / sub).mkdir()
-            (root / "atoms/a.md").write_text(text, encoding="utf-8")
+            for sub in ("library/atoms", "library/compositions"):
+                (root / sub).mkdir(parents=True)
+            (root / "library/atoms/a.md").write_text(text, encoding="utf-8")
             return len(check_part_order(load_patterns(root)))
 
     cases = [
@@ -900,11 +906,11 @@ def check_tree_order_synthetic(problems: list[str]) -> int:
     )
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        for sub in ("atoms", "compositions"):
-            (root / sub).mkdir()
-        shutil.copy(repo / "spec-format.md", root / "spec-format.md")
+        for sub in ("library/atoms", "library/compositions"):
+            (root / sub).mkdir(parents=True)
+        shutil.copy(repo / "how" / "spec-format.md", _w(root / "how" / "spec-format.md"))
         for what, text, want in cases:
-            f = root / "atoms" / "tenure.md"
+            f = root / "library" / "atoms" / "tenure.md"
             f.write_text(text, encoding="utf-8")
             pats = load_patterns(root)
             got = {x.code for x in scan(f) if not x.code.startswith("W-")}
@@ -966,9 +972,9 @@ def check_census_synthetic(problems: list[str]) -> None:
     def run(listing: str, families: list[tuple[str, str]]) -> set[str]:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "GRACE-lang.md").write_text(CENSUS_GRAMMAR, encoding="utf-8")
-            (root / "spec-format.md").write_text(CENSUS_SPEC_FORMAT, encoding="utf-8")
-            (root / "watch-list.md").write_text(
+            _w(root / "how" / "GRACE-lang.md").write_text(CENSUS_GRAMMAR, encoding="utf-8")
+            _w(root / "how" / "spec-format.md").write_text(CENSUS_SPEC_FORMAT, encoding="utf-8")
+            _w(root / "essays" / "watch-list.md").write_text(
                 CENSUS_WATCH_LIST.format(listing=listing), encoding="utf-8")
             pats = {}
             for stem, fam in families:
@@ -1036,7 +1042,7 @@ def check_orphan_synthetic(problems: list[str]) -> None:
     def run(body: str, roadmap: str, qualifier: str = "`migrated` — rewritten in GRACE lang v0.41 (2026-09-15).") -> set[str]:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "roadmap.md").write_text(roadmap, encoding="utf-8")
+            _w(root / "log" / "roadmap.md").write_text(roadmap, encoding="utf-8")
             path = root / "ghost.md"
             text = ORPHAN_SPEC.format(body=body, qualifier=qualifier)
             pats = {path: Pattern(path=path, text=text,
@@ -1080,8 +1086,8 @@ def check_orphan_synthetic(problems: list[str]) -> None:
     # (7) roadmap.hist.md is record, not the planning surface: a name only it carries is an orphan
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "roadmap.md").write_text("# Roadmap\n", encoding="utf-8")
-        (root / "roadmap.hist.md").write_text("- **Spectre Ledger** — a row.\n", encoding="utf-8")
+        _w(root / "log" / "roadmap.md").write_text("# Roadmap\n", encoding="utf-8")
+        _w(root / "log" / "roadmap.hist.md").write_text("- **Spectre Ledger** — a row.\n", encoding="utf-8")
         path = root / "ghost.md"
         text = ORPHAN_SPEC.format(body="A **Spectre Ledger** *(forthcoming)* owns the rest.",
                                   qualifier="`migrated` — rewritten in GRACE lang v0.41 (2026-09-15).")
@@ -1094,9 +1100,9 @@ def check_orphan_synthetic(problems: list[str]) -> None:
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         claim = "**9 done patterns (4 done compositions)**\n"
-        (root / "roadmap.md").write_text(claim, encoding="utf-8")
+        _w(root / "log" / "roadmap.md").write_text(claim, encoding="utf-8")
         (root / "readme.md").write_text(claim, encoding="utf-8")
-        path = root / "atoms" / "ghost.md"
+        path = root / "library" / "atoms" / "ghost.md"
         got = {f.path.name for f in check_counts(
             root, {path: Pattern(path=path, text="# Ghost\n", invariant_count=1, done=True)})}
     if got != {"readme.md"}:
@@ -1301,8 +1307,8 @@ def check_decl_form_synthetic(problems: list[str]) -> None:
     )
     with tempfile.TemporaryDirectory() as d:
         for name, line, fires in cases:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir(exist_ok=True)
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(head + line, encoding="utf-8")
             got = any(x.code == "D-decl-form" for x in scan(f))
             if got != fires:
@@ -1320,8 +1326,8 @@ def check_tombstone_form_synthetic(problems: list[str]) -> None:
             "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
     def run(block: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir(exist_ok=True)
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(head + "```\n" + block + "```\n", encoding="utf-8")
             return scan(f)
     # the rule beneath uses an undeclared verb, so C-verb firing proves the rule was read
@@ -1363,13 +1369,13 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
 
     def run(page: str, hist: str | None, section: str = "Deleted rules", status: str | None = None):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir(exist_ok=True)
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(TOMB_PAGE.format(page=page)
                          + (f"\n## Status\n\n`{status}` — see the Ledger.\n\n## Ledger\n\n```\nstatus: {status}\n```\n"
                             if status else ""), encoding="utf-8")
             if hist is not None:
-                (Path(d) / "atoms" / "synthetic.hist.md").write_text(
+                (Path(d) / "library" / "atoms" / "synthetic.hist.md").write_text(
                     TOMB_HISTORY.format(section=section, hist=hist), encoding="utf-8")
             return [(x.path.name, x.code, x.message) for x in scan(f)]
 
@@ -1408,14 +1414,14 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
     # lint.py: the reserved invariant numbers, and the families a tombstone alone names
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        page = root / "atoms" / "x.md"
+        (root / "library" / "atoms").mkdir(parents=True)
+        page = root / "library" / "atoms" / "x.md"
         text = ("# X\n\n- **Invariant 1 — A.**\n  ```\n  Invariant 1.1: The atom MUST keep it.\n  ```\n")
         page.write_text(text, encoding="utf-8")
-        (root / "atoms" / "x.hist.md").write_text(TOMB_HISTORY.format(
+        _w(root / "library" / "atoms" / "x.hist.md").write_text(TOMB_HISTORY.format(
             section="Deleted rules", hist="Deleted: Invariant 3. Invariant 1 owns it.\n"
                                           "Deleted: Fence 2. Invariant 1 owns it.\n"), encoding="utf-8")
-        citer = root / "atoms" / "y.md"
+        citer = root / "library" / "atoms" / "y.md"
         citer.write_text("# Y\n\nRests on X Invariant 3 and on X Invariant 4.\n", encoding="utf-8")
         pats = {page: Pattern(path=page, text=text, invariant_count=1, done=True)}
         got = sorted(f.message for f in check_rests_on_refs(pats, [citer]))
@@ -1426,33 +1432,33 @@ def check_tombstone_places_synthetic(problems: list[str]) -> int:
         moved_fams = label_families(root)
         page.write_text(text + "```\nDeleted: Invariant 3. Invariant 1 owns it.\nDeleted: Fence 2. Invariant 1 "
                         "owns it.\n```\n", encoding="utf-8")
-        (root / "atoms" / "x.hist.md").unlink()
+        (root / "library" / "atoms" / "x.hist.md").unlink()
         if label_families(root) != moved_fams:
             problems.append(f"F-range-form: the families differ with the tombstones moved: {sorted(moved_fams)}")
 
     # ir.py: the IR's tombstones and the proof's message
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        for sub in ("atoms", "compositions"):
-            (root / sub).mkdir()
-        (root / "atoms" / "widget.md").write_text(
+        for sub in ("library/atoms", "library/compositions"):
+            (root / sub).mkdir(parents=True)
+        _w(root / "library" / "atoms" / "widget.md").write_text(
             IR_ATOM.format(dup="", bad="\nCheck 1.5: An auditor MUST find nothing (Operation 3).")
             .replace("Deleted: Operation 3. Execution Contract Read 4 owns it.\n", ""), encoding="utf-8")
-        (root / "atoms" / "widget.hist.md").write_text(TOMB_HISTORY.format(
+        _w(root / "library" / "atoms" / "widget.hist.md").write_text(TOMB_HISTORY.format(
             section="Deleted rules", hist="Deleted: Operation 3. Execution Contract Read 4 owns it.\n"),
             encoding="utf-8")
-        (root / "compositions" / "gadget-line.md").write_text(IR_COMPOSITION.format(link=""), encoding="utf-8")
-        (root / "execution-contract.md").write_text("**Read 4:** A refused write writes nothing.\n",
+        _w(root / "library" / "compositions" / "gadget-line.md").write_text(IR_COMPOSITION.format(link=""), encoding="utf-8")
+        _w(root / "library" / "execution-contract.md").write_text("**Read 4:** A refused write writes nothing.\n",
                                                    encoding="utf-8")
         docs, findings = ir.build(root)
         findings += ir.prove(root, docs)
-    widget = next(x for x in docs if x["spec"] == "atoms/widget.md")
+    widget = next(x for x in docs if x["spec"] == "library/atoms/widget.md")
     n += 2
     if widget["tombstones"] != [{"label": "Operation 3", "text": "Execution Contract Read 4 owns it.",
-                                  "line": 8, "file": "atoms/widget.hist.md"}]:
+                                  "line": 8, "file": "library/atoms/widget.hist.md"}]:
         problems.append(f"IR: a moved tombstone read wrong: {widget['tombstones']}")
     if [f[3] for f in findings] != ["Check 1.5 names Operation 3, which the pattern tombstones "
-                                    "(atoms/widget.hist.md:8: Execution Contract Read 4 owns it.)"]:
+                                    "(library/atoms/widget.hist.md:8: Execution Contract Read 4 owns it.)"]:
         problems.append(f"IR: a check naming a moved tombstone was told {findings}")
     return n
 
@@ -1479,7 +1485,7 @@ def check_range_form_synthetic(problems: list[str]) -> int:
               "EVERY Invariant (2.1–2.4)"]
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "GRACE-lang.md").write_text(grammar, encoding="utf-8")
+        _w(root / "how" / "GRACE-lang.md").write_text(grammar, encoding="utf-8")
         doc = root / "doc.md"
         doc.write_text("\n".join(silent + firing) + "\n", encoding="utf-8")
         lines = {f.line for f in check_range_form(root)}
@@ -1490,8 +1496,8 @@ def check_range_form_synthetic(problems: list[str]) -> int:
         if i not in lines:
             problems.append(f"F-range-form: did not fire on {case!r}")
     with tempfile.TemporaryDirectory() as d:
-        f = Path(d) / "atoms" / "synthetic.md"
-        f.parent.mkdir()
+        f = Path(d) / "library" / "atoms" / "synthetic.md"
+        f.parent.mkdir(parents=True)
         f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
                      "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```\n"
                      "Operation 1: The atom MUST read the store.\n"
@@ -1524,8 +1530,8 @@ def check_range_form_synthetic(problems: list[str]) -> int:
         ("`Execution Contract Logic confinement 995`", None),
         ("Execution Contract Fence 5", "Execution Contract Fence 5")]
     with tempfile.TemporaryDirectory() as d:
-        f = Path(d) / "atoms" / "synthetic.md"
-        f.parent.mkdir()
+        f = Path(d) / "library" / "atoms" / "synthetic.md"
+        f.parent.mkdir(parents=True)
         body = [f"Operation {i}: The atom MUST read the store ({cite})." for i, (cite, _) in enumerate(contract_cases, 1)]
         f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
                      "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```\n"
@@ -1552,8 +1558,8 @@ def check_notation_synthetic(problems: list[str]) -> int:
     n = 0
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "atoms" / "a.md").write_text(
+        (root / "library" / "atoms").mkdir(parents=True)
+        _w(root / "library" / "atoms" / "a.md").write_text(
             "## Examples\n\nsee " + S + "State here\n\nquoted `" + S + "State` here\n\n"
             "## Decisions\n\n- **2026-09-01 \u2014 x.** per " + S + "State\n", encoding="utf-8")
         (root / "log.md").write_text(
@@ -1561,17 +1567,17 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "### Standing\n\nlive " + S + "B\n\n## Undated\n\nlive " + S + "C\n", encoding="utf-8")
         (root / "tool.py").write_text("x = '" + S + "'  # hunts the form\ny = '" + S + "'\n", encoding="utf-8")
         # the grammar's Changes section, moved beside it at v0.66
-        (root / "GRACE-lang.hist.md").write_text(
+        _w(root / "how" / "GRACE-lang.hist.md").write_text(
             "# h\n\n## Changes\n\nNOTE:\nv0.37 (2026-09-12): per " + S + "21\n\n"
             "## The Watch list at v0.65\n\nlive " + S + "D\n", encoding="utf-8")
         # the register, moved out of governance.md into its history file on 2026-11-13
-        (root / "governance.hist.md").write_text(
+        _w(root / "how" / "governance.hist.md").write_text(
             "# h\n\nopening " + S + "E\n\n### The register\n\n"
             "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n  more " + S + "22\n", encoding="utf-8")
-        (root / "governance.md").write_text(
+        _w(root / "how" / "governance.md").write_text(
             "- **Council read 1 \u2014 x, 2026-09-10.** per " + S + "21\n", encoding="utf-8")
         # the roadmap's dated record, moved whole out of roadmap.md on 2026-11-13
-        (root / "roadmap.hist.md").write_text(
+        _w(root / "log" / "roadmap.hist.md").write_text(
             "# h\n\nopening " + S + "F\n\n## Current state\n\nundated " + S + "G\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_retired_sign(root)}
         want = {("a.md", 3), ("log.md", 15), ("tool.py", 2), ("GRACE-lang.hist.md", 10),
@@ -1605,20 +1611,23 @@ def check_notation_synthetic(problems: list[str]) -> int:
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         real = Path(__file__).resolve().parents[2]
-        for sub in ("atoms", "compositions", "tools/taxonomy", "_data"):
+        for sub in ("library", "tools/taxonomy", "tools/grace", "tools/linter", "_data"):
             shutil.copytree(real / sub, root / sub, ignore=shutil.ignore_patterns("__pycache__"))
         for f in real.glob("*.md"):
             shutil.copy(f, root / f.name)
+        for sec in ("how", "evidence", "community", "log", "essays"):
+            for f in (real / sec).glob("*.md"):
+                _w(root / sec / f.name).write_bytes(f.read_bytes())
         ledger = real / "tools/harness/states.tsv"          # stats.json totals it
         if ledger.exists():
             (root / "tools/harness").mkdir(parents=True)
             shutil.copy(ledger, root / "tools/harness/states.tsv")
         if check_views_current(root):
             problems.append("V-views-current: fired on the current views")
-        (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8") + "\nstale\n", encoding="utf-8")
+        _w(root / "library" / "graph.md").write_text((root / "library" / "graph.md").read_text(encoding="utf-8") + "\nstale\n", encoding="utf-8")
         if not check_views_current(root):
             problems.append("V-views-current: did not fire on a stale view")
-        (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8").replace("\nstale\n", ""), encoding="utf-8")
+        _w(root / "library" / "graph.md").write_text((root / "library" / "graph.md").read_text(encoding="utf-8").replace("\nstale\n", ""), encoding="utf-8")
         import json
         stats = json.loads((root / "_data" / "stats.json").read_text(encoding="utf-8"))
         (root / "_data" / "stats.json").write_text(json.dumps({**stats, "commits": 1}), encoding="utf-8")
@@ -1630,8 +1639,8 @@ def check_notation_synthetic(problems: list[str]) -> int:
         n += 4
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "atoms" / "a.md").write_text("Fifty-plus specifications and 52 grounded.\n", encoding="utf-8")
+        (root / "library" / "atoms").mkdir(parents=True)
+        _w(root / "library" / "atoms" / "a.md").write_text("Fifty-plus specifications and 52 grounded.\n", encoding="utf-8")
         (root / "readme.md").write_text(
             "> Fifty-plus specifications are a lot.\n"
             "{{ site.data.stats.patterns }} patterns, {{ site.data.stats.done }} done.\n"
@@ -1642,14 +1651,14 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "Three patterns share it.\n"
             "61 done today.\n", encoding="utf-8")
         # the roadmap's record is in roadmap.hist.md; roadmap.md prints its state
-        (root / "roadmap.hist.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
-        (root / "roadmap.md").write_text("State: 52 grounded patterns.\n", encoding="utf-8")
-        (root / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
+        _w(root / "log" / "roadmap.hist.md").write_text("A ledger: 52 grounded, 58 patterns.\n", encoding="utf-8")
+        _w(root / "log" / "roadmap.md").write_text("State: 52 grounded patterns.\n", encoding="utf-8")
+        _w(root / "how" / "open-questions.md").write_text("A register: thirty-seven grounded patterns.\n", encoding="utf-8")
         # the grammar's Watch list, its own page since GRACE-lang v0.70, counts at the read it names
-        (root / "watch-list.md").write_text("Fifty-three documents at council read 101; 12 patterns.\n", encoding="utf-8")
+        _w(root / "essays" / "watch-list.md").write_text("Fifty-three documents at council read 101; 12 patterns.\n", encoding="utf-8")
         # the register is record in governance.hist.md; governance.md keeps only rules
-        (root / "governance.hist.md").write_text("A register: 41 grounded patterns.\n", encoding="utf-8")
-        (root / "governance.md").write_text("Rules: 41 grounded patterns.\n", encoding="utf-8")
+        _w(root / "how" / "governance.hist.md").write_text("A register: 41 grounded patterns.\n", encoding="utf-8")
+        _w(root / "how" / "governance.md").write_text("Rules: 41 grounded patterns.\n", encoding="utf-8")
         hits = {(f.path.name, f.line) for f in check_live_counts(root)}
         if hits != {("readme.md", 1), ("readme.md", 3), ("readme.md", 10), ("governance.md", 1),
                     ("roadmap.md", 1)}:
@@ -1691,7 +1700,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
         # O-term-kind reads the two tables of spec-format.md's section *The term entry*; heading_standard
         # reads the one table of shapes (unit `spec-format.md: the term entry, and the leftovers`)
         root = Path(d)
-        (root / "spec-format.md").write_text(
+        _w(root / "how" / "spec-format.md").write_text(
             "## The term entry\n\n"
             "| Field | What it says | Required with | Also found with |\n|---|---|---|---|\n"
             "| `Kind` | the kind | every kind | |\n"
@@ -1704,7 +1713,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
             "| Shape | Heading | Level | Inside | Required | Unplaced children |\n|---|---|---|---|---|---|\n"
             "| atom | Intent | 2 | | yes | no |\n| atom | State | 3 | Structure | yes | no |\n"
             "| composition | Composes | 2 | | yes | yes |\n\n### Rule families\n", encoding="utf-8")
-        shapes = heading_standard((root / "spec-format.md").read_text(encoding="utf-8"))
+        shapes = heading_standard((root / "how" / "spec-format.md").read_text(encoding="utf-8"))
         if [r["name"] for r in shapes["atom"]] != ["Intent", "State"] or [r["name"] for r in shapes["composition"]] != ["Composes"] \
                 or shapes["atom"][1] != {"name": "State", "level": 3, "inside": "Structure", "required": "yes", "unplaced": "no"}:
             problems.append(f"H-heading: the one table of shapes read as {shapes}")
@@ -1761,7 +1770,7 @@ def check_notation_synthetic(problems: list[str]) -> int:
         script = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "audit-guard.sh"
         wf = root / ".github" / "workflows" / "verify.yml"
         wf.parent.mkdir(parents=True)
-        wf.write_text("on:\n  push:\n    branches:\n      - main\n    paths:\n      - 'atoms/**'\n      - 'compositions/models/probe-*'   # a prefix\n"
+        wf.write_text("on:\n  push:\n    branches:\n      - main\n    paths:\n      - 'library/atoms/**'\n      - 'library/compositions/models/probe-*'   # a prefix\n"
                       "      - 'tools/**'\n      - '.github/workflows/verify.yml'\n  schedule:\n    - cron: '0 8 * * *'\n", encoding="utf-8")
 
         def git(*a):
@@ -1778,11 +1787,11 @@ def check_notation_synthetic(problems: list[str]) -> int:
             return git("rev-parse", "HEAD")
 
         git("init", "-q")
-        base = commit({"atoms/a.md": "a", "site.md": "s", "compositions/models/probe-x.tla": "p"})
+        base = commit({"library/atoms/a.md": "a", "site.md": "s", "library/compositions/models/probe-x.tla": "p"})
         site = commit({"site.md": "s2", "why.md": "w"})
-        pattern = commit({"atoms/a.md": "a2"})
-        model = commit({"compositions/models/probe-y.tla": "q"})
-        other_model = commit({"compositions/models/iso-y.tla": "q"})
+        pattern = commit({"library/atoms/a.md": "a2"})
+        model = commit({"library/compositions/models/probe-y.tla": "q"})
+        other_model = commit({"library/compositions/models/iso-y.tla": "q"})
         tool = commit({"tools/t.py": "t"})
         flow = commit({".github/workflows/verify.yml": wf.read_text() + "# edited\n"})
 
@@ -1804,12 +1813,12 @@ def check_notation_synthetic(problems: list[str]) -> int:
     with tempfile.TemporaryDirectory() as d:
         # M-register-number and M-register-citation read the register in governance.hist.md
         root = Path(d)
-        (root / "governance.hist.md").write_text(
+        _w(root / "how" / "governance.hist.md").write_text(
             "### The register\n\n"
             "- **Council read 1 \u2014 x, 2026-09-10.** a\n"
             "- **Council read 2 \u2014 y, 2026-09-10.** b\n"
             "- **Council read 2 \u2014 z, 2026-09-11.** c\n", encoding="utf-8")
-        (root / "governance.md").write_text("- **Council read 9 \u2014 w, 2026-09-12.** d\n", encoding="utf-8")
+        _w(root / "how" / "governance.md").write_text("- **Council read 9 \u2014 w, 2026-09-12.** d\n", encoding="utf-8")
         (root / "p.md").write_text("per council read 1\nper council read 9\n", encoding="utf-8")
         hits = {(f.path.name, f.line, f.code) for f in check_council_register(root)}
         want = {("governance.hist.md", 5, "M-register-number"), ("p.md", 2, "M-register-citation")}
@@ -1833,8 +1842,8 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
             "Operation 2: [Read] MUST read the store.\n```\n")
     def run(block: str, after: str = ""):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + block + "```\n" + tail + after, encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-signature-form"]
     good = ("place(item_ref, optional reason)\n  answers placement result\n"
@@ -1885,8 +1894,8 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
             "```\nrelease(hold_id, reason)\n  answers released\n  refuses invalid-request | not-known\n```\n\n")
     def run(rule: str, decl: str = ""):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\nOperation 9: [Release] MUST read the store.\n```\n"
                          + (decl and "\n" + decl + "\n"), encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-condition-form"]
@@ -1939,8 +1948,8 @@ def check_name_atomicity_synthetic(problems: list[str]) -> int:
             "## Structure\n\n### Operations\n\n")
     def run(rules: str, code: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rules + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == code]
     n = 0
@@ -1977,8 +1986,8 @@ def check_wire_spelling_synthetic(problems: list[str]) -> int:
     tail = "\n```\nOperation 1: A reader MUST verify the party.\n```\n"
     def run(block: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + block + "```\n" + tail, encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-wire-spelling"]
     n = 0
@@ -2017,7 +2026,7 @@ def check_borrowed_names_synthetic(problems: list[str]) -> int:
              "Term retention until: the instant the retention ends.\n\n")
     def run(extra: str, rule: str):
         with tempfile.TemporaryDirectory() as d:
-            a = Path(d) / "atoms"; a.mkdir()
+            a = Path(d) / "library" / "atoms"; a.mkdir(parents=True)
             (a / "owner.md").write_text(owner, encoding="utf-8")
             f = a / "synthetic.md"
             f.write_text(head + extra + "## Structure\n\n```\n" + rule + "\n```\n", encoding="utf-8")
@@ -2051,8 +2060,8 @@ def check_operand_type_synthetic(problems: list[str]) -> int:
             "Term record verbs: read.\n\n## Structure\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-condition-form"]
     cases = [
@@ -2089,8 +2098,8 @@ def check_entry_heading_declares_synthetic(problems: list[str]) -> int:
             "The instant the hold was placed.\n\nKind: Field\n\n## Structure\n\n")
     def run(rule: str, code: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == code]
     n = 0
@@ -2118,8 +2127,8 @@ def check_code_token_synthetic(problems: list[str]) -> int:
             "Term record verbs: read.\n\n## Structure\n\n")
     def run(line: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + line + "\n\n```\nOperation 1: A reader MUST read the store.\n```\n",
                          encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-code-token"]
@@ -2152,8 +2161,8 @@ def check_two_obligations_synthetic(problems: list[str]) -> int:
             "## Structure\n\n### Operations\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "W-two-obligations"]
     n = 0
@@ -2188,7 +2197,7 @@ def check_unstated_exception_synthetic(problems: list[str]) -> int:
     def run(rules: str, folder: str = "atoms"):
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / folder / "synthetic.md"
-            f.parent.mkdir()
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rules + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "W-unstated-exception"]
     firing = [
@@ -2255,8 +2264,8 @@ def check_rule_noun_synthetic(problems: list[str]) -> int:
             "Term record verbs: answer, read.\n\n## Structure\n\n### Operations\n\n")
     def run(rule: str, decl: str = ""):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n" + (decl and "\n" + decl + "\n"),
                          encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-rule-noun"]
@@ -2293,8 +2302,8 @@ def check_invariant_move_synthetic(problems: list[str]) -> int:
             "Term record verbs: move, stand.\n\n## Structure\n\n")
     def run(heading: str, rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + heading + "\n\n```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "R-invariant-move"]
     silent = [
@@ -2329,8 +2338,8 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
             "Term record verbs: answer, read, write, call.\n\n## Structure\n\n### Operations\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-rule-symbol"]
     silent = [
@@ -2374,8 +2383,8 @@ def check_inline_arithmetic_synthetic(problems: list[str]) -> int:
             "Term record verbs: answer, read, write.\n\n## Structure\n\n### Operations\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code in ("A-arith", "D-rule-symbol")]
     silent = [
@@ -2427,8 +2436,8 @@ def check_declared_arithmetic_synthetic(problems: list[str]) -> int:
             "Term record verbs: answer, read, write.\n\n## Structure\n\n")
     def run(decl: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + decl + "\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "A-decl-arith"]
     silent = [
@@ -2474,8 +2483,8 @@ def check_ge_form_synthetic(problems: list[str]) -> int:
             "Term record verbs: answer, read.\n\n## Structure\n\n### Operations\n\n")
     def run(rule: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "W-ge-disjunction"]
     silent = [
@@ -2510,8 +2519,8 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
     import nouns  # noqa: E402
     root = Path(__file__).resolve().parents[2]
     with tempfile.TemporaryDirectory() as d:
-        atoms = Path(d) / "atoms"
-        atoms.mkdir()
+        atoms = Path(d) / "library" / "atoms"
+        atoms.mkdir(parents=True)
         (atoms / "hold.md").write_text("Term qualifiers: migrated — rewritten in GRACE lang v0.57 (2026-09-17).\n\n"
                                        "Term hold: one preservation obligation.\n", encoding="utf-8")
         page = atoms / "synthetic.md"
@@ -2527,7 +2536,7 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             "Operation 4: A call MUST read the acts.\n"
             "Operation 5: The atom MUST read the representative acting.\n"
             "```\n", encoding="utf-8")
-        rep = nouns.read([page], root / "GRACE-lang.md", nltk.pos_tag)
+        rep = nouns.read([page], root / "how" / "GRACE-lang.md", nltk.pos_tag)
     misses = set(rep["specs"]["synthetic"]["misses"])
     for noun in ("ledger", "call", "hold"):
         if noun in misses:
@@ -2546,8 +2555,8 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             problems.append(f"nouns.py: '{name}' beside an owner in a cited list is not read as declared")
     # a declared name running through a preposition reads whole (council read 132)
     with tempfile.TemporaryDirectory() as d2:
-        a2 = Path(d2) / "atoms"
-        a2.mkdir()
+        a2 = Path(d2) / "library" / "atoms"
+        a2.mkdir(parents=True)
         page2 = a2 / "prep.md"
         page2.write_text(
             "Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
@@ -2556,14 +2565,14 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             "```\n"
             "State 1: A revoked capability MUST carry revoked by ref.\n"
             "```\n", encoding="utf-8")
-        rep2 = nouns.read([page2], root / "GRACE-lang.md", nltk.pos_tag)
+        rep2 = nouns.read([page2], root / "how" / "GRACE-lang.md", nltk.pos_tag)
     if "ref" in rep2["specs"]["prep"]["misses"]:
         problems.append("nouns.py: 'revoked by ref' read as the bare 'ref'")
     # a declared name's words belong to the name, whatever the tagger makes of
     # the middle one (council read 136)
     with tempfile.TemporaryDirectory() as d3:
-        a3 = Path(d3) / "atoms"
-        a3.mkdir()
+        a3 = Path(d3) / "library" / "atoms"
+        a3.mkdir(parents=True)
         page3 = a3 / "gap.md"
         page3.write_text(
             "Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
@@ -2572,7 +2581,7 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             "```\n"
             "Capability requirement 1: The deployment MUST declare the clock offset allowance.\n"
             "```\n", encoding="utf-8")
-        rep3 = nouns.read([page3], root / "GRACE-lang.md", nltk.pos_tag)
+        rep3 = nouns.read([page3], root / "how" / "GRACE-lang.md", nltk.pos_tag)
     if "allowance" in rep3["specs"]["gap"]["misses"]:
         problems.append("nouns.py: 'clock offset allowance' read as the bare 'allowance'")
     # a value set's own name is declared by the value sets line (council read 112)
@@ -2595,8 +2604,8 @@ def check_fence_form_synthetic(problems: list[str]) -> int:
             "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
     def run(body: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + body, encoding="utf-8")
             return {x.code for x in scan(f)}
     rules = "```\nOperation 1: The atom MUST read the store.\n```\n"
@@ -2636,8 +2645,8 @@ def check_bracket_synthetic(problems: list[str]) -> int:
     tail = "\n[Read]: #read\n"
     def run(rules: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + "```\n" + rules + "```\n" + tail, encoding="utf-8")
             return [x for x in scan(f) if x.code == "F-bracket"]
     silent = [
@@ -2679,8 +2688,8 @@ def check_code_span_synthetic(problems: list[str]) -> int:
             "```\nOperation 1: [Place] MUST read the store.\n```\n\n")
     def run(body: str):
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "atoms" / "synthetic.md"
-            f.parent.mkdir()
+            f = Path(d) / "library" / "atoms" / "synthetic.md"
+            f.parent.mkdir(parents=True)
             f.write_text(head + body + "\n[Place]: #place\n", encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-code-span"]
     silent = [
@@ -2727,14 +2736,14 @@ def check_contract_labels_synthetic(problems: list[str]) -> int:
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "execution-contract.md").write_text(
+        (root / "library" / "atoms").mkdir(parents=True)
+        _w(root / "library" / "execution-contract.md").write_text(
             "**Logic confinement 3: Explicit inputs only.** Time is injected.\n", encoding="utf-8")
-        (root / "execution-contract.hist.md").write_text(
+        _w(root / "library" / "execution-contract.hist.md").write_text(
             "# H\n\n## Moved\n\n```\nDeleted: Store 9. Nothing.\n```\n\n"
             "## Deleted rules\n\n### The Database contract\n\n```\nDeleted: Store 1. Database 1 owns it.\n```\n",
             encoding="utf-8")
-        (root / "atoms" / "a.md").write_text(
+        _w(root / "library" / "atoms" / "a.md").write_text(
             "Deleted: Operation 4. Execution Contract Logic confinement 3 owns it.\n"
             "Deleted: Operation 5. Execution Contract Logic confinement 9 owns it.\n"
             "A quoted `Execution Contract Logic confinement 8` is text.\n"
@@ -2775,18 +2784,18 @@ def check_provenance_drift_synthetic(problems: list[str]) -> int:
     }
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
+        (root / "library" / "atoms").mkdir(parents=True)
         sh(d, "git", "init", "-q")
         sh(d, "git", "config", "user.email", "t@t")
         sh(d, "git", "config", "user.name", "t")
         for stage in (0, 1):
             for name, texts in head.items():
-                (root / "atoms" / f"{name}.md").write_text(texts[min(stage, len(texts) - 1)], encoding="utf-8")
+                _w(root / "library" / "atoms" / f"{name}.md").write_text(texts[min(stage, len(texts) - 1)], encoding="utf-8")
             sh(d, "git", "add", "-A")
             sh(d, "git", "commit", "-q", "--allow-empty", "-m", f"stage {stage}")
         pats = {}
         for name, text in now.items():
-            f = root / "atoms" / f"{name}.md"
+            f = root / "library" / "atoms" / f"{name}.md"
             f.write_text(text, encoding="utf-8")
             pats[f] = Pattern(path=f, text=text, invariant_count=0, done=True)
         got = {(x.path.stem, x.message.split("`")[1]) for x in check_provenance_drift(root, pats)}
@@ -2803,13 +2812,13 @@ def check_section_titles_synthetic(problems: list[str]) -> int:
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "pressure-testing.md").write_text(
+        (root / "library" / "atoms").mkdir(parents=True)
+        _w(root / "how" / "pressure-testing.md").write_text(
             "## A compensator is exclusive — one writer per act\n", encoding="utf-8")
         # a section moved whole to the page's history file is still the page's
-        (root / "pressure-testing.hist.md").write_text(
+        _w(root / "how" / "pressure-testing.hist.md").write_text(
             "# h\n\n## What \"grounded\" means\n", encoding="utf-8")
-        (root / "atoms" / "a.md").write_text(
+        _w(root / "library" / "atoms" / "a.md").write_text(
             "## Which closing stands\n\n"
             "Read the section titled Which closing stands for both keys.\n"
             "Per the section titled *A compensator is exclusive* in `pressure-testing.md`.\n"
@@ -2846,8 +2855,8 @@ def check_generated_views_synthetic(problems: list[str]) -> int:
               "Term composition: wiring of [Permissions](../atoms/permissions.md) — the gate.\n\n## Next\n")
     bare = "# X\n\n## Composes\n\n```\nComposes 1: EXACTLY ONE Session instance MUST serve.\n```\n\n## Next\n"
     with tempfile.TemporaryDirectory() as d:
-        comp = Path(d) / "compositions"
-        comp.mkdir()
+        comp = Path(d) / "library" / "compositions"
+        comp.mkdir(parents=True)
         pats = {}
         for name, text in (("listed", listed), ("bare", bare)):
             f = comp / f"{name}.md"
@@ -2894,15 +2903,15 @@ def check_constituents_synthetic(problems: list[str]) -> int:
     ]
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "compositions").mkdir()
+        (root / "library" / "atoms").mkdir(parents=True)
+        (root / "library" / "compositions").mkdir(parents=True)
         pats = {}
         for n, stem in (P, S):
-            f = root / "atoms" / f"{stem}.md"
+            f = root / "library" / "atoms" / f"{stem}.md"
             f.write_text(f"# {n}\n", encoding="utf-8")
             pats[f] = Pattern(path=f, text=f"# {n}\n", invariant_count=0, done=False)
         for name, text, _ in cases:
-            f = root / "compositions" / (name.replace(" ", "-") + ".md")
+            f = root / "library" / "compositions" / (name.replace(" ", "-") + ".md")
             f.write_text(text, encoding="utf-8")
             pats[f] = Pattern(path=f, text=text, invariant_count=0, done=False)
         fired = {f.path.stem.replace("-", " ") for f in check_constituents_agree(pats)}
@@ -2937,7 +2946,7 @@ def check_renumber_synthetic(problems: list[str]) -> int:
 
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
+        (root / "library" / "atoms").mkdir(parents=True)
         sh(d, "git", "init", "-q")
         sh(d, "git", "config", "user.email", "t@t")
         sh(d, "git", "config", "user.name", "t")
@@ -2958,29 +2967,29 @@ def check_renumber_synthetic(problems: list[str]) -> int:
         histories = {"kept-moved": [None, hist((2,))], "reused-moved": [hist((2,)), hist((2,))]}
         for stage in (0, 1):
             for name, texts in files.items():
-                (root / "atoms" / f"{name}.md").write_text(texts[stage], encoding="utf-8")
+                _w(root / "library" / "atoms" / f"{name}.md").write_text(texts[stage], encoding="utf-8")
                 if name in histories and histories[name][stage] is not None:
-                    (root / "atoms" / f"{name}.hist.md").write_text(histories[name][stage], encoding="utf-8")
+                    _w(root / "library" / "atoms" / f"{name}.hist.md").write_text(histories[name][stage], encoding="utf-8")
             sh(d, "git", "add", "-A")
             sh(d, "git", "commit", "-q", "-m", f"stage {stage}")
         # a spec migrated under one name and renamed afterwards is read at its old name
-        (root / "atoms" / "old-name.md").write_text(files["moved"][0], encoding="utf-8")
+        _w(root / "library" / "atoms" / "old-name.md").write_text(files["moved"][0], encoding="utf-8")
         sh(d, "git", "add", "-A")
         sh(d, "git", "commit", "-q", "-m", "an unmigrated spec under its old name")
-        (root / "atoms" / "old-name.md").write_text(files["moved"][1], encoding="utf-8")
+        _w(root / "library" / "atoms" / "old-name.md").write_text(files["moved"][1], encoding="utf-8")
         sh(d, "git", "add", "-A")
         sh(d, "git", "commit", "-q", "-m", "migrate it")
-        sh(d, "git", "mv", "atoms/old-name.md", "atoms/renamed.md")
+        sh(d, "git", "mv", "library/atoms/old-name.md", "library/atoms/renamed.md")
         sh(d, "git", "commit", "-q", "-m", "rename it")
         files["renamed"] = files["moved"]
         # the working tree declares the tombstoned number again
-        (root / "atoms" / "reused.md").write_text(
+        _w(root / "library" / "atoms" / "reused.md").write_text(
             inv([(1, "Entry immutability"), (2, "Order density")], migrated=True), encoding="utf-8")
-        (root / "atoms" / "reused-moved.md").write_text(
+        _w(root / "library" / "atoms" / "reused-moved.md").write_text(
             inv([(1, "Entry immutability"), (2, "Order density")], migrated=True), encoding="utf-8")
         pats = {}
         for name in files:
-            f = root / "atoms" / f"{name}.md"
+            f = root / "library" / "atoms" / f"{name}.md"
             pats[f] = Pattern(path=f, text=f.read_text(encoding="utf-8"), invariant_count=0, done=False)
         got: dict[str, list[str]] = {}
         for x in check_invariant_numbers(root, pats):
@@ -3222,24 +3231,24 @@ def check_ir_synthetic(problems: list[str]) -> None:
     def run(broken: bool) -> tuple[list[dict], list[tuple]]:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            for sub in ("atoms", "compositions"):
-                (root / sub).mkdir()
+            for sub in ("library/atoms", "library/compositions"):
+                (root / sub).mkdir(parents=True)
             fill = IR_BROKEN if broken else {k: "" for k in IR_BROKEN}
-            (root / "atoms" / "widget.md").write_text(
+            _w(root / "library" / "atoms" / "widget.md").write_text(
                 IR_ATOM.format(dup=fill["dup"], bad=fill["bad"]), encoding="utf-8")
-            (root / "compositions" / "gadget-line.md").write_text(
+            _w(root / "library" / "compositions" / "gadget-line.md").write_text(
                 IR_COMPOSITION.format(link=fill["link"]), encoding="utf-8")
-            (root / "execution-contract.md").write_text(
+            _w(root / "library" / "execution-contract.md").write_text(
                 "**Read 4:** A refused write writes nothing.\n", encoding="utf-8")
             if broken:
-                (root / "atoms" / "garbled.md").write_bytes(b"# Garbled\n\xff\xfe\n")
+                (root / "library" / "atoms" / "garbled.md").write_bytes(b"# Garbled\n\xff\xfe\n")
             docs, findings = ir.build(root)
             return docs, findings + ir.prove(root, docs)
 
     docs, findings = run(False)
     if findings:
         problems.append(f"IR: the clean pair made findings: {findings}")
-    widget = next((x for x in docs if x["spec"] == "atoms/widget.md"), None)
+    widget = next((x for x in docs if x["spec"] == "library/atoms/widget.md"), None)
     if widget is None:
         problems.append("IR: the clean atom made no document")
         return
@@ -3258,15 +3267,15 @@ def check_ir_synthetic(problems: list[str]) -> None:
                    for n in widget["non_goals"]] == [
             ("Non-goal 1", [("a pricing and discount pattern *(forthcoming)*", True, [])]),
             ("Non-goal 2", [("[Gadget Line and Rail](../compositions/gadget-line.md)", False,
-                             ["compositions/gadget-line.md"]),
+                             ["library/compositions/gadget-line.md"]),
                             ("the deployment", False, []),
                             ("Widget Shipping *(not yet in the library)*", True, [])]),
             ("Non-goal 3", [("[Gadget Line](../compositions/gadget-line.md) and the deployment, a painting layer",
-                             False, ["compositions/gadget-line.md"])])],
+                             False, ["library/compositions/gadget-line.md"])])],
         "terms": [(t["name"], t["entry"], t["kind"]) for t in widget["terms"]] == [("widget", "Widget", {"Kind": "Type"})]
         and list(widget["vocabulary"]) == ["actors"],
-        "composes": [e["path"] for x in docs if x["spec"] == "compositions/gadget-line.md"
-                     for e in x["composes"]] == ["atoms/widget.md"],
+        "composes": [e["path"] for x in docs if x["spec"] == "library/compositions/gadget-line.md"
+                     for e in x["composes"]] == ["library/atoms/widget.md"],
         "status": [x["status"] for x in docs] == ["todo", None],
     }
     for what, held in want.items():
@@ -3282,7 +3291,7 @@ def check_ir_synthetic(problems: list[str]) -> None:
         [lk for n in drafts[0]["non_goals"] for o in n["owners"] for lk in o["links"]],
         [e["path"] for e in drafts[1]["composes"]]]
     if read != [(atom.as_posix(), "atom"), (composition.as_posix(), "composition"),
-                ["compositions/gadget-line.md"] * 2, ["atoms/widget.md"]]:
+                ["library/compositions/gadget-line.md"] * 2, ["library/atoms/widget.md"]]:
         problems.append(f"IR: a draft outside the repo read wrong: {read}")
 
     _, findings = run(True)
@@ -3297,9 +3306,9 @@ def check_ir_synthetic(problems: list[str]) -> None:
     # reader takes the Execution Contract's Read 3 to give every read, and a projectable table that is not one entry for each rule
     twice = IR_ATOM.format(dup="", bad="").replace("#### Widget\n\nOne thing made.\n\nKind:       Type\n", "#### Widget\n\nOne thing made.\n\nKind:       Type\n\n#### Widget\n\nAgain.\n\nKind:       Type\n")
     with tempfile.TemporaryDirectory() as root:
-        (Path(root) / "atoms").mkdir()
-        (Path(root) / "atoms" / "widget.md").write_text(twice, encoding="utf-8")
-        (Path(root) / "execution-contract.md").write_text("**Read 3: A failed read writes nothing.** An action that fails to read writes nothing.\n", encoding="utf-8")
+        (Path(root) / "library" / "atoms").mkdir(parents=True)
+        (Path(root) / "library" / "atoms" / "widget.md").write_text(twice, encoding="utf-8")
+        (Path(root) / "library" / "execution-contract.md").write_text("**Read 3: A failed read writes nothing.** An action that fails to read writes nothing.\n", encoding="utf-8")
         docs, _ = ir.build(Path(root))
         found = sorted(f[2] for f in ir.prove(Path(root), docs) if f[2] in ("IR-entry", "IR-contract-arms"))
         docs[0]["projectable"] = docs[0]["projectable"][:-1]
@@ -3424,10 +3433,10 @@ def check_ir_reader_carries(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "pin.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "pin.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "pin.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "pin.md", root)
 
     doc = read(IR_READER)
     rules = {r["label"]: r for r in doc["rules"]}
@@ -3536,19 +3545,19 @@ def check_ir_wiring(problems: list[str]) -> None:
     import ir
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "compositions").mkdir()
-        (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-        (root / "atoms" / "lamp.md").write_text(IR_WIRING_LAMP, encoding="utf-8")
-        (root / "compositions" / "room.md").write_text(IR_WIRING_ROOM, encoding="utf-8")
-        doc = ir.parse(root / "compositions" / "room.md", root)
-        atom = ir.parse(root / "atoms" / "lamp.md", root)
+        (root / "library" / "atoms").mkdir(parents=True)
+        (root / "library" / "compositions").mkdir(parents=True)
+        _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+        _w(root / "library" / "atoms" / "lamp.md").write_text(IR_WIRING_LAMP, encoding="utf-8")
+        _w(root / "library" / "compositions" / "room.md").write_text(IR_WIRING_ROOM, encoding="utf-8")
+        doc = ir.parse(root / "library" / "compositions" / "room.md", root)
+        atom = ir.parse(root / "library" / "atoms" / "lamp.md", root)
     calls = {c["rule"]: c for c in doc["calls"]}
     want = {
         "a call, bound through the callee's entries": [(a["phrase"], a["binds"]) for a in calls["Action wiring 1"]["args"]]
         == [("the switch reference", "switch_ref"), ("the level", "level"), ("the colour", None)],
         "the callee as its signature names it": (calls["Action wiring 1"]["constituent"], calls["Action wiring 1"]["action"],
-                                                 calls["Action wiring 1"]["path"]) == ("Lamp", "turn", "atoms/lamp.md"),
+                                                 calls["Action wiring 1"]["path"]) == ("Lamp", "turn", "library/atoms/lamp.md"),
         "a modal": calls["Action wiring 1"]["modal"] == "MUST",
         "a test on an answer": [(t["rule"], t["arms"]) for t in doc["answer_tests"]]
         == [("Action wiring 2", ["jammed"]), ("Action wiring 4", ["lit"])],
@@ -3627,10 +3636,10 @@ def check_ir_id_key(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "tag.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "tag.md", root)
 
     doc = read(IR_ID_KEY)
     want = {
@@ -3752,10 +3761,10 @@ def check_ir_transitions(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "tag.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "tag.md", root)
 
     doc = read(IR_TRANSITION)
     got = {t["action"]: t for t in doc["transitions"]}
@@ -3874,10 +3883,10 @@ def check_ir_record_type(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT + "\n**Read 5: A read answering many records answers them in one order.** Where a specification's read answers more than one record and names no order, it answers them by each record's creation instant, earliest first, then by id ascending (Logic confinement 10).\n", encoding="utf-8")
-            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "tag.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT + "\n**Read 5: A read answering many records answers them in one order.** Where a specification's read answers more than one record and names no order, it answers them by each record's creation instant, earliest first, then by id ascending (Logic confinement 10).\n", encoding="utf-8")
+            _w(root / "library" / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "tag.md", root)
 
     def shapes(doc):
         return {r["label"]: r.get("answer_shape") for r in doc["rules"] if r["label"] in ("Operation 1", "Operation 2")}
@@ -4001,10 +4010,10 @@ def check_ir_read_answers(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "gift.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "gift.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "gift.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "gift.md", root)
 
     def shapes(doc):
         return {r["label"]: r.get("answer_shape") for r in doc["rules"] if r["label"] in tuple(f"Operation {n}" for n in range(1, 8))}
@@ -4172,10 +4181,10 @@ def check_ir_admitted(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "tag.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "tag.md", root)
 
     got = {r["label"]: r.get("actions", []) for r in read(IR_ADMITTED)["rules"]}
     want = {
@@ -4262,10 +4271,10 @@ def check_ir_action_set(problems: list[str]) -> None:
 
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "atoms").mkdir()
-        (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-        (root / "atoms" / "tag.md").write_text(IR_ACTION_SET, encoding="utf-8")
-        doc = ir.parse(root / "atoms" / "tag.md", root)
+        (root / "library" / "atoms").mkdir(parents=True)
+        _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+        _w(root / "library" / "atoms" / "tag.md").write_text(IR_ACTION_SET, encoding="utf-8")
+        doc = ir.parse(root / "library" / "atoms" / "tag.md", root)
     got = {r["label"]: r.get("actions", []) for r in doc["rules"]}
     gaps = {g["rule"] for g in doc["reader_gaps"] if g["what"].startswith("no action read")}
     want = {
@@ -4290,10 +4299,10 @@ def check_ir_guards(problems: list[str]) -> None:
     def read(text: str):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            (root / "atoms").mkdir()
-            (root / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
-            (root / "atoms" / "tag.md").write_text(text, encoding="utf-8")
-            return ir.parse(root / "atoms" / "tag.md", root)
+            (root / "library" / "atoms").mkdir(parents=True)
+            _w(root / "library" / "execution-contract.md").write_text(IR_READER_CONTRACT, encoding="utf-8")
+            _w(root / "library" / "atoms" / "tag.md").write_text(text, encoding="utf-8")
+            return ir.parse(root / "library" / "atoms" / "tag.md", root)
 
     doc = read(IR_GUARDS)
     got = {g["rule"]: g for g in doc.get("guards", [])}

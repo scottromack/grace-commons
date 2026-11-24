@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PAGE = "enforcement.md"
+PAGE = "evidence/enforcement.md"
 
 # label -> (the codes that hold it, what slips through or None). A code names
 # its tool by its place: N- is normalize.py's; the rest are check.py's, or
@@ -112,7 +112,7 @@ def state(label: str, advisory: set[str]) -> str:
 def verify(root: Path, advisory: set[str]) -> list[str]:
     """What is wrong with ROWS against the grammar and the tools, one line each."""
     bad = []
-    found = {lab for lab, _ in sentences((root / "GRACE-lang.md").read_text(encoding="utf-8"))}
+    found = {lab for lab, _ in sentences((root / "how" / "GRACE-lang.md").read_text(encoding="utf-8"))}
     for lab in sorted(found - ROWS.keys()):
         bad.append(f"{lab}: GRACE-lang.md says the parser MUST reject, and ROWS has no row for it")
     for lab in sorted(ROWS.keys() - found):
@@ -127,14 +127,13 @@ def verify(root: Path, advisory: set[str]) -> list[str]:
 
 
 def render(root: Path, advisory: set[str], date: str) -> str:
-    rows = [(lab, text) for lab, text in sentences((root / "GRACE-lang.md").read_text(encoding="utf-8"))]
+    rows = [(lab, text) for lab, text in sentences((root / "how" / "GRACE-lang.md").read_text(encoding="utf-8"))]
     states = {lab: state(lab, advisory) for lab, _ in rows}
     n = {w: sum(1 for s in states.values() if s == w) for w in ("gates", "gates in part", "only counted")}
     out = [
         "---",
         "title: What the checker enforces",
         "nav_order: 4",
-        "parent: Evidence",
         "---",
         "",
         "# What the checker enforces",
@@ -166,7 +165,7 @@ def render(root: Path, advisory: set[str], date: str) -> str:
         "",
         "Nothing is gated and nothing is retired by this page: it is the list of what is owed.",
         "",
-        "The checks themselves are run by [Verify It Yourself](./verify.md); the grammar is [GRACE-lang](./GRACE-lang.md).",
+        "The checks themselves are run by [Verify It Yourself](./verify.md); the grammar is [GRACE-lang](../how/GRACE-lang.md).",
         "",
     ]
     return "\n".join(out)

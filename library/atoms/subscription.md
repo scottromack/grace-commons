@@ -1,0 +1,580 @@
+---
+title: Subscription
+id: 60
+audience: common
+has_toc: true
+toc: true
+---
+
+# Subscription
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+## Summary
+
+Subscription records who wants to be told about what. It answers the question "who should be notified about this?" whenever a composing system asks, by keeping a lasting list of named interests that can be queried at any time.
+
+When someone subscribes, the pattern records the link between that subscriber and an event scope (the topic or category of events they care about), gives it an identifier, and keeps it in force until the subscription is explicitly cancelled.
+
+Two queries do the real work: one asks whether a given subscriber is currently subscribed to a given scope, and the other returns everyone currently subscribed to a scope — the list a system needs when an event fires and has to reach the right people.
+
+The pattern deliberately does no delivering: it does not know when events happen, what they contain, or how to reach anyone — that is a separate delivery pattern's job, which keeps the subscription list a clean, auditable administrative record on its own.
+
+At most one active subscription can exist per subscriber-and-scope pair, which keeps a double subscription from listing one subscriber twice in a scope's audience, and a scope holds at most an audience cap's many active subscriptions, which bounds the list a fanout reads; cancellation is immediate and permanent while the full history (including cancelled subscriptions) stays in the subscription records, which an auditor reads directly.
+
+The most common uses are: notifying users of events relevant to them (task assignments, escalations, alerts), broadcasting policy or system changes to a declared audience, and building any system where actors must opt in to event categories with the ability to opt out. This atom is an atomic concept: a freestanding pattern whose specification names no other pattern.
+
+---
+
+## Intent
+
+<details markdown="block">
+<summary>WHY</summary>
+
+A subscription is a standing answer to *who wants to hear about this?* — recorded once, read on every event, withdrawn once. Systems that skip the concept end up deriving the audience from whatever is nearby: a role table, a config file, a query over past activity. Each of those answers a different question, and each drifts. The atom holds the interest itself: one actor, one class of events, in force or withdrawn, with a history of both. It fires nothing, delivers nothing, and knows nothing about events — it answers *who should hear about this scope now*, and the composing pattern does the rest. The one structural rule is at most one active subscription per actor and scope (Invariant 6.1, Operation 6), because two would list one actor twice in one scope's audience, and a composing pattern notifying that list would notify twice for one event, which is almost never what anybody meant.
+
+</details>
+
+## Structure
+
+### Identity model
+
+```
+Identity 1: The atom MUST identify a subscription by the subscription id.
+Identity 2: The host MUST allocate a subscription id at the atom's seam.
+Identity 4: The atom MUST NOT reuse a subscription id.
+Identity 5: The atom MUST NOT identify a subscription by the subscriber reference and the event scope.
+Identity 6: The deployment MUST draw a subscription id from a cryptographically secure source.
+Identity 7: The deployment MUST NOT draw a subscription id from the subscription's public properties.
+```
+
+Term subscription: one actor's standing interest in one class of events — the record this atom holds.
+
+Term subscription id: the opaque string naming one subscription — a [Subscription Id]; unguessable, and the capability [Cancel] accepts; malformed where it is no string.
+
+Term subscriber reference: the opaque string naming who holds the subscription — a [Subscriber Reference]; malformed where it is no string.
+
+Term event scope: the opaque string naming the class of events covered — an [Event Scope]; matched exactly; malformed where it is no string.
+
+Term seam: the atom's I/O boundary; the host injects the clock reading and the subscription id here.
+
+Term transition: the atom's evaluation of one call against the subscription records.
+
+NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
+
+Term id entropy: 128 bits of cryptographically secure random material — the floor a subscription id is drawn from, sufficient for negligible collision probability and for unguessability.
+
+### State
+
+```
+State 1: EVERY subscription MUST stand in EXACTLY ONE OF active, cancelled.
+State 2: EVERY subscription MUST carry subscription id, subscriber reference, event scope, subscription instant and status.
+State 3: A cancelled subscription MUST carry cancellation instant.
+State 4: [Subscribe] MUST stamp subscription instant from the injected now.
+State 5: [Cancel] MUST stamp cancellation instant from the injected now.
+State 7: The atom MUST NOT delete a subscription.
+State 8: The atom MUST NOT hold an event.
+State 9: The atom MUST NOT hold a delivery.
+```
+
+Term status: active | cancelled — in force, or withdrawn and terminal.
+
+Term subscription instant: the instant the subscription was recorded — a [Subscription Instant].
+
+Term cancellation instant: the instant the subscription was withdrawn — a [Cancellation Instant].
+
+Term active set: the subscriptions whose status EQUALS active — what [Subscribed] and [Subscribers For] rest on (Invariant 7.1, Invariant 7.2).
+
+Term active at an instant: subscription instant at or before the instant, and cancellation instant either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
+
+### Capability requirement
+
+```
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the subscription records PER Execution Contract Database 1 through 4, Execution Contract Database 7 and Execution Contract Read 1 through 4.
+Capability requirement 6: The id entropy MUST NOT EXCEED the subscription id's random material.
+Capability requirement 7: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 8: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
+Capability requirement 9: The deployment MAY declare the audience cap ONLY IF the audience cap EXCEEDS 0 PER Execution Contract Input 2, the audience size of an event scope counting as a value a record of the atom holds.
+```
+
+### Operations
+
+```
+subscribe(subscriber_ref, event_scope)
+  answers subscription_id
+  refuses invalid-request | already-subscribed | scope-full | storage-failure
+
+cancel(subscription_id)
+  answers ok
+  refuses not-known | not-active | storage-failure
+
+subscribed(subscriber_ref, event_scope)
+  answers subscribed | not-subscribed
+
+subscribers_for(event_scope)
+  answers subscriber_refs
+```
+
+```
+Operation 1: [Subscribe] MUST record EXACTLY ONE subscription per successful call.
+Operation 2: [Subscribe] MUST stand the subscription in active.
+Operation 3: [Subscribe] MUST answer subscription id.
+Operation 4: IF subscriber reference EQUALS blank THEN [Subscribe] MUST answer invalid-request.
+Operation 5: IF event scope EQUALS blank THEN [Subscribe] MUST answer invalid-request.
+Operation 6: IF an active subscription EXISTS for the pair THEN [Subscribe] MUST answer already-subscribed.
+Operation 33: IF the audience cap DOES NOT EXCEED the audience size of the event scope THEN [Subscribe] MUST answer scope-full.
+Operation 7: The atom MUST NOT interpret subscriber reference beyond the presence check, Operation 29 and Operation 30.
+Operation 8: The atom MUST NOT interpret event scope beyond the presence check, Operation 29 and Operation 30.
+Operation 9: IF no subscription EXISTS for the subscription id THEN [Cancel] MUST answer not-known.
+Operation 10: IF the subscription's status EQUALS cancelled THEN [Cancel] MUST answer not-active.
+Operation 11: [Cancel] MUST stand the subscription in cancelled.
+Operation 12: [Cancel] MUST accept the subscription id as the whole authorization.
+Operation 13: IF the database refuses the write THEN [Subscribe] MUST answer storage-failure.
+Operation 14: IF the database refuses the write THEN [Cancel] MUST answer storage-failure.
+Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
+Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
+Operation 18: [Subscribed] MUST NOT refuse a blank input.
+Operation 19: [Subscribers For] MUST answer the subscriber reference of EVERY active subscription matching the event scope.
+Operation 20: [Subscribers For] MUST answer a subscriber reference ONLY IF an active subscription matching the event scope carries the subscriber reference.
+Operation 22: [Subscribers For] MUST answer an empty list for an event scope no active subscription matches.
+Operation 23: [Subscribers For] MUST NOT order the answer.
+Operation 24: [Subscribed] MUST NOT write.
+Operation 25: [Subscribers For] MUST NOT write.
+Operation 29: IF a string input EXCEEDS the string cap THEN [Subscribe] MUST answer invalid-request.
+Operation 30: IF a subscriber reference is malformed OR an event scope is malformed THEN [Subscribe] MUST answer invalid-request (Execution Contract Input 1).
+Operation 31: IF a subscription id is malformed THEN [Cancel] MUST answer not-known (Execution Contract Input 1).
+Operation 32: [Cancel] MUST answer ok.
+```
+
+NOTE: watch the cap's refusal (Operation 29).
+
+NOTE: watch the untyped input (Operation 30, Operation 31, Term subscriber reference, Term event scope, Term subscription id).
+
+Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 256 code points where a deployment declares none.
+
+NOTE: watch the cap's measure (Term string cap, Term bounds).
+
+Term string input: a subscriber reference or an event scope a [Subscribe] call supplies — every caller-supplied string this atom records; a subscription id and the inputs of [Subscribed] and [Subscribers For] are compared with the records and bound by no cap, so one too long matches no subscription.
+
+Term pair: one subscriber reference with one event scope — what at-most-one ranges over.
+
+Term audience cap: the most active subscriptions one event scope holds, and so the most subscriber references [Subscribers For] answers; 10,000 where a deployment declares none.
+
+Term audience size: the number of active subscriptions an event scope holds.
+
+Term business caller: the party whose action the call carries; never the source of an injected value.
+
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the database |
+|---|---|---|---|
+| [Subscribe] | refs present, no active subscription for the pair, the scope below the audience cap, database accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
+| [Subscribe] | blank or malformed subscriber reference or event scope, or a string input over the string cap | [Invalid Request] | none (Operation 4, Operation 5, Operation 29, Operation 30) |
+| [Subscribe] | the pair already has an active subscription | [Already Subscribed] | none (Operation 6) |
+| [Subscribe] | the scope already holds as many active subscriptions as the audience cap allows | [Scope Full] | none (Operation 33) |
+| [Cancel] | id names an active subscription | ok | [Active] → [Cancelled], cancellation instant stamped; the subscription id, subscriber reference, event scope and subscription instant stand (Operation 11, Operation 32, State 5, Invariant 1.1) |
+| [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
+| [Cancel] | id names nothing, a malformed id included | [Not Known] | none (Operation 9, Operation 31) |
+| either write | database refuses | [Storage Failure] | none (Operation 13, Operation 14) |
+| [Subscribed] | an active subscription matches the pair | subscribed | none — the call reads (Operation 16, Operation 17, Operation 24) |
+| [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Invariant 8.1, Operation 18) |
+| [Subscribers For] | active subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 20, Operation 23) |
+| [Subscribers For] | scope never subscribed, a blank scope included, or all cancelled | empty list | none — the cases read alike (Operation 5, Operation 22) |
+
+### Invariants
+
+- **Invariant 1 — Subscription immutability.**
+  ```
+  Invariant 1.1: A recorded subscription's subscription id, subscriber reference, event scope and subscription instant MUST NOT change.
+  ```
+- **Invariant 2 — Status monotonicity.**
+  ```
+  Invariant 2.2: A status MUST NOT move from cancelled to active.
+  ```
+- **Invariant 3 — Cancellation is terminal.**
+- **Invariant 4 — New subscribe after cancel produces a new id.**
+  ```
+  Invariant 4.1: A subscription recorded for a pair whose earlier subscription's status EQUALS cancelled MUST carry a fresh subscription id.
+  Invariant 4.2: The two subscriptions MUST stand in the database independently.
+  ```
+- **Invariant 5 — No id reuse.**
+  ```
+  Invariant 5.1: Two subscriptions MUST NOT share a subscription id.
+  ```
+- **Invariant 6 — At most one active subscription per pair.**
+  ```
+  Invariant 6.1: Two active subscriptions MUST NOT share a pair.
+  ```
+- **Invariant 7 — Evaluation self-containment.**
+  ```
+  Invariant 7.1: [Subscribed] MUST rest on the active set alone.
+  Invariant 7.2: [Subscribers For] MUST rest on the active set alone.
+  ```
+- **Invariant 8 — Absence means not-subscribed.**
+  ```
+  Invariant 8.1: [Subscribed] MUST answer not-subscribed ONLY IF no active subscription matches the pair.
+  ```
+- **Invariant 9 — Timestamp ordering.**
+  ```
+  Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN cancellation instant MUST NOT PRECEDE subscription instant.
+  ```
+
+## Examples
+
+The same atom, three domains, identical mechanic.
+
+### Shared Todo — assignment notification
+
+In a Shared Todo deployment, actors subscribe to assignment events scoped to themselves. `subscribe(dev_d, task:assigned:dev_d) → sub_42`. When manager M assigns a task to dev_d, the composition calls `subscribers_for(task:assigned:dev_d)` — dev_d's [Subscriber Reference] appears in the result; the composition then creates a Notification record for dev_d. When dev_d opts out of assignment emails, `cancel(sub_42)` — subsequent [Subscribers For] queries for that scope return an empty list; dev_d receives no further assignment notifications.
+
+### Support queue — escalation alerts
+
+A supervisor subscribes to escalation events for their queue: `subscribe(supervisor_s, escalation:queue-9) → sub_e1`. When a ticket in queue 9 escalates, the composition calls `subscribers_for(escalation:queue-9)` — supervisor_s appears; a notification is created. When a second supervisor takes over queue 9, the first cancels: `cancel(sub_e1)`. Subsequent escalations notify only those with Active subscriptions for that scope.
+
+### Compliance system — policy change broadcast
+
+An administrator issues subscriptions for each compliance officer: `subscribe(officer_a, policy:updated) → sub_p1`, `subscribe(officer_b, policy:updated) → sub_p2`. Each officer holds their own Active subscription. When a policy is updated, `subscribers_for(policy:updated)` returns both officers; one notification is created per officer. An officer who leaves the team has their subscription cancelled; they no longer appear in subsequent fanout queries.
+
+### Rejection path
+
+A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → already-subscribed. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription records; sub_97 is the new active record.
+
+On a deployment that declares an audience cap of 2, a scope `policy:updated` holding active subscriptions for officer_a and officer_b: `subscribe(officer_c, policy:updated)` is rejected as [Scope Full] (Operation 33); once `cancel(sub_p1)` stands officer_a's subscription in cancelled, the same call is accepted, and `subscribers_for(policy:updated)` answers two references, never more than the cap.
+
+### Regulated adversarial scenarios
+
+Three scenarios the subscription records must survive in regulated contexts:
+
+- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`cancelled_at` is absent or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer provably, from stored fields — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant]. Invariants 1 and 9 make the timeline reconstruction exact.
+- **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription records for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the database confirms the actor was never subscribed. The subscription records prove which subscriptions named the actor and when; who called [Subscribe] they do not record, and attribution is Actor Identity's to compose (Non-goal 13, Non-goal 14).
+- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`cancelled_at` is absent or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who was subscribed to that scope at the instant of the breach. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
+
+---
+
+## Generation acceptance
+
+This atom's acceptance is provable: an external auditor clears it from the subscription records' stored fields, with their committed versions (Execution Contract Generation acceptance 1), and Check 3.2 from a [Subscribers For] call the auditor makes, which writes nothing (Operation 25). The id source's obligations (Identity 6, Identity 7, Capability requirement 6) no stored field carries, and External check 2 answers them.
+
+### Conformance checks
+
+```
+Check 1.1: An auditor MUST reconstruct a scope's subscriptions active at a past instant from subscription instant and cancellation instant (State 2, State 3).
+Check 1.2: An auditor MUST find no subscription whose cancellation instant PRECEDES the subscription's subscription instant (Invariant 9.1).
+Check 1.3: An auditor MUST find EVERY subscription's subscription id, subscriber reference, event scope and subscription instant unchanged across EVERY committed version of the subscription (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Invariant 6.1).
+Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled subscription (State 3).
+Check 3.2: An auditor MUST find EVERY subscriber reference a [Subscribers For] call answers carried by an active subscription matching the event scope (Operation 20).
+Check 3.3: An auditor MUST find no subscription whose status moves out of cancelled across the subscription's committed versions (Invariant 2.2; Execution Contract Generation acceptance 1).
+Check 4.1: An auditor MUST find a fresh subscription id on EVERY re-subscription of a pair (Invariant 4.1, Invariant 5.1).
+```
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```
+External check 2: An auditor MUST clear from the deployment's own random source that EVERY subscription id is drawn from a cryptographically secure source carrying the id entropy (Identity 6, Identity 7, Capability requirement 6).
+```
+
+## Non-goals
+
+```
+Non-goal 1: The atom MUST NOT fire an event.
+Non-goal 2: The atom MUST NOT match an event to a subscription.
+Non-goal 3: The atom MUST NOT create a notification.
+Non-goal 4: A deployment needing fanout MUST compose Notification Fanout.
+Non-goal 5: The atom MUST NOT deliver a notification.
+Non-goal 6: The atom MUST NOT expand a scope hierarchy.
+Non-goal 7: The atom MUST NOT match a scope pattern.
+Non-goal 8: The atom MUST NOT guarantee a delivery count.
+Non-goal 9: The atom MUST NOT expire a subscription.
+Non-goal 10: A deployment needing a time-bounded subscription MUST compose a temporal-subscription pattern.
+Non-goal 11: The atom MUST NOT hold a subscriber's lifecycle.
+Non-goal 12: A deployment deprovisioning an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); a subscription whose id is lost stays active (Lost ledger 3).
+Non-goal 13: The atom MUST NOT record who called [Subscribe].
+Non-goal 14: A deployment needing attribution MUST compose Actor Identity.
+Non-goal 15: The atom MUST NOT gate [Cancel] beyond the subscription id.
+Non-goal 16: The atom MUST NOT offer a bulk cancel.
+Non-goal 17: The atom MUST NOT record an event's firing history.
+Non-goal 18: A deployment needing a retention bound MUST compose Retention Window.
+```
+
+NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12); the deployment's own operating policy (Lost ledger 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); a temporal-subscription pattern *(forthcoming)* (Non-goal 10); an Actor Registry *(forthcoming)* (Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14); [Permissions](./permissions.md) (Non-goal 15, Cancel capability 3); [Event Log](./event-log.md) (Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
+
+Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two active subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1, Lost ledger 3, Lost ledger 4).
+
+## Edge cases
+
+### Atomicity of a cancel
+
+### Cancel as a capability
+
+```
+Cancel capability 1: A caller holding the subscription id MUST reach [Cancel].
+Cancel capability 2: The atom MUST NOT enumerate subscription ids.
+Cancel capability 3: A deployment needing richer authorization MUST compose Permissions.
+```
+
+### The lost ledger
+
+```
+Lost ledger 1: The atom MUST NOT recover a subscription id.
+Lost ledger 2: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
+Lost ledger 3: A deployment losing a subscription id MUST read the subscription as permanently active.
+Lost ledger 4: A deployment needing recovery from a lost subscription id MUST supply the recovery as the deployment's own operating policy, outside the atom, since no declared surface of the atom returns a subscription id to the recovery (Cancel capability 2, Lost ledger 1).
+```
+
+### The pair race
+
+## Composition notes
+
+```
+Composition note 2: A composing pattern MUST call [Subscribers For] when an event fires.
+Composition note 3: A composing pattern MUST record the subscription id at subscribe time.
+Composition note 5: A composing pattern MUST own scope semantics beyond exact match.
+```
+
+NOTE: watch the deployment's composition note (Capability requirement 8).
+
+NOTE: composing patterns — [Notification Fanout](../compositions/notification-fanout.md). Forthcoming: Temporal Subscription, Actor Registry.
+
+## Terms
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the database; a subscription; a status.
+
+Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
+
+Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, precede, clear.
+
+Term value sets: status = active | cancelled.
+
+Term bounds: id entropy (the floor a subscription id's random material is drawn from); string cap; audience cap (the most active subscriptions one event scope holds, 10,000 where a deployment declares none).
+
+Term cadences: empty.
+
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version, string cap, string input, audience cap, audience size.
+
+#### Subscribe
+
+The behavior that records a named actor's interest — creating a new [Active] subscription for a ([Subscriber Reference], [Event Scope]) pair with a fresh [Subscription Id] and stamping [Subscription Instant]. Returns the [Subscription Id], or a rejection ([Invalid Request], [Already Subscribed], [Scope Full], [Storage Failure]).
+
+Kind: Operation
+
+#### Cancel
+
+The behavior that withdraws a subscription, moving it [Active] → [Cancelled] (terminal) and stamping [Cancellation Instant]. Knowledge of the [Subscription Id] is itself the capability. Returns ok, or a rejection ([Not Known], [Not Active], [Storage Failure]).
+
+Kind: Operation
+
+#### Subscribed
+
+The read-only point query — returns subscribed if any [Active] subscription matches the ([Subscriber Reference], [Event Scope]) pair, else not-subscribed. Both are first-class outcomes; no rejection is defined (Invariant 8).
+
+Kind: Operation
+
+#### Subscribers For
+
+The read-only fanout query — returns the [Subscriber Reference] values of all [Active] subscriptions for an [Event Scope] (unordered; empty if none; never more than the audience cap, Operation 33). The list a composing pattern needs when an event fires.
+
+Kind: Operation
+
+#### Subscription Id
+
+The opaque, immutable string identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
+
+Kind:       Field
+Field of:   the subscription
+Projection: subscription_id
+
+#### Subscriber Reference
+
+The opaque string reference to the subscribing actor. Set on [Subscribe], immutable (Invariant 1); the actor registry is a separate concept. Equality is exact and the atom normalizes nothing; the at-most-one-active rule (Invariant 6) ranges over it, so canonicalization is the deployment's, at the seam (Execution Contract Logic confinement 13).
+
+Kind:       Field
+Field of:   the subscription
+Projection: subscriber_ref
+
+#### Event Scope
+
+The opaque string reference to the class of events the subscription covers. Set on [Subscribe], immutable; matched by exact value ([Subscribers For] and [Subscribed] compare on it) — scope hierarchy and wildcards belong to composing patterns. The atom normalizes nothing; the at-most-one-active rule (Invariant 6) ranges over it, so canonicalization is the deployment's, at the seam (Execution Contract Logic confinement 13).
+
+Kind:       Field
+Field of:   the subscription
+Projection: event_scope
+
+#### Subscription Instant
+
+The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancellation Instant] holds (Invariant 9.1, Execution Contract Logic confinement 7).
+
+Kind:       Field
+Field of:   the subscription
+Projection: subscribed_at
+
+#### Status
+
+The subscription's lifecycle state — active or cancelled (i.e., [Active] or [Cancelled]). Set to active on [Subscribe]; transitions once to cancelled on [Cancel] (State 1, Invariant 2).
+
+Kind:       Field
+Field of:   the subscription
+Projection: status
+
+#### Cancellation Instant
+
+The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscription Instant] (Invariant 9.1, Execution Contract Logic confinement 7).
+
+Kind:       Field
+Field of:   the subscription
+Projection: cancelled_at
+
+#### Active
+
+The in-force state of a subscription: the subscriber appears in [Subscribers For] results for its [Event Scope]. The entry state on [Subscribe]. At most one [Active] subscription per ([Subscriber Reference], [Event Scope]) pair (Invariant 6).
+
+Kind:      Member
+Member of: the subscription status
+Role:      Outcome
+
+#### Cancelled
+
+The terminal, withdrawn state of a subscription (Invariant 2.2): the subscription no longer puts its subscriber in [Subscribers For] results (Operation 20). Reached once, via [Cancel]; the record stays queryable for audit.
+
+Kind:      Member
+Member of: the subscription status
+Role:      Outcome
+
+#### Invalid Request
+
+The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is blank: absent, empty, or carrying only whitespace (Operation 4, Operation 5), or is malformed (Operation 30), or when a string input exceeds the string cap (Operation 29). (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
+
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: invalid-request
+
+#### Already Subscribed
+
+The rejection [Subscribe] returns when an [Active] subscription already exists for the ([Subscriber Reference], [Event Scope]) pair (Invariant 6) — the mechanism that keeps a scope's audience from listing one subscriber twice.
+
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: already-subscribed
+
+#### Scope Full
+
+The rejection [Subscribe] returns when the event scope already holds as many [Active] subscriptions as the audience cap allows (Operation 33) — the bound that keeps the list [Subscribers For] answers within the cap; the caller cancels an active subscription of the scope, or the deployment declares a higher cap.
+
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: scope-full
+
+#### Storage Failure
+
+The rejection [Subscribe] or [Cancel] returns when the database write fails.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
+
+#### Not Known
+
+The rejection [Cancel] returns when the [Subscription Id] references no subscription or is malformed (Operation 9, Operation 31).
+
+Kind:       Member
+Member of:  the Cancel rejection
+Role:       Outcome
+Projection: not-known
+
+#### Not Active
+
+The rejection [Cancel] returns when the referenced subscription is already [Cancelled] — cancellation is terminal (Operation 10, Invariant 2.2).
+
+Kind:       Member
+Member of:  the Cancel rejection
+Role:       Outcome
+Projection: not-active
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
+     auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
+     kramdown; no plugin required. -->
+
+[Subscribe]: #subscribe
+[Cancel]: #cancel
+[Subscribed]: #subscribed
+[Subscribers For]: #subscribers-for
+[Subscription Id]: #subscription-id
+[Subscriber Reference]: #subscriber-reference
+[Event Scope]: #event-scope
+[Subscription Instant]: #subscription-instant
+[Status]: #status
+[Cancellation Instant]: #cancellation-instant
+[Active]: #active
+[Cancelled]: #cancelled
+[Invalid Request]: #invalid-request
+[Already Subscribed]: #already-subscribed
+[Scope Full]: #scope-full
+[Storage Failure]: #storage-failure
+[Not Known]: #not-known
+[Not Active]: #not-active
+
+---
+
+## Standards references
+
+- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — the canonical object-oriented formulation of the subscriber/publisher relationship. Subscription is the structured-natural-language realization of the Subscriber role: an actor with a named interest in a class of events.
+- **Publish-subscribe** (Birman & Joseph, 1987; subsequently AMQP (Advanced Message Queuing Protocol — the open messaging-middleware standard), Apache Kafka, etc.) — topic-based subscription as the mechanism for decoupling event producers from consumers. Subscription records the consumer-side interest; the composing fanout pattern is the broker.
+- **WebSub** (W3C — World Wide Web Consortium, the web's standards body — Recommendation) — web-native publish-subscribe over HTTP (HyperText Transfer Protocol — the request/response protocol of the web). The subscription resource in WebSub is the web analog of this atom.
+- **XMPP PubSub** (XEP-0060, an XMPP Extension Protocol — publish-subscribe over the Extensible Messaging and Presence Protocol) — structured publish-subscribe over XMPP. Subscription nodes are the protocol-level analog.
+- **Daniel Jackson, *The Essence of Software*** — freestanding-atom posture; [Event Scope] as an opaque reference whose semantics are defined by the composing system.
+- **Eiffel's design-by-contract** — preconditions on [Subscribe] and [Cancel]; named rejection reasons.
+
+---
+
+## Status
+
+`done — 2026-11-20` — see the Ledger.
+
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
+
+```
+status: done — 2026-11-20
+formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 32 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1); 2026-11-20, with an audience cap of 2: Operation 33 (Op33_FullScopeRefused, broken by subscription-buggy-subscribe-ignores-audience-cap.tla), its order behind Operation 6 (Op6_ActivePairRefused, broken by subscription-buggy-subscribe-full-before-already.tla) and Term audience cap at the read (AudienceCap_ReadWithinCap)); nothing testable for Operation 23: the answer's order is no state a model can find wrong; owed rows: none, 2026-11-11
+last gate: 2026-11-20 — Final Critique 13, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 94946e30 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 12, a delta round, frozen at 6c79ec3e — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 11, a delta round, frozen at 125fa86b — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
+
+open: none
+```
+
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
+
+Decisions are kept in [the pattern's history](./subscription.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`.
+
+</details>
+
+NOTE: End of Subscription.

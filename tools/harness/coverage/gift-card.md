@@ -1,6 +1,6 @@
 # Coverage matrix — `gift-card`
 
-- **Pattern:** `atoms/gift-card.md`
+- **Pattern:** `library/atoms/gift-card.md`
 - **Model:** `gift-card.als`, the static data model (+ 12 buggy twins `gift-card-buggy-<defect>.als`), and `gift-card.tla` + `gift-card.cfg`, the operation sequences (+ 16 buggy twins `gift-card-buggy-<defect>.tla`, each with its `.cfg`), 2026-11-11
 - **Reviewer / date:** the models' author, the session that landed them — 2026-11-11. Not a fresh-context read; the next scheduled rescan owes one.
 - **Formal-layer vote load-bearing claims:** the vote was cast no on 2026-10-30 (the atom reads no clock and claims no ordering of its own) and superseded by the maintainer's ruling of 2026-11-09 (every page gets an Alloy model of its valid states and a TLA+ model of its operation sequences; only the writing vetoes one). Neither was vetoed. The models take every Invariant the page states as load-bearing: Invariant 1 (the balance never goes below zero), 2 (nothing raises a balance), 3 (a gift card keeps its code, its currency and its value), 4 (a refused spend takes nothing).

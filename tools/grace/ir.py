@@ -131,7 +131,7 @@ def parse(path: Path, root: Path) -> dict:
     if rel is None:
         composes = any((check.h2_name(ln) or "").strip() == "Composes" or ln.rstrip() == "### Composes" for ln in lines)
         kind = "composition" if composes else "atom"
-        home = f"{kind}s/{path.name}"
+        home = f"library/{kind}s/{path.name}"
     else:
         kind = "atom" if Path(rel).parent.name == "atoms" else "composition"
         home = rel

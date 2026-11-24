@@ -1,0 +1,482 @@
+---
+title: Session-Gated Authorization
+id: 14
+audience: common
+nav_order: 14
+has_toc: true
+toc: true
+---
+
+# Session-Gated Authorization
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+**Composes:** [Session](../atoms/session.md) · [Permissions](../atoms/permissions.md)
+
+## Summary
+
+Session-Gated Authorization is a regulated composition — a combination of two simpler building-block patterns (called atoms), designed for settings where regulators audit access control. Every authorization query is gated by a mandatory session validation before the Permissions atom — the pattern recording who may do what — is consulted. An expired, revoked, or unrecognized session terminates the call before Permissions is reached.
+
+The principal presented to Permissions is always the principal the session was issued for — never a value the caller supplies.
+
+This composition owns two rules and inherits a third. It owns the **principal binding** — [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns that to a composing pattern and declines to state it, so no atom holds it. It owns the **closure**: Permissions is unreachable unless a validate answered, which is stricter than anything Session says. The **gate itself** — that an invalid session must not reach Permissions — is [Session](../atoms/session.md)'s `Composition note 4`, cited here and obeyed, not invented here.
+
+---
+
+## Intent
+
+Every system that issues session tokens and enforces authorization policies faces the same ordering problem: the runtime check must verify that the session is still valid *before* consulting the permission records, not after. An expired or revoked session that reaches `Permissions.permitted` is an authentication gap masquerading as an authorization query.
+
+Session-Gated Authorization wires Session and Permissions into a single enforced boundary. `Session.validate` must return `valid` before `Permissions.permitted` is consulted. The gate is a pre-check at the composition boundary, not inside either constituent atom. Neither atom gains knowledge of the other; the composition wires the sequencing constraint that Session's `Composition note 4` binds it to keep, and no atom carries it.
+
+The second guarantee is principal binding: the subject passed to `Permissions.permitted` is always the `principal_ref` extracted from the validated session, never a caller-supplied value. A caller cannot interrogate permissions for an arbitrary principal by presenting an arbitrary session token. This eliminates a class of authorization bypass that is otherwise invisible when the two atoms are composed informally — when code calls `Permissions.permitted(caller_supplied_principal, scope)` without gating on the session, a compromised or forged request can probe any principal's permissions regardless of the session state.
+
+---
+
+## Composes
+
+- **[Session](../atoms/session.md)** — the session a call presents, validated at the gate.
+- **[Permissions](../atoms/permissions.md)** — the grants and the permission query behind the gate.
+
+```
+Composes 1: EXACTLY ONE Session instance MUST serve the composition.
+Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
+Composes 3: The composition MUST NOT change a constituent's spec.
+Composes 4: The composition MUST NOT hold state across a call.
+Composes 5: The composition MUST replace Permissions' permitted as the authorization surface.
+Composes 6: The composition MUST own the binding between the authenticated caller and the subject reference.
+Composes 7: The composition MUST obey Session Composition note 4.
+```
+
+Term composition: this pattern's wiring of [Session](../atoms/session.md) and [Permissions](../atoms/permissions.md) — the gate, the principal binding and the one action below.
+
+Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permissions.md).
+
+---
+
+## Composition logic
+
+### Composition state
+
+```
+Composition state 1: The composition MUST NOT store a record.
+Composition state 2: The composition MUST NOT derive an index.
+Composition state 3: The composition MUST evaluate the gate from the constituents' own surfaces.
+Composition state 4: A deployment needing a record of a [Check Permitted] answer MUST compose Audit Trail.
+```
+
+### Primitive policy
+
+```
+Primitive policy 1: A deployment MAY declare the length bound of EVERY opaque input PER Execution Contract Input 2.
+Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session token.
+Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action scope.
+Primitive policy 4: IF an input EXCEEDS the length bound THEN [Check Permitted] MUST answer invalid-request.
+Primitive policy 5: The composition MUST compare an input byte-exact.
+Primitive policy 6: [Check Permitted] MUST NOT trim an input.
+Primitive policy 7: [Check Permitted] MUST NOT case-fold an input.
+Primitive policy 8: [Check Permitted] MUST NOT normalize an input.
+Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input the boundary predicate refuses.
+Primitive policy 10: The action scope's length bound MUST NOT EXCEED the Permissions instance's string cap.
+Primitive policy 11: The session token's length bound MUST NOT EXCEED Session's maximum length.
+```
+
+NOTE: watch the unset setting (Primitive policy 1).
+
+NOTE: a principal reference over the Permissions instance's string cap matches no grant (Permissions String 6, String 7), so [Check Permitted] answers denied for it, Permissions' answer unchanged (Action wiring 10, 11).
+
+### Action wiring
+
+```
+check_permitted(session_token, action_scope)
+  answers permitted | denied
+  refuses invalid-request | session-invalid(validation failure) | state-unavailable
+```
+
+```
+Action wiring 1: The composition MUST validate the inputs against the boundary predicate.
+Action wiring 2: The composition MUST call Session's validate ONLY AFTER the inputs clear the boundary predicate.
+Action wiring 3: The composition MUST call Session's validate with the session token.
+Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal reference.
+Action wiring 6: An admitted gate MUST call Permissions' permitted with the action scope.
+Action wiring 7: [Check Permitted] MUST NOT accept a principal reference.
+Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject reference.
+Action wiring 9: IF Session's validate gives an invalid answer THEN [Check Permitted] MUST answer session-invalid naming the invalid answer's reason.
+Action wiring 10: An admitted gate MUST answer Permissions' permitted answer.
+Action wiring 11: [Check Permitted] MUST NOT change Permissions' permitted answer.
+Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expiry instant.
+Action wiring 13: The composition MUST call Session's validate for EVERY call whose inputs clear the boundary predicate.
+Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call received.
+Action wiring 15: [Check Permitted] MUST NOT write.
+```
+
+Term boundary predicate: the composition's own input check — an input EQUALS blank OR an input EXCEEDS the length bound.
+
+
+Term length bound: the cap the composition holds one opaque input to, counted in Unicode code points — a [Length Bound]; for the session token, Session's maximum length, and for the action scope, the Permissions instance's string cap, where a deployment declares none, and a declared cap replaces the default for its input (Primitive policy 10, Primitive policy 11, Execution Contract Input 2).
+
+Term valid answer: Session's validate answer carrying a principal reference and an expiry instant.
+
+Term invalid answer: Session's validate answer carrying expired, revoked OR not-known.
+
+Term admitted gate: a [Check Permitted] call whose inputs cleared the boundary predicate AND whose Session validate gave a valid answer.
+
+Term disputed instant: the clock reading Session's validate took for the call a dispute names — the composition stores no instant (Composition state 1), so a composed Audit Trail records it (Composition note 5).
+
+#### Closure table
+
+Every input [Check Permitted] takes and every answer a call of Session's validate and Permissions' permitted can meet, with where the call lands it and the rule that owns the landing. A constituent call meets the answers its signature declares and the state-unavailable a failed read of the database gives every action (Execution Contract Read 1, Execution Contract Constituent failure 3); a call that never answers is the lost answer of Execution Contract Error model 1, written no answer here. The composition writes nothing (Composition state 1), and a refusal writes nothing (Execution Contract Read 4).
+
+**Inputs.**
+
+| Input | Lands | Owner |
+|---|---|---|
+| a blank session token or a blank action scope | invalid-request, no constituent called | Primitive policy 2, 3, 9 |
+| a session token or an action scope over the length bound | invalid-request, no constituent called | Primitive policy 4, 9 |
+| an opaque input | compared byte-exact, never trimmed, case-folded or normalized | Primitive policy 5, 6, 7, 8 |
+
+**Session's validate.**
+
+| Answer | Lands | Owner |
+|---|---|---|
+| valid | Permissions' permitted called with the principal reference and the action scope | Action wiring 5, 6, Wiring decision 1 |
+| invalid (expired, revoked or not-known) | session-invalid naming the reason, Permissions not called | Action wiring 9, Invariant 1.1 |
+| state-unavailable | state-unavailable, Permissions not called | Wiring decision 1, Execution Contract Constituent failure 3 |
+
+**Permissions' permitted.**
+
+| Answer | Lands | Owner |
+|---|---|---|
+| permitted | permitted answered unchanged | Action wiring 10, 11 |
+| denied | denied answered unchanged | Action wiring 10, 11, Invariant 4.1 |
+| state-unavailable | state-unavailable | Execution Contract Constituent failure 3 |
+
+### Wiring decision
+
+```
+Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER Session's validate gives a valid answer.
+```
+
+<details markdown="block">
+<summary>WHY</summary>
+
+*Principle.* The session gates the permission check, at the composition boundary, so neither atom learns the other's rules (the section titled Intent).
+
+*Likely objection.* Permissions could check the session itself, or Session could carry the grants, and the gate would need no composition.
+
+*Mechanism that resolves it.* Either move gives one atom the other's vocabulary and makes every change to one reach the other's callers. The sequencing lives where both answers already meet, the action's wiring, and Session's `Composition note 4` binds the composing pattern, not the atom, to keep an invalid session from Permissions.
+
+*Result.* An invalid session never reaches Permissions (Invariant 1.1), a denied answer means the gate cleared (Invariant 3.1), and an auditor reads the gate's order from the wiring alone (External check 1).
+
+</details>
+
+---
+
+## Composition-level invariants
+
+- **Invariant 1 — Session gates authorization.**
+  ```
+  Invariant 1.1: The composition MUST NOT call Permissions' permitted in a call for which Session's validate gave no valid answer.
+  ```
+- **Invariant 2 — Principal binding.**
+  ```
+  Invariant 2.1: EVERY subject reference Permissions' permitted receives MUST equal the valid answer's principal reference.
+  Invariant 2.2: The composition MUST NOT query a principal reference beside the session's own.
+  ```
+- **Invariant 3 — Denial is not rejection.**
+  ```
+  Invariant 3.1: A denied answer MUST follow an admitted gate.
+  Invariant 3.2: A session-invalid answer MUST NOT follow an admitted gate.
+  Invariant 3.3: The composition MUST NOT answer denied for a session Session's validate gave an invalid answer for.
+  ```
+- **Invariant 4 — Default deny.**
+  ```
+  Invariant 4.1: IF Permissions' permitted answers for an admitted gate THEN the gate MUST answer denied for a pair no active grant covers.
+  Invariant 4.2: A valid session MUST NOT stand as sufficient for access.
+  ```
+
+---
+
+## Examples
+
+### Happy path — valid session, permission granted
+
+A principal holds an active session and has a grant for the requested scope.
+
+```
+check_permitted(
+  session_token: "tok_abc123",
+  action_scope:  "invoice:read"
+) → permitted
+```
+
+Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", expires_at: T+3600)`. Then: `Permissions.permitted("usr_42", "invoice:read") → permitted`.
+
+### Session expired — gate blocks before Permissions
+
+The session token identifies a session whose `expires_at` has passed.
+
+```
+check_permitted(
+  session_token: "tok_expired",
+  action_scope:  "invoice:read"
+) → session-invalid(expired)
+```
+
+Internally: `Session.validate("tok_expired") → invalid(expired)`. Permissions is never consulted.
+
+### Session revoked — gate blocks before Permissions
+
+The session was revoked — directly by `Session.revoke`, by `logout`, or via cascade from [Login](./login.md)'s `revoke_sessions_for_credential`.
+
+```
+check_permitted(
+  session_token: "tok_revoked",
+  action_scope:  "invoice:read"
+) → session-invalid(revoked)
+```
+
+Internally: `Session.validate("tok_revoked") → invalid(revoked)`. Permissions is never consulted.
+
+### Session not known — gate blocks before Permissions
+
+The token is unrecognized — never issued, already purged, or fabricated.
+
+```
+check_permitted(
+  session_token: "tok_unknown",
+  action_scope:  "invoice:read"
+) → session-invalid(not-known)
+```
+
+Internally: `Session.validate("tok_unknown") → invalid(not-known)`. Permissions is never consulted.
+
+### Malformed input — rejected before the gate
+
+The caller presents a whitespace-only token.
+
+```
+check_permitted(
+  session_token: "   ",
+  action_scope:  "invoice:read"
+) → invalid-request
+```
+
+The token fails the boundary predicate (whitespace-only counts as absent). Neither `Session.validate` nor `Permissions.permitted` is consulted. The outcome is not denied (no permission was evaluated) and not session-invalid (no session was consulted) — the three classes stay distinct.
+
+### Valid session, permission denied
+
+The session is active but the principal has no active grant for the requested scope.
+
+```
+check_permitted(
+  session_token: "tok_abc123",
+  action_scope:  "invoice:delete"
+) → denied
+```
+
+Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", ...)`. Then: `Permissions.permitted("usr_42", "invoice:delete") → denied`. The principal holds no active grant for `"invoice:delete"`.
+
+### Regulated adversarial scenarios
+
+**Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
+
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call whose validate read Session's state after the commit that wrote the revocation returned `session-invalid(revoked)` with that session token, not permitted or denied. Session's state records the revocation timestamp, the clock reading of the Revoke call, taken before the commit (Session Non-goal 30). The composition's Invariant 1 establishes that Permissions was never reached without a valid answer, and Concurrency 2 leaves a call whose validate read Session's state before that commit to finish, whatever clock reading it took. If Audit Trail is composed in, the dispute's answer is provable. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that a call whose validate read Session's state after that commit cannot produce a permitted or denied result. A call whose validate read Session's state before that commit may still answer permitted (Concurrency 2); a bound on that effect is the deployment's (Concurrency 3).
+
+**Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
+
+---
+
+## Generation acceptance
+
+This composition introduces no per-call event log, so the acceptance bar has two tiers: what an auditor clears from the constituents' own state, and what needs evidence that state does not carry. Both are stated so the auditor knows which is which before starting.
+
+### Conformance checks
+
+```
+Check 2.1: An auditor MUST find Session's state naming, for the disputed session token, a principal reference that EQUALS the subject reference of the grant a disputed permitted answer rests on (Invariant 2.1).
+Check 2.2: IF the disputed instant DOES NOT PRECEDE the grant instant of the grant a disputed permitted answer rests on AND no revocation of that grant has a revocation instant the disputed instant DOES NOT PRECEDE and a commit that DOES NOT PRECEDE the answer's read of Permissions' state THEN an auditor MUST find, by the reconstruction of Permissions Check 2.1, a grant live at the disputed instant for the pair the answer rests on (Permissions Operation 17, External check 8).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```
+External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
+External check 2: An auditor needing the principal binding confirmed MUST read the deployment's own implementation (Invariant 2.1).
+External check 3: An auditor needing an enumeration of authorization attempts, EVERY answer of which EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid, state-unavailable, MUST read a composed Audit Trail (Composition state 1, Invariant 3.1, Invariant 3.2, Execution Contract Constituent failure 3).
+External check 4: An auditor needing a gate rejection's record MUST read a composed Audit Trail (Composition state 1).
+External check 5: An auditor needing Permissions' permitted confirmed unexposed MUST read the deployment's own wiring (Composes 5, Non-goal 9).
+External check 6: An auditor needing proof that no permitted answer followed a validate call whose clock reading DOES NOT PRECEDE the session's expiry instant MUST read a composed Audit Trail, since the composition's own state carries no answer (Composition state 1, Invariant 1.1, Concurrency 1, Session Composition note 4).
+External check 7: An auditor needing proof that no permitted answer followed a validate call whose read of Session's state DOES NOT PRECEDE the commit that wrote the revocation MUST read a composed Audit Trail, since the composition's own state carries no answer (Composition state 1, Invariant 1.1, Concurrency 1, Session Composition note 4).
+External check 8: IF the disputed instant PRECEDES the grant instant of the grant a permitted answer rests on OR the answer's read of Permissions' state PRECEDES the commit of a revocation of that grant whose revocation instant the disputed instant DOES NOT PRECEDE THEN an auditor needing to place the answer MUST read a composed Audit Trail, since the composition's own state carries no answer (Composition state 1, Check 2.2, Execution Contract Logic confinement 3).
+```
+
+NOTE: watch the external answer that moves (External check 6, External check 7, External check 8).
+
+---
+
+## Non-goals
+
+```
+Non-goal 1: The composition MUST NOT issue a session.
+Non-goal 2: The composition MUST NOT terminate a session.
+Non-goal 3: The composition MUST NOT grant a permission.
+Non-goal 4: The composition MUST NOT revoke a permission.
+Non-goal 5: The composition MUST NOT expand an action scope.
+Non-goal 6: The composition MUST NOT match an action scope by prefix.
+Non-goal 7: The composition MUST NOT aggregate a principal reference's sessions.
+Non-goal 8: A deployment caching a validate answer across calls MUST NOT claim conformance.
+Non-goal 9: A deployment MUST NOT expose Permissions' permitted beside [Check Permitted].
+Non-goal 10: The composition MUST NOT record an authorization decision.
+Non-goal 11: The composition MUST NOT distinguish a session that lapsed unused from one that lapsed in use.
+Non-goal 12: The composition MUST NOT answer storage-failure.
+Non-goal 13: A deployment exposing any other constituent surface beside [Check Permitted] MUST declare the exposure.
+Non-goal 14: A deployment needing a retention bound on the session records MUST compose Retention Window.
+```
+
+NOTE: the owners — [Session](../atoms/session.md) issues, terminates and reads sessions (Non-goal 1, Non-goal 2, Non-goal 7, Non-goal 11); [Permissions](../atoms/permissions.md) grants and revokes a permission (Non-goal 3, Non-goal 4); the deployment's scope vocabulary decides what a scope is and how scopes relate (Non-goal 5, Non-goal 6, Composition note 3); [Audit Trail](./audit-trail.md) records an authorization decision (Non-goal 10); [Retention Window](../atoms/retention-window.md) bounds how long the session records are kept (Non-goal 14, Session Composition note 9); the Execution Contract answers a failed read (Non-goal 12, Execution Contract Read 1); the deployment's own wiring declares an exposure (Non-goal 8, Non-goal 13).
+
+NOTE: watch the adopter's policy note (Non-goal 14).
+
+---
+
+## Edge cases
+
+### Concurrency
+
+```
+Concurrency 1: The composition MUST answer from the validate answer the call received.
+Concurrency 2: The composition MUST NOT detect a revocation that follows the validate answer.
+Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound the session duration at the composing layer that issues sessions (Session Non-goal 29).
+```
+
+---
+
+## Composition notes
+
+```
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 3: A deployment MUST own the action scope vocabulary (Permissions Composition note 2).
+Composition note 4: A deployment MUST NOT read this composition as a session lifecycle surface.
+Composition note 5: A deployment composing Audit Trail MUST record EVERY [Check Permitted] call and the call's answer.
+Composition note 6: A deployment MUST own a departing subject's deprovisioning sweep (Permissions Composition note 5).
+```
+
+---
+
+## Terms
+
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a minimal, stateless composition — a gate — so its own concepts are just the single action it exposes ([Check Permitted]) and its two own rejections ([Session Invalid], the gate refusal; [Invalid Request], the boundary refusal — composition-introduced, since neither wired constituent operation can produce it). It introduces **no cross-atom state** and no new data, so there is nothing else to carry a term entry: the emergent guarantees it owns — the session-gates-authorization ordering (Invariant 1) and the principal binding (Invariant 2) — are structural properties, not data. References to the constituent atoms and their operations — Session's `validate` / `revoke`, Permissions' permitted — and the relayed outcomes (permitted, denied) and the `invalid(...)` reasons (`expired` / revoked / not-known) Session returns, remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
+
+Term terms: composition, constituents, boundary predicate, blank, length bound, valid answer, invalid answer, admitted gate, disputed instant.
+
+Term record verbs: validate, call, answer, accept, read, write, store, derive, evaluate, compare, trim, normalize, equal, stand, follow, reach, find, name, own, discharge, obey, change, replace, hold, serve, compose, declare, pin, bound, issue, terminate, grant, revoke, expand, match, aggregate, distinguish, record, detect, claim, query, receive, cover, case-fold, expose.
+
+Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an input; an answer.
+
+Term value sets: invalid answer reasons = expired | revoked | not-known.
+
+Term cited: the section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. validation failure: Session.
+
+#### Check Permitted
+
+The composition's single action: it validates the presented session and, only if valid, evaluates whether the session's own principal holds the requested permission — `Session.validate` before `Permissions.permitted`, always with the session-extracted `principal_ref` (Invariant 1 through 2). Returns permitted or denied (Permissions' result, passed through unmodified), or [Session Invalid] when the gate does not clear, or [Invalid Request] for inputs failing the boundary predicate; a failed read of either constituent answers state-unavailable unchanged (Execution Contract Constituent failure 3).
+
+Kind: Operation
+
+#### Session Invalid
+
+The composition's own gate rejection from [Check Permitted] — returned when `Session.validate` gives an invalid answer: the session is `expired`, revoked, or not-known. It terminates the call **before Permissions is consulted** (Invariant 1), and is structurally distinct from a denied result (which means the gate cleared and the permission was evaluated — Invariant 3). Carries the reason.
+
+Kind:       Member
+Member of:  the check-permitted rejection
+Role:       Rejection
+Projection: session-invalid
+
+#### Invalid Request
+
+The composition's own boundary rejection from [Check Permitted] — returned when session token or action scope fails the boundary predicate (null, empty, whitespace-only, or over the length bound). Composition-introduced: neither wired constituent operation produces it, and neither constituent is consulted when it fires.
+
+Kind:       Member
+Member of:  the check-permitted rejection
+Role:       Rejection
+Projection: invalid-request
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
+     auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
+     kramdown; no plugin required. -->
+
+[Check Permitted]: #check-permitted
+[Session Invalid]: #session-invalid
+[Invalid Request]: #invalid-request
+
+---
+
+#### Length Bound
+
+The cap the composition holds one opaque input to at the composition boundary: for the session token Session's maximum length, and for the action scope the Permissions instance's string cap, where the deployment declares none, and a declared cap never above the cap its constituent holds the input to: the Permissions instance's string cap for the action scope, Session's maximum length for the session token (Primitive policy 1, Primitive policy 10, Primitive policy 11). An argument over the cap is refused as [Invalid Request] before either constituent runs (Primitive policy 4).
+
+Kind:      Parameter
+Parameter of: the deployment
+Projection: length_bound
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above. -->
+
+[Length Bound]: #length-bound
+
+---
+
+## Standards references
+
+*Anchors: NIST (National Institute of Standards and Technology — US federal standards body) SP 800-53 AC-3 (Access Enforcement), NIST SP 800-53 AC-12 (Session Termination), NIST SP 800-63B section 7 (re-authentication at resource access), OWASP (Open Worldwide Application Security Project) ASVS V3.3 (Application Security Verification Standard — session expiry enforced at the resource level), PCI DSS (Payment Card Industry Data Security Standard) Requirement 7 (restrict access to system components) + Requirement 8 (authenticate access to system components), HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(a)(1) (access control), HIPAA section 164.312(d) (person or entity authentication), ISO/IEC 27001 clause A.9.4.1 (International Organization for Standardization / International Electrotechnical Commission information-security standard — information access restriction).*
+
+**NIST SP 800-53 AC-3** requires that the information system enforces approved authorizations for logical access. The gate ensures no authorization is evaluated under a session the system no longer considers valid.
+
+**AC-12** requires that the information system terminates sessions after defined conditions. The termination itself is Session's and [Login](./login.md)'s act; what this composition contributes is the access-time complement — a session the system has terminated, whether by expiry, logout, or cascade from Login's `revoke_sessions_for_credential`, is refused at the composition boundary on every subsequent [Check Permitted] call, so a terminated session buys no further authorization.
+
+**OWASP ASVS V3.3** specifically requires that session expiry is enforced at the *resource* level, not only by the session management layer. The composition satisfies this by re-validating the session token on every [Check Permitted] call whose inputs clear the boundary predicate rather than relying on an earlier validation result cached in the request context.
+
+---
+
+## Status
+
+`done — 2026-11-21` — see the Ledger.
+
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
+
+```
+status: done — 2026-11-21
+formal: verified — session-gated-authorization.als + 12 twins (the static data model, re-derived 2026-11-12 as [Check Permitted] calls over the answers their constituents give, the 2026-06-03 trace model's `var` fields `dyn_status` and `dyn_call_log`, `always` checks and `eventually` runs gone, and the facts that stated Invariant 1, 2 and 4 now checks: Invariant 1.1, 2.1, 2.2, 3.1 through 3.3, 4.1 and 4.2, Action wiring 3, 6, 9, 10 and 12, Primitive policy 2, 3, 4 and 9); session-gated-authorization.tla + 6 twins + 4 probes (the operation sequences, 2026-11-12: each call two steps with Session and Permissions moving between them; the stepping checks Dyn_Revocation_Terminal, Dyn_Expiry_Terminal and Dyn_Gate_Reflects_Current_Status taken over as Composes7_RevocationTerminal, Composes7_ExpiryTerminal and AW14_GateReflectsCurrentStatus, with Invariant 1.1 and 2.1, Action wiring 13 through 15 and Concurrency 1 and 2); Invariant 4.1 reads where Permissions answers, so a failed permitted read lands state-unavailable by the closure table and Invariant 4.1 stays silent (2026-11-20, Final Critique 12; the Alloy check A_Invariant_4_1 states it as written); coverage 2026-11-12 (unit `compositions/session-gated-authorization.md formal layer`): owed rows: none, 2026-11-12
+last gate: 2026-11-21 — Final Critique 15, a delta round, one reader (Linus minimax-m3), frozen at 7347c6be — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational report (Check 2.2 read "no grant of the pair" universally, so a sibling grant could fire External check 8 while the answer rests on another) was placed refining, since a pair holds at most one active grant (Permissions Identity 7 and Permissions Invariant 11.1) and the reading only waives a check, never fails a conforming build; the settle's cures: Check 2.2 and External check 8 now speak of the grant the answer rests on and are each other's complement (the grant arm of External check 8 had named a gap no read can fall in: a read between a grant's clock reading and its commit cannot rest on that grant), the new Term disputed instant names Session's validate reading, and the citation of Logic confinement 20, which governs reads against the clock, leaves External check 8; a denial-side twin of Check 2.2 was placed a preference, since the page claims no reconstruction of a denial and Permissions' own Check 2.1 and Operation 18 answer it; 2026-11-21 — Final Critique 14, a delta round, one reader (Linus beam-free), frozen at 135dae4d — foundational count 1 after the blind second triage, not clean: Linus's three pressed questions held, and the second triage placed none of them a defect, but found Check 2.2 unsound over the gap between a grant's or a revocation's clock reading and its commit (cured: Check 2.2 now holds where no write to the grant straddles the disputed instant and the answer's read, and External check 8 sends the placing of a permitted answer in that gap to a composed Audit Trail, as External check 6 and 7 do for Session); Check 2.1 names a session token where Session keys by its digest, which Execution Contract Logic confinement 21 settles ('where a rule keys by the token, the digest is the key'), so no change; 2026-11-21 — Final Critique 13, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at cf98d700 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational reports were refuted by both triages, since the delta set held neither rule that answers them: an invalid session answers session-invalid, never denied (Action wiring 9, Invariant 1.1, Invariant 3.3), and Action wiring 5 with Invariant 2.1 bind the subject reference Permissions receives to the valid answer's principal reference; its one refining report, that Invariant 4.1 is incoherent, was placed rhetorical (the pair is the call's, and Permissions answers permitted only for a pair an active grant covers) and the rule is unchanged; the settle's own cure names the field in Check 2.1 (Session's Principal Reference that EQUALS the grant's subject reference); 2026-11-20 — Final Critique 12, full, frozen at 91c6335 — foundational count 3, not clean: Invariant 4.1 against a failed Permissions read (cured, Invariant 4.1 now reads where Permissions answers), the revocation instant against Session's commit (cured in External check 6 and 7 and the Disputed access scenario), Permissions' deprovisioning sweep without an owner (cured, Composition note 6); 2026-11-18 — Final Critique 11, delta, frozen at 89cb072 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (qwen3.8-flash) claimed three foundational, all refuted by rules outside the delta set: Non-goal 9 forbids exposing Permissions' permitted beside [Check Permitted] (External check 5), Action wiring 5, 6, 10 and Invariant 4.1 and 4.2 pin the grant leg of the replacement (Composes 5), and Term length bound, Term boundary predicate and Primitive policy 4 scope the bound over the session token and the action scope, the page's only inputs (Primitive policy 1); of four refining none changed the page (the closure table's inputs and calls leave out Revoke, which Non-goal 4 bars; the measure of unexposed is Non-goal 9's; `permitted` is the page's name for Permissions' read throughout; Primitive policy 1 declares this page's setting and cites Input 2) and one rhetorical was left; the settle's own open line 2026-11-18-a records a bound the default cannot hold a long token to; 2026-11-05 — Final Critique 10, delta, frozen at 7f57305 — foundational count 0, clean, one sample
+
+open: none
+```
+
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
+
+Decisions are kept in [the pattern's history](./session-gated-authorization.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- compositions/session-gated-authorization.md`.
+
+</details>
+
+NOTE: End of Session-Gated Authorization.
