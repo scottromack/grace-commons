@@ -83,7 +83,7 @@ One invocation may carry more than one closing record; one act key carries the c
 Which closing stands 1: This section IS AUTHORITATIVE FOR which of the closing records naming one invocation id is the invocation's.
 NOTE: watch addressable sections.
 Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names that other closing record in supersedes and both closing records name the same invocation id.
-Which closing stands 3: resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment naming an escalation supersedes the escalation.
+Which closing stands 3: A closing record's carrying resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment, carrying resolving actor, naming an escalation supersedes the escalation.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
 Which closing stands 5: EVERY surface MUST count the standing closing and every record reachable from the standing closing through supersedes as one closing.
 Which closing stands 7: Among the unsuperseded closings naming one invocation id, the lowest sequence number MUST stand.
@@ -864,6 +864,8 @@ Term outcome payload: outcome data with invocation id, intent event id, kind and
 
 Term supersedes: the field of a closing [Resolve] writes over an existing record, naming that record's event id.
 
+Term resolving actor: the operator's actor reference, carried by a closing record an operator writes through [Resolve].
+
 Term recovery: a closing record's flag, set to true on the sweep's recovered outcome (Term recovered outcome payload) and on every closing an operator writes through [Resolve], and absent on the invocation's own outcome (Term outcome shape).
 
 Term readable intent: an intent record whose payload the substrate has not destroyed (Audit Trail Invariant 4, Audit Trail Invariant 8).
@@ -897,7 +899,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-24` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -905,9 +907,9 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-24
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-24 — Final Critique 4, a delta round (the reach of the diff since 7a2a4731, 98 rules and terms), one reader (Linus opencode/beam-free), frozen at 75a0f408 — foundational count 1, not clean, no sample (Which closing stands 2 let a closing of one invocation supersede a closing of another, leaving the first invocation with no standing closing and open invocations already cleared of it; the rule now requires both closings to name the same invocation id)
+last gate: 2026-11-24 — Final Critique 5, a delta round (the reach of the diff since 75a0f408, 2 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 3fe39f42 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were placed by neither triage as foundational: Which closing stands 3 read as a ban on a resolving actor's supersession, when the field resolving actor is what the clause says carries no trigger and the clause's own example, an operator's abandonment superseding an escalation, carries it; and Which closing stands 2 read as leaving a cycle or a branch of supersessions undecided, when the journal assigns event ids, so no closing names a record not yet written, and Which closing stands 7 and Term standing closing give a branch of unsuperseded closings the lowest sequence number); cured as refining: rule 3 states the field and the example's field, and Term resolving actor is declared on the page)
 open: none
 ```
 
