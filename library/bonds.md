@@ -31,20 +31,21 @@ Term meets: a need meets an offer where the two lines satisfy Bond 1, Bond 2 and
 
 Term unmet need: of an app, a need of one of the app's atoms that meets no offer of the app's atoms. A contract need is no bond need: the app meets it at the edge ([Contracts](./contracts.md), Contract 5).
 
-Term bond instance: the line an app writes naming an ambiguous need and the one offer that serves it.
+Term bond instance: the line an app writes naming an ambiguous need and the one offer, of the offers the need meets, that serves it.
 
 ```
 Bond 1: A need MAY meet an offer ONLY IF the two lines name one kind AND the two lines stand on two atoms.
-Bond 2: A need MAY meet an offer ONLY IF EVERY typed field of the need names the same word the offer's field names, or the offer's field names a declaration type and the need's field names a word of that type.
-Bond 3: A need MAY meet an offer ONLY IF EVERY word of the need's calls IS IN the offer's calls AND EVERY word of the need's arms IS IN the arms the offer names for a call the need's calls name AND EVERY word of the need's pairs IS IN the offer's carried by.
+Bond 2: A need MAY meet an offer ONLY IF, for EVERY typed field of the need, the need's field names the same word the offer's field of the same name names, or the offer's field of the same name names a declaration type and the need's field names a word of that type.
+Bond 3: A need MAY meet an offer ONLY IF EVERY word of the need's calls IS IN the offer's calls AND EVERY word of the need's arms IS IN the arms the offer names for one or more of the calls the need's calls name AND EVERY word of the need's pairs IS IN the offer's carried by.
 Bond 4: An app MAY write a bond instance ONLY IF a need of one of the app's atoms is an ambiguous need.
 Bond 5: A bond instance MUST NOT stand outside an app.
 Bond 6: A need line MUST NOT name an atom.
 Bond 7: IF a need of one of the app's atoms is an ambiguous need THEN the app MUST write one bond instance for the need.
 Bond 8: IF a need of one of the app's atoms meets EXACTLY ONE offer of the app's atoms THEN that offer MUST serve the need.
-Bond 9: EXACTLY ONE instance of an atom MUST serve EVERY need of the app that meets one of the atom's offers.
+Bond 9: EXACTLY ONE instance of an atom MUST serve EVERY need of the app that meets one of the atom's offers AND is no ambiguous need.
 Bond 10: IF a need of one of the app's atoms is an unmet need THEN the app's build MUST fail.
-Bond 11: A need of an atom read outside an app MAY meet no offer.
+Bond 11: A need of an atom read alone, outside any app, MAY meet no offer.
+Bond 12: IF a need of one of the app's atoms is an ambiguous need THEN EXACTLY ONE instance of the atom whose offer the need's bond instance names MUST serve the need.
 ```
 
 ## Guard
@@ -69,7 +70,7 @@ Term no answer: a guard call that returns neither its answers nor a refusal with
 
 ```
 guard 1: A writer MUST write a record a guard need names under writes ONLY IF the writer holds the guard on the need's key.
-guard 2: IF a take, a remaining or a release on a guard answers no answer THEN the holder MUST read remaining as none for the rest of the grant.
+guard 2: IF a take, a try_take, a remaining or a release on a guard answers no answer THEN the holder MUST read remaining as none for the rest of the grant.
 guard 3: A needing atom MUST NOT read a guard's instant or a span on the guard from a clock other than the offering host's (Execution Contract Logic confinement 7).
 guard 4: IF a guard call answers no answer THEN the holder MUST NOT write a record the need names under writes BEFORE the holder holds the guard by a new take.
 ```
@@ -89,6 +90,6 @@ Key 2: Two atoms of an app MUST NOT offer one key, an ambiguous need the app wri
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules. Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: four foundational cured (a bond now forms by rule, an ambiguous need gets one bond instance, the guard's answers are told from the Execution Contract's failures, one instance of an atom serves every need it meets), three filed as design questions for Scott (a need that meets no offer, key matching on pairs and carried by, arms tied to calls). Scott ruled on them (2026-11-23 10:56 PM Central, "as recommended") in the unit `bonds: five rulings` (2026-11-24): an unmet need fails an app's build (Bond 10, Bond 11), Bond 3 reads pairs within carried by, an offer names its arms per call, a guard call that answers no answer stops writes until a new take (guard 4), and a kind is written only when a line lands on it; a delta round on this page is owed.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules. Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: four foundational cured (a bond now forms by rule, an ambiguous need gets one bond instance, the guard's answers are told from the Execution Contract's failures, one instance of an atom serves every need it meets), three filed as design questions for Scott (a need that meets no offer, key matching on pairs and carried by, arms tied to calls). Scott ruled on them (2026-11-23 10:56 PM Central, "as recommended") in the unit `bonds: five rulings` (2026-11-24): an unmet need fails an app's build (Bond 10, Bond 11), Bond 3 reads pairs within carried by, an offer names its arms per call, a guard call that answers no answer stops writes until a new take (guard 4), and a kind is written only when a line lands on it. Final Critique 2 (2026-11-24), a delta round of one reader (Linus) in a scratch slot, frozen at b6ad4b52 from diff base ca124ecf, under the unit `library: the files match the tree`: four foundational cured (an ambiguous need is served by the one instance its bond instance names, Bond 9 and Bond 12; guard 2 covers try_take; Bond 2 binds each field to the offer's field of the same name; Bond 3 reads each arm against any of the need's calls, as the gate does), two refining cured (a bond instance names an offer the need meets; an atom read alone may meet no offer); not clean, and its cures owe a delta round.
 
 NOTE: End of Bonds.
