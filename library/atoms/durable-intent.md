@@ -147,7 +147,9 @@ Term intent event id: intent_event_id — the event id the journal assigns the i
 
 Term intent data: intent_data — the caller's payload at [Open], carrying the invocation's parameters and the pairing datum.
 
-Term actor reference: actor_ref — the acting actor Actor Identity attests, reached through the journal.
+Term attested append: the append of one record through the atom's journal need under an actor reference and a credential the caller supplies, which the substrate validates BEFORE the record is appended, refusing invalid-credential with nothing written, and answering the record's event id; the journal kind carries no actor and no credential (Bonds journal 1 through 9), so this term is held on the app's glue until the unit `bonds: permission` states how a need of another atom's decision is said.
+
+Term actor reference: actor_ref — the acting actor the caller names with a credential, which the substrate validates before the record is appended (Term attested append).
 
 Opens one invocation of the act: takes the critical section, sizes the records, writes the intent record — where the caller's credential is verified — and returns the pair the adopter carries through the commit to [Close]. The order of step 1's rules is no order of work (GRACE-lang Timing 13): open step 1.6 places the read of open invocations before a take, not before step 1's refusals, so an unbound kind is refused with no read and no take (open step 1.9), and where a read's answer meets another refusal, [Open]'s refuses line decides which answers (Execution Contract Refusal 1).
 
@@ -207,7 +209,7 @@ Steps:
    open step 4.2: WHEN the remaining [Open] queried for the intent record (journal write bound 1) DOES NOT EXCEED write floor:
        open step 4.2a: [Open] MUST release.
        open step 4.2b: [Open] MUST land section-unavailable.
-   open step 4.3: [Open] MUST write AuditTrail.record_action(action reference set to `<kind>.intended`, actor reference, credential, data set to intent payload), answering intent event id.
+   open step 4.3: [Open] MUST make an attested append of the intent record (action reference set to `<kind>.intended`, actor reference, credential, data set to intent payload) through the atom's journal need, answering intent event id.
    open step 4.4: Step 4's arms MUST follow the intent position of Primitive policy 19 through 23 and Primitive policy 27 through 43.
    open step 4.5: IF step 4 lands a refusal THEN [Open] MUST release.
    ```
@@ -287,7 +289,7 @@ Steps:
 3. **Outcome record.**
 
    ```
-   close step 3.1: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST write AuditTrail.record_action(action reference set to outcome action reference, actor reference, credential, data set to outcome payload), answering outcome event id.
+   close step 3.1: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST make an attested append of the outcome record (action reference set to outcome action reference, actor reference, credential, data set to outcome payload) through the atom's journal need, answering outcome event id.
    close step 3.2: Step 3's arms MUST follow the outcome position of Primitive policy 19 through 23 and Primitive policy 27 through 43.
    close step 3.3: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at step 3 MUST land recording-failure(outcome) with a hard alert.
    close step 3.4: [Close] MUST NOT retry after recording-failure(step-2), recording-failure(step-3) or a lost reply BEFORE re-running step 2.
@@ -439,7 +441,7 @@ read invocation 17: IF kind IS NOT IN the bindings table THEN [Read Invocation] 
   Invariant 1.2: IF position EQUALS intent THEN invalid-credential MUST land as a pre-state refusal with nothing written.
   NOTE: watch position scoping (Primitive policy 19).
   ```
-  *Rests on:* Audit Trail's record_action and the Actor Identity attestation reached through it (Audit Trail Invariant 1); [Open] step 4 before the adopter's commit. *Defended in-line:* the ordering [Open] → commit → [Close] in every adopter; Generation acceptance check 1 makes it provable.
+  *Rests on:* the attested append and the credential check the substrate makes before it (Term attested append, the held credential check on the app's glue); [Open] step 4 before the adopter's commit. *Defended in-line:* the ordering [Open] → commit → [Close] in every adopter; Generation acceptance check 1 makes it provable.
 
 - **Invariant 2 — One writer per act.**
   ```
@@ -460,7 +462,7 @@ read invocation 17: IF kind IS NOT IN the bindings table THEN [Read Invocation] 
   Invariant 3.5: WHEN pairing datum EQUALS none OR pairing datum matches more than one record:
       Invariant 3.5a: The sweep MUST name candidates and write no outcome.
   ```
-  *Rests on:* the seam injection (Primitive policies); Event Log Invariant 2 through Audit Trail Invariant 5 (an appended payload is immutable); the pairing datum binding.
+  *Rests on:* the seam injection (Primitive policies); Bonds journal 1 (a record the journal answered a place for is kept unchanged); the pairing datum binding.
 
 - **Invariant 6 — The outcome is sized before the intent.**
   ```
@@ -494,7 +496,7 @@ Primitive policy 2: The composition MUST write act key as a composition-written 
 Primitive policy 3: The composition MUST NOT recover act key from an adopter's payload.
 Primitive policy 4: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id in the payload.
 Primitive policy 5: Invariant 3.2 IS AUTHORITATIVE FOR the field a check or a journal join pairs on.
-Primitive policy 6: The adopter MUST pass actor reference and credential through to record_action at the intent record.
+Primitive policy 6: The adopter MUST pass actor reference and credential through to the attested append at the intent record.
 Primitive policy 7: The composition MUST validate actor reference and credential as not blank and MUST NOT inspect either beyond that.
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
 Primitive policy 9: intent data MUST carry the invocation's parameters and pairing datum.
@@ -512,7 +514,7 @@ Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for t
 Primitive policy 17: The adopter's action MUST carry invocation id from [Open] into [Close] and [Refuse] as a parameter of each.
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
 ```
-Term journal join: a pairing of two journal records on a field each carries, to decide that they belong to one invocation. A read of one record by the event id another record carries, as read_record(intent event id) at Check 1.2, is a lookup, not a join. A grouping of an act's records on the kind and act key they carry, as Check 2.3 and act closings do, decides which records are the act's and never that two belong to one invocation, so it is no join.
+Term journal join: a pairing of two journal records on a field each carries, to decide that they belong to one invocation. A read of one record by the event id another record carries, as the one-record read of the intent event id at Check 1.2 (Bonds journal 7), is a lookup, not a join. A grouping of an act's records on the kind and act key they carry, as Check 2.3 and act closings do, decides which records are the act's and never that two belong to one invocation, so it is no join.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
@@ -546,7 +548,7 @@ Primitive policy 28: IF position EQUALS outcome THEN the action MUST return succ
 Primitive policy 29: IF position EQUALS outcome THEN the writer MUST retry recording-failure(step-2) under the critical section, to the terminus at most.
 Primitive policy 30: A retry that reaches the terminus MUST land recording-failure(outcome).
 Primitive policy 31: IF position EQUALS outcome THEN invalid-credential MUST land recording-failure(outcome).
-Primitive policy 32: The composition MUST treat a record_action whose reply is lost as unknown at every position.
+Primitive policy 32: The composition MUST treat an attested append whose reply is lost as unknown at every position.
 Primitive policy 32a: The composition MUST treat recording-failure(step-3) as a lost reply.
 Primitive policy 33: The composition MUST NOT retry a lost-reply write blind.
 Primitive policy 34: The composition MUST NOT read back a lost-reply write BEFORE journal write bound has elapsed since the issue, the elapse read on the host's clock through a remaining the writer queries, never on a clock the caller reads.
@@ -556,16 +558,21 @@ Primitive policy 36: WHEN the read-back finds the record:
 Primitive policy 37: WHEN the read-back finds nothing:
     Primitive policy 37b: The composition MUST land the position's existing arm.
 Primitive policy 38: The composition MUST take the intent's sequence number and recording instant from the filtered range read.
-Primitive policy 39: The composition MUST NOT take the intent's sequence number and recording instant from read_record.
+Primitive policy 39: The composition MUST NOT take the intent's sequence number and recording instant from the one-record read.
 Primitive policy 40: IF position EQUALS outcome THEN an invalid-request(step-4) whose read-back finds nothing MUST land recording-failure(outcome) with a hard alert.
 Primitive policy 41: IF position EQUALS intent THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land invalid-request.
 Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land recording-failure(outcome) with a hard alert.
 Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
 Primitive policy 44: The composition MUST treat recording-failure(step-4) as recording-failure(step-2) at every position.
-Primitive policy 45: The composition MUST treat a record_action that answers state-unavailable as recording-failure(step-2) at every position (Execution Contract Read 1).
+Primitive policy 45: The composition MUST treat an attested append that answers state-unavailable as recording-failure(step-2) at every position (Execution Contract Read 1).
+Primitive policy 46: The vocabulary of a kind MUST declare `<kind>.intended`, the enumerated outcome refs `<kind>.<outcome>`, and `<kind>.refused`.
+Primitive policy 46a: The vocabulary of a kind MUST NOT declare an outcome ref among `<kind>.intended`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated`.
+Primitive policy 47: The composition MUST derive `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated` from the vocabulary.
+Primitive policy 48: The rebuild MUST classify a record as an outcome by membership in the enumerated outcome refs.
+Primitive policy 49: The adopter MUST NOT declare a kind whose action references fall in the reserved namespace.
 NOTE: watch the constituent's failed read (Primitive policy 45, act section 20).
 ```
-Term lost reply: a record_action that answers recording-failure(step-3) (Primitive policy 32a), or whose reply has not arrived when journal write bound has elapsed since the write's issue, the elapse read as Primitive policy 34 reads it; the bound commit's reply is lost as yield 7 says.
+Term lost reply: an attested append that answers recording-failure(step-3) (Primitive policy 32a), or whose reply has not arrived when journal write bound has elapsed since the write's issue, the elapse read as Primitive policy 34 reads it; the bound commit's reply is lost as yield 7 says.
 
 ## Optional
 
@@ -587,9 +594,9 @@ Capability requirement 15: EVERY read path that reads under the critical section
 ```
 Term delta range: the sequence-number range from `(sequence_high_water + 1)` with no upper bound.
 
-Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, passed through Audit Trail unchanged (Audit Trail Action wiring 1 and 5): it answers every record the range holds, as one sequence.
+Term open-upper-bound sequence-range read: the journal need's read over the delta range: it answers every record the range holds, as one sequence (Bonds journal 2).
 
-Term read path: [Open] step 1 and step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse], [Resolve] and [Reconcile] step 2. The reads at [Open], [Reconcile] step 1 and [Read Invocation] transcribe unavailable as journal-unavailable; the re-reads at [Close], [Refuse] and [Resolve] land it on the position's recording-failure arm, and so do the read-backs of Primitive policy 20, 27 and 35; the re-read at [Reconcile] step 2 leaves the act for the next run under the instance finding journal-unavailable. A read-back at the intent position that gives no answer lands the intent position although the intent may stand: nothing is committed, a retry is safe, and the stray intent is the sweep's to close; at any other position it lands that position's recording-failure arm, as the read-backs above do. A read fails where it answers unavailable or state-unavailable, the two read as one arm (Execution Contract Read 1). A read under the critical section that returns nothing within read bound lands where the read path lands unavailable (Capability requirement 15). A read outside it that returns nothing — [Open] step 1, [Reconcile] step 1 and [Read Invocation] — leaves the action no answer to give (Execution Contract Error model 1), as Audit Trail's own such reads do, and a [Reconcile] run so stalled ends at run bound. An invalid-query is no outage of the journal but a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding (Capability requirement 4, 13 and 14).
+Term read path: [Open] step 1 and step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse], [Resolve] and [Reconcile] step 2. The reads at [Open], [Reconcile] step 1 and [Read Invocation] transcribe unavailable as journal-unavailable; the re-reads at [Close], [Refuse] and [Resolve] land it on the position's recording-failure arm, and so do the read-backs of Primitive policy 20, 27 and 35; the re-read at [Reconcile] step 2 leaves the act for the next run under the instance finding journal-unavailable. A read-back at the intent position that gives no answer lands the intent position although the intent may stand: nothing is committed, a retry is safe, and the stray intent is the sweep's to close; at any other position it lands that position's recording-failure arm, as the read-backs above do. A read fails where it answers unavailable or state-unavailable, the two read as one arm (Execution Contract Read 1). A read under the critical section that returns nothing within read bound lands where the read path lands unavailable (Capability requirement 15). A read outside it that returns nothing — [Open] step 1, [Reconcile] step 1 and [Read Invocation] — leaves the action no answer to give (Execution Contract Error model 1), as the journal's own such reads do, and a [Reconcile] run so stalled ends at run bound. An invalid-query is no outage of the journal but a fault of the build: it lands where unavailable lands, is surfaced, and opens no outage finding (Capability requirement 4, 13 and 14).
 
 Term read-your-writes: Capability requirement 8 and Execution Contract Database 1 through 4, Database 7 and Refusal 1 together. The filtering of every range read on action reference, invocation id or a payload field is this composition's code; the substrate offers no such selector.
 
@@ -624,7 +631,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 ### Bounds the deployment declares
 
 - **journal write bound**
-  Term journal write bound: the disclosed bound on a record_action from issue to landing: issue-to-first-commit latency, with headroom. *Default:* none.
+  Term journal write bound: the disclosed bound on an attested append from issue to landing: issue-to-first-commit latency, with headroom. *Default:* none.
 
   ```
   journal write bound 1: A writer MUST issue a journal write under the critical section ONLY IF a remaining the writer queried for that write EXCEEDS write floor.
@@ -661,7 +668,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
   Term repeatable: `yes` or no: whether two invocations against one act key are two acts or one act attempted twice.
 
-  Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none.
+  Term service identity: a registered actor (actor reference and credential) under which the sweep writes, or none; the substrate validates its credential as it validates a caller's (Term attested append).
 
   Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent.
 
@@ -673,7 +680,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
   Term clock allowance: the most two of the deployment's clocks may differ (Execution Contract Logic confinement 18), spent where a reading from one clock meets a stamp or an instant minted from another. *Default:* none.
 
-  Term retention period: the duration a policy carries, as [Audit Trail](../compositions/audit-trail.md) declares it; here a per-kind binding, the duration of the one policy the kind's records resolve to. *Default:* none.
+  Term retention period: the keep the atom's journal need asks of each record of a kind, as the need's keep states it (Bonds journal 6); here a per-kind binding. *Default:* none.
 
   Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation (Invariant 6). *Default:* none.
 
@@ -685,6 +692,10 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 The bonds this atom needs, each of a kind [Bonds](../bonds.md) states, and the contract it needs of a system that is not Grace's, which [Contracts](../contracts.md) states.
 
 Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
+
+Term need journal: records intent record, closing record; calls append, read; arms event_id, events, invalid-query; keep duration; tamper sealed; stream invocation journal.
+
+The journal need's keep is the retention period of each kind (Term retention period), its tamper is the seal the disputed act rests on (Regulated adversarial scenarios), and its stream is the one every act's records go to, so that one read answers an act's intent and every closing of it, whoever wrote them (Term act closings). A lookup of one record by its event id is the read of the range that holds the record's place and no other place (Bonds journal 7). The need carries no actor and no credential: the attested append is held (Term attested append).
 
 Term contract need commit: asks the act under act key, the key the app supplies and the intent record carries; answers pre-commit, committed, unknown; bound commit round trip.
 
@@ -731,7 +742,7 @@ A caller receives `recording-failure(outcome)`. The position says the act may ex
 
 **Regulator audit — "show me that every consequential act you took is accounted for."** The auditor enumerates the journal's `<kind>.intended` records inside the horizon and older than the bound, and for each finds exactly one closing record naming its invocation id — not since superseded, an abandoned carrying a later outcome with supersedes being the corrected-false-abandonment shape check 6 reads; recovery_intended records are not closings and may be several — within closure window of its recording instant, under the allowance (checks 2 and 3). An intent with no closing record is younger than the bound (in flight), a conformance failure surfaced on compliance surface, or an intent of a kind the bindings table no longer serves, and the auditor can tell which from the stamps alone.
 
-**Disputed act — "I never authorized that disclosure."** The outcome names invocation id; the intent record with that id is attested under the disputant's credential, verified by Actor Identity before the database committed (Invariant 1), and sealed (Audit Trail Invariant 3). If the outcome carries `recovery = true` and no resolving actor, the sweep wrote it — under `ledger-reconciler`, behind a recovery_intended record — and acting actor reference still names the disputant. The structural rebuttal is the intent, not the outcome; the sweep changes who attests the outcome, never who attested the intent.
+**Disputed act — "I never authorized that disclosure."** The outcome names invocation id; the intent record with that id is attested under the disputant's credential, verified before the database committed (Invariant 1), and sealed (the tamper of the atom's journal need). If the outcome carries `recovery = true` and no resolving actor, the sweep wrote it — under `ledger-reconciler`, behind a recovery_intended record — and acting actor reference still names the disputant. The structural rebuttal is the intent, not the outcome; the sweep changes who attests the outcome, never who attested the intent.
 
 **Breach investigation — "the reconciler's credential was compromised; what could it have written?"** Every record under the service identity is a closing record naming an invocation id whose intent stands under a human's credential; a service-identity record with no such intent is a write outside this composition (check 5), and an outcome the database does not corroborate is one the sweep could not have derived (check 6). The compromised identity could close acts, never open them, and close only acts whose intents exist — the intent record is the control the service identity cannot forge.
 
@@ -749,9 +760,9 @@ A derived implementation of Durable Intent is acceptable when the following are 
 
 ```
 Check 1.1: EVERY outcome record whose intent is inside the horizon MUST follow, in the journal's sequence, an intent record with the same invocation id attested under the actor the outcome names — the outcome's own actor reference where recovery is absent, the outcome's acting actor reference where recovery EQUALS true.
-Check 1.2: An auditor MUST decide inside the horizon by read_record(intent event id) answering an audit record whose retention state is Retained.
+Check 1.2: An auditor MUST decide inside the horizon by the one-record read of the intent event id answering the intent record within the keep.
 Check 1.3: An auditor MUST NOT decide inside the horizon by arithmetic on the outcome's stamp or by the presence of an answer.
-Check 1.4: An auditor MUST answer purged, never absent, for an outcome whose intent the substrate reports Purged.
+Check 1.4: An auditor MUST answer purged, never absent, for an outcome whose intent lies past the keep of the atom's journal need.
 Check 2.1: For EVERY elapsed intent inside the horizon, two unsuperseded closing records of any of the four kinds MUST NOT name the intent's invocation id at any reading inside the horizon.
 Check 2.2: For EVERY elapsed intent inside the horizon, two `<kind>.intended` records MUST NOT carry the intent's invocation id.
 Check 2.3: Two intents MUST NOT stand open on one (kind, act key) at any reading inside the horizon, for a kind whose service identity DOES NOT EQUAL none.
@@ -849,7 +860,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. invocation id, act key, critical section key, critical section holder: Declarations. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail.
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. invocation id, act key, critical section key, critical section holder, sealed: Declarations. payload cap, reference length cap, attestation id width, recording instant, sequence number, next sequence number, event id, action reference, reserved namespace: Audit Trail, held with the attested append (the app's glue).
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 
@@ -865,7 +876,7 @@ Term resolving actor: the operator's actor reference, carried by a closing recor
 
 Term recovery: a closing record's flag, set to true on the sweep's recovered outcome (Term recovered outcome payload) and on every closing an operator writes through [Resolve], and absent on the invocation's own outcome (Term outcome shape).
 
-Term readable intent: an intent record whose payload the substrate has not destroyed (Audit Trail Invariant 4, Audit Trail Invariant 8).
+Term readable intent: an intent record within the keep the atom's journal need asked, from the record's append to the record's retention end.
 
 Term true maximum: the largest outcome payload a kind writes, as External check 7 clears.
 

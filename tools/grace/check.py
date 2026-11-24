@@ -1727,7 +1727,20 @@ def map_findings(root: Path) -> list[Finding]:
 # (bonds.md Direction 2, B-app-cycle, gating).
 BOND_LINE = re.compile(r"^Term (need|offer) ([a-z][\w -]*?):\s*(.*?)\.?$", re.M)
 BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", re.M)
-BOND_TYPED = ("key", "holder", "span", "keep")
+# Unit `bonds: journal, finished` (Scott 2026-11-24 9:47 AM Central, "AR", with GLM's review): tamper is a typed field
+# a need and an offer meet as keep does (bonds.md journal 7 to 9, Direction 3, 5 and 6); a need whose keep exceeds the
+# offer's keep, both given as lengths, meets nothing (journal 9); an atom's layer is computed from its needs of the
+# layered kinds, and a layered need served from the same layer or a higher one fails the app (B-app-layer, gating).
+BOND_TYPED = ("key", "holder", "span", "keep", "tamper")
+LAYERED = {"guard", "journal", "permission"}
+_UNIT_SECONDS = {"s": 1, "sec": 1, "min": 60, "h": 3600, "d": 86400, "w": 604800, "y": 31536000}
+_LENGTH = re.compile(r"^(\d+(?:\.\d+)?)\s*(s|sec|min|h|d|w|y)$")
+
+
+def length_seconds(value: object) -> float | None:
+    """A length given as a number and a unit (`7 y`, `90 d`); None for a word or a type."""
+    m = _LENGTH.match(str(value).strip())
+    return float(m.group(1)) * _UNIT_SECONDS[m.group(2)] if m else None
 
 
 def bond_kinds(root: Path) -> dict[str, dict[str, list[str]]]:
@@ -1800,6 +1813,12 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
         nv, ov = need["fields"][f], offer["fields"].get(f)
         if ov is None:
             return False
+        if f == "keep":
+            n_len, o_len = length_seconds(nv), length_seconds(ov)
+            if n_len is not None and o_len is not None:
+                if n_len > o_len:
+                    return False
+                continue
         nt, ot = words.get(nv, nv if nv in types else None), words.get(ov, ov if ov in types else None)
         if nt is None or nt != ot or (nv in words and ov in words and nv != ov):
             return False
@@ -1834,7 +1853,45 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
         if cycle:
             findings.append(Finding(app, 1, "B-app-cycle",
                                     "needs met by offers run in a cycle: " + " -> ".join(cycle) + " (bonds.md Direction 2)"))
+        layers, bad = app_layers(mine, words, types)
+        for needer, server in bad:
+            findings.append(Finding(app, 1, "B-app-layer",
+                                    f"{needer} needs a layered kind of {server}, which sits at layer "
+                                    f"{layers.get(server, '?')} and not below it (bonds.md Direction 5 and 6)"))
     return findings
+
+
+def app_layers(lines: list[dict], words: dict[str, str], types: set[str]) -> tuple[dict[str, int], list[tuple[str, str]]]:
+    """Direction 3 on the bonds page: an atom's layer is 0 where it has no need of a layered kind, otherwise one above
+    the highest layer of the atoms whose offers serve those needs; a key sets none. Returns each atom's layer, and the
+    (needer, server) pairs that do not reach down (a layered cycle leaves them with no layer)."""
+    serves: dict[str, set[str]] = {}
+    atoms = {b["path"].stem for b in lines}
+    for need in (b for b in lines if b["side"] == "need" and b["kind"] in LAYERED):
+        for o in lines:
+            if o["side"] == "offer" and bond_meets(need, o, words, types):
+                serves.setdefault(need["path"].stem, set()).add(o["path"].stem)
+    layers: dict[str, int] = {}
+    visiting: set[str] = set()
+
+    def layer(n: str) -> int | None:
+        if n in layers:
+            return layers[n]
+        if n in visiting:
+            return None
+        visiting.add(n)
+        below = [layer(m) for m in serves.get(n, ())]
+        visiting.discard(n)
+        if any(b is None for b in below):
+            return None
+        layers[n] = 0 if not below else 1 + max(below)  # type: ignore[type-var]
+        return layers[n]
+
+    for n in sorted(atoms):
+        layer(n)
+    bad = [(n, m) for n in sorted(serves) for m in sorted(serves[n])
+           if n not in layers or m not in layers or layers[m] >= layers[n]]
+    return layers, bad
 
 
 def need_cycle(lines: list[dict], words: dict[str, str], types: set[str]) -> list[str]:
@@ -1891,7 +1948,7 @@ def bond_findings(root: Path) -> list[Finding]:
             if f not in allowed:
                 findings.append(Finding(b["path"], b["line"], "B-bond-field",
                                         f"`{f}` is no {b['side']} field of the kind {b['kind']} (bonds.md)"))
-            elif f in BOND_TYPED and v not in words and v not in types:
+            elif f in BOND_TYPED and v not in words and v not in types and not (f == "keep" and length_seconds(v) is not None):
                 findings.append(Finding(b["path"], b["line"], "B-bond-type",
                                         f"`{v}` is neither a word nor a type declarations.md declares"))
             elif f == "arms" and b["side"] == "offer" and (v is None or not set(v) <= b["fields"].get("calls", set())):

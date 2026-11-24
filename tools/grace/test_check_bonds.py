@@ -35,7 +35,7 @@ Term invocation id: opaque — an id.
 """
 
 JOURNAL = """
-Term journal need fields: records, the records; calls, the calls; arms, the answers; keep, how long.
+Term journal need fields: records, the records; calls, the calls; arms, the answers; keep, how long; tamper, how a change shows; stream, the stream.
 
 Term journal offer fields: calls, the calls; arms, the answers; keep, how long; tamper, how a change shows; order, the order.
 """
@@ -154,11 +154,53 @@ class BondTest(unittest.TestCase):
 
     def test_a_journal_need_meets_an_offer_whose_keep_is_the_type(self):
         (self.root / "library" / "bonds.md").write_text(BONDS + JOURNAL)
-        self.write("log", atom("Log", "Term offer journal: calls append, read; arms append: place, too-large / read: records, bad-range; keep duration; tamper none; order per stream.\n"))
+        self.write("log", atom("Log", "Term offer journal: calls append, read; arms append: place, too-large / read: records, bad-range; keep duration; tamper opaque; order per stream.\n"))
         self.write("writer", atom("Writer", "Term need journal: records action record; calls append, read; arms place, records; keep duration.\n"))
         self.assertEqual(self.codes(), [])
         self.write("writer", atom("Writer", "Term need journal: records action record; calls append, read; arms place, records; keep forever.\n"))
         self.assertEqual(self.codes(), ["B-bond-type", "B-bond-unmet"])
+
+    def test_a_need_whose_keep_exceeds_the_offers_keep_meets_nothing(self):
+        (self.root / "library" / "bonds.md").write_text(BONDS + JOURNAL)
+        self.write("log", atom("Log", "Term offer journal: calls append, read; arms append: place / read: records; keep 7 y; tamper opaque; order per stream.\n"))
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append; arms place; keep 5 y.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append; arms place; keep 9 y.\n"))
+        self.assertEqual(self.codes(), ["B-bond-unmet"])
+
+    def test_a_tamper_need_meets_the_same_word_or_the_type_the_offer_names(self):
+        (self.root / "library" / "bonds.md").write_text(BONDS + JOURNAL)
+        (self.root / "library" / "declarations.md").write_text(DECLARATIONS + "\nTerm sealed: opaque — a seal covers it.\n")
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append; arms place; tamper sealed.\n"))
+        self.write("log", atom("Log", "Term offer journal: calls append; arms append: place; keep duration; tamper opaque; order per stream.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("log", atom("Log", "Term offer journal: calls append; arms append: place; keep duration; tamper sealed; order per stream.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("log", atom("Log", "Term offer journal: calls append; arms append: place; keep duration; tamper opaque; order per stream.\n"))
+        self.write("writer", atom("Writer", "Term need journal: records action record; calls append; arms place; tamper unsealed.\n"))
+        self.assertEqual(self.codes(), ["B-bond-type", "B-bond-unmet"])
+
+    def test_an_atoms_layer_is_computed_from_its_needs_and_a_layered_cycle_has_none(self):
+        (self.root / "library" / "bonds.md").write_text(BONDS + JOURNAL)
+        mid = "Term offer guard: key opaque; holder opaque; span duration; calls take, remaining, release; arms take: expires_at / remaining: none / release: released.\n"
+        lines = []
+        for name, body in (("lease", mid), ("log", "Term offer journal: calls append; arms append: place; keep duration; tamper opaque; order per stream.\n"),
+                           ("intent", NEED + "Term need journal: records record; calls append; arms place.\n" + "Term offer key: key invocation id; carried by record.\n"),
+                           ("sweep", NEED + "Term need key: key invocation id; pairs record.\n")):
+            self.write(name, atom(name.title(), body))
+        kinds = check.bond_kinds(self.root)
+        words, types = check.declared_words(self.root)
+        files = [p for p in sorted((self.root / "library" / "atoms").glob("*.md")) if p.stem in ("lease", "log", "intent", "sweep")]
+        lines = [b for p in files for b in check.bond_lines(p, kinds)]
+        layers, bad = check.app_layers(lines, words, types)
+        self.assertEqual(layers, {"intent": 1, "lease": 0, "log": 0, "sweep": 1})
+        self.assertEqual(bad, [])
+        # the offering atoms come to need what the needing atoms offer on a layered kind: no layer is computable
+        self.write("lease", atom("Lease", mid + "Term need journal: records record; calls append; arms place.\n"))
+        self.write("log", atom("Log", "Term offer journal: calls append; arms append: place; keep duration; tamper opaque; order per stream.\n" + NEED))
+        lines = [b for p in files for b in check.bond_lines(p, kinds)]
+        layers, bad = check.app_layers(lines, words, types)
+        self.assertTrue(bad)
 
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]

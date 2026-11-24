@@ -17,6 +17,7 @@ The declaration space: the words two or more atoms use, declared once and owned 
 Declaration 1: EVERY declaration of a word MUST carry a name, a type and one line of meaning.
 Declaration 2: A specification MAY use a declared word ONLY IF the specification's Term cited line names the word under Declarations.
 Declaration 3: A specification MUST NOT declare a word this page declares.
+Declaration 4: A declared word that a key offer names as the offer's key MUST name ONE key in an app AND ONE atom of the app MUST mint the key (Bonds Key 2).
 ```
 
 Term declaration type: opaque | duration.
@@ -26,6 +27,8 @@ Term opaque: a value compared by byte identity and never read for meaning.
 Term duration: a length of time.
 
 ### The words
+
+Term sealed: opaque — the tamper evidence a record carries when a seal covers it, so that a change to the record shows when the seal is checked.
 
 Term invocation id: opaque — injected at the adopter's seam alongside now, fresh per invocation, unique across every node of the instance for the journal's lifetime; every record written for the invocation carries it.
 

@@ -33,7 +33,8 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 ### Atoms
 
 - **[Lease](../../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
-- **[Audit Trail](../../compositions/audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../../../how/spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this pattern writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
+- **[Event Log](../../atoms/event-log.md)** — the journal. Durable Intent's journal need meets its offer by type alone: append and read by range, in sequence order, every act kind's records in the one stream `invocation journal`. The app sets the offer's keep to the retention period of the kinds it serves, and its tamper to sealed (the seal a deployment composes over the kept records); a kind whose retention period exceeds the keep leaves the need unmet (Bonds journal 9).
+- **The attested append** — held, not a bond yet. [Audit Trail](../../compositions/audit-trail.md) is the substrate that makes it: `record_action(action_ref, actor_ref, credential, data)` answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this pattern writes (Durable Intent Term attested append). The journal kind carries no actor and no credential, so the actor key and the credential check wait for the unit `bonds: permission` (see *Glue*, The attested append).
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
 
@@ -43,6 +44,7 @@ Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names th
 
 - **guard** — [Lease](../../atoms/lease.md): one writer per act. The critical section is keyed by `(kind, act_key)`; the invocation, the sweep and an operator's [Resolve] each take it before they write a closing (Durable Intent act section 8 through 10; Sweep act section 11 through 13; Bonds guard 1).
 - **key** — invocation id: every record the three atoms write for an invocation carries it, and every check and journal join pairs on it and no other field (Durable Intent Primitive policy 4 and 5; Invariant 3.1 and 3.2 of Durable Intent).
+- **journal** — [Event Log](../../atoms/event-log.md): every record Durable Intent appends and every read of an act's records goes to the one stream `invocation journal` (Durable Intent's journal need, Bonds journal 1 through 9). One keep per instance (the retention period) and one tamper (sealed): kinds with different retention periods run under different instances.
 - **follow-up** — [Sweep](../../atoms/sweep.md) follows an aged intent of [Durable Intent](../../atoms/durable-intent.md); [Escalation](../../atoms/escalation.md) follows what the sweep cannot settle (the `<kind>.escalated` record and the closure-at-risk finding).
 - **range** — the closure window as the sum of the declared bounds: Instance start 4 below holds it above the worst closure, and Instance start 5 holds the retention period above the retention floor.
 
@@ -57,8 +59,18 @@ What belongs to no atom yet, moved from the old page as it stood. Every line car
 ### Capability requirement
 
 ```
-Capability requirement 11: IF the range read, read-your-writes or act section is absent THEN the composition MUST NOT start. {birth: bond candidate}
+Deleted: Capability requirement 11. Bonds journal 2 owns the range read, Bonds journal 3 the read-your-writes, and the guard need of Durable Intent the act section.
 ```
+### The attested append
+
+Held for the review of the unit `bonds: journal, finished` (its step 4 stopped): the journal kind says append, keep and read by range, and an actor key a record carries, and a credential checked before the append with an invalid-credential answer, are neither (no journal offer's record carries an actor, the attribution being a separate record paired to the event, and the check is a call whose answer another atom decides). The lines below are what the kind cannot say; each leaves when the unit `bonds: permission` states how a need of another atom's decision is said.
+
+```
+attested append 1: A record this composition appends MUST carry the actor reference the caller's credential validates for. {birth: bond candidate}
+attested append 2: IF the caller's credential does not validate for the actor reference THEN the substrate MUST refuse invalid-credential AND MUST append nothing. {birth: bond candidate}
+attested append 3: The sweep's service identity MUST validate as a caller's credential validates. {birth: bond candidate}
+```
+
 ### The act's critical section
 
 - **act section**
@@ -75,7 +87,7 @@ Capability requirement 11: IF the range read, read-your-writes or act section is
   Term clock allowance: the allowance for comparing a reading from one clock with a stamp or instant from another; the section titled *Where the allowance goes* owns where it is spent. *Default:* none. {birth: data}
 
 - **retention period**
-  Term retention period: the duration a policy carries, as [Audit Trail](../../compositions/audit-trail.md) declares it; here a per-kind binding, the duration of the one policy reference journal 6 resolves the kind's records to (*Bindings*, journal); [Reconcile] step 1 and condition 2 read it. *Default:* none. {birth: data}
+  Term retention period: the keep the instance's journal need asks of each record of a kind, a per-kind binding (*Bindings*, journal 6); [Reconcile] step 1 and condition 2 read it. *Default:* none. {birth: data}
 
 - **compliance surface**
   Term compliance surface: the deployment's surface for the instance's findings (*Composition state* owns the contract); check 3 reads both branches on it. *Default:* none. {birth: data}
@@ -84,7 +96,7 @@ Capability requirement 11: IF the range read, read-your-writes or act section is
 
 - **Invariant 9 — Constituent invariants preserved.**
   ```
-  Invariant 9.1: Audit Trail Invariant 1 through 8 MUST hold over the journal instance. {birth: bond candidate}
+  Deleted: Invariant 9.1. Bonds journal 1 owns a kept record's immutability, the journal need's tamper the seal, and the held attested append the attribution.
   ```
 ### Checks that read the app
 
@@ -92,7 +104,7 @@ Capability requirement 11: IF the range read, read-your-writes or act section is
 Check 4.1: An auditor MUST confirm all five conditions of instance start, as the section titled Instance start states the conditions, for EVERY bound act kind from the kind's invocation completion bound, commit round trip, probe round trip, retention period and settling period, and the instance's clock allowance, sweep cadence, run bound, closure latency, read bound, journal write bound, pause bound and closure window. {birth: data}
 ```
 ```
-Check 8.1: An auditor MUST clear Audit Trail's eight traversal checks over the journal instance. {birth: data}
+Deleted: Check 8.1. The journal offer's own checks and the tamper of the journal need own the traversal.
 ```
 ```
 External check 2: An auditor MUST clear from external evidence that act section is shared across every node of the instance and implemented as a lease of the declared length. {birth: data}
@@ -112,7 +124,7 @@ External check 12: An auditor MUST clear from external evidence that the obligat
 Non-goal 3: This composition MUST NOT add to the substrate's contract. {birth: dead}
 ```
 ```
-Non-goal 5: A deployment whose regulator requires the account to outlive the act's own retention MUST set the journal's retention policy accordingly. {birth: dead}
+Non-goal 5: A deployment whose regulator requires the account to outlive the act's own retention MUST set the keep of the journal need accordingly. {birth: dead}
 Non-goal 6: This composition MUST NOT govern the lifecycle of the adopter's constituent records. {birth: dead}
 ```
 ### Clock semantics
@@ -124,7 +136,7 @@ Clock semantics 3: The composition MUST NOT time the lease. {birth: dead}
 
 ```
 Deviation 1: An adopter MUST declare a deviation as EXACTLY ONE OF: minted key; journal without attribution. {birth: bond candidate}
-Deviation 5: An adopter journaling to a bare Event Log MUST declare that the adopter is not an adopter of this pattern. {birth: bond candidate}
+Deleted: Deviation 5. Bond 10 owns it: a journal need whose tamper no offer meets fails the app's build.
 ```
 ### Repeatable and non-repeatable acts
 
@@ -154,12 +166,12 @@ Binding 5: [Reconcile] MUST NOT close an intent Binding 4 surfaces. {birth: data
 Binding 6: [Reconcile] MUST bound the pass Binding 4 names by the instance's longest retention period. {birth: data}
 Binding 7: The adopter MUST declare EVERY binding in the adopter's own Composes entry for this composition. {birth: data}
 Binding 8: The adopter MUST declare a need outside the bindings as a deviation (Edge cases, Declared deviations). {birth: data}
-Binding 9: An adopter MUST NOT bind a kind whose database removes a record ahead of the journal's retention of the record's outcome. {birth: data}
+Binding 9: An adopter MUST NOT bind a kind whose database removes a record ahead of the keep of the journal need for the record's outcome. {birth: data}
 Binding 10: EVERY action but [Reconcile] MUST read the bindings of the kind the action takes from the bindings table by that kind, the retention period of an intent Binding 14a names excepted. {birth: data}
-Binding 11: A change to a kind's retention period MUST NOT take effect on a running instance BEFORE EVERY Instance start rule reading retention period has passed against the change (Audit Trail Instance start 33). {birth: data}
+Binding 11: A change to a kind's retention period MUST NOT take effect on a running instance BEFORE EVERY Instance start rule reading retention period has passed against the change. {birth: data}
 Binding 11a: IF a requested change to a kind's retention period has not taken effect THEN the deployment MUST refuse a further change to the kind's retention period. {birth: data}
 Binding 12: A lengthening of a kind's retention period MUST NOT take effect BEFORE EVERY record placed under the old period before the lengthening was requested is past the retention end the old period gives the record. {birth: data}
-Binding 12a: The substrate's retention policy MUST resolve EVERY record placed from the instant a lengthening of a kind's retention period is requested to the new period. {birth: data}
+Binding 12a: The keep of the journal offer MUST be the new period for EVERY record appended from the instant a lengthening of a kind's retention period is requested. {birth: data}
 Binding 13: A shortening of a kind's retention period MAY take effect at once, Binding 11 holding. {birth: data}
 Binding 14: EVERY rule of this pattern reading retention period MUST read the retention period in force, the old period until Binding 11 and Binding 12 let a change to a kind's retention period take effect, a record Binding 14a names excepted. {birth: data}
 Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind>.*` record placed from the instant a lengthening of the kind's retention period is requested MUST read the new period (Binding 12a). {birth: data}
@@ -228,20 +240,20 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   Term commit round trip: the longest one commit call takes from issue to reply; charged by lease spend. {birth: data}
 
 - **journal**
-  Term journal: the Audit Trail instance the records go to, and the action reference vocabulary of the kind. {birth: data}
+  Term journal: the Event Log instance the records go to, Durable Intent's journal need met, and the action reference vocabulary of the kind (Durable Intent Primitive policy 46 through 49). {birth: data}
 
   ```
-  journal 1: EVERY act kind of an instance MUST share one Audit Trail instance. {birth: bond candidate}
-  journal 2: The vocabulary of a kind MUST declare `<kind>.intended`, the enumerated outcome refs `<kind>.<outcome>`, and `<kind>.refused`. {birth: bond candidate}
-  journal 2a: The vocabulary of a kind MUST NOT declare an outcome ref among `<kind>.intended`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated`. {birth: bond candidate}
-  journal 3: The composition MUST derive `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated` from the vocabulary. {birth: bond candidate}
-  journal 4: The rebuild MUST classify a record as an outcome by membership in the enumerated outcome refs. {birth: bond candidate}
-  journal 5: The adopter MUST NOT declare a kind whose action references fall in the reserved namespace (Audit Trail Durable Intent Primitive policy 8). {birth: bond candidate}
-  journal 6: The substrate's retention policy MUST resolve EVERY `<kind>.*` record to one fixed policy reference of retention period, selected on the `<kind>` prefix of action reference and nothing else, a record Binding 12a names excepted. {birth: bond candidate}
-  journal 7: IF the substrate admits one policy reference per instance and no selector THEN kinds with different retention periods MUST run under different Recoverable Invocation instances. {birth: bond candidate}
+  Deleted: journal 1. The stream of Durable Intent's journal need owns it: every act kind's records go to the one stream `invocation journal`.
+  Deleted: journal 2. Durable Intent Primitive policy 46 owns it.
+  Deleted: journal 2a. Durable Intent Primitive policy 46a owns it.
+  Deleted: journal 3. Durable Intent Primitive policy 47 owns it.
+  Deleted: journal 4. Durable Intent Primitive policy 48 owns it.
+  Deleted: journal 5. Durable Intent Primitive policy 49 owns it.
+  journal 6: The keep of the journal need MUST be one retention period for EVERY `<kind>.*` record of the instance, a record Binding 12a names excepted. {birth: data}
+  journal 7: IF the retention periods of two kinds differ THEN the kinds MUST run under different Recoverable Invocation instances. {birth: data}
   ```
 - **service identity**
-  Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none. {birth: data}
+  Term service identity: a registered actor (actor reference and credential) under which the sweep writes, or none; the substrate validates its credential as it validates a caller's (the held attested append). {birth: data}
 
   ```
   service identity 1: WHEN service identity EQUALS none: {birth: data}

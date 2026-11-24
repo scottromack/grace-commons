@@ -19,7 +19,7 @@ Term need line: a `Term need <kind>:` declaration on an atom, one for each kind 
 
 Term offer line: a `Term offer <kind>:` declaration on an atom, one for each kind the atom offers, in the need line's form, with the kind's offer fields.
 
-Term typed field: a field whose value is a word the declaration space declares or a type it names; key, holder and span are typed fields.
+Term typed field: a field whose value is a word the declaration space declares or a type it names; key, holder, span, keep and tamper are typed fields.
 
 Term list field: a field whose value is a list of words, separated by commas; calls, a need's arms, writes, carried by and pairs are list fields.
 
@@ -94,13 +94,13 @@ Why a kind: an atom that appends its records to a store it never changes and rea
 
 Term journal: records an atom appends, which the offer keeps, and which the atom reads back by range. The kind has three verbs and no more: append, keep, read by range.
 
-Term journal need fields: records, the records the needing atom appends; calls, the journal calls it makes, and it makes no call the list leaves out; arms, the journal's answers it reads, and it discards a journal answer the list leaves out, while a failure the Execution Contract answers, such as state-unavailable or storage-failure, is no answer of the journal and the needing atom lands it as the Execution Contract says (Read 1, Constituent failure 1 and Constituent failure 3); keep, how long it needs each record it appends kept, where it needs a keeping period the offer's keep does not already give.
+Term journal need fields: records, the records the needing atom appends; calls, the journal calls it makes, and it makes no call the list leaves out; arms, the journal's answers it reads, and it discards a journal answer the list leaves out, while a failure the Execution Contract answers, such as state-unavailable or storage-failure, is no answer of the journal and the needing atom lands it as the Execution Contract says (Read 1, Constituent failure 1 and Constituent failure 3); keep, how long it needs each record it appends kept, where it needs a keeping period the offer's keep does not already give; tamper, how it needs a change to a kept record to show, where it needs the change to show; stream, the stream it appends to and reads from, where it names one.
 
-Term journal offer fields: calls, the journal calls offered; arms, every answer each of those calls gives, named per call; keep, how long the offer keeps a record, the type duration where the app sets it to the keep of the needs it serves; tamper, how a change to a kept record shows, or none where nothing shows it; order, the order a read by range answers in, per stream at least.
+Term journal offer fields: calls, the journal calls offered; arms, every answer each of those calls gives, named per call; keep, how long the offer keeps a record, the type duration where the app sets it to the keep of the needs it serves; tamper, how a change to a kept record shows: a word of the declaration space, or the type opaque where the app sets it to the evidence of the needs it serves, as keep is set; order, the order a read by range answers in, per stream at least.
 
 Term append: the journal call that adds one record at the end of a stream and answers the record's place in the stream's order.
 
-Term read: the journal call that answers the records whose places lie in a range of one stream's order, in that order.
+Term read: the journal call that answers the records whose places lie in a range of one stream's order, in that order. A read of one record is a read of the range that holds the record's place and no other: the place an append answered names the record, and no call of its own looks a record up by that place.
 
 Term stream: the records one offer keeps in one order.
 
@@ -113,27 +113,34 @@ journal 3: IF a read is issued after an append answered AND the read's range hol
 journal 4: A needing atom MUST read a range ONLY within one stream's order.
 journal 5: A journal need MUST NOT ask for a record by the record's content AND MUST NOT ask to be told of a record appended later.
 journal 6: An atom that needs a keeping period other than the offer's keep MUST state the period as the keep of the atom's need.
+journal 7: IF a record is wanted by the place an append answered THEN the read MUST name the range whose first place and last place are that place.
+journal 8: EVERY need an offer serves MUST keep the need's records in a stream of the need's own, unless the need names a stream.
+journal 9: IF the keep of a need EXCEEDS the keep of an offer THEN the need MUST NOT meet the offer.
 ```
 
 ## Direction
 
 Needs reach down; offers never look up (Scott, with GLM, 2026-11-24 7:54 AM Central: "this flattening will restore one way data flow"). An offering atom never learns which atom needs it: the only thing that ever pointed backwards was a name, and Bond 6 forbids it. A follow-up stays one-way by carrying its recipient as data, never as an edge.
 
-Term layer order: keys at the bottom; journal and permission in the middle; the atoms that offer none of these on top.
+Term layer: of an atom in an app, a whole number: 0 where no need of the atom is of a layered kind; otherwise one above the highest layer among the atoms whose offers serve the atom's needs of a layered kind. An atom sits at its layer by what it needs and never by what it offers.
+
+Term layered kind: guard, journal and permission, the middle kinds, each one a need on another atom's offer for something the needing atom cannot keep itself. A key is data a record carries and sets no layer, so an atom's key need and key offer never move it. Permission is written when its first line lands, and takes its place beside guard and journal then.
 
 Term admission check: an offering atom's own check of whether a call may happen.
 
-A check whose answer lives inside the offering atom is a rule of its offer; a check that needs knowledge another atom owns, a policy that changes without a redeploy or a decision another atom makes, is a need and crosses the edge. An offer's own check is a rule: no new term is written for it, since every obligation is already a rule.
+A check whose answer lives inside the offering atom is a rule of its offer; a check on another atom's action that needs knowledge another atom owns, a policy that changes without a redeploy or a decision another atom makes, is a permission need and crosses the edge. An offering atom's own admission check is always a rule of its offer: where the check would need knowledge from outside the atom, that knowledge is a parameter of the offer, never a need. An offer's own check is a rule: no new term is written for it, since every obligation is already a rule.
 
 ```
 Direction 1: The edges that run from a needing atom to the atom whose offer serves the need MUST form no cycle in an app.
 Direction 2: IF the edges of an app form a cycle THEN the app's build MUST fail.
-Direction 3: An atom MUST sit at the layer of the kinds the atom offers AND MUST NOT sit at the layer of a kind the atom only needs.
+Direction 3: An app's build MUST compute the layer of EVERY atom from the atom's needs of the layered kinds ONLY.
 Direction 4: An offering atom MUST state an admission check as a rule of the atom's offer AND MUST NOT declare an admission check as a need.
+Direction 5: A need of a layered kind MUST meet an offer of an atom whose layer lies below the layer of the needing atom.
+Direction 6: IF a need of a layered kind meets an offer of an atom whose layer does not lie below the layer of the needing atom THEN the app's build MUST fail.
 ```
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules. Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: four foundational cured (a bond now forms by rule, an ambiguous need gets one bond instance, the guard's answers are told from the Execution Contract's failures, one instance of an atom serves every need it meets), three filed as design questions for Scott (a need that meets no offer, key matching on pairs and carried by, arms tied to calls). Scott ruled on them (2026-11-23 10:56 PM Central, "as recommended") in the unit `bonds: five rulings` (2026-11-24): an unmet need fails an app's build (Bond 10, Bond 11), Bond 3 reads pairs within carried by, an offer names its arms per call, a guard call that answers no answer stops writes until a new take (guard 4), and a kind is written only when a line lands on it. Final Critique 2 (2026-11-24), a delta round of one reader (Linus) in a scratch slot, frozen at b6ad4b52 from diff base ca124ecf, under the unit `library: the files match the tree`: four foundational cured (an ambiguous need is served by the one instance its bond instance names, Bond 9 and Bond 12; guard 2 covers try_take; Bond 2 binds each field to the offer's field of the same name; Bond 3 reads each arm against any of the need's calls, as the gate does), two refining cured (a bond instance names an offer the need meets; an atom read alone may meet no offer); not clean, and its cures owe a delta round. The unit `bonds: journal` (2026-11-24) added the kind journal and the section *Direction* (one-way flow, the cycle the gate fails, the layer order and the admission check), ruled by Scott 2026-11-24 7:36 to 7:54 AM Central; it waits for his design review.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules. Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: four foundational cured (a bond now forms by rule, an ambiguous need gets one bond instance, the guard's answers are told from the Execution Contract's failures, one instance of an atom serves every need it meets), three filed as design questions for Scott (a need that meets no offer, key matching on pairs and carried by, arms tied to calls). Scott ruled on them (2026-11-23 10:56 PM Central, "as recommended") in the unit `bonds: five rulings` (2026-11-24): an unmet need fails an app's build (Bond 10, Bond 11), Bond 3 reads pairs within carried by, an offer names its arms per call, a guard call that answers no answer stops writes until a new take (guard 4), and a kind is written only when a line lands on it. Final Critique 2 (2026-11-24), a delta round of one reader (Linus) in a scratch slot, frozen at b6ad4b52 from diff base ca124ecf, under the unit `library: the files match the tree`: four foundational cured (an ambiguous need is served by the one instance its bond instance names, Bond 9 and Bond 12; guard 2 covers try_take; Bond 2 binds each field to the offer's field of the same name; Bond 3 reads each arm against any of the need's calls, as the gate does), two refining cured (a bond instance names an offer the need meets; an atom read alone may meet no offer); not clean, and its cures owe a delta round. The unit `bonds: journal` (2026-11-24) added the kind journal and the section *Direction* (one-way flow, the cycle the gate fails, the layer order and the admission check), ruled by Scott 2026-11-24 7:36 to 7:54 AM Central; it passed his design review (2026-11-24 9:47 AM Central, "AR"). The unit `bonds: journal, finished` (2026-11-24) followed the ruling and GLM's review of this page: a read of one record is a read of the range that holds its place (journal 7), the tamper and the stream are need fields (journal 8; the tamper a typed field), a need whose keep exceeds the offer's keep meets nothing (journal 9), an atom's layer is computed from its needs of the layered kinds and a key sets none (Direction 3, 5 and 6, the gate's B-app-layer), an offering atom's own admission check is always a rule of its offer (Direction 4's text); step 4 of the ruling, the attested append as a need field, stopped for his review: no journal offer's record carries an actor and the credential check is a call whose answer another atom decides, so the held lines wait on the app page for `bonds: permission`.
 
 NOTE: End of Bonds.
