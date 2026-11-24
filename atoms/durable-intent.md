@@ -161,7 +161,7 @@ Steps:
    ```
    open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized (open step 1.3) and written as given, blank included.
    open step 1.2: IF caller kind EQUALS service THEN [Open] MUST land invalid-request.
-   open step 1.3: [Open] MUST size intent data and the kind's largest record per Primitive policy 12.
+   open step 1.3: [Open] MUST size intent data and the kind's largest record per Primitive policy 12, for a kind in the bindings table (open step 1.9).
    open step 1.4: IF the sized record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
    open step 1.5: A step-1 refusal MUST write nothing.
    open step 1.6: [Open] MUST NOT take the critical section BEFORE reading open invocations at (kind, act key) from the journal.
@@ -422,7 +422,7 @@ read invocation 3: WHEN invocation id DOES NOT EQUAL blank:
     read invocation 3b: [Read Invocation] MUST answer not-known for an invocation id no readable intent of the act key carries.
 NOTE: watch the blank optional input (read invocation 2, read invocation 3).
 read invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
-read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records together, a superseded closing counted like any other, at the most recent read cap, the intent excepted, with more set to true beyond.
+read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records together, a superseded closing counted like any other, at the most recent read cap, the standing closing kept within the cap wherever the standing closing falls, the intent excepted, with more set to true beyond.
 read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records except beyond the cap of read invocation 5.
 read invocation 16: [Read Invocation] MUST answer an invocation report's invocations earliest first by the sequence numbers of the invocations' intents, and an invocation entry's records earliest first by sequence number.
 NOTE: watch read-order polarity (read invocation 16).
@@ -502,6 +502,7 @@ Primitive policy 7: The composition MUST validate actor reference and credential
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
 Primitive policy 9: intent data MUST carry the invocation's parameters and pairing datum.
 Primitive policy 10: intent data MUST NOT carry a field the substrate or the constituent stamps or mints.
+Primitive policy 10a: intent data MUST NOT carry a field named invocation id, kind or act key, and outcome data MUST NOT carry one named invocation id, intent event id, kind or act key (Term intent payload and Term outcome payload name the fields the composition adds).
 Primitive policy 11: The composition MUST write invocation id, kind and act key into EVERY record the composition appends.
 Primitive policy 11a: The composition MUST write intent event id into EVERY record of the invocation but the intent.
 Primitive policy 12: [Open] MUST size intent data and the kind's largest record against the substrate's payload cap as the substrate measures a payload.
@@ -524,13 +525,13 @@ Term caller kind: EXACTLY ONE OF human, service — service where actor referenc
 
 Term examine edge: `((recorded_at + invocation_completion_bound) + clock_allowance)`.
 
-Term in-flight: an open intent for which examine edge EXCEEDS now.
+Term in-flight: an open intent for which now PRECEDES examine edge.
 
-Term aged: an open intent for which examine edge DOES NOT EXCEED now — every open intent that is not in-flight.
+Term aged: an open intent for which now DOES NOT PRECEDE examine edge — every open intent that is not in-flight.
 
-Term largest record: the larger of a kind's two sweep closings as the substrate measures a payload — the recovered outcome, built from outcome envelope, and the `<kind>.escalated` record, built from intent candidates cap (Invariant 6.2).
+Term largest record: the largest of the closings the sweep and [Resolve] write for a kind, as the substrate measures a payload — the recovered outcome, built from outcome envelope, the `<kind>.escalated` record, built from intent candidates cap, and an operator's closing of either, which adds resolving actor and supersedes (Invariant 6.2).
 
-Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with the longer of the caller's and the service identity's actor reference, the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — are sized separately; the bound is the larger. [Resolve]'s closings, under the operator's actor reference, are bounded by outcome envelope and intent candidates cap, which take every reference under reference length cap.
+Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with an actor reference at reference length cap (the writer's, whether the caller's, the service identity's or the operator's, which the substrate refuses beyond that cap), the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — and the operator's closings through [Resolve], which add resolving actor and supersedes to either, are sized separately, each reference at reference length cap; the bound is the largest.
 
 ```
 Primitive policy 19: IF position EQUALS intent THEN invalid-credential MUST pass through unchanged with nothing written.
@@ -667,7 +668,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
   Term act probe: a read of the adopter's database keyed by act key and pairing datum, answering for the sweep: did the act commit, and with what outcome.
 
-  Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, the commit floor and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* none.
+  Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, [Open]'s intent write with the wait and read-back of Primitive policy 34, the commit floor and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* none.
 
   Term commit round trip: the longest one commit call takes from issue to reply. *Default:* none.
 
@@ -761,7 +762,7 @@ Check 2.4: An auditor MUST read supersession transitively PER the section titled
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
 Check 2.6: An auditor MUST report an outcome matching no outcome shape as a conformance failure.
 ```
-Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, no recovery_intended owed; recovery set to true without resolving actor, actor reference set to the service identity, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
+Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, acting actor reference set to the intent's actor reference, no recovery_intended owed; recovery set to true without resolving actor, actor reference set to the service identity, acting actor reference set to the intent's actor reference, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
 
 #### External checks
 
@@ -906,7 +907,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 ```
 status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS claude-sonnet-5-5, Linus beam-free), frozen at 18c7609b — foundational count 5, not clean, no sample (the atom names Lease and Audit Trail and carries journal rules that bind Sweep and Escalation, a shape question that waits under Needs Scott; [Refuse] cleared an intent it left open; the mark's Term against sequence high water 2; aged and the bindings the rules read had no declaration on the page; read invocation 5's cap against read invocation 6); the round's refining findings cured with them
+last gate: 2026-11-24 — Final Critique 2, a delta round (the reach of the diff since 18c7609b, 172 rules and terms), one reader (Linus claude-sonnet-5-5), frozen at cb0c954b — foundational count 2 after the first triage (the finder rated 4), not clean, no sample (the closings [Resolve] writes were sized by nothing, its framing actor reference and resolving actor and supersedes outside the largest record; intent data and outcome data could carry a field the composition adds); the round's refining findings cured with them (the invocation completion bound omitted [Open]'s own intent write; the outcome shapes named no acting actor reference; and three more)
 open: none
 ```
 
