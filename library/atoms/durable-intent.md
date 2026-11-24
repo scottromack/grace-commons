@@ -159,7 +159,7 @@ Steps:
    open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized (open step 1.3) and written as given, blank included.
    open step 1.2: IF caller kind EQUALS service THEN [Open] MUST land invalid-request.
    open step 1.3: [Open] MUST size intent data and the kind's largest record per Primitive policy 12, for a kind in the bindings table (open step 1.9).
-   open step 1.4: IF the sized record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
+   open step 1.4: IF the sized intent data OR the sized largest record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
    open step 1.5: A step-1 refusal MUST write nothing.
    open step 1.6: [Open] MUST NOT take the critical section BEFORE reading open invocations at (kind, act key) from the journal.
    open step 1.7: IF the read of open step 1.6 shows an open intent open step 3.5 or open step 3.7 refuses THEN [Open] MUST land act-in-flight(invocation id) carrying the invocation id of that open intent, with no take.
@@ -274,8 +274,8 @@ Steps:
        close step 2.2b: [Close] MUST release.
        close step 2.2c: [Close] MUST return outcome event id and landing actor.
        close step 2.2d: IF the outcome carries resolving actor THEN [Close] MUST return landing actor set to operator.
-       close step 2.2e: IF the outcome carries recovery AND no resolving actor THEN [Close] MUST return landing actor set to sweep.
-       close step 2.2f: IF the outcome carries no recovery THEN [Close] MUST return landing actor set to invocation.
+       close step 2.2e: IF the outcome carries recovery set to true AND no resolving actor THEN [Close] MUST return landing actor set to sweep.
+       close step 2.2f: IF the outcome carries no recovery set to true THEN [Close] MUST return landing actor set to invocation.
    close step 2.3: WHEN the standing closing among the closing records naming the invocation id is an abandonment OR an escalation OR a refusal:
        close step 2.3a: [Close] MUST NOT adopt the record.
        close step 2.3b: [Close] MUST release and return recording-failure(outcome).
@@ -504,8 +504,8 @@ Primitive policy 10b: outcome data MUST NOT carry a field named for invocation i
 Primitive policy 10c: outcome data MUST NOT carry a field named for recovery, acting actor reference, resolving actor and supersedes (Term outcome shape and Term supersedes name the fields a closing adds).
 Primitive policy 11: The composition MUST write invocation id, kind and act key into EVERY record the composition appends.
 Primitive policy 11a: The composition MUST write intent event id into EVERY record of the invocation but the intent.
-Primitive policy 12: [Open] MUST size intent data and the kind's largest record against the substrate's payload cap as the substrate measures a payload.
-Primitive policy 13: [Open] MUST refuse invalid-request for an act whose largest record would not fit.
+Primitive policy 12: [Open] MUST size intent data and the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload.
+Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent data or whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for three comparisons alone: the age of an open intent against recording instant under clock allowance, at step 1 and at step 3, the retention drop of sequence high water 5, and the advance of the mark under settle bound (sequence high water 2).
 Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for the retention drop of sequence high water 5 and the advance of the mark under settle bound (sequence high water 2) alone.
@@ -530,7 +530,7 @@ Term aged: an open intent for which now DOES NOT PRECEDE examine edge — every 
 
 Term largest record: the largest of the closings the sweep and [Resolve] write for a kind, as the substrate measures a payload — the recovered outcome, built from outcome envelope, the `<kind>.escalated` record, built from intent candidates cap, and an operator's closing of either, an abandonment included (only an operator abandons: Term state projection), which adds resolving actor and supersedes (Invariant 6.2).
 
-Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with an actor reference at reference length cap (the writer's, whether the caller's, the service identity's or the operator's, which the substrate refuses beyond that cap), the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — and the operator's closings through [Resolve], which add resolving actor and supersedes to either, are sized separately, each reference at reference length cap; the bound is the largest.
+Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with an actor reference at reference length cap (the writer's, whether the caller's, the service identity's or the operator's, which the substrate refuses beyond that cap), the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — and the operator's closings through [Resolve] (either of the two with resolving actor and supersedes added, and an abandonment, which carries its cause with the same two) are sized separately, each reference at reference length cap; the bound is the largest.
 
 ```
 Primitive policy 19: IF position EQUALS intent THEN invalid-credential MUST pass through unchanged with nothing written.
@@ -759,7 +759,7 @@ Check 2.4: An auditor MUST read supersession transitively PER the section titled
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
 Check 2.6: An auditor MUST report an outcome matching no outcome shape as a conformance failure.
 ```
-Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, acting actor reference set to the intent's actor reference, no recovery_intended owed; recovery set to true without resolving actor, actor reference set to the service identity, acting actor reference set to the intent's actor reference, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
+Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, acting actor reference set to the intent's actor reference, whether or not a `<kind>.recovery_intended` precedes it; recovery set to true without resolving actor, actor reference set to the service identity, acting actor reference set to the intent's actor reference, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
 
 #### External checks
 
@@ -896,7 +896,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 
 ## Status
 
-`done — 2026-11-24` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -904,9 +904,9 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 </summary>
 
 ```
-status: done — 2026-11-24
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-24 — Final Critique 5, a delta round (the reach of the diff since 75a0f408, 2 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 3fe39f42 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were placed by neither triage as foundational: Which closing stands 3 read as a ban on a resolving actor's supersession, when the field resolving actor is what the clause says carries no trigger and the clause's own example, an operator's abandonment superseding an escalation, carries it; and Which closing stands 2 read as leaving a cycle or a branch of supersessions undecided, when the journal assigns event ids, so no closing names a record not yet written, and Which closing stands 7 and Term standing closing give a branch of unsuperseded closings the lowest sequence number); cured as refining: rule 3 states the field and the example's field, and Term resolving actor is declared on the page)
+last gate: 2026-11-24 — Final Critique 6, a delta round (the reach of the diff since 3fe39f42, 19 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at b6ad4b52 — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample (Linus's finding 1, Term outcome shape's "no recovery_intended owed", read as a ban where an operator's closing follows a sweep's recovery_intended, so Check 2.5 and Check 2.6 can report a conforming run: cured by writing "whether or not a recovery_intended precedes it"; finding 2, intent data over the payload cap with no refusal in Primitive policy 13, placed refining since open step 1.4 refuses any sized record, cured by naming intent data in Primitive policy 13, open step 1.4 and Primitive policy 12; refining, cured: close step 2.2e and 2.2f key on recovery set to true, Term as the substrate measures a payload names an operator's abandonment; refined without change: Check 1.1 scopes to the horizon by Check 1.2, and Which closing stands 3 lets an operator's abandonment supersede an escalation); 2026-11-24 — Final Critique 5, a delta round (the reach of the diff since 75a0f408, 2 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 3fe39f42 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were placed by neither triage as foundational: Which closing stands 3 read as a ban on a resolving actor's supersession, when the field resolving actor is what the clause says carries no trigger and the clause's own example, an operator's abandonment superseding an escalation, carries it; and Which closing stands 2 read as leaving a cycle or a branch of supersessions undecided, when the journal assigns event ids, so no closing names a record not yet written, and Which closing stands 7 and Term standing closing give a branch of unsuperseded closings the lowest sequence number); cured as refining: rule 3 states the field and the example's field, and Term resolving actor is declared on the page)
 open: none
 ```
 
