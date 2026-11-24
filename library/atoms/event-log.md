@@ -314,7 +314,7 @@ Term payload cap: the per-instance bound on the number of bytes the composing pa
 
 ## Offers
 
-The bonds this atom offers, each of a kind [Bonds](../bonds.md) states. Its own checks of whether a call may happen, data over the payload cap (Operation 5), data omitted or no sequence of bytes (Operation 22) and a malformed query (Operation 15), are rules of the offer, answered on its arms, and no need it declares (Bonds Direction 4). A read of one event is the read of the range that holds the event's sequence number and no other (Bonds journal 7). The atom keeps no seal of its own, so the app sets its tamper to the evidence of the needs it serves, as it sets its keep.
+The bonds this atom offers, each of a bond kind [Bonds](../bonds.md) states. Its own checks of whether a call may happen, data over the payload cap (Operation 5), data omitted or no sequence of bytes (Operation 22) and a malformed query (Operation 15), are rules of the offer, answered on its arms, and no need it declares (Bonds Direction 4). A read of one event is the read of the range that holds the event's sequence number and no other (Bonds journal 7). The atom keeps no seal of its own, so the app sets its tamper to the evidence of the needs it serves, as it sets its keep.
 
 Term offer journal: calls append, read; arms append: event_id, invalid-payload / read: events, invalid-query; keep duration; tamper opaque; order sequence number.
 
