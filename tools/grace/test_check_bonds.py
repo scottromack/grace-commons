@@ -96,6 +96,13 @@ class BondTest(unittest.TestCase):
         self.write("guard-needer", atom("Guard Needer", ""))
         self.assertEqual(self.codes(), ["B-bond-unmet"])
 
+    def test_a_contract_need_names_a_contract_the_contracts_page_states(self):
+        (self.root / "contracts.md").write_text("# Contracts\n\nTerm commit contract: the call that makes an act.\n")
+        self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm contract need commit: asks the act; answers committed; bound commit round trip.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm contract need ledger: asks a row; answers ok; bound read bound.\n"))
+        self.assertEqual(self.codes(), ["B-contract-unknown"])
+
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]
         gating = [f for f in check.bond_findings(root) if f.code not in check.ADVISORY]

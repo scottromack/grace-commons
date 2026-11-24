@@ -19,7 +19,7 @@ Grace
 ├─ Bonds                how atoms connect: key, owner key, link, range, guard, follow-up, priority
 ├─ Glue                 the few lines that belong to no atom or bond yet, each with a birth tag
 ├─ Data (planned)       typed tables the checkers read
-├─ Outside-world contracts (planned)
+├─ Outside-world contracts what an app asks of systems that are not Grace's, tested at the edge
 └─ Apps                 atoms + bond instances + marked glue
    └─ Lean statements · proofs · codegen to two builds · generated tests (all planned)
 ```
@@ -30,7 +30,7 @@ Grace
 - **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./declarations.md). Example: [Lease](./atoms/lease.md) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
 - **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
 - **Data** *(planned)* — typed tables the checkers read, outside the prose of atoms and glue; Medication Order's clinical tables are planned as the first.
-- **Outside-world contracts** *(planned)* — what an app asks of a database or system that is not Grace's, such as the act probe in the glue of [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md).
+- **Outside-world contracts** — what an app asks of a system that is not Grace's, stated once on one page, [Contracts](./contracts.md), and tested at the edge where that system connects, never trusted. Example: the adopter's commit and its act probe, which [Durable Intent](./atoms/durable-intent.md) and [Sweep](./atoms/sweep.md) need.
 - **Apps** — atoms, bond instances and marked glue, wired for one job. Example: [Recoverable Invocation as an app](./apps/recoverable-invocation/index.md). The first whole app, the shared to-do list, *(planned)* will carry Lean statements that you review, proofs, code generated for two builds and generated tests. Not yet: `tools/lean`.
 <!-- grace-map:end -->
 

@@ -85,8 +85,6 @@ Capability requirement 11: IF the range read, read-your-writes or act section is
 - **Invariant 9 — Constituent invariants preserved.**
   ```
   Invariant 9.1: Audit Trail Invariant 1 through 8 MUST hold over the journal instance. {birth: bond candidate}
-  Invariant 9.2: This composition MUST NOT write to the adopter's constituent records. {birth: bond candidate}
-  Invariant 9.3: The adopter's commit partition MUST transcribe the constituent's arms as the constituent states the arms. {birth: bond candidate}
   ```
 ### Checks that read the app
 
@@ -126,11 +124,6 @@ Clock semantics 3: The composition MUST NOT time the lease. {birth: dead}
 
 ```
 Deviation 1: An adopter MUST declare a deviation as EXACTLY ONE OF: minted key; journal without attribution. {birth: bond candidate}
-Deviation 2: An adopter MUST record a need outside Deviation 1 first, as a finding against the adopter or as evidence for the next revision of this pattern. {birth: bond candidate}
-Deviation 4: WHEN the act's key is minted by the commit: {birth: bond candidate}
-    Deviation 4a: The adopter MUST bind the key the adopter can name before the commit. {birth: bond candidate}
-    Deviation 4b: The adopter MUST declare the act probe that finds the minted record from the bound key. {birth: bond candidate}
-    Deviation 4c: IF no such read of the constituent EXISTS THEN the adopter MUST declare act probe set to undecidable for the kind. {birth: bond candidate}
 Deviation 5: An adopter journaling to a bare Event Log MUST declare that the adopter is not an adopter of this pattern. {birth: bond candidate}
 ```
 ### Repeatable and non-repeatable acts
@@ -174,9 +167,6 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
 - **act key**
   Term act key: the key an adopter gives an act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes. The critical section is keyed by it; the sweep pairs by it; the pre-check reads by it. {birth: data}
 
-  ```
-  act key 2: An act whose key is minted by the commit MUST bind the key the adopter can name before the commit and declare the minted-key deviation. {birth: bond candidate}
-  ```
 - **commit**
   Term commit: the adopter's constituent call that makes the act, with its rejection arms partitioned by the adopter. {birth: data}
 
@@ -199,12 +189,6 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
 - **pairing datum**
   Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent. {birth: data}
 
-  ```
-  pairing datum 4: The adopter MAY bind a seam-injected now as pairing datum ONLY IF no two serialized invocations of one act key carry the same reading on any node of the instance. {birth: bond candidate}
-  pairing datum 5: The adopter MUST declare the obligation pairing datum 4 names where the datum is a seam-injected now. {birth: bond candidate}
-  pairing datum 6: WHEN pairing datum EQUALS none: {birth: bond candidate}
-      pairing datum 6a: act probe MUST NOT answer committed. {birth: bond candidate}
-  ```
   <details markdown="block">
   <summary>WHY</summary>
 

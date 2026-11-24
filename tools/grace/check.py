@@ -1585,7 +1585,7 @@ def scan(path: Path) -> list[Finding]:
     for name, k in declared_terms(text).items():
         if name in VOCABULARY_CATEGORIES:
             continue  # the vocabulary's own categories (Closed vocabulary 1, Closed vocabulary 2)
-        if re.fullmatch(r"(need|offer) [a-z][\w -]*|[a-z][\w -]* (need|offer) fields", name):
+        if re.fullmatch(r"(contract )?(need|offer) [a-z][\w -]*|[a-z][\w -]* (need|offer) fields", name):
             continue  # a bond line and a kind's fields: bond_findings reads them
         pat = re.escape(name)
         # a declaration that mentions its own name is not a use of it
@@ -1811,6 +1811,16 @@ def bond_findings(root: Path) -> list[Finding]:
             if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", b["text"]):
                 findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
                                         f"the {b['side']} line names the atom {t} (bonds.md Bond 6)"))
+    # a contract need names a contract contracts.md states (unit `contracts: the outside world`)
+    stated = set()
+    if (root / "contracts.md").exists():
+        stated = set(re.findall(r"^Term ([a-z][\w -]*?) contract:", (root / "contracts.md").read_text(encoding="utf-8"), re.M))
+    for p in atoms:
+        text = p.read_text(encoding="utf-8")
+        for m in re.finditer(r"^Term contract need ([a-z][\w -]*?):", text, re.M):
+            if m.group(1) not in stated:
+                findings.append(Finding(p, text[:m.start()].count("\n") + 1, "B-contract-unknown",
+                                        f"`{m.group(1)}` is no contract contracts.md states"))
     for need in (b for b in lines if b["side"] == "need" and b["kind"] in kinds):
         met = [o for o in lines if o["side"] == "offer" and bond_meets(need, o, words, types)]
         if not met:
@@ -1831,7 +1841,7 @@ def main(argv: list[str]) -> int:
         paths = [Path(a) for a in args]
     else:
         # the bonds page and the declaration space are read as a pattern is (unit `bonds: the fifty`)
-        paths = [root / "GRACE-lang.md", root / "bonds.md", root / "declarations.md"]
+        paths = [root / "GRACE-lang.md", root / "bonds.md", root / "declarations.md", root / "contracts.md"]
         for d in ("atoms", "compositions"):
             for p in sorted((root / d).glob("*.md")):
                 if p.match(HISTORY):
