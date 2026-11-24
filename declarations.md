@@ -15,9 +15,9 @@ The declaration space: the words two or more atoms use, declared once and owned 
 ## Declarations
 
 ```
-Declaration 1: EVERY declaration MUST carry a name, a type and one line of meaning.
-Declaration 2: An atom MAY use a declared word ONLY IF the atom's Term cited line names the word under Declarations.
-Declaration 3: An atom MUST NOT declare a word this page declares.
+Declaration 1: EVERY declaration of a word MUST carry a name, a type and one line of meaning.
+Declaration 2: A specification MAY use a declared word ONLY IF the specification's Term cited line names the word under Declarations.
+Declaration 3: A specification MUST NOT declare a word this page declares.
 ```
 
 Term declaration type: opaque | duration.
@@ -32,12 +32,12 @@ Term invocation id: opaque — injected at the adopter's seam alongside now, fre
 
 Term act key: opaque — the key an adopter gives an act, adopter-typed: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes; the critical section is keyed by it, the pre-check reads by it, and a finding names it.
 
-Term critical section key: opaque — `(kind, act_key)`, the pair as one key of a guard, alike on every node of the instance.
+Term critical section key: opaque — the act's kind and its act key as one key of a guard, in an encoding that gives two different pairs two different values, the same on every node of the instance.
 
 Term critical section holder: opaque — the value naming one take of an act's critical section, so that no two takes carry one value: the invocation id for an invocation, the run id together with the examined intent's invocation id for a sweep run's take, and the operator run id for an operator's closing.
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central).
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare).
 
 NOTE: End of Declarations.
