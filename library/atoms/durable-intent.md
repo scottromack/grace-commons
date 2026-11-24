@@ -689,7 +689,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
 ## Needs
 
-The bonds this atom needs, each of a kind [Bonds](../bonds.md) states, and the contract it needs of a system that is not Grace's, which [Contracts](../contracts.md) states.
+The bonds this atom needs, each of a bond kind [Bonds](../bonds.md) states, and the contract it needs of a system that is not Grace's, which [Contracts](../contracts.md) states.
 
 Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
 

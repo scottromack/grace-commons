@@ -441,7 +441,7 @@ Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 Composition note 10: A composing Actor Identity MUST attest the actor behind an admitted revoke.
 ```
 
-The bond this atom needs, of a kind [Bonds](../bonds.md) states; which atom meets it is the app's choice.
+The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice.
 
 Term need journal: records admitted action event; calls append; arms event_id.
 

@@ -187,7 +187,7 @@ Capability requirement 19: A read_record at [Resolve] that returns nothing withi
 
 ## Needs
 
-The bonds this atom needs, each of a kind [Bonds](../bonds.md) states.
+The bonds this atom needs, each of a bond kind [Bonds](../bonds.md) states.
 
 Term need guard: key critical section key; holder critical section holder; span duration; calls take, remaining, release; arms expires_at, unavailable, remaining_term, none, released, no answer; writes closing record.
 

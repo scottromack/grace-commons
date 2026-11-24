@@ -395,7 +395,7 @@ Composition note 11: A pattern that needs the term to cover the pattern's work M
 
 ## Offers
 
-The bond this atom offers, of a kind [Bonds](../bonds.md) states.
+The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
 Term offer guard: key opaque; holder opaque; span duration; calls take, try_take, remaining, release; arms take: expires_at, unavailable, no answer / try_take: taken, held, no answer / remaining: remaining_term, none, no answer / release: released, not-held, no answer.
 
