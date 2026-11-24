@@ -38,6 +38,6 @@ Term critical section holder: opaque — the value naming one take of an act's c
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); waits for Scott's design review of the bond shape, and owes no round until it passes.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central).
 
 NOTE: End of Declarations.

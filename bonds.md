@@ -57,7 +57,8 @@ Term no answer: a guard call that returns neither its answers nor a refusal with
 
 ```
 guard 1: A writer MUST write a record a guard need names under writes ONLY IF the writer holds the guard on the need's key.
-guard 2: IF a take, a remaining or a release on a guard answers no answer OR state-unavailable THEN the holder MUST read remaining as none for the rest of the grant.
+guard 2: IF a take, a remaining or a release on a guard answers no answer THEN the holder MUST read remaining as none for the rest of the grant.
+guard 3: A needing atom MUST NOT read a guard's instant or a span on the guard from a clock other than the offering host's (Execution Contract Logic confinement 7).
 ```
 
 ## Key
@@ -68,8 +69,13 @@ Term key need fields: key, the value the needing atom pairs on; pairs, the recor
 
 Term key offer fields: key, the value the offering atom mints; carried by, the records that carry it.
 
+```
+Key 1: EVERY record a key need names under pairs MUST carry the key the meeting offer mints.
+Key 2: EXACTLY ONE atom of an app MUST offer a given key, an ambiguous need the app writes the bond for excepted (Bond 4).
+```
+
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); waits for Scott's design review of the bond shape, and owes no round until it passes.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); the bond shape passed Scott's design review (2026-11-23 6:39 and 6:40 PM Central) once the unit `bonds: three fixes` gave the guard its clock, cut an arm no offer carries from guard 2 and gave Key its two rules.
 
 NOTE: End of Bonds.
