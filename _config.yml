@@ -38,6 +38,8 @@ nav_external_links:
   - title: Join Us
     url: https://discord.gg/mpKss4n6ef
     hover: on Discord
+    hide_icon: true
+    opens_in_new_tab: false
 nav_sort: case_insensitive
 
 markdown: kramdown
