@@ -433,10 +433,10 @@ Composition note 1: A composing External Onboarding MUST create the party record
 Composition note 2: A composing External Onboarding MUST record the accepting identity reference beside the party record's id on the onboarding's completion record.
 Composition note 3: A composing External Onboarding MUST register the credential against the party record the accepted invitation's onboarding enrolled.
 Composition note 4: The atom MUST append an admitted action event through the atom's journal need on EVERY admitted action.
-Composition note 5: A composing pattern MUST append a refused action event on EVERY refused action, the atom's own refused call writing nothing (Execution Contract Read 4).
+Composition note 5: A composing pattern MUST append a refused action event on EVERY action this atom refused, the atom's own refused call writing nothing (Execution Contract Read 4, Read 7).
 Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
 Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
-Composition note 8: A deployment detecting a rewrite under Non-goal 20 MUST cover EVERY reference the database holds.
+Composition note 8: A deployment detecting a rewrite under Non-goal 20 MUST cover EVERY reference the database holds when the detection runs.
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 Composition note 10: A composing Actor Identity MUST attest the actor behind an admitted revoke.
 ```
@@ -805,7 +805,7 @@ It inherits from:
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-24` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -813,9 +813,9 @@ It inherits from:
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-24
 formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11
-last gate: 2026-11-24 — Final Critique 13, a delta round (the reach of the diff since 369b7bb, 11 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 097687f5 — foundational count 1, cured, not clean, no sample (Linus's first foundational, that Composition note 5 bound the atom to append a refused action event while Execution Contract Read 4 says a refused call writes nothing, stands: the composing pattern appends it, as the page said before the journal unit, and the need records the admitted event alone; his second, that Non-goal 20 names no owner, was placed refining: its subject is the deployment, cured by Composition note 8 saying so and the owners NOTE listing the deployment); 2026-11-20 — Final Critique 12, a delta round, frozen at 369b7bb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that [Initiate] with a blank ttl has no defined transition: refuted by both triages, Operation 4 reading the default ttl as a blank ttl and Operation 5 answering invalid-request where no default is declared, so no two builds differ; the reach held Operation 3 and 12 and not 4 and 5, and its cure would have contradicted Operation 4); 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-24 — Final Critique 14, a delta round (the reach of the diff since 097687f5, 4 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 1f757b5 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted none and two refining: Composition note 5's scope and Composition note 8's time of reading, both cured as wording, the first now reading the actions this atom refused, the second the references held when the detection runs; the blind second triage placed all six of his findings below foundational, found Composition note 5 wanting Read 7's citation, cured, and placed a reading of Composition note 8 as a ceiling on what detection covers refuted, since Non-goal 20 requires the rewrite detected whole and External check 6 reads that detection); 2026-11-24 — Final Critique 13, a delta round (the reach of the diff since 369b7bb, 11 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 097687f5 — foundational count 1, cured, not clean, no sample (Linus's first foundational, that Composition note 5 bound the atom to append a refused action event while Execution Contract Read 4 says a refused call writes nothing, stands: the composing pattern appends it, as the page said before the journal unit, and the need records the admitted event alone; his second, that Non-goal 20 names no owner, was placed refining: its subject is the deployment, cured by Composition note 8 saying so and the owners NOTE listing the deployment); 2026-11-20 — Final Critique 12, a delta round, frozen at 369b7bb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that [Initiate] with a blank ttl has no defined transition: refuted by both triages, Operation 4 reading the default ttl as a blank ttl and Operation 5 answering invalid-request where no default is declared, so no two builds differ; the reach held Operation 3 and 12 and not 4 and 5, and its cure would have contradicted Operation 4); 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
 open: none
 ```
