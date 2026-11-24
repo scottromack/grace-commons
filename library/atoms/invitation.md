@@ -376,7 +376,7 @@ Non-goal 10: A deployment needing an accepting identity matched to an invitee MU
 Non-goal 11: The atom MUST NOT offer a second acceptance of one invitation.
 Non-goal 12: The atom MUST NOT record who declined.
 Non-goal 13: The atom MUST NOT record a transition history.
-Non-goal 14: A deployment needing the full transition history MUST read the events the atom appends through the atom's journal need (Composition note 4, Composition note 5).
+Non-goal 14: A deployment needing the full transition history MUST read the admitted action events the atom appends through the atom's journal need (Composition note 4) and the refused action events a composing pattern appends (Composition note 5).
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
 Non-goal 16: A deployment needing a non-repudiable acceptance MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT verify an accepting party's real-world credentials.
@@ -397,7 +397,7 @@ Non-goal 31: A deployment needing a credential registered for an accepting party
 Non-goal 32: A deployment needing a session issued to an accepting party MUST compose Session.
 ```
 
-NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); [Permissions](./permissions.md) (Non-goal 6, Non-goal 27, Non-goal 29, External check 3); [Notification](./notification.md) (Non-goal 4, Non-goal 30, Capability requirement 9, External check 4); [Credential](./credential.md) (Non-goal 3, Non-goal 31); [Session](./session.md) (Non-goal 5, Non-goal 32), none of which the atom depends on; the composing pattern (Non-goal 7, Non-goal 12, External check 5); the caller's own record (Non-goal 22, External check 1); a matching rule *(forthcoming)* (Non-goal 10); the deployment's clock guarantees, Execution Contract Logic confinement 7 (Non-goal 25); the inviter and the invitee, who alone resolve an invitation (Non-goal 24).
+NOTE: the owners — [Capability](./capability.md) (Non-goal 11, Non-goal 23, Composition note 9); [Permissions](./permissions.md) (Non-goal 6, Non-goal 27, Non-goal 29, External check 3); [Notification](./notification.md) (Non-goal 4, Non-goal 30, Capability requirement 9, External check 4); [Credential](./credential.md) (Non-goal 3, Non-goal 31); [Session](./session.md) (Non-goal 5, Non-goal 32), none of which the atom depends on; the composing pattern (Non-goal 7, Non-goal 12, Composition note 5, External check 5); the deployment's own detection and retention bound (Non-goal 20, Non-goal 28, Composition note 8, External check 6); the caller's own record (Non-goal 22, External check 1); a matching rule *(forthcoming)* (Non-goal 10); the deployment's clock guarantees, Execution Contract Logic confinement 7 (Non-goal 25); the inviter and the invitee, who alone resolve an invitation (Non-goal 24).
 
 ---
 
@@ -433,17 +433,17 @@ Composition note 1: A composing External Onboarding MUST create the party record
 Composition note 2: A composing External Onboarding MUST record the accepting identity reference beside the party record's id on the onboarding's completion record.
 Composition note 3: A composing External Onboarding MUST register the credential against the party record the accepted invitation's onboarding enrolled.
 Composition note 4: The atom MUST append an admitted action event through the atom's journal need on EVERY admitted action.
-Composition note 5: The atom MUST append a refused action event through the atom's journal need on EVERY refused action.
+Composition note 5: A composing pattern MUST append a refused action event on EVERY refused action, the atom's own refused call writing nothing (Execution Contract Read 4).
 Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
 Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
-Composition note 8: The detection of Non-goal 20 MUST cover EVERY reference the database holds.
+Composition note 8: A deployment detecting a rewrite under Non-goal 20 MUST cover EVERY reference the database holds.
 Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 Composition note 10: A composing Actor Identity MUST attest the actor behind an admitted revoke.
 ```
 
 The bond this atom needs, of a kind [Bonds](../bonds.md) states; which atom meets it is the app's choice.
 
-Term need journal: records admitted action event, refused action event; calls append; arms event_id.
+Term need journal: records admitted action event; calls append; arms event_id.
 
 
 NOTE: composing patterns — [External Onboarding](../compositions/external-onboarding.md).
@@ -805,7 +805,7 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -813,9 +813,9 @@ It inherits from:
 </summary>
 
 ```
-status: done — 2026-11-20
+status: doing
 formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11
-last gate: 2026-11-20 — Final Critique 12, a delta round, frozen at 369b7bb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that [Initiate] with a blank ttl has no defined transition: refuted by both triages, Operation 4 reading the default ttl as a blank ttl and Operation 5 answering invalid-request where no default is declared, so no two builds differ; the reach held Operation 3 and 12 and not 4 and 5, and its cure would have contradicted Operation 4); 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
+last gate: 2026-11-24 — Final Critique 13, a delta round (the reach of the diff since 369b7bb, 11 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 097687f5 — foundational count 1, cured, not clean, no sample (Linus's first foundational, that Composition note 5 bound the atom to append a refused action event while Execution Contract Read 4 says a refused call writes nothing, stands: the composing pattern appends it, as the page said before the journal unit, and the need records the admitted event alone; his second, that Non-goal 20 names no owner, was placed refining: its subject is the deployment, cured by Composition note 8 saying so and the owners NOTE listing the deployment); 2026-11-20 — Final Critique 12, a delta round, frozen at 369b7bb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that [Initiate] with a blank ttl has no defined transition: refuted by both triages, Operation 4 reading the default ttl as a blank ttl and Operation 5 answering invalid-request where no default is declared, so no two builds differ; the reach held Operation 3 and 12 and not 4 and 5, and its cure would have contradicted Operation 4); 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
 open: none
 ```
