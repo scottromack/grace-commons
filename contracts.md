@@ -75,6 +75,7 @@ Act probe 3: WHEN the pairing datum EQUALS none:
     Act probe 3a: The act probe MUST NOT answer committed.
 Act probe 4: IF a record under the act key EXISTS AND the pairing datum EQUALS none THEN the act probe MUST answer undecidable.
 Act probe 5: IF the act probe's read is unanswered THEN the act probe MUST answer unavailable.
+Act probe 6: IF more than one record of the database matches the pairing datum THEN the act probe MUST answer undecidable.
 ```
 
 ### Act probe edge test
@@ -83,6 +84,7 @@ Act probe 5: IF the act probe's read is unanswered THEN the act probe MUST answe
 Act probe edge 1: A connection MUST show that the act probe reads the database the commit writes to.
 Act probe edge 2: A connection MUST show that the act probe answers unavailable, and never not-committed, to a read the database refuses.
 Act probe edge 3: A connection MUST show that the act probe's read finds the record of EVERY commit the database answered committed before the read began.
+Act probe edge 4: A connection MUST show that the act probe answers undecidable, and never committed, where the pairing datum EQUALS none and a record under the act key exists, and where more than one record matches the pairing datum.
 ```
 
 ## Status

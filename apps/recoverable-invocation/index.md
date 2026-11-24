@@ -32,7 +32,7 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 
 ### Atoms
 
-- **[Lease](../../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
+- **[Lease](../../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
 - **[Audit Trail](../../compositions/audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this pattern writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
@@ -41,7 +41,7 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 
 Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names the kinds it instantiates and defines none.
 
-- **guard** — [Lease](../../atoms/lease.md): one writer per act. The critical section is keyed by `(kind, act_key)`; the invocation, the sweep and an operator's [Resolve] each take it before they write a closing (Durable Intent act section 8 through 10; Sweep act section 11 through 13; Invariant 2.2 below).
+- **guard** — [Lease](../../atoms/lease.md): one writer per act. The critical section is keyed by `(kind, act_key)`; the invocation, the sweep and an operator's [Resolve] each take it before they write a closing (Durable Intent act section 8 through 10; Sweep act section 11 through 13; Bonds guard 1).
 - **key** — invocation id: every record the three atoms write for an invocation carries it, and every check and journal join pairs on it and no other field (Durable Intent Primitive policy 4 and 5; Invariant 3.1 and 3.2 of Durable Intent).
 - **follow-up** — [Sweep](../../atoms/sweep.md) follows an aged intent of [Durable Intent](../../atoms/durable-intent.md); [Escalation](../../atoms/escalation.md) follows what the sweep cannot settle (the `<kind>.escalated` record and the closure-at-risk finding).
 - **range** — the closure window as the sum of the declared bounds: Instance start 4 below holds it above the worst closure, and Instance start 5 holds the retention period above the retention floor.
@@ -209,7 +209,7 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   ```
   act probe 1: act probe MUST answer EXACTLY ONE OF committed(outcome action reference, outcome data), not-committed, undecidable(candidates), unavailable. {birth: atom candidate}
   act probe 2: act probe MAY answer committed ONLY IF exactly one database record matches pairing datum. {birth: atom candidate}
-  act probe 3: act probe MAY answer undecidable(candidates) ONLY IF more than one record matches pairing datum OR payload match holds OR act probe 7 applies OR the adopter declared act probe set to undecidable under Deviation 4c. {birth: atom candidate}
+  act probe 3: act probe MAY answer undecidable(candidates) ONLY IF more than one record matches pairing datum OR payload match holds OR act probe 7 applies OR the adopter declared act probe set to undecidable under the commit contract's minted key variant (Contracts Commit 3c). {birth: atom candidate}
   act probe 3a: IF payload match holds OR more than one record matches pairing datum THEN act probe MUST answer undecidable(candidates), a constituent read rejection excepted (act probe 4). {birth: atom candidate}
   act probe 4: act probe MUST map EVERY constituent read rejection to unavailable. {birth: atom candidate}
   act probe 5: act probe MUST NOT map a constituent read rejection to not-committed. {birth: atom candidate}
@@ -239,8 +239,6 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   journal 5: The adopter MUST NOT declare a kind whose action references fall in the reserved namespace (Audit Trail Durable Intent Primitive policy 8). {birth: bond candidate}
   journal 6: The substrate's retention policy MUST resolve EVERY `<kind>.*` record to one fixed policy reference of retention period, selected on the `<kind>` prefix of action reference and nothing else, a record Binding 12a names excepted. {birth: bond candidate}
   journal 7: IF the substrate admits one policy reference per instance and no selector THEN kinds with different retention periods MUST run under different Recoverable Invocation instances. {birth: bond candidate}
-  journal 8: The sweep MUST derive the upper edge from retention period. {birth: bond candidate}
-  journal 9: The sweep MUST NOT read the upper edge from a record's own retention deadline. {birth: bond candidate}
   ```
 - **service identity**
   Term service identity: a registered actor in the substrate's Actor Identity registry (actor reference and credential) under which the sweep writes, or none. {birth: data}
@@ -290,7 +288,7 @@ NOTE: watch addressable sections (Instance start 1).
 Allowance 4: A cross-seam comparison MUST take the allowance at the reading. {birth: bond candidate}
 Allowance 6: A cross-seam comparison MAY exclude a record from a pass. {birth: bond candidate}
 ```
-Term cross-seam comparison: a comparison between a reading taken at one seam and a stamp or instant minted at another (Allowance 1). {birth: bond candidate}
+Term cross-seam comparison: a comparison between a reading taken at one seam and a stamp or instant minted at another (Execution Contract Logic confinement 18). {birth: bond candidate}
 
 Six clocks meet on this pattern: the adopter's seam ([Open] step 1 and step 3), the sweep's seam ([Reconcile]), the operator's seam ([Resolve]), the reader's seam ([Read Invocation]), the substrate's recording instant, and the critical section host's expiry instant. One allowance covers every pair, set to cover the widest.
 

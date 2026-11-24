@@ -32,7 +32,7 @@ Term bond instance: the line an app writes naming an ambiguous need and the one 
 
 ```
 Bond 1: A need MAY meet an offer ONLY IF the two lines name one kind AND the two lines stand on two atoms.
-Bond 2: A need MAY meet an offer ONLY IF EVERY typed field of the need names a word of the type the offer's field names, or names the same word the offer's field names.
+Bond 2: A need MAY meet an offer ONLY IF EVERY typed field of the need names the same word the offer's field names, or the offer's field names a declaration type and the need's field names a word of that type.
 Bond 3: A need MAY meet an offer ONLY IF EVERY word of the need's calls and arms IS IN the offer's calls and arms.
 Bond 4: An app MAY write a bond instance ONLY IF a need of one of the app's atoms is an ambiguous need.
 Bond 5: A bond instance MUST NOT stand outside an app.
