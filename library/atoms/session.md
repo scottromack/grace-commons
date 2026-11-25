@@ -256,7 +256,7 @@ The case space, and the rule that owns each case:
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent, no whole number of seconds, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
+The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no window length, or is zero or negative, or when the default session duration is absent, no window length, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -309,7 +309,7 @@ Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST ans
 Operation 50: [Issue] MUST record the principal reference the call supplies.
 Operation 51: [Issue] MUST record the issued by reference the call supplies.
 Operation 55: IF a supplied session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
-Operation 65: IF the default session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
+Operation 65: IF the default session duration is no window length THEN [Issue] MUST answer invalid-request.
 Operation 56: IF the default session duration DOES NOT EQUAL blank AND the default session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 58: [Issue] MUST record the session token digest of the session token the host allocates (Identity 3, Capability requirement 12).
 Operation 62: [Issue] MUST record the session id the host allocated for the call (Identity 13).
@@ -863,7 +863,7 @@ Term cited: actor id, session id: Declarations.
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -871,9 +871,9 @@ Term cited: actor id, session id: Declarations.
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-25
 formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11; both re-derived over the session token digest, 2026-11-21
-last gate: 2026-11-25 — Final Critique 29, a delta round (diff base caf49add, 182 labels reached, the bonded rewrite, so the page whole), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 7748eafc — foundational count 2 after the blind second triage, cured, not clean, no sample (Linus's report counted 2 foundational, 5 refining and 2 rhetorical; the first foundational, that Reason's malformed has no definition, was refuted by both triages: Execution Contract Input 1 and Input 3 make any value that is no string malformed, and Operation 57 only names the refusal; the second, that [Issue] answers the session token digest alone while the host-minted session id, the offered key, is never answered and Read cannot tell two sessions of one principal apart, held in the blind second triage as foundational, Kind A, since every sibling that mints an id answers it, and is cured: [Issue] answers issued(session token digest, session id), Operation 3 and a new Issued member say so; the blind second triage found one more foundational of its own, Read's tie order: Execution Contract Read 5 orders by creation instant then by id ascending, and the page now has two ids, so Operation 64 names the order, issuance instant then session id; refining cured: the default duration that is no whole number is refused (Operation 65), the every action table gains the state-unavailable row, the Read and Issue case rows name the session id, Operation 57 cites Input 3, and the page's own Term session id, which Declarations Declaration 3 already declares, is dropped; not cured, placed no defect: Effective Status's Kind: Field, the NOTE: watch lines, and Concurrency 4's neighbours, which Capability requirement 10's Database 2 serializes; one rhetorical left as written)
+last gate: 2026-11-25 — Final Critique 30, a delta round (diff base 7748eafc, 4 labels reached: Operation 3, 57, 64 and 65, the settle of Final Critique 29), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 88366445 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 2 foundational, 3 refining and 1 rhetorical; both its foundational findings were placed no defect and refining by both triages: Operation 64 cites Execution Contract Read 5 as the default its own order stands in place of, and Read 5 says a specification that names its own order keeps it, as Favorite, Communication, Tenure and Reaction cite it; Operation 65's citation of Execution Contract Input 1 reached a setting that Input 1 does not, so Operation 65 and Invalid Request now say the default is no window length, the page's own Term, and no build differed; refining not cured: that the default's validity gates every [Issue] call, which Term default session duration states, and Operation 57's malformed Reason, which Execution Contract Input 1 and Input 3 define; one rhetorical, the happy-path-only example, declined, since Rejection paths holds the refusals)
 
 open: none
 ```
