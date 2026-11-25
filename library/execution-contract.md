@@ -245,8 +245,8 @@ The worked example of the derivable pole is Immutable Ledger's `disclosure_to_ev
 The wiring layer has three jobs:
 
 1. **Defines the composition's action surface** — the named actions in Shared Todo (`add_task`, `assign_task`, etc.), the named actions in Idempotent Reservation (`place_hold`, `confirm`, etc.).
-2. **Sequences constituent SM transitions in declared order** — `Permissions.permitted` before `PersonalTodo.add`, `DuplicatePrevention.check` before `ProvisionalCommitment.place_hold`.
-3. **Enforces application-level invariants that no constituent atom can enforce alone** — cascade-on-delete in Shared Todo (Assignment.recall before PersonalTodo.delete), exactly-once-in-window in Idempotent Reservation (retries return the prior result — backed by `token_results`, the worked *extraction-pending* case of the section titled Composition state above).
+2. **Sequences constituent SM transitions in declared order** — `Permissions.permitted` before `Task.add`, `DuplicatePrevention.check` before `ProvisionalCommitment.place_hold`.
+3. **Enforces application-level invariants that no constituent atom can enforce alone** — cascade-on-delete in Shared Todo (Assignment.recall before Task.delete), exactly-once-in-window in Idempotent Reservation (retries return the prior result — backed by `token_results`, the worked *extraction-pending* case of the section titled Composition state above).
 
 ---
 
