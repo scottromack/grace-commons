@@ -77,8 +77,6 @@ Kind:       Field
 Field of:   Session
 Projection: session_token_digest
 
-Term session id: the value naming one session, minted by the host at the seam when [Issue] opens the session — a [Session Id]; it grants nothing (Identity 7), and the app pairs other atoms' records on it.
-
 #### Session Id
 
 Stored as the host allocated it and compared by byte identity; never reused, and never presented to [Validate] or [Revoke], which take the session token digest.
@@ -253,11 +251,12 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
 | either write | database refuses | [Storage Failure] | none (Operation 12, Operation 34) |
+| any call | its read of the session records fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 2 through 5, Invariant 12.3) |
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
+The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no whole number of seconds, or is zero or negative, or when the default session duration is absent, no whole number of seconds, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -284,20 +283,20 @@ Projection: storage-failure
 
 ### Issue
 
-The behavior a composing pattern invokes to record a new [Session] for a principal. It creates the record in [Active] keyed by the [Session Token Digest] of the fresh [Session Token] the host allocated, stamps [Issuance Instant] and computes [Expiry Instant] from the injected [Now] and the [Session Duration], and returns the [Session Token Digest]; the host, not the atom, delivers the [Session Token] itself. It makes no authentication judgment — it issues a [Session] for whatever [Principal Reference] it is given.
+The behavior a composing pattern invokes to record a new [Session] for a principal. It creates the record in [Active] keyed by the [Session Token Digest] of the fresh [Session Token] the host allocated, stamps [Issuance Instant] and computes [Expiry Instant] from the injected [Now] and the [Session Duration], and answers [Issued], the [Session Token Digest] and the [Session Id] the host allocated for the call; the host, not the atom, delivers the [Session Token] itself. It makes no authentication judgment — it issues a [Session] for whatever [Principal Reference] it is given.
 
 Kind: Operation
 
 ```
 issue(principal_ref, issued_by_ref, optional session_duration)
-  answers session_token_digest
+  answers issued(session_token_digest, session_id)
   refuses invalid-request | storage-failure
 ```
 
 ```
 Operation 1: [Issue] MUST record EXACTLY ONE session per successful call.
 Operation 2: [Issue] MUST stand the session in active.
-Operation 3: [Issue] MUST answer the session token digest.
+Operation 3: [Issue] MUST answer the session token digest AND the session id.
 Operation 4: IF principal reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 5: IF issued by reference EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 6: IF session duration EQUALS blank AND the default session duration DOES NOT EQUAL blank THEN [Issue] MUST apply the default session duration.
@@ -310,12 +309,22 @@ Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST ans
 Operation 50: [Issue] MUST record the principal reference the call supplies.
 Operation 51: [Issue] MUST record the issued by reference the call supplies.
 Operation 55: IF a supplied session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
+Operation 65: IF the default session duration is malformed THEN [Issue] MUST answer invalid-request (Execution Contract Input 1).
 Operation 56: IF the default session duration DOES NOT EQUAL blank AND the default session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 58: [Issue] MUST record the session token digest of the session token the host allocates (Identity 3, Capability requirement 12).
 Operation 62: [Issue] MUST record the session id the host allocated for the call (Identity 13).
 ```
 
 Term session duration: the window a [Issue] call asks for, a window length — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
+
+#### Issued
+
+The [Issue] outcome when the call records a session. It carries the [Session Token Digest] and the [Session Id].
+
+Kind:       Member
+Member of:  the issue outcome
+Role:       Outcome
+Projection: issued
 
 #### Session Duration
 
@@ -335,8 +344,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, a positive default configured, duration positive or defaulted, database accepts | the new session token digest | one record lands in [Active] carrying the session token digest of the session token the host allocated and both references, issuance instant and expiry instant stamped (Operation 1, Operation 9, Operation 10, Operation 50, Operation 51, Operation 58) |
-| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, no configured default, or a default that is not positive | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Operation 55, Operation 56) |
+| [Issue] | both references present, a positive default configured, duration positive or defaulted, database accepts | [Issued], the new session token digest and the session id | one record lands in [Active] carrying the session token digest of the session token the host allocated, the session id the host allocated and both references, issuance instant and expiry instant stamped (Operation 1, Operation 3, Operation 9, Operation 10, Operation 50, Operation 51, Operation 58, Operation 62) |
+| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, no configured default, or a default that is no window length or is not positive | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Operation 55, Operation 56, Operation 65) |
 
 ### Validate
 
@@ -425,7 +434,7 @@ Operation 31: [Revoke] MUST record the reason as the revocation reason.
 Operation 33: [Revoke] MUST answer revoked.
 Operation 34: IF the database refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 36: [Revoke] MUST accept the session token digest as the whole authorization.
-Operation 57: IF the session's status EQUALS active AND reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1).
+Operation 57: IF the session's status EQUALS active AND reason is malformed THEN [Revoke] MUST answer invalid-request (Execution Contract Input 1, Execution Contract Input 3).
 ```
 
 NOTE: watch the untyped input (Term reason, Operation 57).
@@ -480,6 +489,7 @@ Operation 59: [Read] MUST carry principal reference, issued by reference, issuan
 Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
 Operation 61: IF the filter names a field other than principal reference and issued by reference OR the filter carries more than one value on a named field OR the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2, Execution Contract Query 1, Execution Contract Query 5).
 Operation 63: [Read] MUST carry the session id on EVERY answered session.
+Operation 64: [Read] MUST answer the sessions in issuance instant order, earliest first, then by session id ascending (Execution Contract Read 5, Execution Contract Logic confinement 10).
 ```
 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter] naming principal reference, issued by reference, both, no field, OR a field other than principal reference and issued by reference; a session matches a filter when it carries EVERY value the filter names (String 1) and the filter names no blank value (Operation 53), no value on principal reference or issued by reference that EXCEEDS the maximum length of that field (Operation 61), no more than one value on a field (Operation 61) and no field other than principal reference and issued by reference (Operation 61), so a filter naming no field matches EVERY session; consumed per call, never stored.
@@ -496,7 +506,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Read] | a filter outside the next row's cases | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked and effective status, and no session token digest | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60) |
+| [Read] | a filter outside the next row's cases | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked, effective status and session id, and no session token digest | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60, Operation 63, Operation 64) |
 | [Read] | a filter naming a blank value, or a value that EXCEEDS the maximum length of its field, or more than one value on a named field, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
 
 ## What is and what should never be (Invariants)
@@ -712,7 +722,7 @@ NOTE: composing patterns — an app names the atoms it composes; this pattern na
 
 ### Browser login — issue and validate
 
-A user logs in through the app's sign-in. After the credential check, the app calls `issue(principal_ref: user_u91, issued_by_ref: login_svc_l01, session_duration: 3600)` → `dig_7e41c9`, with the host allocating the session token `tok_abc123` and injecting its digest, `dig_7e41c9`, and `now: 2026-09-01T10:00:00Z` at the seam. The record lands in [Active] keyed by `dig_7e41c9`, with `issued_at: 10:00:00Z` and `expires_at: 11:00:00Z`. The host delivers `tok_abc123` to the browser as a session cookie (Capability requirement 13); no record holds it.
+A user logs in through the app's sign-in. After the credential check, the app calls `issue(principal_ref: user_u91, issued_by_ref: login_svc_l01, session_duration: 3600)` → `issued(dig_7e41c9, ses_5c20)`, with the host allocating the session token `tok_abc123` and injecting its digest, `dig_7e41c9`, the session id `ses_5c20` and `now: 2026-09-01T10:00:00Z` at the seam. The record lands in [Active] keyed by `dig_7e41c9` and carrying `ses_5c20`, with `issued_at: 10:00:00Z` and `expires_at: 11:00:00Z`. The host delivers `tok_abc123` to the browser as a session cookie (Capability requirement 13); no record holds it.
 
 Twenty minutes later the user requests a protected page with the cookie. The host computes the digest of `tok_abc123` at the seam: `validate(dig_7e41c9)` → `valid(principal_ref: user_u91, expires_at: 11:00:00Z)`, with `now: 10:20:00Z` injected. The atom finds the record, reads stored active, finds now short of the deadline, and answers. Nothing changes.
 
@@ -809,7 +819,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: session, session token, session token digest, session id, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token, committed version.
+Term terms: session, session token, session token digest, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token, committed version.
 
 Term cited: actor id, session id: Declarations.
 
@@ -842,6 +852,7 @@ Term cited: actor id, session id: Declarations.
 [Active]: #active
 [Revoked]: #revoked
 [Expired]: #expired
+[Issued]: #issued
 [Valid]: #valid
 [Invalid Expired]: #invalid-expired
 [Invalid Revoked]: #invalid-revoked
@@ -862,7 +873,7 @@ Term cited: actor id, session id: Declarations.
 ```
 status: doing
 formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11; both re-derived over the session token digest, 2026-11-21
-last gate: 2026-11-21 — Final Critique 28, a delta round, one reader (Linus opencode/minimax-m3), frozen at caf49add — foundational count 0 after the blind second triage, clean, one sample (Linus's one report, on Invariant 7.1 and 7.2 over the digest unit's rewrite: foundational 1, that two concurrent [Issue] calls each pass the host's pre-check and commit two sessions that share a digest, refuted by both triages: Execution Contract Logic confinement 16 forbids the host to supply one allocated id to two calls of one instance, in flight together or not, and takes the stronger reading that names this very race, so the build the finder calls the second does not conform, and the finder's cure (a column constraint on the digest, as a new capability requirement) restates Logic confinement 16 and Invariant 7.1 and 7.2 as a storage mechanism; refining 0; the blind second triage saw two refining defects first, cured: Identity 4 and Operation 49, each a rule that the transition MUST NOT allocate or generate the token, restate Logic confinement 3 and are deleted to it, the twins' comments and the history's tombstones re-pointed, no obligation changed); 2026-11-21 — unit session: keyed by the digest of the session token (Logic confinement 21), not a round; the page takes a delta round; 2026-11-18 — Final Critique 27, a delta round, frozen at 10294eb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report, on Operation 37, Operation 53, Operation 61, Term filter and String 6, the reach of Final Critique 26's cures and of the held cure to Input 2, which it read in the contract: foundational 0; refining 4, all cured: Term filter's fifth clause cites Operation 61; Operation 61's second disjunct, Term filter's clause, the case row and the Filter entry say "more than one value on a named field", so a named field carrying no value is Operation 53's alone (blank is absent) and the two rules own disjoint inputs, and Term filter's clause reaches only the values the filter names; the case row for a filter outside the next row's cases no longer holds the next row's; refuted 1, that String 6 names no default cap, Kind D: Term bounds' maximum length carries the default, 1,024; rhetorical 4, the carrier wording of the case row (the blind second triage placed it rhetorical, mine refining) cured with the refining ones and the doubled "the filter" of Operation 61 gone with it, the other two not cured); 2026-11-18 — Final Critique 26, a delta round, frozen at fec82f2 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed one foundational, that Term filter states no link between a filter's naming a field and its carrying a value on it, so a build that reads naming as an independent listing answers every session to a filter carrying a value on an unlisted field: refuted on the page's and the contract's own nouns, since a filter carries no value it does not name (Term filter: "carries EVERY value the filter names"; Operation 53) and the contract's filter is always on an axis it carries a value of (Query 1, Query 3, Query 4); both triages placed it refuted, Kind D; refining 2 (the blind second triage placed the first of them rhetorical), both cured: Operation 61's carrier test, Term filter, the case row and the Filter entry say "one value of that field" where Query 1 says "one value of the axis", and Term filter bounds its cap clause and "no other field" to principal reference and issued by reference; rhetorical 1, String 6, not cured; the round read Final Critique 25's cures to Operation 61, Term filter, String 6 and the case row by their diff, and not that round's held cure to Input 2, which had not landed); 2026-11-18 — Final Critique 25, a delta round, frozen at f165bda — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured by one held cure, not clean, one sample (Linus's one report, on the Execution Contract and reached through Input 2, which Operation 61 and String 6 cite: F1, that Input 2's allocated-id bound says only "the cap" where the specification bounds more than one string input and the deployment declares the caps differently, so two builds read two caps and one answers a new session where the other answers storage-failure, placed foundational, Kind A; cured by one held replacement to Input 2, the bound taken on every input of the specification that names a record by its id, with the zero-cap clause no longer claiming a starved id; refining 1, Operation 61 answering no malformed filter shape but a blank, an over-long and an other-field one, cured in Operation 61, Term filter, the closure row and the Filter entry, and rhetorical 1, String 6 and Operation 61 naming one bound two ways, cured in String 6); 2026-11-18 — Final Critique 24, a delta round, frozen at b2e418c — foundational count 2 after the first triage (Opus 5.5 decided both hard calls; no blind second triage, the count is not zero), cured by held cures, not clean, one sample (Linus's three foundational reports, all on the Execution Contract and reached through Input 2, which Operation 61 and String 6 cite: F1, that a call the old cap reading admitted, in flight in another process of the instance, commits a value over the new cap after the start that brings it into effect, so a record is unaddressable by Query 5, placed foundational, Kind A; F2, that a declared string cap of one leaves about 1.1M ids and Logic confinement 16's non-reuse then leaves a call no id and no arm, placed foundational, Kind A, older than the round's cures; F3, that a failed read at the start has no stated answer, refuted on Input 2's own condition, since a start that reads the records and finds no value over the new cap is the only start that takes the lowered cap; F1 cured by one held replacement to Input 2 (the start's read and every write serialized as Database 2 serializes two actions on one record, a call straddling a start decided again on the new reading), F2 by one (the failing entropy read at Step 3 answers storage-failure); refining 3 and rhetorical 2 not cured); 2026-11-17 — Final Critique 23, a delta round, frozen at f7caec5 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed one foundational, that Operation 61's answer has no stated precedence against a failed read: refuted on the contract's text, since Read 1 and Read 2 answer state-unavailable ahead of every rule that says what an action answers and a build that answers no session before the read is not a conforming one; refining 2, rhetorical 1, none cured; the round read Operation 61's new citation of Query 5, Final Critique 22's cure, by its diff, and not that round's held cure to Input 2, which had not landed); 2026-11-17 — Final Critique 22, a delta round, frozen at f8dce3b — foundational count 1 after the blind second triage, cured by a held cure, not clean, one sample (Linus's one foundational report, on Execution Contract Input 2, reached through Operation 61 and String 6: the cap is counted on the value as the call carries it at admission and on the value as the record holds it for the floor, so a call admitted under a cap can make a record whose canonical value forbids that cap at the next start; the blind second triage placed it foundational, Kind A, narrower than claimed, since its last step is false of the text (the record stays reachable by the spelling it was written with); cured by a held replacement to the Execution Contract's Input 2, which counts the cap on the carried value and again on the value as the seam leaves it; refining 3 and rhetorical 1, one cured here: Operation 61 cites Query 5, the rule that lets it keep its own answer); 2026-11-17 — Final Critique 21, a delta round, frozen at 60bd95e — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed one foundational, that Capability requirement 10 must name Order 1: refuted on the contract's text, since a paging build that spans two commits breaks Read 6's own proviso and paging is the deployment's option; refining 1, rhetorical 2, one refuted); 2026-11-17 — Final Critique 20, a delta round, frozen at 84a84cc — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-04 — Final Critique 19, frozen at 260b6c6 — delta — foundational count 0, clean, no sample
+last gate: 2026-11-25 — Final Critique 29, a delta round (diff base caf49add, 182 labels reached, the bonded rewrite, so the page whole), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 7748eafc — foundational count 2 after the blind second triage, cured, not clean, no sample (Linus's report counted 2 foundational, 5 refining and 2 rhetorical; the first foundational, that Reason's malformed has no definition, was refuted by both triages: Execution Contract Input 1 and Input 3 make any value that is no string malformed, and Operation 57 only names the refusal; the second, that [Issue] answers the session token digest alone while the host-minted session id, the offered key, is never answered and Read cannot tell two sessions of one principal apart, held in the blind second triage as foundational, Kind A, since every sibling that mints an id answers it, and is cured: [Issue] answers issued(session token digest, session id), Operation 3 and a new Issued member say so; the blind second triage found one more foundational of its own, Read's tie order: Execution Contract Read 5 orders by creation instant then by id ascending, and the page now has two ids, so Operation 64 names the order, issuance instant then session id; refining cured: the default duration that is no whole number is refused (Operation 65), the every action table gains the state-unavailable row, the Read and Issue case rows name the session id, Operation 57 cites Input 3, and the page's own Term session id, which Declarations Declaration 3 already declares, is dropped; not cured, placed no defect: Effective Status's Kind: Field, the NOTE: watch lines, and Concurrency 4's neighbours, which Capability requirement 10's Database 2 serializes; one rhetorical left as written)
 
 open: none
 ```
