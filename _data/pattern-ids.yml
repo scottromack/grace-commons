@@ -180,3 +180,5 @@ patterns:
     file: library/atoms/escalation.md
   - id: 79
     file: library/atoms/ordering.md
+  - id: 80
+    file: library/atoms/list.md
