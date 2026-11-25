@@ -120,7 +120,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -143,7 +143,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-25",
   "title": "Assignment"
  },
  "attributed-permissions-admin": {
