@@ -90,7 +90,7 @@ The six rules of the sequence, each cited by the action that carries it.
 
 ```
 Ordering 1: For each list, the atom MUST hold ONE sequence, the places running from the first place to the last with none missing.
-Ordering 2: A placed item that holds no entry MUST enter at the bottom.
+Ordering 2: A placed item that holds no entry in the sequence MUST enter at the bottom.
 Ordering 3: A move MUST carry ONE entry to a place from the first place to the last.
 Ordering 4: A remove MUST take the item's entry out.
 Ordering 5: The atom MUST NOT judge whether a list id names a real list.
@@ -135,7 +135,7 @@ Projection: storage-failure
 
 ### Place Item
 
-Puts an item at the bottom of its list's sequence: records the [Entry] at the bottom. An item that already holds an entry is left as it is. Answers the item's place.
+Puts an item that holds no entry in the sequence at the bottom of its list's sequence: records the [Entry] at the bottom. An item that already holds an entry in the sequence is left as it is, and the call answers its place as it stands, so the answer tells a caller nothing of whether an entry landed now. Answers the item's place.
 
 Kind: Operation
 
@@ -147,13 +147,13 @@ place_item(list_id, item_id)
 
 ```
 Operation 2: [Place Item] MUST answer the place of the item's entry.
-Operation 9: IF the item holds an entry THEN [Place Item] MUST NOT write.
+Operation 9: IF the item holds an entry in the sequence THEN [Place Item] MUST NOT write.
 ```
 
 | Call | Case | Answer | Effect on the sequences |
 |---|---|---|---|
-| [Place Item] | the item holds no entry | its new place, at the bottom | one entry lands (Ordering 2, Operation 2, Ordering 1) |
-| [Place Item] | the item holds an entry | its place, as it stands | none, no write (Operation 9, Operation 2) |
+| [Place Item] | the item holds no entry in the sequence | its new place, at the bottom | one entry lands (Ordering 2, Operation 2, Ordering 1) |
+| [Place Item] | the item holds an entry in the sequence | its place, as it stands | none, no write (Operation 9, Operation 2) |
 
 - `place_item("l1", "a")`, then `place_item("l1", "b")` — answers 1, then 2: each item enters at the bottom.
 
@@ -178,17 +178,17 @@ Operation 12: IF the place EQUALS the entry's place THEN [Move Item] MUST NOT wr
 
 | Call | Case | Answer | Effect on the sequences |
 |---|---|---|---|
-| [Move Item] | the item holds an entry, the place lies in the sequence and is not the entry's own | the new place | the entry stands at the place, the others keep their order (Ordering 3, Operation 10, Invariant 2.1) |
+| [Move Item] | the item holds an entry in the sequence, the place lies in the sequence and is not the entry's own | the new place | the entry stands at the place, the others keep their order (Ordering 3, Operation 10, Invariant 2.1) |
 | [Move Item] | the place is the entry's own | the entry's place | none, no write (Operation 12, Operation 10) |
-| [Move Item] | the item holds no entry | [Unknown Item] | none (Operation 3) |
+| [Move Item] | the item holds no entry in the sequence | [Unknown Item] | none (Operation 3) |
 | [Move Item] | the place is no whole number from the first place to the last | [Invalid Place] | none (Operation 4) |
 
 - `move_item("l1", "b", 1)` over a sequence of a, b — answers 1: b stands first and a second.
-- `move_item("l1", "z", 1)` — rejected as [Unknown Item]: z holds no entry.
+- `move_item("l1", "z", 1)` — rejected as [Unknown Item]: z holds no entry in the sequence.
 
 #### Unknown Item
 
-The refusal of a move for an item that holds no entry (Operation 3).
+The refusal of a move for an item that holds no entry in the sequence (Operation 3).
 
 Kind:       Member
 Member of:  the action rejection
@@ -206,7 +206,7 @@ Projection: invalid-place
 
 ### Remove Item
 
-Takes an item's entry out of its sequence; the sequence closes so its places stay in a run. An item that holds no entry is left as it is: the caller is the deletion path, where an earlier call may already have removed it. Answers ok.
+Takes an item's entry out of its sequence; the sequence closes so its places stay in a run. An item that holds no entry in the sequence is left as it is: the caller is the deletion path, where an earlier call may already have removed it. Answers ok.
 
 Kind: Operation
 
@@ -218,15 +218,15 @@ remove_item(list_id, item_id)
 
 ```
 Operation 5: [Remove Item] MUST answer ok.
-Operation 11: IF the item holds no entry THEN [Remove Item] MUST NOT write.
+Operation 11: IF the item holds no entry in the sequence THEN [Remove Item] MUST NOT write.
 ```
 
 Term ok: the answer [Remove Item] gives once the call is admitted; it carries nothing.
 
 | Call | Case | Answer | Effect on the sequences |
 |---|---|---|---|
-| [Remove Item] | the item holds an entry | ok | the entry is gone and the sequence closes (Ordering 4, Ordering 1, Operation 5) |
-| [Remove Item] | the item holds no entry | ok | none, no write (Operation 11, Operation 5) |
+| [Remove Item] | the item holds an entry in the sequence | ok | the entry is gone and the sequence closes (Ordering 4, Ordering 1, Operation 5) |
+| [Remove Item] | the item holds no entry in the sequence | ok | none, no write (Operation 11, Operation 5) |
 
 ### Read Order
 
@@ -383,7 +383,7 @@ Term cited: list id: Declarations.
 ```
 status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 1, frozen at 2bf3e50e — foundational count 3, not clean, one sample
+last gate: 2026-11-25 — Final Critique 2, delta, frozen at 40741406 — foundational count 1, not clean, one sample
 
 open: none
 ```
