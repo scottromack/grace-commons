@@ -368,6 +368,10 @@ Composition note 4: A composing pattern needing grantor attribution MUST attest 
 Composition note 5: A composing pattern MUST own a departing subject's deprovisioning sweep.
 ```
 
+The bond this atom offers, of a bond kind [Bonds](../bonds.md) states; which atom needs it is the app's choice. Which actions are gated, and under which scopes, is the need's to state and never the offer's. The answer permitted is Operation 17's, and denied is Operation 18's.
+
+Term offer permission: subject opaque; scope opaque; calls permitted; arms permitted: permitted, denied.
+
 NOTE: composing patterns — [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md), [Shared Todo](../compositions/shared-todo.md). Forthcoming: Role-Based Access Control, Attribute-Based Access Control, Temporal Grant, Delegation, Policy Layer, Identity Federation.
 
 ## Terms

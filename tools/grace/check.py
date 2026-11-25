@@ -1731,7 +1731,7 @@ BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", 
 # a need and an offer meet as keep does (bonds.md journal 7 to 9, Direction 3, 5 and 6); a need whose keep exceeds the
 # offer's keep, both given as lengths, meets nothing (journal 9); an atom's layer is computed from its needs of the
 # layered kinds, and a layered need served from the same layer or a higher one fails the app (B-app-layer, gating).
-BOND_TYPED = ("key", "holder", "span", "keep", "tamper")
+BOND_TYPED = ("key", "holder", "span", "keep", "tamper", "subject", "scope")
 LAYERED = {"guard", "journal", "permission"}
 _UNIT_SECONDS = {"s": 1, "sec": 1, "min": 60, "h": 3600, "d": 86400, "w": 604800, "y": 31536000}
 _LENGTH = re.compile(r"^(\d+(?:\.\d+)?)\s*(s|sec|min|h|d|w|y)$")
@@ -1844,7 +1844,8 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
     findings: list[Finding] = []
     for app in sorted((root / "library" / "apps").glob("*/index.md")):
         names = set(APP_ATOM.findall(app.read_text(encoding="utf-8")))
-        mine = [b for b in lines if b["path"].stem in names and b["path"].parent.name == "atoms" and b["kind"] in kinds]
+        mine = [b for b in lines if b["kind"] in kinds
+                and (b["path"] == app or (b["path"].stem in names and b["path"].parent.name == "atoms"))]
         for need in (b for b in mine if b["side"] == "need"):
             if not any(o["side"] == "offer" and bond_meets(need, o, words, types) for o in mine):
                 findings.append(Finding(app, 1, "B-app-unmet",
@@ -1937,8 +1938,15 @@ def bond_findings(root: Path) -> list[Finding]:
         t = re.search(r"^title:[ \t]*(.+)$", fm.group(1), re.M) if fm else None
         if t:
             titles.add(t.group(1).strip())
-    lines = [b for p in atoms if not p.match(HISTORY) for b in bond_lines(p, kinds)]
+    apps = sorted((root / "library" / "apps").glob("*/index.md"))
+    lines = [b for p in atoms + apps if not p.match(HISTORY) for b in bond_lines(p, kinds)]
     findings: list[Finding] = []
+    # unit `bonds: permission`: an app's page carries need lines and no offer line (bonds.md Bond 13)
+    for b in lines:
+        if b["side"] == "offer" and b["path"] in apps:
+            findings.append(Finding(b["path"], b["line"], "B-app-offer",
+                                    "an app carries need lines and no offer line (bonds.md Bond 13)"))
+    lines = [b for b in lines if b["side"] == "need" or b["path"] not in apps]
     for b in lines:
         if b["kind"] not in kinds:
             findings.append(Finding(b["path"], b["line"], "B-bond-kind", f"`{b['kind']}` is no kind bonds.md states"))

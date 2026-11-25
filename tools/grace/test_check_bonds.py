@@ -44,6 +44,17 @@ OFFER = "Term offer guard: key opaque; holder opaque; span duration; calls take,
 NEED = "Term need guard: key section key; holder section holder; span duration; calls take, release; arms expires_at, released; writes closing record.\n"
 
 
+PERMISSION = """
+Term permission need fields: subject, the party; scope, the scope; actions, the actions gated; calls, the calls; arms, the answers.
+
+Term permission offer fields: subject, the subjects; scope, the scopes; calls, the calls; arms, the answers.
+"""
+
+PERM_OFFER = "Term offer permission: subject opaque; scope opaque; calls permitted; arms permitted: permitted, denied.\n"
+PERM_NEED = ("Term need permission: subject opaque; scope opaque; actions add task, edit task, delete task, reorder task, "
+             "assign task, invite, rename list, view list, claim task, complete task; calls permitted; arms permitted, denied.\n")
+
+
 def atom(title: str, body: str) -> str:
     return f"---\ntitle: {title}\nid: 1\n---\n\n# {title}\n\n{body}"
 
@@ -201,6 +212,62 @@ class BondTest(unittest.TestCase):
         lines = [b for p in files for b in check.bond_lines(p, kinds)]
         layers, bad = check.app_layers(lines, words, types)
         self.assertTrue(bad)
+
+    # unit `bonds: permission`: an app's page may carry a need line, never an offer line
+    def _app(self, body: str, atoms: tuple[str, ...] = ("permission-offerer",)) -> Path:
+        (self.root / "library" / "bonds.md").write_text(BONDS + PERMISSION)
+        self.write("permission-offerer", atom("Permission Offerer", PERM_OFFER))
+        (self.root / "library" / "apps" / "shared").mkdir(parents=True)
+        app = self.root / "library" / "apps" / "shared" / "index.md"
+        links = "".join(f"- [{a}](../../atoms/{a}.md)\n" for a in atoms)
+        app.write_text(f"# Shared\n\n{links}\n### Bonds\n\n{body}")
+        return app
+
+    def test_a_need_line_on_an_apps_page_is_read_as_a_need_of_the_app(self):
+        app = self._app(PERM_NEED)
+        self.assertEqual(self.codes(), [])
+        app.write_text("# Shared\n\n### Bonds\n\n" + PERM_NEED)
+        self.assertIn("B-app-unmet", self.codes())
+        self.assertNotIn("B-app-unmet", check.ADVISORY)
+
+    def test_an_apps_page_carries_no_offer_line(self):
+        self._app(PERM_NEED + "\nTerm offer permission: subject opaque; scope opaque; calls permitted; arms permitted: permitted.\n")
+        self.assertEqual(self.codes(), ["B-app-offer"])
+        self.assertNotIn("B-app-offer", check.ADVISORY)
+
+    def test_a_line_of_an_earlier_kind_carries_no_field_of_the_permission_need(self):
+        (self.root / "library" / "bonds.md").write_text(BONDS + PERMISSION)
+        # subject and scope are typed fields, so a line carrying one also meets no offer; actions is a list field
+        for extra, want in (("subject opaque", ["B-bond-field", "B-bond-unmet"]), ("scope opaque", ["B-bond-field", "B-bond-unmet"]),
+                            ("actions add task", ["B-bond-field"])):
+            self.write("guard-needer", atom("Guard Needer", NEED.replace("; writes", f"; {extra}; writes")))
+            self.assertEqual(self.codes(), want, extra)
+
+    def test_no_offer_of_an_earlier_kind_gives_the_permission_call_or_its_answers(self):
+        root = Path(HERE).parents[1]
+        kinds = check.bond_kinds(root)
+        for path in (root / "library" / "atoms").glob("*.md"):
+            for b in check.bond_lines(path, kinds):
+                if b["side"] == "offer" and b["kind"] != "permission":
+                    arms = b["fields"].get("arms") or {}
+                    given = set().union(*arms.values()) if isinstance(arms, dict) and arms else set()
+                    self.assertFalse(b["fields"].get("calls", set()) & {"permitted"}, b["text"])
+                    self.assertFalse(given & {"permitted", "denied"}, b["text"])
+
+    def test_the_need_the_shared_lists_rulings_write_stands_on_an_apps_page_and_meets_the_one_offer(self):
+        app = self._app(PERM_NEED)
+        kinds = check.bond_kinds(self.root)
+        words, types = check.declared_words(self.root)
+        need = [b for b in check.bond_lines(app, kinds) if b["side"] == "need"][0]
+        offer = check.bond_lines(self.root / "library" / "atoms" / "permission-offerer.md", kinds)[0]
+        self.assertTrue(check.bond_meets(need, offer, words, types))
+        # the subject's and the scope's types are typed fields: a different type meets nothing
+        other = dict(offer, fields=dict(offer["fields"], subject="duration"))
+        self.assertFalse(check.bond_meets(need, other, words, types))
+        # an arm no call of the need gives meets nothing
+        short = dict(offer, fields=dict(offer["fields"], arms={"permitted": {"permitted"}}))
+        self.assertFalse(check.bond_meets(need, short, words, types))
+        self.assertEqual(self.codes(), [])
 
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]
