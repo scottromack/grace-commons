@@ -93,7 +93,7 @@ Term completer: the actor id of the party who finished the task — a [Completer
 
 #### Completer
 
-Set by [Complete] from its input (Execution Contract Input 4) and held as supplied: this atom declares no reference, so Execution Contract Logic confinement 13 canonicalizes nothing in it; the same actor id is the one every other record that names that party carries. Present only while the task is [Done].
+Set by [Complete] from its input (Execution Contract Input 4) and held as supplied: this atom declares no reference, so Execution Contract Logic confinement 13 canonicalizes nothing in it; keeping the same actor id for one party across every other record that names that party is the app's. Present only while the task is [Done].
 
 Kind:       Field
 Field of:   Task Record
@@ -168,7 +168,7 @@ Projection: not-known
 
 #### Invalid Description
 
-The refusal [Add] returns when the [Description] is malformed, exceeds the length cap as the call carries it, or is blank once normalized, and [Edit], on a [Pending] task, when the [New Description] is malformed or, its normalized form differing from the task's own [Description], is blank once normalized or exceeds the length cap as the call carries it. No task is created or changed.
+The refusal [Add] returns when the [Description] is malformed, exceeds the length cap as the call carries it, or is blank once normalized, and [Edit], on a [Pending] task, when the [New Description] is malformed or exceeds the length cap as the call carries it, or, its normalized form differing from the task's own [Description], is blank once normalized. No task is created or changed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -260,7 +260,7 @@ edit(task_id, new_description)
 Operation 7: IF no task EXISTS for the task id THEN [Edit] MUST answer not-known.
 Operation 8: IF the task state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the task state EQUALS pending AND the normalized new description matches another task in the active set of the task's list THEN [Edit] MUST answer duplicate-active.
-Operation 10: IF the task state EQUALS pending AND the normalized new description EQUALS the task's description AND the new description the call carries DOES NOT EXCEED the description cap THEN [Edit] MUST answer ok.
+Operation 10: IF the task state EQUALS pending AND the normalized new description EQUALS the task's description AND the new description the call carries DOES NOT EXCEED the description cap AND the new description is not malformed THEN [Edit] MUST answer ok.
 Operation 12: IF the normalized new description EQUALS the task's description THEN [Edit] MUST NOT stamp last edit instant.
 Operation 13: IF the normalized new description DOES NOT EQUAL the task's description THEN [Edit] MUST replace the task's description with the normalized new description.
 Operation 14: [Edit] MUST leave the task standing in pending.
@@ -282,7 +282,7 @@ Projection:   new_description
 | Call | Case | Answer | Effect on the tasks |
 |---|---|---|---|
 | [Edit] | task is pending, new description valid, different, no active match in the list, database accepts | ok | description and last edit instant change, no other field and not the task id (Operation 13, State 6, Invariant 5.2, Invariant 8.2, Invariant 8.3) |
-| [Edit] | task is pending, same normalized text, within the cap | ok | no field changes (Operation 10, Operation 12) |
+| [Edit] | task is pending, same normalized text, within the cap and not malformed | ok | no field changes (Operation 10, Operation 12) |
 | [Edit] | task is pending, new description malformed, blank and different, or over the cap | [Invalid Description] | none (Operation 32, Operation 33, Operation 34) |
 | [Edit] | task is pending, new description matches another task in its list's active set | [Duplicate Active] | none (Operation 9) |
 | [Edit] | task is done, whatever the new description | [Not Editable] | none (Operation 8) |
@@ -378,11 +378,11 @@ read(list_id, optional window)
 ```
 
 ```
-Operation 28: [Read] MUST answer EVERY pending task that carries the list id the call carries.
+Operation 28: IF the window the call carries is not malformed THEN [Read] MUST answer EVERY pending task that carries the list id the call carries.
 Operation 29: IF [Read] answers a task THEN [Read] MUST answer the task's task id, description, state, addition instant, last edit instant, completion instant AND completer.
 Operation 30: [Read] MUST NOT write.
 Operation 44: IF the call omits the optional window THEN [Read] MUST take the window as the default window.
-Operation 45: IF a done task carries the list id the call carries AND the task's completion instant DOES NOT PRECEDE the window start THEN [Read] MUST answer the task.
+Operation 45: IF the window the call carries is not malformed AND a done task carries the list id the call carries AND the task's completion instant DOES NOT PRECEDE the window start THEN [Read] MUST answer the task.
 Operation 46: IF a done task's completion instant PRECEDES the window start THEN [Read] MUST NOT answer the task.
 Operation 47: IF no task carries the list id the call carries THEN [Read] MUST answer no tasks.
 Operation 49: IF the window the call carries is malformed THEN [Read] MUST answer no tasks (Execution Contract Input 1).
@@ -402,7 +402,7 @@ Term window start: the instant that lies the window before now, where now is the
 
 | Call | Case | Answer | Effect on the tasks |
 |---|---|---|---|
-| [Read] | the database answers the read | the list's pending tasks and its done tasks inside the window, with their stored fields | none (Operation 28 through 30, Operation 45, Operation 46) |
+| [Read] | the database answers the read and the window is not malformed | the list's pending tasks and its done tasks inside the window, with their stored fields | none (Operation 28 through 30, Operation 45, Operation 46) |
 | [Read] | the call omits the window | as above, the window the default window | none (Operation 44) |
 | [Read] | a done task's completion instant lies before the window start | the task is left out | none (Operation 46) |
 | [Read] | no task carries the list id, or the window is malformed | no tasks | none (Operation 47, Operation 49, Operation 30) |
@@ -693,7 +693,7 @@ Term cited: task id, list id, actor id, task events: Declarations.
 
 ## Status
 
-`done — 2026-11-19` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -701,9 +701,9 @@ Term cited: task id, list id, actor id, task events: Declarations.
 </summary>
 
 ```
-status: done — 2026-11-19
+status: doing
 formal: verified — personal-todo.als + 18 twins (the static data model: State 1, 2 and 4 through 7, Identity 5, Invariant 6.1 and 7.1 through 7.3, Description 1, 2, 4 and 5 checked on every state a sequence of admitted calls leaves, Identity 4 and 6 caught by the Identity 5 check, Operation 9 and Description 7 by the Invariant 6.1 check, Operation 8 by the Invariant 7.3 check, Operation 32 and 33 by the Description 4 and 5 checks); personal-todo.tla + 11 twins (across steps, as the clock moves: Invariant 2.1, 3.1, 4.1, 5.2, 8.2 and 8.3, State 9, Operation 4 (Description 6, Re-adding 1), 12 and 30); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28 and 29, Description 3, 2026-11-11; model redraw deferred to Lean: personal-todo.als, Invariant 6.1, State 11 and State 12; personal-todo.tla, Operation 4, Operation 9, Operation 17 and Operation 38 through 49 (the models check the one-list case, which the rules still hold), 2026-11-25
-last gate: 2026-11-19 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refining by both triages: F1 (an [Edit] whose carried text is over the cap and whose normalized text equals the unit's) because Execution Contract Input 2 makes the call malformed and Operation 34 refuses it, so a build answering ok breaks both, cured by Operation 33 conditioned on the call alone, Operation 10 holding within the cap and a Decisions entry that reverses the 2026-10-22 guard (its premise, a cap lowered below stored text, Input 2 now bars); F2 (two calls reading the whole active set) because Database 2's first sentence and Concurrency 1 decide it, cured by one Concurrency sentence; the seven other refining items cured (the NOTE's own exception, Composition note 2 before [Delete], the [Edit] closure rows' pending qualifier, whitespace by GRACE-lang Term blank, Database 8, the id injected for [Add] only, the id unique for the instance), one refuted (the clock's monotonicity is External check 1's), the three rhetorical declined or refuted; 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
+last gate: 2026-11-25 — Final Critique 10, a delta round, one reader (Linus opencode/beam-free), frozen at 6015eb7f — foundational count 1, not clean, one sample; Linus's eight foundational claims placed: seven refuted by Execution Contract Read 4 (a rule saying what an action does or answers other than a refusal holds only for a call the action admits, so Operations 2, 10, 13, 14, 17, 19, 20, 38 and 41 and States 5, 6 and 7 stand beside the refusals that keep a refused call from being admitted, and Refusal 1 orders the refusals), one confirmed and cured: Operation 28 (and Operation 45, which reads the window start a malformed window has none of) obliged answering the pending tasks while Operation 49, new in the bonded commit, obliged answering none for a malformed window, so two builds differ on read(list, malformed window); both now hold for a window that is not malformed, and the case table says so; the two refining items cured (the Invalid Description entry now says the cap refusal needs no differing text, as Operation 33 does, and the Completer entry leaves the one actor id across records to the app, as the atom canonicalizes nothing in it); 2026-11-19 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims placed refining by both triages: F1 (an [Edit] whose carried text is over the cap and whose normalized text equals the unit's) because Execution Contract Input 2 makes the call malformed and Operation 34 refuses it, so a build answering ok breaks both, cured by Operation 33 conditioned on the call alone, Operation 10 holding within the cap and a Decisions entry that reverses the 2026-10-22 guard (its premise, a cap lowered below stored text, Input 2 now bars); F2 (two calls reading the whole active set) because Database 2's first sentence and Concurrency 1 decide it, cured by one Concurrency sentence; the seven other refining items cured (the NOTE's own exception, Composition note 2 before [Delete], the [Edit] closure rows' pending qualifier, whitespace by GRACE-lang Term blank, Database 8, the id injected for [Add] only, the id unique for the instance), one refuted (the clock's monotonicity is External check 1's), the three rhetorical declined or refuted; 2026-11-04 — Final Critique 8, a delta round, frozen at 17878a4 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 7 — foundational count 3, not clean, no sample
 
 open: none
 ```
