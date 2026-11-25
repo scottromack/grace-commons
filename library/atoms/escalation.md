@@ -183,7 +183,7 @@ Capability requirement 19: A read_record at [Resolve] that returns nothing withi
 ### Bounds the deployment declares
 
 - **intent candidates cap**
-  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation. *Default:* none.
+  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation. *Default:* none, required at start (Execution Contract Logic confinement 15).
 
 ## Needs
 
@@ -293,7 +293,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 ```
 status: done — 2026-11-23
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at b8a27b32 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims refuted (act findings key on the invocation id, one per intent; findings 10b leaves an unread run's interval unread, and its cure would split a real outage), one refining cured (Check 3.4 says what the healthy gap is)
+last gate: 2026-11-25 — Final Critique 3, a delta round, one reader (Linus opencode/beam-free), frozen at 028724ad — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims refuted (Invariant 4.11 ranges over an aged intent, which is open, so no intent a closing record names stands under it and Check 3.6's exception is its own; a bare *Default:* none is no default, a required setting under Execution Contract Logic confinement 15, not no cap), one refining cured (the cap's Term cites Logic confinement 15 as Sweep's settings do)
 open: none
 ```
 
