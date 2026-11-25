@@ -556,7 +556,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -590,7 +590,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-25",
   "title": "Credential"
  },
  "customer-onboarding": {

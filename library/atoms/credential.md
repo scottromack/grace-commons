@@ -176,7 +176,7 @@ Projection: registered_at
 
 #### Expiry Instant
 
-The optional instant the window closes, recorded on [Register] or on a [Rotate]'s successor from the caller's value or now plus the deployment's default validity. Immutable. Absent means no deadline, and a credential with no deadline reads live forever. The sole stored input the derived [Effective Status] needs.
+The optional instant the window closes, recorded on [Register] or on a [Rotate]'s successor from the caller's value or now plus the deployment's default validity. Immutable. Absent means no deadline, and a credential with no deadline reads live forever. With the stored status, the only stored input the derived [Effective Status] needs.
 
 Kind:       Field
 Field of:   Credential
@@ -591,7 +591,7 @@ Projection:   filter
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: The atom MUST NOT write a field when a credential lapses.
-  Invariant 12.2: [Read] MUST compute the effective status from the credential's expiry instant and now.
+  Invariant 12.2: [Read] MUST compute the effective status from the credential and now.
   ```
 
 ## When something happens
@@ -829,7 +829,7 @@ Check 1.1: An auditor MUST find no two effective-active credentials sharing a pa
 Check 1.2: An auditor MUST read effective-active from the window reading and NOT from the stored status (Operation 8, Invariant 2.1).
 Check 2.1: An auditor MUST find no credential storing expired as a status (State 6).
 Check 2.2: An auditor MUST find no credential carrying a lapse instant (State 7, Invariant 12.1).
-Check 2.3: An auditor MUST reproduce a [Read] answer's effective status from the credential's expiry instant and a clock the auditor supplies (Invariant 12.2).
+Check 2.3: An auditor MUST reproduce a [Read] answer's effective status from the credential and a clock the auditor supplies (Invariant 12.2).
 Check 3.1: An auditor MUST find a successor credential id naming a credential on EVERY rotated credential (Invariant 7.1).
 Check 3.2: An auditor MUST find EVERY rotated credential's successor carrying the rotated credential's pair (Invariant 7.2).
 Check 3.3: An auditor MUST find a rotation instant on EVERY rotated credential (State 3).
@@ -944,7 +944,7 @@ Term credential types: credential_types — the credential kinds a deployment de
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -952,9 +952,9 @@ Term credential types: credential_types — the credential kinds a deployment de
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-25
 formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
-last gate: 2026-11-25 — Final Critique 24 (delta), one reader (Linus opencode/beam-free), frozen at 78805e2a — foundational count 2, cured, not clean, no sample; 2026-11-20 — Final Critique 23, three readers (GRID opencode/beam-free, EOS anthropic/claude-sonnet-5-5, Linus opencode/minimax-m3), frozen at 91c6335e — foundational count 3, cured, not clean, no sample; 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
+last gate: 2026-11-25 — Final Critique 25 (delta), one reader (Linus opencode/beam-free), frozen at 4b89d32b — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim, Invariant 12.2 and Check 2.3 computing the effective status from expiry instant and now alone, placed refining by both triages since Term effective status and Operation 52 already answer the stored status of a terminal credential, so no conforming build answers expired for one; cured by naming the credential among the inputs in both rules and in the Expiry Instant entry, and the finder's restatement of the Term in the rule was not applied; refining decided with no edit: Operation 70's tie-break (cured foundational in Final Critique 24), Operation 29's already-terminal for a lapsed credential (the Already Terminal entry and the lapsed example say it) and Invariant 1.2 as a stated guard; 2026-11-25 — Final Critique 24 (delta), one reader (Linus opencode/beam-free), frozen at 78805e2a — foundational count 2, cured, not clean, no sample; 2026-11-20 — Final Critique 23, three readers (GRID opencode/beam-free, EOS anthropic/claude-sonnet-5-5, Linus opencode/minimax-m3), frozen at 91c6335e — foundational count 3, cured, not clean, no sample; 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
 
 open: none
 ```
