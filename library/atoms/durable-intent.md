@@ -156,10 +156,10 @@ Steps:
 1. **Validate and size.**
 
    ```
-   open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized (open step 1.3) and written as given, blank included.
+   open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized into the intent payload (open step 1.3) and written as given, blank included.
    open step 1.2: IF caller kind EQUALS service THEN [Open] MUST land invalid-request.
-   open step 1.3: [Open] MUST size intent data and the kind's largest record per Primitive policy 12, for a kind in the bindings table (open step 1.9).
-   open step 1.4: IF the sized intent data OR the sized largest record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
+   open step 1.3: [Open] MUST size intent payload and the kind's largest record per Primitive policy 12, for a kind in the bindings table (open step 1.9).
+   open step 1.4: IF the sized intent payload OR the sized largest record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
    open step 1.5: A step-1 refusal MUST write nothing.
    open step 1.6: [Open] MUST NOT take the critical section BEFORE reading open invocations at (kind, act key) from the journal.
    open step 1.7: IF the read of open step 1.6 shows an open intent open step 3.5 or open step 3.7 refuses THEN [Open] MUST land act-in-flight(invocation id) carrying the invocation id of that open intent, with no take.
@@ -250,7 +250,7 @@ close 2: The composition MUST NOT retain state between [Open] and [Close].
 close 3: [Close] and [Refuse] MUST take intent event id.
 close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
 close 5: The adopter MUST pass [Close] outcome data carrying only what act probe answers for the act.
-close 6: An outcome action reference that IS NOT IN the kind's outcome refs MUST land recording-failure(outcome) with a hard alert, the critical section released and nothing appended.
+close 6: IF the step-2 re-read finds no closing record naming the invocation id AND an outcome action reference IS NOT IN the kind's outcome refs THEN [Close] MUST land recording-failure(outcome) with a hard alert, the critical section released and nothing appended.
 ```
 Steps:
 
@@ -454,8 +454,8 @@ read invocation 17: IF kind IS NOT IN the bindings table THEN [Read Invocation] 
 - **Invariant 3 — Pairing is by the seam-injected key in the journal, and by the bound datum in the database.**
   ```
   Invariant 3.1: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id.
-  Invariant 3.2: EVERY check and EVERY journal join MUST pair on invocation id and no other field.
-  Invariant 3.3: IF pairing datum DOES NOT EQUAL none THEN act probe MUST make the intent-to-record join on pairing datum by equality.
+  Invariant 3.2: EVERY check over the journal and EVERY journal join MUST pair on invocation id and no other field.
+  Invariant 3.3: IF pairing datum DOES NOT EQUAL none THEN act probe MUST make the intent-to-record join, a join of the intent with the adopter's record and no journal join, on pairing datum by equality.
   Invariant 3.4: act probe MUST NOT pair on a stamp within a window.
   Invariant 3.5: WHEN pairing datum EQUALS none OR pairing datum matches more than one record:
       Invariant 3.5a: The sweep MUST name candidates and write no outcome.
@@ -493,7 +493,7 @@ Primitive policy 1: The adopter MUST cap act key under reference length cap.
 Primitive policy 2: The composition MUST write act key as a composition-written field of EVERY record the composition appends.
 Primitive policy 3: The composition MUST NOT recover act key from an adopter's payload.
 Primitive policy 4: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id in the payload.
-Primitive policy 5: Invariant 3.2 IS AUTHORITATIVE FOR the field a check or a journal join pairs on.
+Primitive policy 5: Invariant 3.2 IS AUTHORITATIVE FOR the field a check over the journal or a journal join pairs on.
 Primitive policy 6: The adopter MUST pass actor reference and credential through to the attested append at the intent record.
 Primitive policy 7: The composition MUST validate actor reference and credential as not blank and MUST NOT inspect either beyond that.
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
@@ -504,8 +504,8 @@ Primitive policy 10b: outcome data MUST NOT carry a field named for invocation i
 Primitive policy 10c: outcome data MUST NOT carry a field named for recovery, acting actor reference, resolving actor and supersedes (Term outcome shape and Term supersedes name the fields a closing adds).
 Primitive policy 11: The composition MUST write invocation id, kind and act key into EVERY record the composition appends.
 Primitive policy 11a: The composition MUST write intent event id into EVERY record of the invocation but the intent.
-Primitive policy 12: [Open] MUST size intent data and the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload.
-Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent data or whose largest record would not fit.
+Primitive policy 12: [Open] MUST size intent payload and the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload.
+Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent payload or whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for three comparisons alone: the age of an open intent against recording instant under clock allowance, at step 1 and at step 3, the retention drop of sequence high water 5, and the advance of the mark under settle bound (sequence high water 2).
 Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for the retention drop of sequence high water 5 and the advance of the mark under settle bound (sequence high water 2) alone.
@@ -530,7 +530,7 @@ Term aged: an open intent for which now DOES NOT PRECEDE examine edge — every 
 
 Term largest record: the largest of the closings the sweep and [Resolve] write for a kind, as the substrate measures a payload — the recovered outcome, built from outcome envelope, the `<kind>.escalated` record, built from intent candidates cap, and an operator's closing of either, an abandonment included (only an operator abandons: Term state projection), which adds resolving actor and supersedes (Invariant 6.2).
 
-Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with an actor reference at reference length cap (the writer's, whether the caller's, the service identity's or the operator's, which the substrate refuses beyond that cap), the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome data plus recovery, acting actor reference) and the escalation (database candidates plus the same) — and the operator's closings through [Resolve] (either of the two with resolving actor and supersedes added, and an abandonment, which carries its cause with the same two) are sized separately, each reference at reference length cap; the bound is the largest.
+Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with data as the record carries it, the invocation id, kind and act key of Primitive policy 11 and the intent event id of a closing included, and with an actor reference at reference length cap (the writer's, whether the caller's, the service identity's or the operator's, which the substrate refuses beyond that cap), the substrate's attestation id width, and the framing. The sweep's two closings — the recovered outcome (outcome payload plus recovery, acting actor reference) and the escalation (invocation id, intent event id, kind, act key and database candidates, plus the same) — and the operator's closings through [Resolve] (either of the two with resolving actor and supersedes added, and an abandonment, which carries its cause, a word of Escalation's closed Term cause, with the same two) are sized separately, each reference at reference length cap; the bound is the largest.
 
 ```
 Primitive policy 19: IF position EQUALS intent THEN invalid-credential MUST pass through unchanged with nothing written.
@@ -716,7 +716,7 @@ NOTE: the owners — a Transaction pattern *(forthcoming)* (Non-goal 1, Non-goal
 
 ### A clean run
 
-**The clean run.** `disclose_subset(...)` validates; [Open] takes the critical section, sizes the intent data (`disclosed_entry_ids` under the ledger's cardinality cap, which the intent alone carries) with the kind's largest record, writes `ledger.disclosure.intended` (`inv-7f2`) under the discloser's credential, and returns. `SelectiveDisclosure.record` → `dsc-411`. [Close] finds no outcome for `inv-7f2` under the critical section, writes `ledger.disclosure.disclosed` with `{invocation_id: inv-7f2, intent_event_id, disclosure_id: dsc-411, ...}`, releases, returns `landed_by = invocation`. One intent, one outcome, one writer.
+**The clean run.** `disclose_subset(...)` validates; [Open] takes the critical section, sizes the intent payload (`disclosed_entry_ids` under the ledger's cardinality cap, which the intent alone carries) with the kind's largest record, writes `ledger.disclosure.intended` (`inv-7f2`) under the discloser's credential, and returns. `SelectiveDisclosure.record` → `dsc-411`. [Close] finds no outcome for `inv-7f2` under the critical section, writes `ledger.disclosure.disclosed` with `{invocation_id: inv-7f2, intent_event_id, disclosure_id: dsc-411, ...}`, releases, returns `landed_by = invocation`. One intent, one outcome, one writer.
 
 ### The lost reply
 
@@ -903,7 +903,7 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 
 ## Status
 
-`done — 2026-11-24` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -911,9 +911,9 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 </summary>
 
 ```
-status: done — 2026-11-24
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-24 — Final Critique 7, a delta round (the reach of the diff since b6ad4b52, 14 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 1ba131fd — foundational count 0 after the blind second triage, clean, one sample (Linus's foundational report, that an outcome with recovery set to true and a resolving actor meets neither close step 2.2e nor close step 2.2f, was placed by neither triage as foundational: close step 2.2d, outside the reader's delta set, sets landing actor to operator for every outcome that carries resolving actor, and the proposed added rule would set a value Term value sets does not admit and contradict close step 2.2d; cured as refining: close step 2.2e and 2.2f are written in the blank form (Earned vocabulary 7) on the outcome's recovery and resolving actor, so close step 2.2d, 2.2e and 2.2f divide the outcomes between them and a record carrying a resolving actor with recovery absent has the one answer, operator; refined without change: Primitive policy 10c's field named for a Term entry reads as Primitive policy 10a and 10b do, and the recovery flag's EQUALS true is the corpus's form); 2026-11-24 — Final Critique 6, a delta round (the reach of the diff since 3fe39f42, 19 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at b6ad4b52 — foundational count 1 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample (Linus's finding 1, Term outcome shape's "no recovery_intended owed", read as a ban where an operator's closing follows a sweep's recovery_intended, so Check 2.5 and Check 2.6 can report a conforming run: cured by writing "whether or not a recovery_intended precedes it"; finding 2, intent data over the payload cap with no refusal in Primitive policy 13, placed refining since open step 1.4 refuses any sized record, cured by naming intent data in Primitive policy 13, open step 1.4 and Primitive policy 12; refining, cured: close step 2.2e and 2.2f key on recovery set to true, Term as the substrate measures a payload names an operator's abandonment; refined without change: Check 1.1 scopes to the horizon by Check 1.2, and Which closing stands 3 lets an operator's abandonment supersede an escalation)
+last gate: 2026-11-25 — Final Critique 8, a delta round (diff base 1ba131fd, reach of the diff on the page), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at 45912569 — foundational count 2 after the first triage (no blind second triage, the count is not zero), cured in the round, not clean, no sample; the report claimed 3 foundational and the triage placed 2 and refined 1; cured: the payload measure sizes the record as written, so open step 1.3, open step 1.4, Primitive policy 12 and Primitive policy 13 size the intent payload (the caller's intent data with invocation id, kind and act key added, Term intent payload) and Term as the substrate measures a payload counts data as the record carries it, the stamped fields and a closing's intent event id included, and the escalation's fields (an act whose long key fills the cap is refused at [Open], not when the sweep writes its escalation); close 6 binds a bad outcome action reference only where the step-2 re-read finds no closing record, as close step 3.1 does, so a standing outcome is adopted under close step 2.2 (the two no longer bind one call); refining cured: Invariant 3.2 and Primitive policy 5 pair a check over the journal and a journal join on invocation id, and Invariant 3.3 states the act probe's join as a join of the intent with the adopter's record, no journal join (Term act probe is keyed by act key and pairing datum already, so no two builds differed), Term as the substrate measures a payload names an abandonment's cause as a word of Escalation's closed Term cause; refuted: Term state projection's abandoned arm without resolving actor is the conformance failure the paragraph beneath it names (only an operator abandons), Check 1.1 and Invariant 1.1 are held on the app's glue in Term attested append, Lease is used through the guard need and Term pause bound, Sweep is the writer this atom excludes and cites by reference; model redraw deferred to Lean: none
 open: none
 ```
 
