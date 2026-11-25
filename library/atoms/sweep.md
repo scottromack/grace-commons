@@ -284,6 +284,10 @@ Term need guard: key critical section key; holder critical section holder; span 
 
 Term need key: key invocation id; pairs closing record, recovery_intended.
 
+Term need journal: records recovery_intended, closing record; calls append, read; arms events; keep duration; stream invocation journal.
+
+The journal need's keep is the retention period of each kind, under which every closing of an intent is recorded after the intent (Term sweep closed ids), and its stream is the one every record of an act goes to, so that one read answers an act's intent and every closing of it, whoever wrote them (reconcile step 1.1, reconcile step 2.4).
+
 Term contract need act probe: asks whether the act under act key committed; answers committed, not-committed, undecidable, unavailable; bound probe round trip.
 
 ## Left to others
@@ -347,7 +351,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. critical section key, critical section holder, invocation id: Declarations. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. write floor, examine edge, in-flight, hard alert: Durable Intent. act finding, instance finding, condition read, resolving actor: Escalation.
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. critical section key, critical section holder, invocation id, closing record, invocation journal: Declarations. record_action, read_record, payload cap, reference length cap, attestation id width, retention policy, recording instant, sequence number, next sequence number, event id, action reference, policy reference, retention deadline, reserved namespace, retention state, Retained, Purged: Audit Trail. write floor, examine edge, in-flight, hard alert: Durable Intent. act finding, instance finding, condition read, resolving actor: Escalation.
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 

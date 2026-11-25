@@ -109,6 +109,14 @@ class BondTest(unittest.TestCase):
         self.write("other-needer", atom("Other Needer", "Term need key: key section key; pairs closing record.\n"))
         self.assertEqual(self.codes(), ["B-bond-unmet"])
 
+    def test_a_need_naming_a_type_meets_an_offer_naming_a_word_of_it(self):
+        # Bond 2 reads both ways (unit `bonds: the fixes`, 2026-11-25): either field may name the type
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record.\n"))
+        self.write("key-needer", atom("Key Needer", "Term need key: key opaque; pairs closing record.\n"))
+        self.assertEqual(self.codes(), [])
+        self.write("key-needer", atom("Key Needer", "Term need key: key duration; pairs closing record.\n"))
+        self.assertEqual(self.codes(), ["B-bond-unmet"])
+
     def test_an_atom_meets_no_offer_of_its_own(self):
         self.write("guard-offerer", atom("Guard Offerer", OFFER + NEED))
         self.write("guard-needer", atom("Guard Needer", ""))
@@ -133,12 +141,16 @@ class BondTest(unittest.TestCase):
         self.write("guard-needer", atom("Guard Needer", NEED.replace("arms expires_at, released", "arms expires_at, none, released")))
         self.assertEqual(self.codes(), ["B-bond-unmet"])
 
-    def test_a_key_need_meets_only_where_its_pairs_lie_within_carried_by(self):
+    def test_a_key_need_meets_whatever_its_pairs_and_the_offers_carried_by_name(self):
+        # unit `bonds: the fixes` (2026-11-25): carried by names the offering atom's own records, and Bond 3 no
+        # longer reads a need's pairs against it, so a need pairing records the offer does not list still meets
         self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record, closing record.\n"))
         self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs closing record.\n"))
         self.assertEqual(self.codes(), [])
         self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs closing record, marker record.\n"))
-        self.assertEqual(self.codes(), ["B-bond-unmet"])
+        self.assertEqual(self.codes(), [])
+        self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs marker record.\n"))
+        self.assertEqual(self.codes(), [])
 
     def test_an_unmet_need_of_an_apps_atoms_fails_the_app(self):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True)

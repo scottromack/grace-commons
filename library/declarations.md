@@ -30,6 +30,10 @@ Term duration: a length of time.
 
 Term sealed: opaque — the tamper evidence a record carries when a seal covers it, so that a change to the record shows when the seal is checked.
 
+Term closing record: opaque — the record type of a record that closes an invocation: an outcome record, a `<kind>.refused`, a `<kind>.abandoned` or a `<kind>.escalated`; a `<kind>.recovery_intended` is none.
+
+Term invocation journal: opaque — the stream of a journal that holds every record of an invocation's act, its intent and every closing of it, whoever writes them.
+
 Term invocation id: opaque — injected at the adopter's seam alongside now, fresh per invocation, unique across every node of the instance for the journal's lifetime; every record written for the invocation carries it.
 
 Term act key: opaque — the key an adopter gives an act, adopter-typed: the field or tuple under which two invocations are one act attempted twice where repeatable is no, and two acts where repeatable is yes; the critical section is keyed by it, the pre-check reads by it, and a finding names it.
@@ -52,6 +56,6 @@ Term invitation events: opaque — the record type of the journal records a to-d
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare).
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare). The unit `bonds: the fixes` (2026-11-25, ruled by Scott 10:48 AM Central) declared `closing record` and `invocation journal`, which three atoms' need lines use.
 
 NOTE: End of Declarations.

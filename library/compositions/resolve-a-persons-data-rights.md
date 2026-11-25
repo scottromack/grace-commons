@@ -882,7 +882,7 @@ NOTE: Check 7.1 and Check 7.2 read the actor fields Consent records and does not
 
 Term gated erased disposition: an erased disposition whose record carried a retention id.
 
-Term closing record: the standing closing of an intent of the act kind (Durable Intent Term closing record), or the fulfilled event carrying an access intent's invocation id.
+Term closing record: the standing closing of an intent of the act kind (Declarations Term closing record), or the fulfilled event carrying an access intent's invocation id.
 
 Term lost run: a run the alerting surface carries an alert for — a failed trail read (Reconciliation 34) or an unended enumeration (Reconciliation 40) — with no later run's enumeration end recorded there (Reconciliation 41). Its age runs from the alert's instant, against Recoverable Invocation's run interval. A run that ends its enumeration after it has alerted on, written and marked what the lost run did not, so the findings the lost run excused are that run's to clear.
 

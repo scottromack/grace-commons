@@ -34,8 +34,6 @@ Term position's existing arm: `recording-failure(intent)` at [Open]; `recording-
 
 Term constituent code: constituent_code — the refusal code a constituent returned, carried beside the composition's own.
 
-Term closing record: an outcome record, a `<kind>.refused`, a `<kind>.abandoned` or a `<kind>.escalated`; a `<kind>.recovery_intended` is none.
-
 ### Derived indexes
 
 - **open invocations**
@@ -457,12 +455,12 @@ read invocation 17: IF kind IS NOT IN the bindings table THEN [Read Invocation] 
   ```
   Invariant 3.1: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id.
   Invariant 3.2: EVERY check and EVERY journal join MUST pair on invocation id and no other field.
-  Invariant 3.3: act probe MUST make the intent-to-record join on pairing datum by equality.
+  Invariant 3.3: IF pairing datum DOES NOT EQUAL none THEN act probe MUST make the intent-to-record join on pairing datum by equality.
   Invariant 3.4: act probe MUST NOT pair on a stamp within a window.
   Invariant 3.5: WHEN pairing datum EQUALS none OR pairing datum matches more than one record:
       Invariant 3.5a: The sweep MUST name candidates and write no outcome.
   ```
-  *Rests on:* the seam injection (Primitive policies); Bonds journal 1 (a record the journal answered a place for is kept unchanged); the pairing datum binding.
+  *Rests on:* the seam injection (Primitive policies); Bonds journal 1 (a record the journal answered a place for is kept unchanged); the pairing datum binding; Contracts Act probe 3 and Act probe 4 (the probe's answer where the datum is none).
 
 - **Invariant 6 — The outcome is sized before the intent.**
   ```
@@ -670,8 +668,6 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
   Term service identity: a registered actor (actor reference and credential) under which the sweep writes, or none; the substrate validates its credential as it validates a caller's (Term attested append).
 
-  Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent.
-
   Term act probe: a read of the adopter's database keyed by act key and pairing datum, answering for the sweep: did the act commit, and with what outcome.
 
   Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, [Open]'s intent write with the wait and read-back of Primitive policy 34, the commit floor, [Close]'s step-2 re-read (read bound) and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* none.
@@ -701,7 +697,7 @@ Term contract need commit: asks the act under act key, the key the app supplies 
 
 ## Offers
 
-Term offer key: key invocation id; carried by intent record, recovery_intended, closing record.
+Term offer key: key invocation id; carried by intent record, closing record.
 
 ## Left to others
 
@@ -860,7 +856,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. invocation id, act key, critical section key, critical section holder, sealed: Declarations. payload cap, reference length cap, attestation id width, recording instant, sequence number, next sequence number, event id, action reference, reserved namespace: Audit Trail, held with the attested append (the app's glue).
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer: Bonds. invocation id, act key, critical section key, critical section holder, sealed, closing record, invocation journal: Declarations. pairing datum: Contracts. payload cap, reference length cap, attestation id width, recording instant, sequence number, next sequence number, event id, action reference, reserved namespace: Audit Trail, held with the attested append (the app's glue).
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 

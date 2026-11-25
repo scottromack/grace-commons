@@ -1719,8 +1719,8 @@ def map_findings(root: Path) -> list[Finding]:
 # kind does not carry, a typed value that is neither a declared word nor a declared type, or an atom's name
 # gates; a need that meets no offer, or more than one, by its declared types alone is reported, never forced.
 # Unit `bonds: five rulings` (Scott 2026-11-23 10:56 PM Central, "as recommended"): an offer names its arms per
-# call (`arms take: a, b / remaining: c`), a need meets an offer only if its pairs lie within the offer's carried
-# by and each of its arms is given by a call it lists (Bond 3), and a need of an app's atoms that meets no offer
+# call (`arms take: a, b / remaining: c`), a need meets an offer only if each of its arms is given by a call it
+# lists (Bond 3; the pairs test that ruling added was dropped by the unit `bonds: the fixes`, 2026-11-25), and a need of an app's atoms that meets no offer
 # of the app's atoms fails the app (Bond 10, B-app-unmet, gating); on an atom alone B-bond-unmet stays advisory.
 # Unit `bonds: journal` (Scott 2026-11-24 7:36 to 7:54 AM Central): the kind journal adds the typed field keep, and
 # needs reach down: a cycle in an app's graph of needs met by offers fails the app as an unmet need does
@@ -1804,7 +1804,7 @@ def per_call(value: str) -> dict[str, set[str]] | None:
 
 
 def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) -> bool:
-    """Bond 1 to Bond 3 on the bonds page: one kind, two atoms, the typed fields of one type, the lists inside."""
+    """Bond 1 to Bond 3 on the bonds page: one kind, two atoms, the typed fields of one type either way, the lists inside."""
     if need["kind"] != offer["kind"] or need["path"] == offer["path"]:
         return False
     for f in BOND_TYPED:
@@ -1831,8 +1831,9 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
             return False
         if any(not any(a in given.get(c, set()) for c in calls) for a in need["fields"]["arms"]):
             return False
-    if "pairs" in need["fields"] and not need["fields"]["pairs"] <= offer["fields"].get("carried by", set()):
-        return False
+    # Unit `bonds: the fixes` (Scott 2026-11-25 10:48 AM Central): Bond 3 no longer reads a key need's pairs against
+    # the offer's carried by, which names only the offering atom's own records (an offering atom never learns which
+    # atom needs it, bonds.md Direction); Key 1 still binds the needing atom's records, so no pairs test is made here.
     return True
 
 

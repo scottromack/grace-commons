@@ -635,7 +635,7 @@ Check 3.1: An auditor MUST find no registration instant preceding the party's en
 Check 4.1: An auditor MUST find no completion record for an invitation whose status DOES NOT EQUAL accepted (Invariant 1.1).
 Check 4.2: An auditor MUST find no completion record without an intent record carrying the completion record's invocation id (Invariant 1.1).
 Check 5.1: An auditor MUST enumerate EVERY accepted invitation carrying no completion record AND no intent record for the token digest (Invariant 4.1).
-Check 5.2: An auditor MUST enumerate EVERY intent record whose invocation id no closing record names (Durable Intent Term closing record), which Recoverable Invocation's checks read against the closure window (Invariant 4.1).
+Check 5.2: An auditor MUST enumerate EVERY intent record whose invocation id no closing record names (Declarations Term closing record), which Recoverable Invocation's checks read against the closure window (Invariant 4.1).
 Check 6.1: An auditor MUST find a decline record for EVERY declined invitation AND a revoke record for EVERY revoked invitation (Invariant 4.1).
 Check 6.2: An auditor MUST find an initiated record carrying the token digest for EVERY invitation (Invariant 4.2).
 Check 6.3: An auditor MUST find EVERY initiated record naming an invitation that exists (Invariant 4.2).
