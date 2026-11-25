@@ -38,6 +38,18 @@ Term critical section key: opaque — the act's kind and its act key as one key 
 
 Term critical section holder: opaque — the value naming one take of an act's critical section, so that no two takes carry one value: the invocation id for an invocation, the run id together with the examined intent's invocation id for a sweep run's take, and the operator run id for an operator's closing.
 
+Term actor id: opaque — the one value naming a party who acts, the same in every record that names that party.
+
+Term task id: opaque — the one value naming a task, minted when the task is made and never reused.
+
+Term list id: opaque — the one value naming a list of tasks, minted when the list is made and never reused.
+
+Term task events: opaque — the record type of the journal records a to-do app appends for a task's actions; plain, carrying no seal.
+
+Term assignment events: opaque — the record type of the journal records a to-do app appends for an assignment's actions; plain, carrying no seal.
+
+Term invitation events: opaque — the record type of the journal records a to-do app appends for an invitation's actions; plain, carrying no seal.
+
 ## Status
 
 `todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare).
