@@ -383,7 +383,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -391,9 +391,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-25
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 4, a delta round (diff base 07887353, 31 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at f404c94b — foundational count 1, not clean, one sample; Linus's one foundational claim confirmed: reconcile step 3.10 said that past a cap of 1 the escalated record carries a range naming the same reference twice, while its own sentence made the range the first and the last of candidates in act probe's order, and past a cap of 1 there are two candidates at least, so a build writing the range (first, last) and a build writing (first, first) wrote different records, the field a person settles by; cured by cutting the clause, the first-and-last range being the rule and no sentence restating the example; the refining items: Term acting actor reference cited Invariant 5.2 for an operator's outcome, which that rule does not reach, cured by naming the sweep's outcome alone, the operator's being Durable Intent's and Escalation's; Term sweep closed ids read the no-resolving-actor test as covering its escalated arm only, cured by saying either arm carries none; refuted by text outside the delta set: reconcile step 3.24b surfacing an intent the run did not close (Term aged is an open intent, so a closed one is never kept), a remaining answering unavailable at step 2.7 (the guard's offer, Lease's Term offer guard, gives remaining the arms remaining_term, none and no answer, and unavailable belongs to take, which step 2.3 covers), Check 3.1 against reconcile step 1.2 leaving an unbound kind neither swept nor excused (reconcile step 1.6 surfaces every unbound-kind intent per Recoverable Invocation Binding 4 through 6); declined: step 3.19 and 3.24b carrying a description after their one obligation (Kind D), Term cited listing the Bonds names the need's arms draw on (Kind D), and the two rhetorical items; 2026-11-23 — Final Critique 3, a delta round (diff base 817faf2c, 42 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 07887353 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim refuted (reconcile step 1.2 and Invariant 7.2 read the one `now` a run takes at the sweep's seam, Execution Contract Scheduled leg 2 and Logic confinement 11, and Term horizon edge charges run bound for that reading's age, so a kept intent satisfies Invariant 7.2 through the run; a backlog past the deployment's sizing is a breach of that sizing, Term run bound); the rhetorical claim (reconcile step 1.2's relative clause) is the watched applicability pressure the page already flags; no cure; model redraw deferred to Lean: none
+last gate: 2026-11-25 — Final Critique 5, a delta round (diff base f404c94b, 11 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at fe3c8388 — foundational count 0 after the blind second triage, clean, one sample; Linus's six refining findings each decided by a rule of the corpus and cured by none (a bound of reconcile step 3.10's range is a database record, never an invocation id; act probe's order is the probe's answer, in Execution Contract Read 5's order where it names none; the keep of a closing is Bonds journal 1's, so no destruction short of the retention period is reached; reconcile 7a serializes under each act's critical section, as reconcile 7 and reconcile step 2.1 fix; the library check names Recoverable Invocation's own split debt; reconcile 7a is a top-level label of the reconcile family like 9a), and its two rhetorical ones declined as Final Critique 4 declined them
 open: none
 ```
 
