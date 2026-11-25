@@ -236,15 +236,15 @@ Projection: effective_status
 
 Term window reading: live | lapsed — how an active credential's window reads against now.
 
-Term live: the window reading of an active credential whose expiry instant EQUALS blank, OR that now PRECEDES.
+Term live: the window reading of an active credential whose expiry instant EQUALS blank, OR now PRECEDES expiry instant.
 
-Term lapsed: the window reading of an active credential whose expiry instant DOES NOT EQUAL blank and that now DOES NOT PRECEDE; the boundary instant — expiry instant equal to now — reads lapsed.
+Term lapsed: the window reading of an active credential whose expiry instant DOES NOT EQUAL blank and now DOES NOT PRECEDE expiry instant; the boundary instant — expiry instant equal to now — reads lapsed.
 
 Term effective-active credential: a credential whose status EQUALS active that reads live.
 
 Term lapsed credential: a credential whose status EQUALS active that reads lapsed.
 
-Term settled reading: a reading of now that no registration instant of the pair follows — the only reading at which Invariant 2.1 and Check 1.1 judge a pair's credentials together; an earlier reading judges the pair's credentials as the call finds them.
+Term settled reading: a reading of now that no registration instant of the pair follows — the only reading at which Invariant 2.1 and Check 1.1 judge a pair's credentials together; an earlier reading judges the pair's credentials as the call finds them, a credential whose registration instant follows that reading among them (Operation 65).
 
 ```
 State 1: EVERY credential MUST carry credential id, principal reference, credential type, verifier, registration instant and a status.
@@ -382,7 +382,7 @@ Operation 23: IF the check function answers a match THEN [Verify] MUST answer ve
 Operation 25: [Verify] MUST NOT retain presented material.
 Operation 26: [Verify] MUST NOT record a field.
 Operation 68: IF the check function refuses the presented material THEN [Verify] MUST answer material-mismatch.
-Operation 70: A proceeding verify MUST check against the credential carrying the latest registration instant among the pair's credentials effective-active at the verify's reading.
+Operation 70: A proceeding verify MUST check against the credential carrying the latest registration instant among the pair's credentials effective-active at the verify's reading, and, where two such credentials share that instant, against the one whose credential id comes first in ascending order (Execution Contract Logic confinement 10).
 ```
 
 NOTE: watch cardinality (Operation 70).
@@ -526,7 +526,7 @@ Operation 51: [Read] MUST answer EVERY matching credential.
 Operation 52: [Read] MUST answer the effective status PER matching credential.
 Operation 53: [Read] MUST NOT answer a verifier.
 Operation 54: [Read] MUST NOT record a field.
-Operation 69: [Read] MUST order the answer by registration instant, earliest first, then by credential id ascending (Execution Contract Logic confinement 10).
+Operation 69: [Read] MUST order the answer by registration instant, earliest first, and two credentials sharing a registration instant by credential id ascending (Execution Contract Logic confinement 10).
 Operation 73: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no credential.
 Operation 83: IF a filter names a field whose value EXCEEDS the length bound THEN [Read] MUST answer no credential (Execution Contract Query 5).
 ```
@@ -954,7 +954,7 @@ Term credential types: credential_types — the credential kinds a deployment de
 ```
 status: doing
 formal: verified — credential.tla + 6 twins (2026-09-29); credential.als + 13 twins (the static data model, 2026-11-11: Invariant 3.1, 5.1, 7.1, 7.2, 9.1, 9.2, 9.3, State 3, 5, 9 and Identity 5 checked on every record an admitted [Register], [Rotate] or [Revoke] leaves and on every answer [Verify] gives over such records, Invariant 3.1 checking the cases of the deleted 4.1 and 11.1, Invariant 5.1 read off one record, Invariant 7.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 6 and 10 or for 5.1 across versions: each compares a credential with a later version of it, which a single state cannot show, and Invariant 2.1 rests on the order of the calls that wrote the pair's records, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 6 (across steps); owed rows: Invariant 1; Invariant 6, 2026-11-11
-last gate: 2026-11-20 — Final Critique 23, three readers (GRID opencode/beam-free, EOS anthropic/claude-sonnet-5-5, Linus opencode/minimax-m3), frozen at 91c6335e — foundational count 3, cured, not clean, no sample; 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
+last gate: 2026-11-25 — Final Critique 24 (delta), one reader (Linus opencode/beam-free), frozen at 78805e2a — foundational count 2, cured, not clean, no sample; 2026-11-20 — Final Critique 23, three readers (GRID opencode/beam-free, EOS anthropic/claude-sonnet-5-5, Linus opencode/minimax-m3), frozen at 91c6335e — foundational count 3, cured, not clean, no sample; 2026-11-02 — Final Critique 22 (delta) — foundational count 0, clean, one sample; 2026-10-29 — Final Critique 21, frozen at cf02362 — foundational count 0, clean, one sample
 
 open: none
 ```
