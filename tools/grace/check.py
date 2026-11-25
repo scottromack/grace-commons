@@ -469,7 +469,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -1792,6 +1792,17 @@ def bond_lines(path: Path, kinds: dict) -> list[dict]:
     return out
 
 
+def page_actions(text: str) -> dict[str, int]:
+    """An atom's actions as a bond line names them (`remove_item` -> `Remove Item`), each with the number of inputs
+    its signature takes (unit `bonds: on end`: on end and ends name only the atom's own actions)."""
+    out: dict[str, int] = {}
+    for line in text.splitlines():
+        m = SIG_HEAD.match(line.strip())
+        if m:
+            out[" ".join(w.capitalize() for w in m.group(1).split("_"))] = len(m.group(2).split(", ")) if m.group(2) else 0
+    return out
+
+
 def per_call(value: str) -> dict[str, set[str]] | None:
     """An offer's arms, named per call: `take: a, b / remaining: c` -> {call: {arms}}; None when not in that form."""
     out: dict[str, set[str]] = {}
@@ -1963,6 +1974,22 @@ def bond_findings(root: Path) -> list[Finding]:
             elif f == "arms" and b["side"] == "offer" and (v is None or not set(v) <= b["fields"].get("calls", set())):
                 findings.append(Finding(b["path"], b["line"], "B-bond-arms",
                                         "an offer names its arms per call (`call: arms / call: arms`), each call one of its calls (bonds.md Term per-call field)"))
+        # unit `bonds: on end` (Scott 2026-11-25 10:48 AM Central): a key need's on end names one action the needing atom
+        # declares, taking one input, the ended value; a key offer's ends names actions the offering atom declares
+        # (bonds.md Key, Bond 6)
+        if b["kind"] == "key" and ("on end" in b["fields"] or "ends" in b["fields"]):
+            own = page_actions(b["path"].read_text(encoding="utf-8"))
+            on_end = b["fields"].get("on end")
+            if b["side"] == "need" and on_end is not None:
+                name = next(iter(on_end)) if len(on_end) == 1 else None
+                if name is None or own.get(name) != 1:
+                    findings.append(Finding(b["path"], b["line"], "B-bond-on-end",
+                                            "on end names one action the needing atom declares, taking one input, "
+                                            "the ended value (bonds.md Key)"))
+            for name in sorted(b["fields"].get("ends", set()) if b["side"] == "offer" else set()):
+                if name not in own:
+                    findings.append(Finding(b["path"], b["line"], "B-bond-ends",
+                                            f"ends names `{name}`, no action the offering atom declares (bonds.md Key)"))
         for t in titles:
             if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", b["text"]):
                 findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
@@ -1982,7 +2009,11 @@ def bond_findings(root: Path) -> list[Finding]:
         if not met:
             findings.append(Finding(need["path"], need["line"], "B-bond-unmet",
                                     f"the {need['kind']} need meets no offer by its declared types"))
-        elif len(met) > 1:
+        idle = [o["path"].name for o in met if "on end" in need["fields"] and not o["fields"].get("ends")]
+        if idle:
+            findings.append(Finding(need["path"], need["line"], "B-bond-on-end-idle",
+                                    f"the need's on end meets an offer with no ends ({', '.join(idle)}), so its call never fires there"))
+        if len(met) > 1:
             where = ", ".join(o["path"].name for o in met)
             findings.append(Finding(need["path"], need["line"], "B-bond-ambiguous",
                                     f"the {need['kind']} need meets {len(met)} offers ({where}); an app that composes them writes the bond"))

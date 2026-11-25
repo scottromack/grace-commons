@@ -46,7 +46,7 @@ Term entry: one item's position in one sequence — an [Entry]; it carries the l
 
 #### Entry
 
-Written by [Place Item], carried to another place by [Move Item] and taken out by [Remove Item].
+Written by [Place Item], carried to another place by [Move Item] and taken out by [Remove Item] and [Remove Item Everywhere].
 
 Kind: Type
 
@@ -102,8 +102,8 @@ Ordering 6: The atom MUST NOT judge whether an item id names a real item.
 ### Every action
 
 ```
-Operation 1: IF the list id OR the item id EQUALS blank THEN a writing action MUST answer invalid-id.
-Operation 13: IF an action reads OR writes an entry THEN the entry MUST carry the action's list id.
+Operation 1: IF a list id OR an item id a writing action is given EQUALS blank THEN the writing action MUST answer invalid-id.
+Operation 13: IF an action given a list id reads OR writes an entry THEN the entry MUST carry the action's list id.
 ```
 
 The case space, and the rule that owns each case:
@@ -114,7 +114,7 @@ The case space, and the rule that owns each case:
 | a writing action | list id or item id blank | [Invalid Id] | none (Operation 1) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
-| any call | the item holds an entry carrying another list id | the call answers as if that entry were absent | none to that entry (Operation 13) |
+| any call given a list id | the item holds an entry carrying another list id | the call answers as if that entry were absent | none to that entry (Operation 13) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
 #### Invalid Id
@@ -223,12 +223,35 @@ Operation 5: [Remove Item] MUST answer ok.
 Operation 11: IF the item holds no entry in the sequence THEN [Remove Item] MUST NOT write.
 ```
 
-Term ok: the answer [Remove Item] gives once the call is admitted; it carries nothing.
+Term ok: the answer [Remove Item] and [Remove Item Everywhere] give once the call is admitted; it carries nothing.
 
 | Call | Case | Answer | Effect on the sequences |
 |---|---|---|---|
 | [Remove Item] | the item holds an entry in the sequence | ok | the entry is gone and the sequence closes (Ordering 4, Ordering 1, Operation 5) |
 | [Remove Item] | the item holds no entry in the sequence | ok | none, no write (Operation 11, Operation 5) |
+
+### Remove Item Everywhere
+
+Takes an item's entry out of every sequence that holds one; each sequence closes so its places stay in a run. An item that holds no entry in any sequence is left as it is. It takes the item id alone, so it is the action the item key need's on end names: the app calls it when an action the meeting offer's ends names ends the item (Needs). Answers ok.
+
+Kind: Operation
+
+```
+remove_item_everywhere(item_id)
+  answers ok
+  refuses invalid-request | invalid-id | storage-failure
+```
+
+```
+Operation 14: [Remove Item Everywhere] MUST take out EVERY entry that carries the item id.
+Operation 15: [Remove Item Everywhere] MUST answer ok.
+Operation 16: IF no entry carries the item id THEN [Remove Item Everywhere] MUST NOT write.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Remove Item Everywhere] | one or more sequences hold an entry for the item | ok | each such entry is gone and each sequence closes (Operation 14, Ordering 4, Ordering 1, Invariant 2.2, Operation 15) |
+| [Remove Item Everywhere] | no sequence holds an entry for the item | ok | none, no write (Operation 16, Operation 15) |
 
 ### Read Order
 
@@ -283,7 +306,7 @@ Capability requirement 1: The deployment MUST supply the database PER Execution 
 
 The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Move Item] takes no caller and checks none (Non-goal 1): who may move an item is the app's permission, gated before the call.
 
-Term need key: key opaque; pairs entries.
+Term need key: key opaque; pairs entries; on end Remove Item Everywhere.
 
 Term need key: key list id; pairs sequences.
 
@@ -292,15 +315,15 @@ Term need key: key list id; pairs sequences.
 ```
 Non-goal 1: The atom MUST NOT tell who may change a sequence.
 Non-goal 2: The atom MUST NOT hold what an item is.
-Non-goal 3: The atom MUST NOT remove an entry when an item is deleted elsewhere.
+Non-goal 3: The atom MUST NOT detect that an item is deleted elsewhere.
 Non-goal 4: The atom MUST NOT give an order a meaning.
 Non-goal 5: The atom MUST NOT keep one list's order per person.
 ```
 
-NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atom that holds the items (Non-goal 2); the app's pattern, which removes every entry an item holds as it deletes the item, a glue line (Non-goal 3); the author of the list (Non-goal 4, Non-goal 5).
+NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atom that holds the items (Non-goal 2); the item key need's on end, which the app calls as an action the meeting offer's ends names ends an item (Non-goal 3); the author of the list (Non-goal 4, Non-goal 5).
 
 ```
-Composition note 1: A composing pattern MUST remove every entry an item holds when the composing pattern deletes the item.
+Deleted: Composition note 1. The item key need's on end owns it: the app calls [Remove Item Everywhere] when an action the meeting offer's ends names ends the item (Bonds Key 3).
 Composition note 2: A composing pattern MUST decide who may move an item, since [Move Item] checks no caller (Non-goal 1).
 ```
 
@@ -308,7 +331,7 @@ NOTE: composing patterns — none yet.
 
 ## Example
 
-An author sets up a list `l1` and adds three tasks: `place_item("l1", "buy-milk")` answers 1, `place_item("l1", "call-bank")` answers 2, `place_item("l1", "book-trip")` answers 3. The author decides the trip comes first: `move_item("l1", "book-trip", 1)` answers 1, and `read_order("l1")` is answered book-trip, buy-milk, call-bank. When buy-milk is deleted elsewhere, `remove_item("l1", "buy-milk")` answers ok, and the order reads book-trip, call-bank with places 1 and 2.
+An author sets up a list `l1` and adds three tasks: `place_item("l1", "buy-milk")` answers 1, `place_item("l1", "call-bank")` answers 2, `place_item("l1", "book-trip")` answers 3. The author decides the trip comes first: `move_item("l1", "book-trip", 1)` answers 1, and `read_order("l1")` is answered book-trip, buy-milk, call-bank. When buy-milk is deleted, the app calls `remove_item_everywhere("buy-milk")` in the same transaction, which answers ok, and the order reads book-trip, call-bank with places 1 and 2.
 
 ## Source
 
@@ -343,7 +366,7 @@ Term actors: the atom; the host; the deployment (also: a deployment); a composin
 
 Term records: entry — one item's position in one sequence, carrying list id, item id and place; sequence — the entries of one list, in order.
 
-Term record verbs: identify, carry, hold, keep, share, tell, give, remove, place, move, read, answer, write, change, supply, find, name, close, enter, take, leave, judge, decide.
+Term record verbs: identify, carry, hold, keep, share, tell, give, remove, place, move, read, answer, write, change, supply, find, name, close, enter, take, leave, judge, decide, detect.
 
 Term value sets: action rejection — invalid-id | invalid-place | unknown-item | storage-failure.
 
@@ -363,6 +386,7 @@ Term cited: list id: Declarations.
 [Place Item]: #place-item
 [Move Item]: #move-item
 [Remove Item]: #remove-item
+[Remove Item Everywhere]: #remove-item-everywhere
 [Read Order]: #read-order
 [Sequence]: #sequence
 [Entry]: #entry

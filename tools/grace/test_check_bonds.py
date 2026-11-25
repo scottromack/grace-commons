@@ -152,6 +152,45 @@ class BondTest(unittest.TestCase):
         self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs marker record.\n"))
         self.assertEqual(self.codes(), [])
 
+    # unit `bonds: on end` (Scott 2026-11-25 10:48 AM Central): a key offer's ends and a key need's on end name only
+    # their own atom's actions; the on end action takes one input, the ended value
+    ON_END_BONDS = BONDS.replace("Term key need fields: key, the value; pairs, the records.",
+                                 "Term key need fields: key, the value; pairs, the records; on end, the action.").replace(
+                                 "Term key offer fields: key, the value; carried by, the records.",
+                                 "Term key offer fields: key, the value; carried by, the records; ends, the actions.")
+    ENDER = "```\ndelete(invocation_id)\n  answers ok\n```\n\nTerm offer key: key invocation id; carried by intent record; ends Delete.\n"
+    REMOVER = ("```\nremove_everywhere(invocation_id)\n  answers ok\n```\n\n```\nremove_one(list_id, invocation_id)\n  answers ok\n```\n\n"
+               "Term need key: key invocation id; pairs closing record; on end Remove Everywhere.\n")
+
+    def test_an_on_end_naming_a_one_input_action_of_its_own_page_meets_an_offer_with_ends(self):
+        (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
+        self.write("key-offerer", atom("Key Offerer", self.ENDER))
+        self.write("key-needer", atom("Key Needer", self.REMOVER))
+        self.assertEqual(self.codes(), [])
+
+    def test_an_on_end_naming_no_own_action_or_one_of_two_inputs_gates(self):
+        (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
+        self.write("key-offerer", atom("Key Offerer", self.ENDER))
+        self.write("key-needer", atom("Key Needer", self.REMOVER.replace("on end Remove Everywhere", "on end Delete")))
+        self.assertEqual(self.codes(), ["B-bond-on-end"])
+        self.write("key-needer", atom("Key Needer", self.REMOVER.replace("on end Remove Everywhere", "on end Remove One")))
+        self.assertEqual(self.codes(), ["B-bond-on-end"])
+        self.assertNotIn("B-bond-on-end", check.ADVISORY)
+
+    def test_ends_naming_no_action_of_the_offering_page_gates(self):
+        (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
+        self.write("key-offerer", atom("Key Offerer", self.ENDER.replace("ends Delete", "ends Purge")))
+        self.write("key-needer", atom("Key Needer", self.REMOVER))
+        self.assertEqual(self.codes(), ["B-bond-ends"])
+        self.assertNotIn("B-bond-ends", check.ADVISORY)
+
+    def test_an_on_end_meeting_an_offer_with_no_ends_is_advisory(self):
+        (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
+        self.write("key-offerer", atom("Key Offerer", self.ENDER.replace("; ends Delete", "")))
+        self.write("key-needer", atom("Key Needer", self.REMOVER))
+        self.assertEqual(self.codes(), ["B-bond-on-end-idle"])
+        self.assertIn("B-bond-on-end-idle", check.ADVISORY)
+
     def test_an_unmet_need_of_an_apps_atoms_fails_the_app(self):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True)
         app = self.root / "library" / "apps" / "pair" / "index.md"

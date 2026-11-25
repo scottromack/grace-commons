@@ -526,7 +526,7 @@ Term need journal: records task events; calls append; arms event_id.
 
 ## Offers
 
-Term offer key: key task id; carried by tasks.
+Term offer key: key task id; carried by tasks; ends Delete.
 
 ## Left to others
 
