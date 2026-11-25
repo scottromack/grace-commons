@@ -103,6 +103,7 @@ Ordering 6: The atom MUST NOT judge whether an item id names a real item.
 
 ```
 Operation 1: IF the list id OR the item id EQUALS blank THEN a writing action MUST answer invalid-id.
+Operation 13: IF an action reads OR writes an entry THEN the entry MUST carry the action's list id.
 ```
 
 The case space, and the rule that owns each case:
@@ -113,6 +114,7 @@ The case space, and the rule that owns each case:
 | a writing action | list id or item id blank | [Invalid Id] | none (Operation 1) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
+| any call | the item holds an entry carrying another list id | the call answers as if that entry were absent | none to that entry (Operation 13) |
 | any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
 #### Invalid Id
@@ -383,7 +385,7 @@ Term cited: list id: Declarations.
 ```
 status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 2, delta, frozen at 40741406 — foundational count 1, not clean, one sample
+last gate: 2026-11-25 — Final Critique 3, delta, frozen at 6092edd6 — foundational count 1, not clean, one sample
 
 open: none
 ```
