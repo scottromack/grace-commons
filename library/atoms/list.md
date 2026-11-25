@@ -74,7 +74,7 @@ State 1: EVERY list MUST carry list id, name and author.
 ```
 List 1: [Make List] MUST give the list the list id the host allocated for the call.
 List 2: A list MUST carry the author [Make List] was given.
-Deleted: List 3. Invariant 2.1 owns it.
+Deleted: List 3. Invariant 2.1 owns it: a list's author never changes between two versions, so no second rule need say it.
 List 4: IF the name DOES NOT EQUAL the list's name THEN [Rename List] MUST change the list's name.
 List 5: An action MUST NOT change a list's list id.
 List 6: [Delete List] MUST end the list, so that a later [Read List] answers none.
@@ -236,7 +236,7 @@ Term found: the name and author of one list.
 Term none: the answer of [Read List] where no list carries the list id; it carries nothing.
 
 ```
-Operation 10: [Read List] MUST answer the list's name AND author.
+Operation 10: IF a list carries the list id THEN [Read List] MUST answer the list's name AND author.
 Operation 11: IF no list carries the list id THEN [Read List] MUST answer none.
 Operation 12: [Read List] MUST NOT write.
 ```
@@ -273,7 +273,7 @@ A [Rename List] is undone by a [Rename List] carrying the earlier name, which th
 
 ```
 Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Order 1 through 2, Execution Contract Read 1 through 6, Execution Contract Refusal 1 AND Execution Contract Input 1 through 4.
-Capability requirement 2: The deployment MUST supply EVERY list id PER Execution Contract Logic confinement 3 AND Execution Contract Logic confinement 16.
+Capability requirement 2: The deployment MUST supply EVERY list id PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 14 AND Execution Contract Logic confinement 16.
 ```
 
 ## Needs
@@ -297,7 +297,7 @@ Non-goal 5: The atom MUST NOT keep a list's order.
 Non-goal 6: The atom MUST NOT take a deleted list back.
 ```
 
-NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); the app's pattern, which takes every item of a list out as it deletes the list, a glue line (Non-goal 4); the atom that keeps an order (Non-goal 5); the atom that restores a deleted record, [Restorable Delete](restorable-delete.md), which restores no list of this atom, since a deleted list's list id names no list again (Invariant 1.2, Non-goal 6).
+NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); the app's pattern, which takes every item of a list out as it deletes the list, a glue line (Non-goal 4); the atom that keeps an order (Non-goal 5); no pattern: a deleted list stays ended, since its list id names no list again (Invariant 1.2), and the author makes a new list; [Restorable Delete](restorable-delete.md), the atom that restores a deleted record, restores no list of this atom (Non-goal 6).
 
 ```
 Composition note 1: A composing pattern MUST decide who may change a list, since [Rename List] and [Delete List] check no caller (List 7).
@@ -308,7 +308,7 @@ NOTE: composing patterns — none yet.
 
 ## Example
 
-An author, actor a1, sets up a list: `make_list("Groceries", "a1")` answers `l1`. Later they rename it: `rename_list("l1", "Weekly shop")` answers ok, and `read_list("l1")` is answered Weekly shop and a1. When the week is over, `delete_list("l1")` answers ok, and `read_list("l1")` is answered none. Refused calls leave the lists as they were: `make_list("", "a1")` answers invalid-name and no list lands; `rename_list("zz", "x")` answers unknown-list; `delete_list("zz")` answers ok and writes nothing; `read_list("zz")` is answered none.
+An author, actor a1, sets up a list: `make_list("Groceries", "a1")` answers `l1`. Later they rename it: `rename_list("l1", "Weekly shop")` answers ok, and `read_list("l1")` is answered Weekly shop and a1. When the week is over, `delete_list("l1")` answers ok, and `read_list("l1")` is answered none. Calls that change nothing leave the lists as they were: `make_list("", "a1")` answers invalid-name and no list lands; `rename_list("zz", "x")` answers unknown-list; `delete_list("zz")` answers ok and writes nothing; `read_list("zz")` is answered none.
 
 ## Source
 
@@ -374,7 +374,7 @@ Term cited: list id, actor id: Declarations.
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -382,9 +382,9 @@ Term cited: list id, actor id: Declarations.
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-25
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 1, a full round, three readers (GRID nemotron-3.5-super-vl-free, EOS claude-sonnet-5-5, Linus beam-free), frozen at 793bcdf0 — foundational count 3 (the list id's no-reuse rested on the host with no citation of Execution Contract Logic confinement 16; Term name said the atom compares no two names while List 4 and Operation 7 compare; Delete List's record "is gone" read as an erasure or an end, with no Undo 4 sentence), not clean, cured in the round, one sample; GRID's one foundational (Proof links to Intent) refuted as no defect: the checks are read queries over the records, and a build that makes no list breaks List 1 and Operation 4, and EOS's two (the author's canonical form, the name's source) are refining, since Execution Contract Logic confinement 13 reaches only a declared reference and Execution Contract Input 4 sets the name; the next round reads the cures as a delta round
+last gate: 2026-11-25 — Final Critique 2, delta (the reach of Final Critique 1's settle, 45 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 51e582da — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 0 and pressed three questions, each of which held under both triages: a blank id on Rename List answers invalid-id, the refuses line's first (Execution Contract Refusal 1); a lost reply to Make List and its retry make a second list with a new id, as Logic confinement 16 and Invariants 1.1 and 1.2 hold; Read List answers none for a blank, over-cap or non-string id, the page's own answer standing in place of Query 5's (Execution Contract Query 5). The blind second triage placed five more points refining and five rhetorical, cured here: Capability requirement 2 cites Logic confinement 14 for the seam, Operation 10 carries its IF, the Non-goal 6 owner note names the rule that owns it, the List 3 tombstone gives its why, the Example's heading says what its calls do; its other refining points were not cured, Identity 4 stays as the atom's own statement that Check 1.2 and Invariant 1.2 rest on, as the corpus's other atoms state their ids' no-reuse beside Logic confinement 16, and the Author entry's claim stands on the Declarations' actor id, the same in every record that names the party)
 
 open: none
 ```
