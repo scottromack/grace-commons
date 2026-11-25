@@ -21,7 +21,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`library/atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (26 regulated) · 51 atoms · 92 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 52 atoms · 92 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -56,6 +56,7 @@ _26 compositions (26 regulated) · 51 atoms · 92 composition→atom edges. Gene
 | [Money](./money.md) | — | — | — | *(none yet)* |
 | [Notification](./notification.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
 | [Observation](./observation.md) | — | — | — | *(none yet)* |
+| [Ordering](./ordering.md) | — | — | — | *(none yet)* |
 | [Owed Record](./owed-record.md) | — | — | — | *(none yet)* |
 | [Party Identity](./party-identity.md) | — | yes (2) | yes | customer-onboarding, external-onboarding |
 | [Permissions](./permissions.md) | — | yes (9) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo |
@@ -183,6 +184,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Moderation](./moderation.md)
 - [Money](./money.md)
 - [Observation](./observation.md)
+- [Ordering](./ordering.md)
 - [Owed Record](./owed-record.md)
 - [Post](./post.md)
 - [Punch Card](./punch-card.md)

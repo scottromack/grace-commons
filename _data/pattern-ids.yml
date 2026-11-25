@@ -178,3 +178,5 @@ patterns:
     file: library/atoms/sweep.md
   - id: 78
     file: library/atoms/escalation.md
+  - id: 79
+    file: library/atoms/ordering.md

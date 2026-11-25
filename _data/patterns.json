@@ -1312,6 +1312,24 @@
   "status": "done \u2014 2026-11-20",
   "title": "Observation"
  },
+ "ordering": {
+  "audience": "common",
+  "composed_by": [],
+  "domain": null,
+  "done": false,
+  "invariants": 2,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "todo",
+  "title": "Ordering"
+ },
  "owed-record": {
   "audience": "common",
   "composed_by": [],

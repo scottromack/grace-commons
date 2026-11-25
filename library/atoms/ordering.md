@@ -1,0 +1,391 @@
+---
+title: Ordering
+id: 79
+audience: common
+has_toc: true
+toc: true
+---
+
+# Ordering
+
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
+## What it is
+
+Ordering keeps the sequence of one list's items: each new item enters at the bottom, one item moves to a new place at a time, and the order reads back, first place to last. It holds the order and nothing about what an item is, who may move it or what the order means.
+
+<details markdown="block">
+<summary>WHY</summary>
+
+A list people arrange by hand needs one answer, the same for every reader and every build, to which item comes before which. The items are made and deleted by other atoms, so this atom holds the sequence and nothing else: who may move an item is the app's permission, what the order means is the author's (Scott, 2026-11-24 3:23 and 3:25 PM Central: the order is per list, a new item goes at the bottom, only the author reorders, and the order is the author's priority), and who wins a race is the Execution Contract's commit order.
+
+</details>
+
+## What it keeps
+
+### The sequence
+
+Term sequence: the entries of one list, in order — a [Sequence]; one sequence for each list.
+
+#### Sequence
+
+Holds one entry for each item the list orders, the places running from the first place to the last with none missing.
+
+Kind: Type
+
+```
+Identity 1: The atom MUST identify a sequence by the sequence's list id.
+```
+
+Term entry: one item's position in one sequence — an [Entry]; it carries the item id and the place.
+
+#### Entry
+
+Written by [Place Item], carried to another place by [Move Item] and taken out by [Remove Item].
+
+Kind: Type
+
+```
+Identity 2: The atom MUST identify an entry by the entry's list id and item id.
+```
+
+Term list id: the value naming the list a sequence orders, minted by another atom and compared by byte identity — a [List Id]; the atom reads nothing in it.
+
+#### List Id
+
+Stored as supplied and compared by byte identity.
+
+Kind:       Field
+Field of:   Sequence
+Projection: list_id
+
+Term item id: the value naming an item an entry orders, minted by another atom and compared by byte identity — an [Item Id]; the atom reads nothing in it.
+
+#### Item Id
+
+Stored as supplied and compared by byte identity; whether it names a real item is another atom's.
+
+Kind:       Field
+Field of:   Entry
+Projection: item_id
+
+Term place: a whole number, the position of an entry in its sequence, counted from 1 at the first place — a [Place].
+
+#### Place
+
+Held by each entry; the first place is 1 and the last place is the number of entries.
+
+Kind:       Field
+Field of:   Entry
+Projection: place
+
+```
+State 1: EVERY entry MUST carry list id, item id and place.
+```
+
+### Ordering
+
+The five rules of the sequence, each cited by the action that carries it.
+
+```
+Ordering 1: For each list, the atom MUST hold ONE sequence, ONE entry for each item, the places running from the first place to the last with none missing.
+Ordering 2: A placed item MUST enter at the bottom, the sequence's last place plus one, or the first place where the sequence holds no entry, AND an item that holds an entry MUST keep the entry's place.
+Ordering 3: A move MUST carry ONE entry to a place from the first place to the last AND EVERY other entry MUST keep the entries' relative order AND the move MUST answer the entry's new place.
+Ordering 4: A remove MUST take the item's entry out AND the sequence MUST close to places running from the first place to the last; where the item holds no entry, the remove MUST leave the sequence unchanged.
+Ordering 5: The atom MUST NOT judge what the atom holds AND MUST NOT read a clock: no rule of Ordering names a caller or a time.
+```
+
+## What people do
+
+### Every action
+
+```
+Operation 1: IF the list id OR the item id EQUALS blank THEN an action MUST answer invalid-id.
+```
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| an action | list id or item id blank | [Invalid Id] | none (Operation 1) |
+| any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
+| any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
+| any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
+
+#### Invalid Id
+
+The refusal of a blank list id or a blank item id (Operation 1).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-id
+
+#### Storage Failure
+
+The refusal a writing action answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
+
+### Place Item
+
+Puts an item at the bottom of its list's sequence: records the [Entry] at the last place plus one, or at the first place where the sequence holds none. An item that already holds an entry stays where it is. Answers the item's place.
+
+Kind: Operation
+
+```
+place_item(list_id, item_id)
+  answers place
+  refuses invalid-id | storage-failure
+```
+
+```
+Operation 2: [Place Item] MUST answer the place of the item's entry.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Place Item] | the item holds no entry | its new place, at the bottom | one entry lands (Ordering 2, Operation 2, Ordering 1) |
+| [Place Item] | the item holds an entry | its place, as it stands | none, no write (Ordering 2, Operation 2) |
+
+- `place_item("l1", "a")`, then `place_item("l1", "b")` — answers 1, then 2: each item enters at the bottom.
+
+### Move Item
+
+Carries one item's entry to another place in its sequence; every other entry keeps its relative order. Answers the item's new place.
+
+Kind: Operation
+
+```
+move_item(list_id, item_id, place)
+  answers place
+  refuses invalid-id | unknown-item | invalid-place | storage-failure
+```
+
+```
+Operation 3: IF the item holds no entry in the sequence THEN [Move Item] MUST answer unknown-item.
+Operation 4: IF the place IS NOT a whole number from the first place to the last THEN [Move Item] MUST answer invalid-place.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Move Item] | the item holds an entry, the place lies in the sequence | the new place | the entry stands at the place, the others keep their order (Ordering 3, Ordering 1) |
+| [Move Item] | the item holds no entry | [Unknown Item] | none (Operation 3) |
+| [Move Item] | the place is no whole number from the first place to the last | [Invalid Place] | none (Operation 4) |
+
+- `move_item("l1", "b", 1)` over a sequence of a, b — answers 1: b stands first and a second.
+- `move_item("l1", "z", 1)` — rejected as [Unknown Item]: z holds no entry.
+
+#### Unknown Item
+
+The refusal of a move for an item that holds no entry (Operation 3).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: unknown-item
+
+#### Invalid Place
+
+The refusal of a move to a place that is not a whole number from the first place to the last (Operation 4).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-place
+
+### Remove Item
+
+Takes an item's entry out of its sequence; the sequence closes so its places stay in a run. An item that holds no entry is left as it is: the caller is the deletion path, where an earlier call may already have removed it. Answers ok.
+
+Kind: Operation
+
+```
+remove_item(list_id, item_id)
+  answers ok
+  refuses invalid-id | storage-failure
+```
+
+```
+Operation 5: [Remove Item] MUST answer ok.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Remove Item] | the item holds an entry | ok | the entry is gone and the sequence closes (Ordering 4, Operation 5) |
+| [Remove Item] | the item holds no entry | ok | none, no write (Ordering 4, Operation 5) |
+
+### Read Order
+
+Answers a list's item ids in order, first place to last, and changes nothing; an empty list where the sequence holds no entry.
+
+Kind: Operation
+
+```
+read_order(list_id)
+  answers items(item_id)
+```
+
+```
+Operation 6: [Read Order] MUST answer EVERY entry's item id, first place to last.
+Operation 7: [Read Order] MUST answer an empty list for a list id whose sequence holds no entry, a blank list id included (Execution Contract Query 5).
+Operation 8: [Read Order] MUST NOT write.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Read Order] | the sequence holds entries | their item ids, first place to last | none (Operation 6, Operation 8) |
+| [Read Order] | no entry, or a blank list id | an empty list | none (Operation 7) |
+
+## What is and what should never be (Invariants)
+
+- **Invariant 1 — An item stands once in a sequence.**
+  ```
+  Invariant 1.1: Two entries MUST NOT carry one list id AND one item id.
+  ```
+
+- **Invariant 2 — A move keeps the others' order.**
+  ```
+  Invariant 2.1: A move MUST NOT change the relative order of the entries the move does not carry.
+  ```
+
+## When something happens
+
+### Concurrency
+
+Two calls for one list are serialized in the commit order (Execution Contract Database 2, Order 2): the later reads what the earlier committed, so two moves to one place leave the sequence as the later one carries it. The rules above hold for calls arriving one at a time in that order, and no rule of the atom restates it.
+
+## Optional
+
+```
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1 AND Execution Contract Input 1.
+```
+
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. The caller of a move is carried and never checked (Ordering 5): who may move an item is the app's permission, gated before the call.
+
+Term need key: key opaque; pairs entries.
+
+Term need key: key opaque; pairs sequences.
+
+## Left to others
+
+```
+Non-goal 1: The atom MUST NOT tell who may change a sequence.
+Non-goal 2: The atom MUST NOT hold what an item is.
+Non-goal 3: The atom MUST NOT remove an entry when an item is deleted elsewhere.
+Non-goal 4: The atom MUST NOT give an order a meaning.
+Non-goal 5: The atom MUST NOT keep one list's order per person.
+```
+
+NOTE: the owners — the app's permission need (Non-goal 1); the atom that holds the items (Non-goal 2); the app's page, which removes an entry as it deletes an item, a glue line (Non-goal 3); the author of the list (Non-goal 4, Non-goal 5).
+
+```
+Composition note 1: A composing pattern MUST remove an item's entry when the composing pattern deletes the item.
+Composition note 2: A composing pattern MUST decide who may move an item, since [Move Item] checks no caller (Ordering 5).
+```
+
+NOTE: composing patterns — none yet.
+
+## Example
+
+An author sets up a list `l1` and adds three tasks: `place_item("l1", "buy-milk")` answers 1, `place_item("l1", "call-bank")` answers 2, `place_item("l1", "book-trip")` answers 3. The author decides the trip comes first: `move_item("l1", "book-trip", 1)` answers 1, and `read_order("l1")` is answered book-trip, buy-milk, call-bank. When buy-milk is deleted elsewhere, `remove_item("l1", "buy-milk")` answers ok, and the order reads book-trip, call-bank with places 1 and 2.
+
+## Source
+
+Ordering is a primitive with no regulatory anchor. It inherits from:
+
+- **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design; the order of a list is its own concept.
+
+## Proof
+
+### Generation acceptance
+
+Acceptable when the checks below are provable to an external auditor from the entries the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+
+#### Conformance checks
+
+```
+Check 1.1: An auditor MUST find EVERY entry carrying list id, item id AND place (State 1).
+Check 1.2: An auditor MUST find no two entries sharing a list id and an item id (Invariant 1.1).
+Check 1.3: An auditor MUST find the places of each list's entries running from the first place to the last with none missing (Ordering 1).
+Check 2.1: An auditor MUST find, across a move's two versions of the sequence, the relative order of the entries the move did not carry unchanged (Invariant 2.1).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### Vocabulary
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+Term actors: the atom; the host; the deployment (also: a deployment); a composing pattern; the database; a sequence; an auditor.
+
+Term records: entry — one item's position in one sequence, carrying list id, item id and place.
+
+Term record verbs: identify, carry, hold, keep, tell, give, remove, place, move, read, answer, write, change, supply, find, name, close, enter, take, leave, judge, decide.
+
+Term value sets: action rejection — invalid-id | invalid-place | unknown-item | storage-failure.
+
+Term bounds: empty.
+
+Term cadences: empty.
+
+Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-24) from GLM's Ordering draft.
+
+Term terms: sequence, entry, list id, item id, place, first place, last place, bottom.
+
+<!-- Term registry — shortcut-reference definitions. These produce no visible
+     output; each resolves a [Term] marker to its term entry heading above. -->
+
+[Place Item]: #place-item
+[Move Item]: #move-item
+[Remove Item]: #remove-item
+[Read Order]: #read-order
+[Sequence]: #sequence
+[Entry]: #entry
+[List Id]: #list-id
+[Item Id]: #item-id
+[Place]: #place
+[Invalid Id]: #invalid-id
+[Invalid Place]: #invalid-place
+[Unknown Item]: #unknown-item
+[Storage Failure]: #storage-failure
+
+## Status
+
+`todo` — see the Ledger.
+
+<details markdown="block">
+<summary>
+    <h2 id="ledger" style="display: inline-block; margin-left: 1.5rem;">Ledger</h2>
+</summary>
+
+```
+status: todo
+formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
+last gate: none
+
+open: none
+```
+
+</details>
+
+<details markdown="block">
+<summary>
+    <h2 id="decisions" style="display: inline-block; margin-left: 1.5rem;">Decisions</h2>
+</summary>
+
+Decisions are kept in [the pattern's history](./ordering.hist.md#decisions), one dated entry for each turn the pattern took; everything smaller lives in the commit that made it: `git log -- atoms/ordering.md`.
+
+</details>
+
+NOTE: End of Ordering.
