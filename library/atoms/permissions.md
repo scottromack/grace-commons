@@ -125,6 +125,7 @@ State 2: EVERY grant MUST carry grant id, subject reference, action scope, grant
 State 3: A revoked grant MUST carry revocation instant.
 State 4: [Grant] MUST stamp grant instant from the injected now.
 State 5: [Revoke] MUST stamp revocation instant from the injected now.
+State 11: An active grant MUST NOT carry revocation instant.
 ```
 
 Term grant set: every grant the database holds, active and revoked — what [Read] answers (Operation 26).
@@ -429,7 +430,7 @@ Capability requirement 8: The deployment MAY declare the deployment high-assuran
 Capability requirement 9: A high-assurance deployment MUST declare the receiver of the alert Revoke persistence 4 raises.
 ```
 
-Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
+Term string cap: the bound on a string input's length in Unicode code points; 256 code points where a deployment declares none (Execution Contract Input 2).
 
 Term seam: the atom's I/O (input and output) boundary as Execution Contract Logic confinement 14 declares it; the host injects the clock reading and the grant id here.
 
@@ -563,6 +564,7 @@ Check 1.2: An auditor MUST read revocation instant on EVERY revoked grant (State
 Check 1.3: An auditor MUST find EVERY grant's grant id, subject reference, action scope and grant instant unchanged across two readings (Invariant 1.1, Invariant 4.2).
 Check 1.4: An auditor MUST find no two grants sharing a grant id (Invariant 5.1).
 Check 1.5: An auditor MUST find no grant whose revocation instant PRECEDES the grant's grant instant (Invariant 9.1).
+Check 1.6: An auditor MUST find no active grant carrying revocation instant (State 11).
 Check 2.1: An auditor MUST reconstruct the grants standing in active at a past instant from grant instant and revocation instant (Invariant 9.2).
 Check 3.1: An auditor MUST find denied for a pair no active grant matches (Operation 18).
 Check 3.2: An auditor MUST find no permitted answer for which no matching active grant EXISTS (Operation 17).
@@ -631,7 +633,7 @@ Term cited: actor id: Declarations.
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -639,9 +641,9 @@ Term cited: actor id: Declarations.
 </summary>
 
 ```
-status: doing
-formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19
-last gate: 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde — foundational count 0 after the blind second triage, clean, no sample
+status: done — 2026-11-25
+formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19; State 11; model redraw deferred to Lean: permissions.als, State 11, 2026-11-25
+last gate: 2026-11-25 — Final Critique 15, a delta round (diff base c3a23fde, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 4b89d32b — foundational count 0 after the blind second triage, clean, no sample; 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
