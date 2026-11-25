@@ -31,7 +31,7 @@ A sweep that wrote what it could not know would be a second writer making up the
 ### Derived indexes
 
 - **sweep closed ids**
-  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true` or an `<kind>.escalated` naming the id and carrying no resolving actor (an operator's closing carries one). *Derived index*, same rebuild. Past the horizon the set holds no id whose closing's payload the substrate destroyed, the rebuild reading the id from the payload, and no reader needs one there: only the sweep reads the set, for an intent short of the intent's horizon edge (reconcile step 1.2), and every closing of that intent was recorded after the intent under the kind's one retention period.
+  Term sweep closed ids: the set of invocation id values the sweep has closed: an outcome under `recovery = true` or an `<kind>.escalated` naming the id, either carrying no resolving actor (an operator's closing carries one). *Derived index*, same rebuild. Past the horizon the set holds no id whose closing's payload the substrate destroyed, the rebuild reading the id from the payload, and no reader needs one there: only the sweep reads the set, for an intent short of the intent's horizon edge (reconcile step 1.2), and every closing of that intent was recorded after the intent under the kind's one retention period.
 
   ```
   sweep closed ids 1: The sweep MUST NOT write a closing BEFORE consulting sweep closed ids under the critical section (reconcile step 2.4 through 2.6).
@@ -135,7 +135,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 3.8a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent event id, act key, cause set to undecidable and database candidates set to candidates, capped as reconcile step 3.9 says.
        reconcile step 3.8c: The run MUST count escalated.
    reconcile step 3.9: database candidates MUST NOT carry more than intent candidates cap references, the first of candidates in act probe's order.
-   reconcile step 3.10: Past the cap, the escalated record MUST carry the count of EVERY candidate and the range, the first and the last of candidates in act probe's order; the range is a pair of bounds, no reference of database candidates, so a cap of 1 carries the first reference and a range that names the same reference twice.
+   reconcile step 3.10: Past the cap, the escalated record MUST carry the count of EVERY candidate and the range, the first and the last of candidates in act probe's order; the range is a pair of bounds, no reference of database candidates.
    reconcile step 3.11: The sweep MUST NOT choose among candidates.
    reconcile step 3.12: The sweep MUST NOT write an outcome the sweep did not read.
    reconcile step 3.13: WHEN act probe EQUALS unavailable:
@@ -357,7 +357,7 @@ Term value sets: landing actor = invocation | sweep | operator. state = open | c
 
 Term recovered outcome payload: the outcome payload with recovery set to true and acting actor reference set to the intent's actor reference added.
 
-Term acting actor reference: the original caller's actor reference, carried by an outcome the sweep or an operator writes (Invariant 5.2).
+Term acting actor reference: the original caller's actor reference, carried by an outcome the sweep writes (Invariant 5.2).
 
 Term plan: the field of a `<kind>.recovery_intended` record naming the closing the sweep is about to write, set to outcome (reconcile step 3.2a).
 
@@ -383,7 +383,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`done — 2026-11-23` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -391,9 +391,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: done — 2026-11-23
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-23 — Final Critique 3, a delta round (diff base 817faf2c, 42 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 07887353 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim refuted (reconcile step 1.2 and Invariant 7.2 read the one `now` a run takes at the sweep's seam, Execution Contract Scheduled leg 2 and Logic confinement 11, and Term horizon edge charges run bound for that reading's age, so a kept intent satisfies Invariant 7.2 through the run; a backlog past the deployment's sizing is a breach of that sizing, Term run bound); the rhetorical claim (reconcile step 1.2's relative clause) is the watched applicability pressure the page already flags; no cure; model redraw deferred to Lean: none
+last gate: 2026-11-25 — Final Critique 4, a delta round (diff base 07887353, 31 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at f404c94b — foundational count 1, not clean, one sample; Linus's one foundational claim confirmed: reconcile step 3.10 said that past a cap of 1 the escalated record carries a range naming the same reference twice, while its own sentence made the range the first and the last of candidates in act probe's order, and past a cap of 1 there are two candidates at least, so a build writing the range (first, last) and a build writing (first, first) wrote different records, the field a person settles by; cured by cutting the clause, the first-and-last range being the rule and no sentence restating the example; the refining items: Term acting actor reference cited Invariant 5.2 for an operator's outcome, which that rule does not reach, cured by naming the sweep's outcome alone, the operator's being Durable Intent's and Escalation's; Term sweep closed ids read the no-resolving-actor test as covering its escalated arm only, cured by saying either arm carries none; refuted by text outside the delta set: reconcile step 3.24b surfacing an intent the run did not close (Term aged is an open intent, so a closed one is never kept), a remaining answering unavailable at step 2.7 (the guard's offer, Lease's Term offer guard, gives remaining the arms remaining_term, none and no answer, and unavailable belongs to take, which step 2.3 covers), Check 3.1 against reconcile step 1.2 leaving an unbound kind neither swept nor excused (reconcile step 1.6 surfaces every unbound-kind intent per Recoverable Invocation Binding 4 through 6); declined: step 3.19 and 3.24b carrying a description after their one obligation (Kind D), Term cited listing the Bonds names the need's arms draw on (Kind D), and the two rhetorical items; 2026-11-23 — Final Critique 3, a delta round (diff base 817faf2c, 42 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 07887353 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim refuted (reconcile step 1.2 and Invariant 7.2 read the one `now` a run takes at the sweep's seam, Execution Contract Scheduled leg 2 and Logic confinement 11, and Term horizon edge charges run bound for that reading's age, so a kept intent satisfies Invariant 7.2 through the run; a backlog past the deployment's sizing is a breach of that sizing, Term run bound); the rhetorical claim (reconcile step 1.2's relative clause) is the watched applicability pressure the page already flags; no cure; model redraw deferred to Lean: none
 open: none
 ```
 

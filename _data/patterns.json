@@ -2052,7 +2052,7 @@
    "verified-repair"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -2090,7 +2090,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-23",
+  "status": "doing",
   "title": "Sweep"
  },
  "tag": {
