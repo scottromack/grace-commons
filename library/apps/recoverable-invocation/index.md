@@ -116,7 +116,7 @@ External check 8: An auditor MUST clear from external evidence that no writer ot
 External check 9: IF repeatable EQUALS no THEN an auditor MUST clear from external evidence that the adopter's bound commit refuses, on an arm the constituent declares pre-commit, EVERY call whose act key a record of the adopter's database carries (repeatable 2). {birth: data}
 ```
 ```
-External check 12: An auditor MUST clear from external evidence that the obligation pairing datum 4 names held where the datum is a seam-injected now. {birth: data}
+External check 12: An auditor MUST clear from external evidence that the obligation Contracts Act probe 1 names held where the datum is a seam-injected now. {birth: data}
 ```
 ### Non-goals
 
@@ -199,7 +199,7 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
   commit 15: The adopter MUST issue the bound commit WITHIN pause bound of [Open]'s return. {birth: atom candidate}
   ```
 - **pairing datum**
-  Term pairing datum: the field the intent record and the constituent's record both carry by construction: the seam-injected now passed into commit, or an adopter-minted nonce stored by the constituent. {birth: data}
+  The pairing datum is the one [Contracts](../../contracts.md) states (Term pairing datum, with none among its values); this page declares none of its own.
 
   <details markdown="block">
   <summary>WHY</summary>
@@ -220,7 +220,7 @@ Binding 14a: EVERY rule of this pattern reading the retention period of a `<kind
 
   ```
   act probe 1: act probe MUST answer EXACTLY ONE OF committed(outcome action reference, outcome data), not-committed, undecidable(candidates), unavailable. {birth: atom candidate}
-  act probe 2: act probe MAY answer committed ONLY IF exactly one database record matches pairing datum. {birth: atom candidate}
+  act probe 2: act probe MAY answer committed ONLY IF pairing datum DOES NOT EQUAL none AND exactly one database record matches pairing datum. {birth: atom candidate}
   act probe 3: act probe MAY answer undecidable(candidates) ONLY IF more than one record matches pairing datum OR payload match holds OR act probe 7 applies OR the adopter declared act probe set to undecidable under the commit contract's minted key variant (Contracts Commit 3c). {birth: atom candidate}
   act probe 3a: IF payload match holds OR more than one record matches pairing datum THEN act probe MUST answer undecidable(candidates), a constituent read rejection excepted (act probe 4). {birth: atom candidate}
   act probe 4: act probe MUST map EVERY constituent read rejection to unavailable. {birth: atom candidate}
@@ -312,7 +312,7 @@ The adopter is [Immutable Ledger](../../compositions/immutable-ledger.md)'s `dis
 
 - act key = `(subject_ref, recipient, scope, authority)` — the minted-key deviation, the disclosure id being minted by the commit.
 - commit = `SelectiveDisclosure.record(subject_ref, recipient, scope, authority, disclosed_at = now)`; invalid-request, `unknown-authority-type` and `storage-failure` are pre-commit as the constituent declares them; a lost reply is unknown.
-- pairing datum = `disclosed_at`, the seam-injected now, carried in intent data and passed into commit. Selective Disclosure admits no nonce, so the binding declares pairing datum 4's obligation on its host — no equal now injected into two invocations of one act key, on one node or two — with Selective Disclosure's seam given the invocation's own reading (Immutable Ledger Capability requirement 28, Immutable Ledger Capability requirement 25). One way a host meets it is a per-node monotonic source whose low bits carry the node.
+- pairing datum = `disclosed_at`, the seam-injected now, carried in intent data and passed into commit. Selective Disclosure admits no nonce, so the binding declares the obligation of Contracts Act probe 1 on its host — no equal now injected into two invocations of one act key, on one node or two — with Selective Disclosure's seam given the invocation's own reading (Immutable Ledger Capability requirement 28, Immutable Ledger Capability requirement 25). One way a host meets it is a per-node monotonic source whose low bits carry the node.
 - act probe = read Selective Disclosure's records by `subject_ref`, `recipient` and `disclosed_at` as a range of that one instant, and keep, in the adopter's code, the records whose `scope` and authority equal the intent's: `committed(ledger.disclosure.disclosed, {disclosure_id, subject_ref, recipient, scope, authority, disclosed_at})` on exactly one match, not-committed on none, `undecidable(candidates)` on several, unavailable on any read outage — the constituent's `invalid-query` is unavailable to the sweep and surfaced on compliance surface.
 - `repeatable = yes`; `invocation_completion_bound = 30 s`; `commit_round_trip = 1 s`; `probe_round_trip = 1 s`; `service_identity = ledger-reconciler`; `settling_period = 7 d`.
 - Instance: `sweep_cadence = 60 s`; `clock_allowance = 2 s`; `closure_latency = 12 s`; `run_bound = 135 s` (a backlog of three orphans, sequentially, each at worst one holder's remaining lease and one closure: `3 × (30 + 12) = 126 s`, the balance headroom); `journal_write_bound = 3 s`; `read_bound = 2 s`; `pause_bound = 0.25 s`; `closure_window = 10 min`.

@@ -9,7 +9,7 @@ toc: true
 
 ## What it is
 
-The declaration space: the words two or more atoms use, declared once and owned by no atom (Scott, 2026-11-23 5:23 PM Central: "I have no problems with some sort of global declaration space"; 5:26 PM: "it is a pattern not a 'page'"). An atom may use a word declared here, as it uses a word the Execution Contract declares; it may not use another atom's term. Each declaration is a name, a type and one line of meaning, in the corpus's own `Term` form, and the gate reads this page as it reads a pattern (`tools/grace/check.py`). It holds only the words the Needs and Offers lines of the atoms use as a field's value, and it is not [the glossary](../how/glossary.md), which defines English words for readers.
+The declaration space: the words two or more atoms use, declared once and owned by no atom (Scott, 2026-11-23 5:23 PM Central: "I have no problems with some sort of global declaration space"; 5:26 PM: "it is a pattern not a 'page'"). An atom may use a word declared here, as it uses a word the Execution Contract declares; it may not use another atom's term. Each declaration is a name, a type and one line of meaning, in the corpus's own `Term` form, and the gate reads this page as it reads a pattern (`tools/grace/check.py`). It holds the words the Needs and Offers lines of the atoms use as a field's value, and the record types an atom appends to a journal, which one atom alone may append (Scott's to-do design, 2026-11-24 2:03 PM Central, "Declarations owed"). A word only a contract's rules use is that contract's, stated on [Contracts](./contracts.md), as the pairing datum is. It is not [the glossary](../how/glossary.md), which defines English words for readers.
 
 ## Declarations
 
