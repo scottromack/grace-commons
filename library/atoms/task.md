@@ -366,6 +366,32 @@ Operation 20: [Delete] MUST take a done task out of the tasks.
 |---|---|---|---|
 | [Delete] | task is pending or done | ok | the task leaves; its task id is not reused (Operation 19, Operation 20, Identity 5) |
 
+### Delete List Tasks
+
+The behavior that removes every task of one list, pending and done, as [Delete] removes each; the action the list id need's on end names, which the app calls when an action the meeting offer's ends names ends the list (Needs). A list id no task carries is left as it is. Answers ok.
+
+Kind: Operation
+
+```
+delete_list_tasks(list_id)
+  answers ok
+  refuses storage-failure
+```
+
+```
+Operation 50: [Delete List Tasks] MUST take EVERY task carrying the list id out of the tasks, pending AND done.
+Operation 51: [Delete List Tasks] MUST answer ok.
+Operation 52: IF no task carries the list id THEN [Delete List Tasks] MUST NOT write.
+Operation 53: IF a task carries the list id THEN [Delete List Tasks] MUST append one task events record through the atom's journal need for EVERY task the call takes out.
+```
+
+| Call | Case | Answer | Effect on the tasks |
+|---|---|---|---|
+| [Delete List Tasks] | the list carries tasks | ok | every task of the list leaves, each task id not reused (Operation 50, Operation 51, Identity 5), and one task events record is appended for each (Operation 53) |
+| [Delete List Tasks] | no task carries the list id | ok | none, no write (Operation 52, Operation 51) |
+
+Each task the call takes out ends a task id, so the app calls the on end of every need on the task id that Task's offer serves for each (Bonds Key 3): the two-level case, which Bonds Key 7 leaves order-free.
+
 ### Read
 
 The read-only query answering one list's tasks: every pending task of the list, and every done task of it whose completion instant lies inside the window back from now, each with its stored fields, in the order Execution Contract Read 5 gives (addition instant, then task id ascending), since the atom orders no tasks (Non-goal 10); a last edit instant, completion instant or completer a task does not carry is answered blank. It changes nothing and refuses no call; where the database read fails it answers state-unavailable (Execution Contract Read 1). A list id that no task carries answers no tasks, a blank one, one over its cap or one that is no string included, the pattern's own answer standing in place of Query 5's (Execution Contract Query 5).
@@ -518,7 +544,7 @@ Term default window: the window [Read] takes where the call omits one, seven day
 
 The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Add], [Edit], [Complete], [Delete] and [Read] take no caller and check none (Non-goal 1): who may act on a task is the app's permission, gated before the call.
 
-Term need key: key list id; pairs tasks.
+Term need key: key list id; pairs tasks; on end Delete List Tasks.
 
 Term need key: key actor id; pairs completers.
 
@@ -526,7 +552,7 @@ Term need journal: records task events; calls append; arms event_id.
 
 ## Offers
 
-Term offer key: key task id; carried by tasks; ends Delete.
+Term offer key: key task id; carried by tasks; ends Delete, Delete List Tasks.
 
 ## Left to others
 
@@ -669,6 +695,7 @@ Term cited: task id, list id, actor id, task events: Declarations.
 [Edit]: #edit
 [Complete]: #complete
 [Delete]: #delete
+[Delete List Tasks]: #delete-list-tasks
 [Read]: #read
 [Task Record]: #task-record
 [Description]: #description

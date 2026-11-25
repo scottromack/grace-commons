@@ -46,7 +46,7 @@ Term entry: one item's position in one sequence — an [Entry]; it carries the l
 
 #### Entry
 
-Written by [Place Item], carried to another place by [Move Item] and taken out by [Remove Item] and [Remove Item Everywhere].
+Written by [Place Item], carried to another place by [Move Item] and taken out by [Remove Item], [Remove Item Everywhere] and [Remove List Sequence].
 
 Kind: Type
 
@@ -223,7 +223,7 @@ Operation 5: [Remove Item] MUST answer ok.
 Operation 11: IF the item holds no entry in the sequence THEN [Remove Item] MUST NOT write.
 ```
 
-Term ok: the answer [Remove Item] and [Remove Item Everywhere] give once the call is admitted; it carries nothing.
+Term ok: the answer [Remove Item], [Remove Item Everywhere] and [Remove List Sequence] give once the call is admitted; it carries nothing.
 
 | Call | Case | Answer | Effect on the sequences |
 |---|---|---|---|
@@ -252,6 +252,29 @@ Operation 16: IF no entry carries the item id THEN [Remove Item Everywhere] MUST
 |---|---|---|---|
 | [Remove Item Everywhere] | one or more sequences hold an entry for the item | ok | each such entry is gone and each sequence closes (Operation 14, Ordering 4, Ordering 1, Invariant 2.2, Operation 15) |
 | [Remove Item Everywhere] | no sequence holds an entry for the item | ok | none, no write (Operation 16, Operation 15) |
+
+### Remove List Sequence
+
+Takes every entry of one list's sequence out, so the list's sequence holds no entry, as a list id no entry carries does. A list id whose sequence holds no entry is left as it is. It takes the list id alone, so it is the action the list id need's on end names: the app calls it when an action the meeting offer's ends names ends the list (Needs). Answers ok.
+
+Kind: Operation
+
+```
+remove_list_sequence(list_id)
+  answers ok
+  refuses invalid-request | invalid-id | storage-failure
+```
+
+```
+Operation 17: [Remove List Sequence] MUST take out EVERY entry that carries the list id.
+Operation 18: [Remove List Sequence] MUST answer ok.
+Operation 19: IF no entry carries the list id THEN [Remove List Sequence] MUST NOT write.
+```
+
+| Call | Case | Answer | Effect on the sequences |
+|---|---|---|---|
+| [Remove List Sequence] | the list's sequence holds entries | ok | every entry of the list is gone; no other list's sequence changes (Operation 17, Operation 13, Operation 18) |
+| [Remove List Sequence] | the list's sequence holds no entry | ok | none, no write (Operation 19, Operation 18) |
 
 ### Read Order
 
@@ -308,7 +331,7 @@ The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which ato
 
 Term need key: key opaque; pairs entries; on end Remove Item Everywhere.
 
-Term need key: key list id; pairs sequences.
+Term need key: key list id; pairs sequences; on end Remove List Sequence.
 
 ## Left to others
 
@@ -387,6 +410,7 @@ Term cited: list id: Declarations.
 [Move Item]: #move-item
 [Remove Item]: #remove-item
 [Remove Item Everywhere]: #remove-item-everywhere
+[Remove List Sequence]: #remove-list-sequence
 [Read Order]: #read-order
 [Sequence]: #sequence
 [Entry]: #entry

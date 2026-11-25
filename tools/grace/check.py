@@ -1990,8 +1990,12 @@ def bond_findings(root: Path) -> list[Finding]:
                 if name not in own:
                     findings.append(Finding(b["path"], b["line"], "B-bond-ends",
                                             f"ends names `{name}`, no action the offering atom declares (bonds.md Key)"))
+        # on end and ends name the line's own atom's actions, whose names may hold another atom's title as a word
+        # (`ends Delete List`); Bond 6 reads the rest of the line (unit `bonds: on end for lists and assignments`)
+        named = ";".join(part for part in b["text"].split(";")
+                         if not re.match(r"\s*(on end|ends)\b", part))
         for t in titles:
-            if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", b["text"]):
+            if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", named):
                 findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
                                         f"the {b['side']} line names the atom {t} (bonds.md Bond 6)"))
     # a contract need names a contract contracts.md states (unit `contracts: the outside world`)

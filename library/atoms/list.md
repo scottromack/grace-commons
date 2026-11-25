@@ -293,7 +293,7 @@ Term need key: key actor id; pairs lists.
 
 ## Offers
 
-Term offer key: key list id; carried by lists.
+Term offer key: key list id; carried by lists; ends Delete List.
 
 No bond serves the four actions: the app's flow calls them.
 
@@ -303,16 +303,16 @@ No bond serves the four actions: the app's flow calls them.
 Non-goal 1: The atom MUST NOT tell who may change a list.
 Non-goal 2: The atom MUST NOT hold the items of a list.
 Non-goal 3: The atom MUST NOT tell whether an author names a real party.
-Non-goal 4: The atom MUST NOT remove the items of a list when the list is deleted.
+Non-goal 4: The atom MUST NOT take out an item another atom holds.
 Non-goal 5: The atom MUST NOT keep a list's order.
 Non-goal 6: The atom MUST NOT take a deleted list back.
 ```
 
-NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); a composing pattern, which takes every item of a list out as it deletes the list, a glue line (Non-goal 4); the atom that keeps an order (Non-goal 5); no pattern: a deleted list stays ended (Invariant 1.2), and the author makes a new list (Non-goal 6).
+NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); the atoms that hold the items, whose key needs' on end the app calls as [Delete List] ends a list (Non-goal 4); the atom that keeps an order (Non-goal 5); no pattern: a deleted list stays ended (Invariant 1.2), and the author makes a new list (Non-goal 6).
 
 ```
 Composition note 1: A composing pattern MUST decide who may make a list, who may rename a list AND who may delete a list, since [Make List], [Rename List] and [Delete List] check no caller (Non-goal 1).
-Composition note 2: A composing pattern MUST take every item of a list out when the composing pattern deletes the list.
+Deleted: Composition note 2. The key needs' on end own it: the app calls each needing atom's on end action when [Delete List] ends the list (Bonds Key 3).
 ```
 
 NOTE: deliberate — [Delete List] answers ok for a list already gone, and the app reads ok and none alike as nothing to do.

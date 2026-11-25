@@ -184,6 +184,15 @@ class BondTest(unittest.TestCase):
         self.assertEqual(self.codes(), ["B-bond-ends"])
         self.assertNotIn("B-bond-ends", check.ADVISORY)
 
+    def test_an_action_name_holding_an_atom_title_in_on_end_or_ends_names_no_atom(self):
+        # unit `bonds: on end for lists and assignments`: `ends Delete List` names the page's own action, not the atom
+        (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
+        self.write("key-offerer", atom("Key Offerer", self.ENDER.replace("delete(", "delete_key_needer(").replace("ends Delete", "ends Delete Key Needer")))
+        self.write("key-needer", atom("Key Needer", self.REMOVER))
+        self.assertEqual(self.codes(), [])
+        self.write("key-needer", atom("Key Needer", self.REMOVER.replace("pairs closing record", "pairs Key Offerer")))
+        self.assertIn("B-bond-names-atom", self.codes())
+
     def test_an_on_end_meeting_an_offer_with_no_ends_is_advisory(self):
         (self.root / "library" / "bonds.md").write_text(self.ON_END_BONDS)
         self.write("key-offerer", atom("Key Offerer", self.ENDER.replace("; ends Delete", "")))

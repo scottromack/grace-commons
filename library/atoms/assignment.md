@@ -290,6 +290,31 @@ The case space, and the rule that owns each case:
 - `recall(a1) → ok` — `a1` moves to [Recalled]; `task_t1` is now unassigned.
 - `recall(a1)` → rejected not-active (a1 is already [Recalled]; terminal).
 
+### Recall For Task
+
+Recalls the active assignment of one task, given the task reference alone, as [Recall] recalls an assignment by its id; the action the task id need's on end names, which the app calls when an action the meeting offer's ends names ends the task (Needs). A task with no active assignment is left as it is. Answers ok.
+
+Kind: Operation
+
+```
+recall_for_task(task_ref)
+  answers ok
+  refuses storage-failure
+```
+
+```
+Operation 49: IF an active assignment EXISTS for the task reference THEN [Recall For Task] MUST stand the assignment in recalled.
+Operation 50: IF [Recall For Task] stands an assignment in recalled THEN [Recall For Task] MUST stamp the assignment's recall instant from the injected now.
+Operation 51: [Recall For Task] MUST answer ok.
+Operation 52: IF no active assignment EXISTS for the task reference THEN [Recall For Task] MUST NOT write.
+Operation 53: IF [Recall For Task] stands an assignment in recalled THEN [Recall For Task] MUST append one assignment events record through the atom's journal need.
+```
+
+| Call | Case | Answer | Effect on the assignment records |
+|---|---|---|---|
+| [Recall For Task] | the task has an active assignment | ok | [Active] → [Recalled], its recall instant stamped; the task is nobody's; one assignment events record appended (Operation 49, Operation 50, Operation 53, Invariant 2.1) |
+| [Recall For Task] | the task has no active assignment | ok | none, no write (Operation 52, Operation 51) |
+
 ### Reassign
 
 The behavior that hands an [Active] [Assignment] off to a new actor. It moves the old [Assignment] [Active] → [Transferred] (stamping [Transfer Instant]) and creates a new [Active] [Assignment] for the same [Task Reference] with the [New Assignee Reference]; it returns the new [Assignment Id].
@@ -465,7 +490,7 @@ Projection:   now
 
 The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Assign], [Recall] and [Reassign] take no caller and check none (Non-goal 5): who may assign is the app's permission, gated before the call, and a claim is an assignment whose assignee the app passes as the caller, a glue line of the app's.
 
-Term need key: key task id; pairs assignments.
+Term need key: key task id; pairs assignments; on end Recall For Task.
 
 Term need key: key actor id; pairs assignees.
 
@@ -589,6 +614,7 @@ Term cited: task id, actor id, assignment events: Declarations.
 [Assignment]: #assignment
 [Assign]: #assign
 [Recall]: #recall
+[Recall For Task]: #recall-for-task
 [Reassign]: #reassign
 [Active For]: #active-for
 [History For]: #history-for
