@@ -46,6 +46,8 @@ Term actor id: opaque — the one value naming a party who acts, the same in eve
 
 Term task id: opaque — the one value naming a task, minted when the task is made and never reused.
 
+Term session id: opaque — the one value naming one session, minted by the host when the session opens; it grants nothing.
+
 Term list id: opaque — the one value naming a list of tasks, minted when the list is made and never reused.
 
 Term task events: opaque — the record type of the journal records a to-do app appends for a task's actions; plain, carrying no seal.

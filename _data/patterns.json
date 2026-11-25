@@ -1881,7 +1881,7 @@
    "session-gated-authorization"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -1909,7 +1909,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-21",
+  "status": "doing",
   "title": "Session"
  },
  "session-gated-authorization": {
