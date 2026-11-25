@@ -17,12 +17,12 @@ toc: true
 
 ## What it is
 
-List names a set of items and holds who made it: make a list, rename it, delete it, read it. It holds the list's id, its name and its author, and nothing about the items, who may rename or delete it, or who the author is.
+List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it. It holds nothing about the items, nothing about who may rename or delete it, and reads nothing in the author.
 
 <details markdown="block">
 <summary>WHY</summary>
 
-Several atoms of an app carry a list id, and none of them made the list, minted its id or held its author, so the id had no owner and "the author" had no home (Scott, 2026-11-24 10:50 PM Central, "yes", on the design round's finding (c)4; and 3:23 PM, "the author owns the list"). This atom owns the three facts and judges no caller: who may rename or delete is the app's permission, gated before the call.
+Several atoms of an app carry a list id, and none of them made the list, minted its id or held its author, so the id had no owner and "the author" had no home (Scott, 2026-11-24 3:23 PM Central, "the author owns the list", on the design round's finding (c)4). This atom owns the three facts.
 
 </details>
 
@@ -30,7 +30,7 @@ Several atoms of an app carry a list id, and none of them made the list, minted 
 
 ### The lists
 
-Term list: one name with its author under one list id, the atom holding none of the list's items (Non-goal 2) — a [List Record]; one for each list id.
+Term list: one name with its author under one list id, the atom holding none of the list's items (Non-goal 2) — a [List Record]; one for each list id while the list stands.
 
 #### List Record
 
@@ -49,7 +49,7 @@ Term name: the text a list is called by, held as supplied — a [Name]; the atom
 
 #### Name
 
-Set by [Make List] from its input (Execution Contract Input 4) and held as supplied; changed only by [Rename List].
+Set by [Make List] from its input (Execution Contract Input 4) and held as supplied; changed only by [Rename List] (List 4), the one action that writes it, so no rule against the others is stated.
 
 Kind:       Field
 Field of:   List Record
@@ -75,7 +75,7 @@ State 1: EVERY list MUST carry list id, name and author.
 List 1: [Make List] MUST give the list the list id the host allocated for the call.
 List 2: A list MUST carry the author [Make List] was given.
 Deleted: List 3. Invariant 2.1 owns it: a list's author never changes between two versions, so no second rule need say it.
-List 4: IF the name DOES NOT EQUAL the list's name THEN [Rename List] MUST change the list's name.
+List 4: IF the name [Rename List] was given DOES NOT EQUAL the list's name THEN [Rename List] MUST change the list's name.
 List 5: An action MUST NOT change a list's list id.
 List 6: [Delete List] MUST end the list, so that a later [Read List] answers none.
 List 7: The atom MUST NOT judge who may change a list.
@@ -95,11 +95,11 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the lists |
 |---|---|---|---|
-| a writing action | an input is no string | invalid-request | none (Execution Contract Input 3) |
+| a writing action | an input is no string | [Invalid Request] | none (Execution Contract Input 3) |
 | a writing action | the list id, the name or the author is blank | [Invalid Id], [Invalid Name] or [Invalid Author] | none (Operation 1, Operation 2, Operation 3) |
 | any writing call | database refuses the write | [Storage Failure] | none (Execution Contract Read 4) |
 | any call | its read of the database fails | `state-unavailable` | none (Execution Contract Read 1, Execution Contract Read 3) |
-| any call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
+| any writing call | more than one refusal applies | the refusal listed first on the action's refuses line | none (Execution Contract Refusal 1) |
 
 #### Invalid Id
 
@@ -128,9 +128,18 @@ Member of:  the action rejection
 Role:       Outcome
 Projection: invalid-author
 
+#### Invalid Request
+
+The refusal a writing action answers when an input is malformed, as no string where the input has no declared type (Execution Contract Input 1, Input 3).
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
+
 #### Storage Failure
 
-The refusal a writing action answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure.
+The refusal a writing action answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure (Execution Contract Read 4).
 
 Kind:       Member
 Member of:  the action rejection
@@ -162,7 +171,7 @@ Operation 4: [Make List] MUST answer the list id [Make List] gave the list.
 
 ### Rename List
 
-Changes one list's name. Answers ok.
+Changes one list's name. A rename to the list's own name writes nothing, so that the list's versions record only real changes. Answers ok.
 
 Kind: Operation
 
@@ -175,7 +184,7 @@ rename_list(list_id, name)
 ```
 Operation 5: IF no list carries the list id THEN [Rename List] MUST answer unknown-list.
 Operation 6: [Rename List] MUST answer ok.
-Operation 7: IF the name EQUALS the list's name THEN [Rename List] MUST NOT write.
+Operation 7: IF the name [Rename List] was given EQUALS the list's name THEN [Rename List] MUST NOT write.
 ```
 
 Term ok: the answer [Rename List] and [Delete List] give once the call is admitted; it carries nothing.
@@ -200,7 +209,7 @@ Projection: unknown-list
 
 ### Delete List
 
-Ends a list: its record ends and every earlier version of it stays readable, as no erasure is declared here (Execution Contract Database 5, Undo 1), and a later read answers none. A list id no list carries is left as it is, since an earlier call may already have deleted it. Answers ok.
+Ends a list: its record ends, and as no erasure is declared here its earlier versions remain in the database, visible to the auditor (Execution Contract Database 5, Undo 1), and a later read answers none. A list id no list carries is left as it is, since an earlier call may already have deleted it. Answers ok.
 
 Kind: Operation
 
@@ -222,7 +231,7 @@ Operation 9: IF no list carries the list id THEN [Delete List] MUST NOT write.
 
 ### Read List
 
-Answers a list's name and author, or none; changes nothing. A list id that no list carries answers none, a blank one, one over its cap or one that is no string included.
+Answers a list's name and author, or none; changes nothing. A list id that no list carries answers none, a blank one, one over its cap (Execution Contract Input 2, Query 5) or one that is no string included.
 
 Kind: Operation
 
@@ -244,7 +253,7 @@ Operation 12: [Read List] MUST NOT write.
 | Call | Case | Answer | Effect on the lists |
 |---|---|---|---|
 | [Read List] | the list exists | its name and author | none (Operation 10, Operation 12) |
-| [Read List] | no list carries the list id, a blank, over-cap or non-string one included, or the list was deleted | none | none (Operation 11, Operation 12, List 6) |
+| [Read List] | no list carries the list id, a blank, over-cap (Execution Contract Input 2, Query 5) or non-string one included, or the list was deleted | none | none (Operation 11, Operation 12, List 6) |
 
 ## What is and what should never be (Invariants)
 
@@ -273,18 +282,20 @@ A [Rename List] is undone by a [Rename List] carrying the earlier name, which th
 
 ```
 Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Order 1 through 2, Execution Contract Read 1 through 6, Execution Contract Refusal 1 AND Execution Contract Input 1 through 4.
-Capability requirement 2: The deployment MUST supply EVERY list id PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 14 AND Execution Contract Logic confinement 16.
+Capability requirement 2: The host MUST supply EVERY list id PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 14 AND Execution Contract Logic confinement 16.
 ```
 
 ## Needs
 
-The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Rename List] and [Delete List] take no caller and check none (List 7): who may rename or delete a list is the app's permission, gated before the call.
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. The app's flow calls [Make List], [Rename List], [Delete List] and [Read List] with no bond, since no atom needs them.
 
 Term need key: key actor id; pairs lists.
 
 ## Offers
 
 Term offer key: key list id; carried by lists.
+
+No bond serves the four actions: the app's flow calls them.
 
 ## Left to others
 
@@ -297,16 +308,20 @@ Non-goal 5: The atom MUST NOT keep a list's order.
 Non-goal 6: The atom MUST NOT take a deleted list back.
 ```
 
-NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); the app's pattern, which takes every item of a list out as it deletes the list, a glue line (Non-goal 4); the atom that keeps an order (Non-goal 5); no pattern: a deleted list stays ended, since its list id names no list again (Invariant 1.2), and the author makes a new list; [Restorable Delete](restorable-delete.md), the atom that restores a deleted record, restores no list of this atom (Non-goal 6).
+NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atoms that hold the items (Non-goal 2); the atom that names parties, through the need for an actor id (Non-goal 3); a composing pattern, which takes every item of a list out as it deletes the list, a glue line (Non-goal 4); the atom that keeps an order (Non-goal 5); no pattern: a deleted list stays ended (Invariant 1.2), and the author makes a new list (Non-goal 6).
 
 ```
-Composition note 1: A composing pattern MUST decide who may change a list, since [Rename List] and [Delete List] check no caller (List 7).
+Composition note 1: A composing pattern MUST decide who may make a list, who may rename a list AND who may delete a list, since [Make List], [Rename List] and [Delete List] check no caller (List 7).
 Composition note 2: A composing pattern MUST take every item of a list out when the composing pattern deletes the list.
 ```
+
+NOTE: deliberate — [Delete List] answers ok for a list already gone, and the app reads ok and none alike as nothing to do.
 
 NOTE: composing patterns — none yet.
 
 ## Example
+
+### A list made, renamed, read and deleted
 
 An author, actor a1, sets up a list: `make_list("Groceries", "a1")` answers `l1`. Later they rename it: `rename_list("l1", "Weekly shop")` answers ok, and `read_list("l1")` is answered Weekly shop and a1. When the week is over, `delete_list("l1")` answers ok, and `read_list("l1")` is answered none. Calls that change nothing leave the lists as they were: `make_list("", "a1")` answers invalid-name and no list lands; `rename_list("zz", "x")` answers unknown-list; `delete_list("zz")` answers ok and writes nothing; `read_list("zz")` is answered none.
 
@@ -320,14 +335,14 @@ List is a primitive with no regulatory anchor. It inherits from:
 
 ### Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the lists the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the lists the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The input a call gave is no record of the database, so that [Make List] carried it as given (List 2) lives at the seam, outside the auditor's frame. The atom is not regulated and carries no adversarial scenarios.
 
 #### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find EVERY list carrying list id, name AND author (State 1).
 Check 1.2: An auditor MUST find no two lists sharing a list id across the committed versions (Identity 4, Invariant 1.1, Invariant 1.2).
-Check 1.3: An auditor MUST find every list's author the same in every version of the list (List 2, Invariant 2.1).
+Check 1.3: An auditor MUST find every list's author the same in every version of the list (Invariant 2.1).
 Check 1.4: An auditor MUST find, across two successive versions of a list whose names differ, the list id and the author unchanged (Invariant 2.1, List 5).
 Check 1.5: An auditor MUST find no list record in a version that follows a version that deleted the list (List 6).
 ```
@@ -344,7 +359,7 @@ Term records: list — one name with its author under one list id, carrying list
 
 Term record verbs: identify, carry, hold, keep, tell, give, make, rename, delete, read, answer, write, change, supply, find, name, end, judge, decide, allocate, reuse, take, share, remove.
 
-Term value sets: action rejection — invalid-id | invalid-name | invalid-author | unknown-list | storage-failure.
+Term value sets: action rejection — invalid-request | invalid-id | invalid-name | invalid-author | unknown-list | storage-failure; the set is what the actions' refuses lines carry, so `state-unavailable`, which a failed read answers and no refuses line lists, is no member.
 
 Term bounds: empty.
 
@@ -370,6 +385,7 @@ Term cited: list id, actor id: Declarations.
 [Invalid Name]: #invalid-name
 [Invalid Author]: #invalid-author
 [Unknown List]: #unknown-list
+[Invalid Request]: #invalid-request
 [Storage Failure]: #storage-failure
 
 ## Status
