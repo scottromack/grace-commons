@@ -539,7 +539,7 @@ def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
 
     Fires only when the pattern actually CLAIMS a verified model (its Status zone
     mentions the harness or a buggy twin) — so an incidental prose mention of a
-    hypothetical `.als` ("don't put Alloy on Personal Todo") is not a finding.
+    hypothetical `.als` ("don't put Alloy on Task") is not a finding.
     """
     findings: list[Finding] = []
     for p in patterns.values():

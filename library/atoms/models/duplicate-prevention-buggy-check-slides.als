@@ -278,7 +278,7 @@ check A_Invariant_3_1 for 4 but 4 Int, 5 Store
 -- UNSAT means the model forbids a recorded set or an answer the page admits.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ShowFreshGuard: a record places an identity under guard (Personal Todo's "buy milk").
+-- ShowFreshGuard: a record places an identity under guard (Task's "buy milk").
 run ShowFreshGuard {
     some s : Store | reached[s] and s.madeBy in RecordCall and opens[s.madeBy]
 } for 4 but 4 Int, 5 Store

@@ -20,7 +20,7 @@ toc: true
 
 Shared Todo turns a single-user task list into a shared, multi-person one where every change is gated by a permission check and every task has at most one person responsible for it at a time.
 
-It combines three simpler patterns: a task list (Personal Todo), a grant-based permission system (Permissions), and a responsibility-tracking pattern (Assignment). None of the three knows about the others — the task list has no notion of who is acting, the permission system treats access scopes as meaningless strings until the composition gives them meaning, and the responsibility tracker records who owns a task but does not enforce anything.
+It combines three simpler patterns: a task list (Task), a grant-based permission system (Permissions), and a responsibility-tracking pattern (Assignment). None of the three knows about the others — the task list has no notion of who is acting, the permission system treats access scopes as meaningless strings until the composition gives them meaning, and the responsibility tracker records who owns a task but does not enforce anything.
 
 The composition wires them together so that every action passes a permission check first, deleting a task automatically recalls whoever was responsible for it, and two new queries become possible that no single pattern could answer alone: who is responsible for a task right now, and which tasks a given person is allowed to see.
 
@@ -32,24 +32,24 @@ The most common uses are software development sprint boards with role-based edit
 
 ## Intent
 
-Personal Todo is single-actor by design. It has no concept of who is acting, no concept of what different actors are allowed to do, and no concept of one actor being responsible for completing a task someone else created. Those three concepts — task lifecycle, authorization, and responsibility — are each freestanding atoms that compose cleanly. Shared Todo is the composition that wires them.
+Task is single-actor by design. It has no concept of who is acting, no concept of what different actors are allowed to do, and no concept of one actor being responsible for completing a task someone else created. Those three concepts — task lifecycle, authorization, and responsibility — are each freestanding atoms that compose cleanly. Shared Todo is the composition that wires them.
 
 The pattern addresses the form of multi-actor work that recurs across virtually every collaborative domain: a development team's sprint board where every task is visible to each actor holding the view grant but editable only by actors holding the edit grant; a support queue where tickets are assigned to agents with different role-based access; a clinical care plan where nurses and physicians see the same task list but hold different permissions over it; a legal matter where paralegals and partners share a checklist with clear ownership of each item.
 
 The shape is constant across all of them: actors see and act on tasks according to granted scopes (opaque permission tokens, such as `tasks:edit`, that the composition defines and Permissions enforces); at most one actor is responsible for a task at any given time; the full history of who held what permission and who was responsible for what task is provable.
 
-This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that joins their three concepts — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
+This is a composition, not a new primitive. Task, Permissions, and Assignment are unchanged. The composition is the wiring that joins their three concepts — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
 
 ---
 
 ## Composes
 
-- **[Personal Todo](../atoms/personal-todo.md)** — the task lifecycle and its invariants.
+- **[Task](../atoms/task.md)** — the task lifecycle and its invariants.
 - **[Permissions](../atoms/permissions.md)** — the authorization surface every state-changing action checks.
 - **[Assignment](../atoms/assignment.md)** — the responsibility binding that names who is accountable for a task.
 
 ```
-Composes 1: EXACTLY ONE Personal Todo instance MUST serve the composition.
+Composes 1: EXACTLY ONE Task instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: EXACTLY ONE Assignment instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
@@ -60,9 +60,9 @@ Composes 8: The composition MUST discharge Assignment's Term task reference.
 Composes 9: The composition MUST NOT answer a constituent's rejection changed.
 ```
 
-Term composition: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md) — the gate, the cascade, the scope vocabulary and the actions below.
+Term composition: this pattern's wiring of [Task](../atoms/task.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md) — the gate, the cascade, the scope vocabulary and the actions below.
 
-Term constituents: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
+Term constituents: [Task](../atoms/task.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
 
 Term caller surface: the actions and reads a constituent's own pattern declares to its callers — what a caller of that constituent alone would call.
 
@@ -75,31 +75,31 @@ Term caller surface: the actions and reads a constituent's own pattern declares 
 ```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST derive the responsible actor from Assignment's active_for.
-Composition state 3: The composition MUST derive the visible tasks from Personal Todo's records.
+Composition state 3: The composition MUST derive the visible tasks from Task's records.
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
-Term task id: the Personal Todo id a call names a task by (Personal Todo's Id entry).
+Term task id: the Task id a call names a task by (Task's Id entry).
 
 Term actor reference: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
 
-Term responsible actor: the assignee reference of the active assignment Assignment's active_for answers for a task id — unassigned if Assignment answers none for a task id the Personal Todo instance carries, and not-known for a task id it does not carry.
+Term responsible actor: the assignee reference of the active assignment Assignment's active_for answers for a task id — unassigned if Assignment answers none for a task id the Task instance carries, and not-known for a task id it does not carry.
 
-Term visible tasks: EVERY task of the Personal Todo instance, for an actor reference holding tasks:view.
+Term visible tasks: EVERY task of the Task instance, for an actor reference holding tasks:view.
 
 Term assignment id: the opaque identity of one assignment, which [Assign Task] and [Reassign Task] answer and [Reassign Task] and [Recall Assignment] take.
 
 Term assignee reference: the opaque reference a call carries for the actor an assignment binds responsibility to; the composition passes it to Assignment and never interprets it.
 
-Term unassigned: the answer [Responsible Actor] and [Active Assignment] give for a task id the Personal Todo instance carries where Assignment's active_for answers none.
+Term unassigned: the answer [Responsible Actor] and [Active Assignment] give for a task id the Task instance carries where Assignment's active_for answers none.
 
 Term new assignment id: the assignment id [Reassign Task] answers for the assignment it opens in place of the one it moves.
 
-Term description: the text a task carries, which [Add Task] takes and Personal Todo validates.
+Term description: the text a task carries, which [Add Task] takes and Task validates.
 
-Term new description: the text [Edit Task] sets in place of a task's description, which Personal Todo validates as it does a description.
+Term new description: the text [Edit Task] sets in place of a task's description, which Task validates as it does a description.
 
-Term done: Personal Todo's Done member of the unit state, which Personal Todo's complete sets.
+Term done: Task's Done member of the unit state, which Task's complete sets.
 
 Term reference: actor reference, assignee reference, task id OR assignment id — every opaque reference a call carries; the deployment canonicalizes each at the seam (Execution Contract Logic confinement 13).
 
@@ -107,7 +107,7 @@ Term reference: actor reference, assignee reference, task id OR assignment id �
 
 ```
 Capability requirement 1: The deployment MUST supply the constituents' database PER Execution Contract Database 1 and Execution Contract Database 2.
-Capability requirement 2: The deployment MUST supply now at the seam PER Personal Todo Capability requirement 1, Permissions Capability requirement 1 AND Assignment Capability requirement 1.
+Capability requirement 2: The deployment MUST supply now at the seam PER Task Capability requirement 1, Permissions Capability requirement 1 AND Assignment Capability requirement 1.
 Capability requirement 3: The deployment MUST supply at the seam, for each [Assign Task] call and each [Reassign Task] call, an assignment id no assignment has carried PER Assignment Capability requirement 5.
 ```
 
@@ -169,26 +169,26 @@ Action wiring 1: The composition MUST call a constituent other than Permissions 
 Action wiring 2: IF Permissions' permitted answers denied THEN the composition MUST answer permission-denied.
 Action wiring 3: The composition MUST NOT call a constituent for a denied answer.
 Action wiring 4: The composition MUST call Permissions' permitted with the call's actor reference.
-Action wiring 5: An admitted add MUST call Personal Todo's add with the description.
-Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task id and the new description.
-Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task id.
+Action wiring 5: An admitted add MUST call Task's add with the description.
+Action wiring 6: An admitted edit MUST call Task's edit with the task id and the new description.
+Action wiring 7: An admitted complete MUST call Task's complete with the task id.
 Action wiring 8: An admitted complete MUST NOT recall the task's active assignment.
 Action wiring 9: An admitted delete MUST call Assignment's active_for with the task id, and ONLY IF active_for answers an assignment MUST call Assignment's recall with that assignment's id.
-Action wiring 10: An admitted delete of a task whose active_for answers an assignment MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
-Action wiring 10a: An admitted delete of a task whose active_for answers none MUST call Personal Todo's delete.
-Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
+Action wiring 10: An admitted delete of a task whose active_for answers an assignment MUST call Task's delete ONLY AFTER the recall answers ok.
+Action wiring 10a: An admitted delete of a task whose active_for answers none MUST call Task's delete.
+Action wiring 13: An admitted assign MUST answer not-known for a task id the Task instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign with the task id and the assignee reference ONLY AFTER Action wiring 13's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
 Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee reference.
 Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment id.
 Action wiring 18: An admitted state-changing action MUST answer a constituent call's refusal as that refusal, and otherwise the answer of the action's last constituent call.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
-Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Personal Todo instance does not carry.
-Action wiring 21: [Responsible Actor] MUST answer unassigned for a task id the Personal Todo instance carries where Assignment's active_for answers none.
+Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Task instance does not carry.
+Action wiring 21: [Responsible Actor] MUST answer unassigned for a task id the Task instance carries where Assignment's active_for answers none.
 Action wiring 23: [Active Assignment] MUST answer not-known and unassigned on the conditions Action wiring 20 and Action wiring 21 state for [Responsible Actor].
 Action wiring 24: [Active Assignment] MUST call Assignment's active_for with the task id.
 Action wiring 25: [Active Assignment] MUST answer the assignment id of the assignment active_for answers.
-Action wiring 26: The composition MUST check whether the Personal Todo instance carries a task id by filtering Personal Todo's read for the task id.
+Action wiring 26: The composition MUST check whether the Task instance carries a task id by filtering Task's read for the task id.
 ```
 
 Term admitted add: an [Add Task] call whose tasks:add check answered permitted.
@@ -214,10 +214,10 @@ Every input an action takes, and every answer a constituent call can meet, with 
 | Action | Input | Lands | Owner |
 |---|---|---|---|
 | every action | an actor reference that is blank or malformed | Permissions' permitted answers denied, so permission-denied | Action wiring 2, 4; Permissions' Denied entry |
-| [Edit Task], [Complete Task], [Delete Task] | a task id that is blank, malformed or names no task | not-known | Personal Todo's Not Known entry |
+| [Edit Task], [Complete Task], [Delete Task] | a task id that is blank, malformed or names no task | not-known | Task's Not Known entry |
 | [Assign Task] | a task id that is blank, malformed or names no task | not-known | Action wiring 13 |
 | [Responsible Actor], [Active Assignment] | a task id that is blank, malformed or names no task | not-known | Action wiring 20, 23 |
-| [Add Task], [Edit Task] | a description or a new description Personal Todo refuses | invalid-description or duplicate-active, propagated | Action wiring 5, 6, 18 |
+| [Add Task], [Edit Task] | a description or a new description Task refuses | invalid-description or duplicate-active, propagated | Action wiring 5, 6, 18 |
 | [Assign Task], [Reassign Task] | an assignee reference or a new assignee reference that is blank | invalid-request, propagated | Action wiring 14, 16, 18; Assignment's Invalid Request entry |
 | [Reassign Task], [Recall Assignment] | an assignment id that names no assignment | not-known, propagated | Action wiring 16, 17, 18; Assignment's Not Known entry |
 
@@ -229,31 +229,31 @@ Every input an action takes, and every answer a constituent call can meet, with 
 | every action | Permissions' permitted | denied | permission-denied, no other constituent called | Action wiring 2, 3 |
 | every action | any read of the database | fails | state-unavailable, unchanged, nothing written | Execution Contract Read 1, 3; Constituent failure 3 |
 | every action | any call | never answers | no answer, the caller unable to tell whether the call landed | Execution Contract Error model 1 |
-| [Add Task] | Personal Todo's add | the id | the task id | Action wiring 5, 18 |
-| [Add Task] | Personal Todo's add | invalid-description, duplicate-active | propagated | Action wiring 5, 18; Composes 9 |
-| [Edit Task] | Personal Todo's edit | ok | ok | Action wiring 6, 18 |
-| [Edit Task] | Personal Todo's edit | not-known, not-editable, invalid-description, duplicate-active | propagated | Action wiring 6, 18; Composes 9 |
-| [Complete Task] | Personal Todo's complete | ok | ok, the task's assignment left standing | Action wiring 7, 8, 18 |
-| [Complete Task] | Personal Todo's complete | not-known, not-pending | propagated | Action wiring 7, 18; Composes 9 |
+| [Add Task] | Task's add | the id | the task id | Action wiring 5, 18 |
+| [Add Task] | Task's add | invalid-description, duplicate-active | propagated | Action wiring 5, 18; Composes 9 |
+| [Edit Task] | Task's edit | ok | ok | Action wiring 6, 18 |
+| [Edit Task] | Task's edit | not-known, not-editable, invalid-description, duplicate-active | propagated | Action wiring 6, 18; Composes 9 |
+| [Complete Task] | Task's complete | ok | ok, the task's assignment left standing | Action wiring 7, 8, 18 |
+| [Complete Task] | Task's complete | not-known, not-pending | propagated | Action wiring 7, 18; Composes 9 |
 | [Delete Task] | Assignment's active_for | an assignment | the recall call | Action wiring 9 |
 | [Delete Task] | Assignment's active_for | none | the delete call, no recall | Action wiring 9, 10a |
 | [Delete Task] | Assignment's recall | ok | the delete call | Action wiring 9, 10 |
 | [Delete Task] | Assignment's recall | not-known, not-active | none arises: the assignment the read found active is active when the recall runs, since the read and the recall are one transaction | Execution Contract Database 1, 2 |
-| [Delete Task] | Personal Todo's delete | ok | ok, no grant record changed | Action wiring 10, 10a, 18; Invariant 5.2 |
-| [Delete Task] | Personal Todo's delete | not-known | not-known, nothing written: no active assignment names a task id the Personal Todo instance does not carry | Action wiring 18; Invariant 3.2 |
-| [Assign Task] | Personal Todo's read, filtered for the task id | the task id carried | the assign call | Action wiring 13, 14, 26 |
-| [Assign Task] | Personal Todo's read, filtered for the task id | the task id not carried | not-known | Action wiring 13, 26 |
+| [Delete Task] | Task's delete | ok | ok, no grant record changed | Action wiring 10, 10a, 18; Invariant 5.2 |
+| [Delete Task] | Task's delete | not-known | not-known, nothing written: no active assignment names a task id the Task instance does not carry | Action wiring 18; Invariant 3.2 |
+| [Assign Task] | Task's read, filtered for the task id | the task id carried | the assign call | Action wiring 13, 14, 26 |
+| [Assign Task] | Task's read, filtered for the task id | the task id not carried | not-known | Action wiring 13, 26 |
 | [Assign Task] | Assignment's assign | the assignment id | the assignment id | Action wiring 14, 18 |
 | [Assign Task] | Assignment's assign | invalid-request, already-assigned | propagated | Action wiring 14, 18; Composes 9 |
 | [Reassign Task] | Assignment's reassign | the new assignment id | the new assignment id | Action wiring 16, 18 |
 | [Reassign Task] | Assignment's reassign | not-known, not-active, invalid-request | propagated | Action wiring 16, 18; Composes 9 |
 | [Recall Assignment] | Assignment's recall | ok | ok | Action wiring 17, 18 |
 | [Recall Assignment] | Assignment's recall | not-known, not-active | propagated | Action wiring 17, 18; Composes 9 |
-| [Responsible Actor] | Personal Todo's read, filtered for the task id | the task id not carried | not-known | Action wiring 20, 26 |
+| [Responsible Actor] | Task's read, filtered for the task id | the task id not carried | not-known | Action wiring 20, 26 |
 | [Responsible Actor] | Assignment's active_for | an assignment | the assignee reference of the assignment | Composition state 2; Term responsible actor |
 | [Responsible Actor] | Assignment's active_for | none | unassigned | Action wiring 21 |
-| [Visible Tasks] | Personal Todo's read | every unit | the visible tasks | Composition state 3; Term visible tasks |
-| [Active Assignment] | Personal Todo's read, filtered for the task id | the task id not carried | not-known | Action wiring 23, 26 |
+| [Visible Tasks] | Task's read | every unit | the visible tasks | Composition state 3; Term visible tasks |
+| [Active Assignment] | Task's read, filtered for the task id | the task id not carried | not-known | Action wiring 23, 26 |
 | [Active Assignment] | Assignment's active_for | an assignment | the assignment id | Action wiring 24, 25 |
 | [Active Assignment] | Assignment's active_for | none | unassigned | Action wiring 23 |
 | [Add Task], [Edit Task], [Complete Task], [Delete Task], [Assign Task], [Reassign Task], [Recall Assignment] | any constituent write | storage-failure | storage-failure, nothing committed, the writes of the action's earlier calls included | Execution Contract Constituent failure 1; Database 1 |
@@ -300,11 +300,11 @@ Each of these is a property of the composed list. Invariant 1, 3, 4.1 and 5.2 ne
 - **Invariant 3 — Cascade-on-delete.**
   ```
   Invariant 3.1: EVERY deleted task MUST carry no active assignment.
-  Invariant 3.2: The composition MUST NOT leave an active assignment naming a task id the Personal Todo instance does not carry.
+  Invariant 3.2: The composition MUST NOT leave an active assignment naming a task id the Task instance does not carry.
   ```
 - **Invariant 4 — Responsibility queryability.**
   ```
-  Invariant 4.1: [Responsible Actor]'s answer for EVERY task the Personal Todo records carry MUST derive from the Personal Todo records and the Assignment records alone.
+  Invariant 4.1: [Responsible Actor]'s answer for EVERY task the Task records carry MUST derive from the Task records and the Assignment records alone.
   Invariant 4.2: The Assignment records MUST carry EVERY assignment a task has had, transferred and recalled ones included.
   ```
 - **Invariant 5 — Authorization history completeness.**
@@ -369,13 +369,13 @@ The closing claim above is the acceptance bar and this section distributes it: *
 ### Conformance checks
 
 ```
-Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo records do not carry (Invariant 3.1, Invariant 3.2).
+Check 1.2: An auditor MUST find no active assignment naming a task id the Task records do not carry (Invariant 3.1, Invariant 3.2).
 Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment records (Invariant 2.1).
-Check 3.1: An auditor MUST find a task's responsible actor from the Personal Todo and Assignment records, through [Responsible Actor] (Invariant 4.1).
+Check 3.1: An auditor MUST find a task's responsible actor from the Task and Assignment records, through [Responsible Actor] (Invariant 4.1).
 Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment records, by filtering for the task id (Invariant 4.2).
 Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions records, by filtering the read's grants for the actor reference (Invariant 5.1).
-Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task id the Personal Todo records carry where the Assignment records carry no active assignment for the task id (Action wiring 21).
-Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo records do not carry (Action wiring 20).
+Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task id the Task records carry where the Assignment records carry no active assignment for the task id (Action wiring 21).
+Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Task records do not carry (Action wiring 20).
 Check 5.3: An auditor MUST find [Active Assignment] answering the assignment id the Assignment records carry active for a task id (Action wiring 25).
 ```
 
@@ -409,7 +409,7 @@ Non-goal 11: The composition MUST NOT wire an action for Permissions' grant.
 Non-goal 12: The composition MUST NOT authenticate an actor reference.
 Non-goal 13: A deployment needing an authenticated actor reference MUST compose an authenticating pattern.
 Non-goal 14: An authenticating pattern MUST supply the actor reference the composition checks.
-Non-goal 15: The composition MUST NOT partition the Personal Todo instance's description uniqueness per actor.
+Non-goal 15: The composition MUST NOT partition the Task instance's description uniqueness per actor.
 Non-goal 16: The composition MUST NOT refuse an assignee reference on whether the assignee may hold the task.
 Non-goal 17: The composition MUST NOT wire an action for a deprovisioning sweep.
 ```
@@ -444,7 +444,7 @@ Composition note 8: A deployment MUST own whether an assignee reference may hold
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Task](../atoms/task.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -460,25 +460,25 @@ Term cited: Execution Contract Conformance 8 — recursive conformance and the i
 
 #### Add Task
 
-The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Personal Todo's `add`. Returns the new task id, or [Permission Denied] before any delegated Personal Todo rejection.
+The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Task's `add`. Returns the new task id, or [Permission Denied] before any delegated Task rejection.
 
 Kind: Operation
 
 #### Edit Task
 
-The composition action that edits a pending task's description — gates on [Tasks Edit], then delegates to Personal Todo's `edit`. Rejected [Permission Denied] or a delegated Personal Todo rejection.
+The composition action that edits a pending task's description — gates on [Tasks Edit], then delegates to Task's `edit`. Rejected [Permission Denied] or a delegated Task rejection.
 
 Kind: Operation
 
 #### Complete Task
 
-The composition action that marks a task done — gates on [Tasks Complete], then delegates to Personal Todo's `complete`. Does not auto-recall the task's Active assignment (that is deployment policy). Rejected [Permission Denied] or a delegated rejection.
+The composition action that marks a task done — gates on [Tasks Complete], then delegates to Task's `complete`. Does not auto-recall the task's Active assignment (that is deployment policy). Rejected [Permission Denied] or a delegated rejection.
 
 Kind: Operation
 
 #### Delete Task
 
-The composition action that deletes a task — gates on [Tasks Delete], recalls any Active assignment first (the cascade-on-delete rule, Invariant 3), then delegates to Personal Todo's `delete`. Rejected [Permission Denied] or a delegated rejection.
+The composition action that deletes a task — gates on [Tasks Delete], recalls any Active assignment first (the cascade-on-delete rule, Invariant 3), then delegates to Task's `delete`. Rejected [Permission Denied] or a delegated rejection.
 
 Kind: Operation
 
@@ -502,19 +502,19 @@ Kind: Operation
 
 #### Responsible Actor
 
-The derived read query joining Personal Todo and Assignment — gates on [Tasks View], then returns the actor holding the active assignment for a task, unassigned for a task id the Personal Todo instance carries where Assignment answers none, or not-known for a task id the Personal Todo instance does not carry, a deleted task's included (the join's existence side). Neither constituent answers it alone.
+The derived read query joining Task and Assignment — gates on [Tasks View], then returns the actor holding the active assignment for a task, unassigned for a task id the Task instance carries where Assignment answers none, or not-known for a task id the Task instance does not carry, a deleted task's included (the join's existence side). Neither constituent answers it alone.
 
 Kind: Operation
 
 #### Visible Tasks
 
-The derived read query joining Personal Todo and Permissions — returns the tasks an actor may see (all tasks under a [Tasks View] grant in the canonical list-level deployment), or [Permission Denied] without one. Neither constituent answers it alone.
+The derived read query joining Task and Permissions — returns the tasks an actor may see (all tasks under a [Tasks View] grant in the canonical list-level deployment), or [Permission Denied] without one. Neither constituent answers it alone.
 
 Kind: Operation
 
 #### Active Assignment
 
-The derived read query joining Personal Todo, Permissions and Assignment — gates on [Tasks View], then returns the assignment id of the active assignment Assignment's `active_for` answers for a task id, unassigned for a task id the Personal Todo instance carries where Assignment answers none, or not-known for a task id the Personal Todo instance does not carry. It is the record a caller reads for the assignment id [Reassign Task] and [Recall Assignment] take, before retrying an [Assign Task] or [Reassign Task] whose answer was lost (Execution Contract Error model 1), since the composition replaces the constituents' own caller surface (Composes 5). No constituent answers it alone.
+The derived read query joining Task, Permissions and Assignment — gates on [Tasks View], then returns the assignment id of the active assignment Assignment's `active_for` answers for a task id, unassigned for a task id the Task instance carries where Assignment answers none, or not-known for a task id the Task instance does not carry. It is the record a caller reads for the assignment id [Reassign Task] and [Recall Assignment] take, before retrying an [Assign Task] or [Reassign Task] whose answer was lost (Execution Contract Error model 1), since the composition replaces the constituents' own caller surface (Composes 5). No constituent answers it alone.
 
 Kind: Operation
 
@@ -529,7 +529,7 @@ Projection: tasks:view
 
 #### Tasks Add
 
-The scope permitting [Add Task] (which delegates to Personal Todo's `add`).
+The scope permitting [Add Task] (which delegates to Task's `add`).
 
 Kind:       Member
 Member of:  the scope vocabulary
@@ -618,7 +618,7 @@ Projection: permission-denied
 
 ## Standards references
 
-Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer and no regulated adversarial scenarios; the clinical example shows a role split, not a regulated acceptance bar. The standards it touches are its constituents' and are cited there: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
+Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer and no regulated adversarial scenarios; the clinical example shows a role split, not a regulated acceptance bar. The standards it touches are its constituents' and are cited there: [Task](../atoms/task.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
 
 ## Status
 

@@ -11,7 +11,7 @@
 \* the deleted task — no dangling assignment against a deleted task.
 \*
 \* MODELING CHOICES
-\* - One task. `taskExists` (Personal Todo presence) and `assignmentActive`
+\* - One task. `taskExists` (Task presence) and `assignmentActive`
 \*   (an Active Assignment for the task). The CORRECT `delete_task` performs the
 \*   recall-then-delete cascade atomically.
 \*

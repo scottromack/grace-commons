@@ -44,7 +44,11 @@
   "marketing.md": "essays/marketing.md",
   "interview.md": "essays/interview.md",
   "rough-draft.md": "essays/rough-draft.md",
-  "watch-list.md": "essays/watch-list.md"
+  "watch-list.md": "essays/watch-list.md",
+  "atoms/personal-todo.md": "library/atoms/task.md",
+  "atoms/personal-todo.hist.md": "library/atoms/task.hist.md",
+  "library/atoms/personal-todo.md": "library/atoms/task.md",
+  "library/atoms/personal-todo.hist.md": "library/atoms/task.hist.md"
  },
  "deleted": {
   "requested.md": "readme.md"

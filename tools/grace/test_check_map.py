@@ -13,7 +13,7 @@ import check  # noqa: E402
 MAP = """<!-- grace-map:start -->
 ## The map
 
-- **Atoms** — one idea. Example: [Personal Todo](./atoms/personal-todo.md).
+- **Atoms** — one idea. Example: [Task](./atoms/task.md).
 - **Bonds** *(planned)* — how atoms connect. Not yet: `bonds.md`.
 <!-- grace-map:end -->
 """
@@ -25,7 +25,7 @@ class MapTest(unittest.TestCase):
         self.addCleanup(self._tmp.cleanup)
         self.root = Path(self._tmp.name)
         (self.root / "atoms").mkdir()
-        (self.root / "atoms" / "personal-todo.md").write_text("# x\n")
+        (self.root / "atoms" / "task.md").write_text("# x\n")
         for name in check.MAP_FILES:
             (self.root / name).write_text("# top\n" + MAP)
 
@@ -45,7 +45,7 @@ class MapTest(unittest.TestCase):
 
     def test_an_example_that_is_no_file_is_named_in_each_copy(self):
         for name in check.MAP_FILES:
-            (self.root / name).write_text("# top\n" + MAP.replace("personal-todo.md", "gone.md"))
+            (self.root / name).write_text("# top\n" + MAP.replace("task.md", "gone.md"))
         self.assertEqual(self.codes(), ["G-map-dead", "G-map-dead"])
 
     def test_a_planned_part_whose_file_exists_must_drop_its_mark(self):

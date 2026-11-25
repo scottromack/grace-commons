@@ -125,7 +125,7 @@ patterns:
   - id: 51
     file: library/atoms/permissions.md
   - id: 52
-    file: library/atoms/personal-todo.md
+    file: library/atoms/task.md
   - id: 53
     file: library/atoms/provenance.md
   - id: 54

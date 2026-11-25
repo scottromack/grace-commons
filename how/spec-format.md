@@ -94,7 +94,7 @@ A pattern's rule has two homes. A rule only that pattern needs, its own seams am
 
 ## Atom shape
 
-Reference examples: [`atoms/personal-todo.md`](../library/atoms/personal-todo.md) for the simplest shape; [`atoms/actor-identity.md`](../library/atoms/actor-identity.md) for a regulated atom, with the overlay's Examples subsection.
+Reference examples: [`atoms/task.md`](../library/atoms/task.md) for the simplest shape; [`atoms/actor-identity.md`](../library/atoms/actor-identity.md) for a regulated atom, with the overlay's Examples subsection.
 
 ### Required sections, in order
 
@@ -120,7 +120,7 @@ The table titled *Heading tables* owns each heading's name, level, order and req
 
    - **Invariants** — each `- **Invariant N — Descriptive name.**`, then a fence of its `Invariant N.M` rules. Named descriptively first, then numbered; never letter-prefix codes (no Invariant A.1, B.2). A deleted invariant keeps its number through a `Deleted:` line naming the owner, in the pattern's file until the pattern is done and then under *Deleted rules* in its history file (GRACE-lang Hard invariant 25). Each invariant holds across every reachable state of the atom; together they are what an implementation must produce records to prove. This is GRID's Proof node.
 
-   - A policy family the atom's inputs need, as an unplaced heading after the placed ones — Personal Todo's *Description policy* is the worked example.
+   - A policy family the atom's inputs need, as an unplaced heading after the placed ones — Task's *Description policy* is the worked example.
 
 6. **Examples.** A happy-path walkthrough and at least one rejection-path walkthrough using concrete values. Examples expose what the actions actually look like in use; happy-path-only examples are a Pass 3 finding.
 
@@ -502,7 +502,7 @@ Nothing is dropped: every line of a pattern in the section shape lands in one ro
 | Terms: the category lines (`Term actors:` and the rest) and the registry's link lines | Proof, `### Vocabulary` | unchanged |
 | Status, Ledger, Decisions | the same, last | Status unchanged; the Ledger and the Decisions each folded, as the section titled *The jobs each section does* gives |
 
-A family the table titled *Rule families* does not list (a policy family such as Personal Todo's *Description policy*, or a step block) keeps its own heading at `###` under the tree heading its rules answer to: a policy on a stored string under While something is so, a policy on an input under the action's branch.
+A family the table titled *Rule families* does not list (a policy family such as Task's *Description policy*, or a step block) keeps its own heading at `###` under the tree heading its rules answer to: a policy on a stored string under While something is so, a policy on an input under the action's branch.
 
 ### The parser reads by form
 
@@ -568,7 +568,7 @@ A pattern in `draft` or `partially resolved` status may carry a section labeled 
 *(Ownership moved here 2026-06-11 from the session-bootstrap index — now `AGENTS.md`, reached via the `CLAUDE.md` shim.)*
 
 1. **Triage atom vs. composition.** Apply the directory-placement test (does the specification name another pattern?) and confirm against EOS Pass 2. The deeper criterion: does the responsibility have its own state machine, recur across many domains, deserve its own atom?
-2. **Identify the closest existing pattern.** Read it carefully; mirror its shape, vocabulary, and conventions. [Actor Identity](../library/atoms/actor-identity.md) and [Retention Window](../library/atoms/retention-window.md) are the references for new regulated atoms; [Personal Todo](../library/atoms/personal-todo.md) is the reference for productivity primitives; [Idempotent Reservation](../library/compositions/idempotent-reservation.md) and [Audit Trail](../library/compositions/audit-trail.md) are the references for compositions.
+2. **Identify the closest existing pattern.** Read it carefully; mirror its shape, vocabulary, and conventions. [Actor Identity](../library/atoms/actor-identity.md) and [Retention Window](../library/atoms/retention-window.md) are the references for new regulated atoms; [Task](../library/atoms/task.md) is the reference for productivity primitives; [Idempotent Reservation](../library/compositions/idempotent-reservation.md) and [Audit Trail](../library/compositions/audit-trail.md) are the references for compositions.
 3. **Premodel.** For compositions only, before any rule is drafted:
    - **Constituents grounded first.** List each constituent and its status. A constituent not yet grounded grounds first, or the composition records in its first Decisions entry that it accepts the ripple. This list and the call surface (each call's answers and refusals) stay with the draft and git, never on the published pattern.
    - **Bindings.** Name each constituent parameter the composition binds and to what. A branch no adopter binds is not written.
@@ -584,7 +584,7 @@ A pattern in `draft` or `partially resolved` status may carry a section labeled 
 
 | Shape | Canonical example | Why it's the reference |
 |-------|-------------------|-----------------------|
-| Atom — simplest | [`Personal Todo`](../library/atoms/personal-todo.md) | Smallest atom |
+| Atom — simplest | [`Task`](../library/atoms/task.md) | Smallest atom |
 | Atom — regulated | [`Actor Identity`](../library/atoms/actor-identity.md) | Carries both regulated-overlay conventions |
 | Composition — simplest | [`Idempotent Reservation`](../library/compositions/idempotent-reservation.md) | Two-atom composition with all required sections |
 | Composition — substrate use | [`Audit Trail`](../library/compositions/audit-trail.md) | Composes four atoms; the canonical regulated-audit substrate other compositions name |

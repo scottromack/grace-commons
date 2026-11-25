@@ -104,7 +104,7 @@ Action return values — the `id` returned by `assign`, the `ok` returned by `co
 
 ### Pure Function (PF)
 
-A pure function takes typed inputs and returns typed outputs with no IO, no state mutation, and no side effects. Pure functions are deterministic: same input, same output, always. They are used for guard evaluation, input validation, description normalization (as in Personal Todo's description policy — NFC normalization, trim, length check), invariant assertion, and projection formatting. A pure function may not invoke a direct effect.
+A pure function takes typed inputs and returns typed outputs with no IO, no state mutation, and no side effects. Pure functions are deterministic: same input, same output, always. They are used for guard evaluation, input validation, description normalization (as in Task's description policy — NFC normalization, trim, length check), invariant assertion, and projection formatting. A pure function may not invoke a direct effect.
 
 ---
 
@@ -133,7 +133,7 @@ Step 4.  PROJECT OUTPUT      PF   output = R(state_{t+1}, event)
 
 **Clock and ID are injected, never called from within G or T.** The clock is read once per invocation — an explicit direct effect at the top of Step 2 — and the same `clock_t` is passed first to G and then to T; the entropy read is an explicit direct effect at the top of Step 3, before T runs. G and T receive `clock_t` (and T additionally `id_t`) as parameters; neither reads the clock or generates IDs internally. A G or T that calls `now()` or `uuid()` inside itself is non-deterministic — it cannot be given fixed inputs to produce a predictable output, which means it cannot be tested deterministically and cannot be treated as a compilation target. Injection discipline is what makes both functions deterministic in their inputs. The single shared reading also removes guard/stamp skew: the value a temporal guard validated is byte-identical to the value T stamps into the record. What a deployment's mechanism computes (Logic confinement 8) is injected the same way: the host runs the mechanism at the seam, on what the call carries and, where the mechanism compares against a stored value, on what Step 1 read of it, after Step 1 and before the guards of Step 2, and G and T receive the result as a parameter and run no mechanism. The entropy a mechanism itself consumes is the mechanism's own, drawn at the seam with it, and is not the Step 3 read that supplies `id_t`.
 
-**ID generation is conditional.** `id_t` is generated only for transitions that create new records — `place_hold` in Provisional Commitment, `assign` in Assignment, `add` in Personal Todo. Transitions that mutate existing records (confirm, release, expire, recall, edit, complete) do not generate an id.
+**ID generation is conditional.** `id_t` is generated only for transitions that create new records — `place_hold` in Provisional Commitment, `assign` in Assignment, `add` in Task. Transitions that mutate existing records (confirm, release, expire, recall, edit, complete) do not generate an id.
 
 ---
 
@@ -170,12 +170,12 @@ The Grace Commons atom spec maps to the execution model through a direct section
 | Invariants (sequence-safety) | Compiler correctness obligations on T; runtime serialization guarantees |
 | Operations (the read actions) | Q — named read queries; DE reads + PF projection |
 | Operations (the signature block's answers lines) | R — per-event return projection; PF over state_{t+1} |
-| A policy family — String policy, or a spec's own, such as Personal Todo's Description policy | PF normalization functions, called inside G before guard evaluation |
+| A policy family — String policy, or a spec's own, such as Task's Description policy | PF normalization functions, called inside G before guard evaluation |
 | Identity model | id_t injection rule: generate once per creation event, inject into T |
 
 **Atom budget 1: An atom carries at most one of failure or concurrency.** An atom carries its records' create, read, update and delete, time, and who acts, and at most one of two harder things: failure, the outside world breaking part way through an action, or concurrency, two actors on one thing at once. An atom carries one where its own rules answer, record or recover it beyond what every action gets from this contract (Read 1, Step 3 failure, Database 2); a need or a contract need it states names what another pattern or an outside system carries, and adds nothing to the atom's own. An atom that carries both is a split candidate: a round's triage flags it, and it is never split without a design review before the split (Scott, 2026-11-23 4:54 PM Central).
 
-**Invariant classes matter for code generation.** Single-state invariants (Invariant 7 timestamp ordering in Personal Todo, Invariant 2 event immutability in Event Log) compile to post-write assertions — pure functions the compiler emits immediately after `database.write` to check the new state satisfies the invariant before returning. Sequence-safety invariants (Invariant 1 membership exclusivity in Personal Todo, Invariant 7 reassign atomicity in Assignment) cannot be checked in isolation after a single write; the compiler must prove that no execution of T starting from a valid state can produce an invalid state, and the runtime must serialize transitions to prevent concurrent races from bypassing this guarantee.
+**Invariant classes matter for code generation.** Single-state invariants (Invariant 7 timestamp ordering in Task, Invariant 2 event immutability in Event Log) compile to post-write assertions — pure functions the compiler emits immediately after `database.write` to check the new state satisfies the invariant before returning. Sequence-safety invariants (Invariant 1 membership exclusivity in Task, Invariant 7 reassign atomicity in Assignment) cannot be checked in isolation after a single write; the compiler must prove that no execution of T starting from a valid state can produce an invalid state, and the runtime must serialize transitions to prevent concurrent races from bypassing this guarantee.
 
 ---
 
@@ -256,7 +256,7 @@ Three wiring patterns cover the full space of Grace Commons compositions:
 
 **Sequential.** The output projection of atom A is used as input to atom B, which runs after A completes. `DuplicatePrevention.check → ProvisionalCommitment.place_hold` in Idempotent Reservation is sequential: the check must pass before the hold is attempted. Sequential composition does not introduce shared state; the intermediate result is a local value passed as an argument.
 
-**Conditional.** A pure function over current constituent state selects which atom to call, or whether to call the next atom at all. `Permissions.permitted(actor, task, write)` in Shared Todo is a conditional gate: if G returns `typed_failure`, the composition aborts without touching Personal Todo. The branch selection is a pure function — no runtime ambiguity, no stored routing decision.
+**Conditional.** A pure function over current constituent state selects which atom to call, or whether to call the next atom at all. `Permissions.permitted(actor, task, write)` in Shared Todo is a conditional gate: if G returns `typed_failure`, the composition aborts without touching Task. The branch selection is a pure function — no runtime ambiguity, no stored routing decision.
 
 **Parallel.** Two or more atoms are called independently, with no output of one serving as input to the other. The composition's action surface may derive a joint projection from both results — a read query that joins constituent Q surfaces — but neither atom's transition depends on the other's. No shared state mediates the parallel calls. Parallel wiring is governed by the fan-out boundary rule below and worked in the [Notification Fanout](./compositions/notification-fanout.md) composition (Subscription × Notification); whichever wiring pattern a composition uses, the rule is the same: independence means no shared persistent state, only a joint projection.
 
@@ -543,7 +543,7 @@ Testing in Grace Commons is not a separate layer. It is a second view over the s
 
 **Transition test.** Runs the full four-step pipeline against a real database seeded to a known state. Inputs: seed data in the database (derived from the atom's Examples section) + event + params. Execution: full pipeline (Read → Guard → Transition+Write → Project). Assertions: (a) R returns the expected output; (b) Q returns results consistent with the new state; (c) single-state invariants hold over `state_{t+1}`. One transition test per named transition in the atom's State section, covering both the happy path and each guard-failure path.
 
-**Sequence test.** Runs multiple pipeline steps in sequence from a known starting state. Inputs: starting state in the database + ordered event sequence. Execution: N pipeline runs, one per event. Assertions: (a) intermediate states match expected; (b) final state matches expected; (c) sequence-safety invariants hold over the full history. Compiles from the atom's Examples (walkthrough scenarios) and from the sequence-safety invariant class. The rejection-path example in Personal Todo (eleven events, four rejection reasons, one sequence) is a sequence test.
+**Sequence test.** Runs multiple pipeline steps in sequence from a known starting state. Inputs: starting state in the database + ordered event sequence. Execution: N pipeline runs, one per event. Assertions: (a) intermediate states match expected; (b) final state matches expected; (c) sequence-safety invariants hold over the full history. Compiles from the atom's Examples (walkthrough scenarios) and from the sequence-safety invariant class. The rejection-path example in Task (eleven events, four rejection reasons, one sequence) is a sequence test.
 
 **Composition test.** Runs a composition action — which sequences constituent SM transitions through the wiring layer — against every constituent's records seeded to a known joint state. Assertions: (a) every constituent's records are in the expected state after the action; (b) application-level invariants hold over the joint record set. Compiles from the composition's action wiring and application-level invariants. One composition test per named composition action, plus tests for cascade behaviors (cascade-on-delete in Shared Todo, storage-failure cascade-abort).
 
@@ -555,7 +555,7 @@ Testing in Grace Commons is not a separate layer. It is a second view over the s
 
 Tests that need a database do not use mocks. They use a real in-memory database (or a test transaction rolled back after each test) seeded with concrete data derived from the atom's Examples section. The distinction matters: mocks replace a dependency with a fake implementation and introduce divergence between what the test exercises and what production executes. Seeding populates the real implementation — the same database, the same SQL, the same schema — with known state before the test runs. If a transition test passes against a seeded in-memory database, it will pass against a production database given identical initial state. This is the determinism guarantee; mocking destroys it.
 
-The seed data is not authored separately. It is derived from the atom's Examples section — the concrete values the spec already provides. Personal Todo's rejection-path example seeds: one unit in Pending with description "buy milk." The test sequence follows the example exactly. If the spec changes the example, the seed data changes with it; there is no diverging test fixture to maintain.
+The seed data is not authored separately. It is derived from the atom's Examples section — the concrete values the spec already provides. Task's rejection-path example seeds: one unit in Pending with description "buy milk." The test sequence follows the example exactly. If the spec changes the example, the seed data changes with it; there is no diverging test fixture to maintain.
 
 ---
 

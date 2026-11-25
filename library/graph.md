@@ -48,9 +48,9 @@ pattern count hides.
 | [Invitation](./atoms/invitation.html) | 1 | external-onboarding |
 | [Legal Hold](./atoms/legal-hold.html) | 1 | defensible-retention |
 | [Message Preference](./atoms/message-preference.html) | 1 | preference-aware-notification-fanout |
-| [Personal Todo](./atoms/personal-todo.html) | 1 | shared-todo |
 | [Provenance](./atoms/provenance.html) | 1 | chain-of-custody |
 | [Tamper Evidence](./atoms/tamper-evidence.html) | 1 | audit-trail |
+| [Task](./atoms/task.html) | 1 | shared-todo |
 | [Calendar Time](./atoms/calendar-time.html) | 0 | *(none yet)* |
 | [Category](./atoms/category.html) | 0 | *(none yet)* |
 | [Comment](./atoms/comment.html) | 0 | *(none yet)* |
@@ -176,7 +176,6 @@ flowchart LR
     a_owed_record["Owed Record"]
     a_party_identity["Party Identity · 2"]
     a_permissions["Permissions · 9"]
-    a_personal_todo["Personal Todo · 1"]
     a_post["Post"]
     a_provenance["Provenance · 1"]
     a_provisional_commitment["Provisional Commitment · 2"]
@@ -193,6 +192,7 @@ flowchart LR
     a_sweep["Sweep · 9"]
     a_tag["Tag"]
     a_tamper_evidence["Tamper Evidence · 1"]
+    a_task["Task · 1"]
     a_tenure["Tenure"]
     a_waitlist["Waitlist"]
   end
@@ -310,7 +310,7 @@ flowchart LR
   c_shared_cart --> a_cart
   c_shared_cart --> a_permissions
   c_shared_cart --> a_event_log
-  c_shared_todo --> a_personal_todo
+  c_shared_todo --> a_task
   c_shared_todo --> a_permissions
   c_shared_todo --> a_assignment
   c_verified_repair --> a_durable_intent
@@ -336,7 +336,7 @@ flowchart LR
   classDef atomSec fill:#16394a,stroke:#f7dc6f,color:#fdfbef;
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
   classDef compReg fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
-  class a_actor_identity,a_approval_step,a_assignment,a_calendar_time,a_capability,a_capacity_constraint_enforcement,a_cart,a_category,a_comment,a_communication,a_condition_register,a_consent,a_credential,a_duplicate_prevention,a_durable_intent,a_erasure_tombstone,a_escalation,a_event_log,a_favorite,a_gift_card,a_invitation,a_lease,a_legal_hold,a_list,a_medication_order,a_message_preference,a_moderation,a_money,a_notification,a_observation,a_ordering,a_owed_record,a_party_identity,a_permissions,a_personal_todo,a_post,a_provenance,a_provisional_commitment,a_punch_card,a_reaction,a_recurrence,a_restorable_delete,a_retention_window,a_role,a_selective_disclosure,a_session,a_state_machine,a_subscription,a_sweep,a_tag,a_tamper_evidence,a_tenure,a_waitlist atom;
+  class a_actor_identity,a_approval_step,a_assignment,a_calendar_time,a_capability,a_capacity_constraint_enforcement,a_cart,a_category,a_comment,a_communication,a_condition_register,a_consent,a_credential,a_duplicate_prevention,a_durable_intent,a_erasure_tombstone,a_escalation,a_event_log,a_favorite,a_gift_card,a_invitation,a_lease,a_legal_hold,a_list,a_medication_order,a_message_preference,a_moderation,a_money,a_notification,a_observation,a_ordering,a_owed_record,a_party_identity,a_permissions,a_post,a_provenance,a_provisional_commitment,a_punch_card,a_reaction,a_recurrence,a_restorable_delete,a_retention_window,a_role,a_selective_disclosure,a_session,a_state_machine,a_subscription,a_sweep,a_tag,a_tamper_evidence,a_task,a_tenure,a_waitlist atom;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_credential,a_durable_intent,a_escalation,a_invitation,a_party_identity,a_permissions,a_session,a_sweep atomSec;
   class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_cart,c_shared_todo,c_verified_repair comp;
   class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_idempotent_reservation,c_immutable_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_cart,c_shared_todo,c_verified_repair compReg;

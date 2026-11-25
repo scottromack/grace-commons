@@ -26,7 +26,7 @@ Grace
 
 - **Grammar** — the controlled English the specs are written in. Example: [GRACE-lang](./how/GRACE-lang.md). A formal grammar (GF) *(planned)*.
 - **Sub-atomic** — the three primitives (state machine, pure function, direct effect), the four-step pipeline every action runs, and the database contract's families (Database, Order, Read, Refusal, Query, Input, Undo). Example: [Execution Contract](./library/execution-contract.md).
-- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Personal Todo](./library/atoms/personal-todo.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
+- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Task](./library/atoms/task.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
 - **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./library/bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./library/declarations.md). Example: [Lease](./library/atoms/lease.md) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
 - **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./library/apps/recoverable-invocation/index.md).
 - **Data** *(planned)* — typed tables the checkers read, outside the prose of atoms and glue; Medication Order's clinical tables are planned as the first.
@@ -52,7 +52,7 @@ If you have no prior context, read in this order:
 4. **[`spec-format.md`](./how/spec-format.md)** — the three spec shapes, required sections in order, and the cross-cutting authoring conventions (owned there as of 2026-06-11).
 5. **[`contributing.md`](./community/contributing.md)** — contribution shape, the three perspectives, quality bar, lifecycle, the workflow for adding a new pattern, and the implementation-discovered-findings discipline.
 6. **[`execution-contract.md`](./library/execution-contract.md)** — the deterministic compilation target: three primitives, four-step pipeline, atom-to-runtime mapping, conformance.
-7. **An example atom.** [`library/atoms/personal-todo.md`](./library/atoms/personal-todo.md) (simplest shape); [`library/atoms/actor-identity.md`](./library/atoms/actor-identity.md) (regulated shape).
+7. **An example atom.** [`library/atoms/task.md`](./library/atoms/task.md) (simplest shape); [`library/atoms/actor-identity.md`](./library/atoms/actor-identity.md) (regulated shape).
 8. **An example application.** [`library/compositions/idempotent-reservation.md`](./library/compositions/idempotent-reservation.md) (two-atom); [`library/compositions/audit-trail.md`](./library/compositions/audit-trail.md) (the canonical regulated-audit stack).
 
 When drafting a new pattern, additionally read the most structurally adjacent existing pattern — mirror its shape.

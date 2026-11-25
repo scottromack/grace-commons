@@ -7,7 +7,7 @@
 -- PURPOSE
 -- Verify, by bounded exhaustive search, the STATIC data model of the composition: what one
 -- call of the composition reads from its three constituents' records and what it leaves in
--- them — the gate's answers, the Personal Todo task ids, the Assignment records standing
+-- them — the gate's answers, the Task task ids, the Assignment records standing
 -- active, the constituent calls it makes, the records it writes and the answer a read gives.
 -- The composition stores no record of its own (Composition state 1), so its state is its
 -- constituents' records. Everything that happens across calls (an assignment that outlives
@@ -22,9 +22,9 @@
 --   Invariant 3.1 — a delete that takes a task out leaves no active assignment for it
 --                   (a cross-check with the TLA+ model's Inv_CascadeOnDelete).
 --   Invariant 3.2 — no call leaves active an assignment naming a task id it took out of
---                   the Personal Todo instance, or brings into the active set a task id the
+--                   the Task instance, or brings into the active set a task id the
 --                   instance does not carry (a cross-check with Inv_CascadeOnDelete).
---   Invariant 4.1 — a task's responsible actor is derived from Personal Todo's records
+--   Invariant 4.1 — a task's responsible actor is derived from Task's records
 --                   joined with Assignment's active_for (Term responsible actor; Action
 --                   wiring 20, 21).
 --   Invariant 5.2 — a task's delete changes no grant record.
@@ -50,7 +50,7 @@
 --       gates (fact FinerScopesRefineTheirActions) and checks Invariant 1.1 over each choice.
 --
 -- SCOPE
--- Each call stands alone: its reads (Permissions' answers, the task ids Personal Todo
+-- Each call stands alone: its reads (Permissions' answers, the task ids Task
 -- carries, the assignments Assignment holds active) are whatever its transaction read
 -- (Execution Contract Database 2), and the model does not ask whether an earlier call could
 -- have left them (that is the sequence, the TLA+ model's). So it builds every call a state
@@ -64,8 +64,8 @@
 -- NOT MODELED HERE
 --   - [Visible Tasks] and [Active Assignment]: two reads like [Responsible Actor], gated on
 --     the same scope (Scope vocabulary 2); a read writes nothing.
---   - Descriptions, unit states and instants: Personal Todo's and Assignment's own fields
---     (personal-todo.als, assignment.als); the composition passes them through.
+--   - Descriptions, unit states and instants: Task's and Assignment's own fields
+--     (task.als, assignment.als); the composition passes them through.
 --   - Which refusal a refused call answers (Action wiring 18, the Closure table): the model
 --     needs only that a refused or failed call writes nothing (Execution Contract Database 1).
 --   - Grants' contents and how a deployment administers them (Composition note 4, Non-goal
@@ -86,7 +86,7 @@ module shared_todo
 -- assignee reference an assignment binds (Term assignee reference). Never interpreted.
 sig Ref {}
 
--- TaskId: the Personal Todo id a call names a task by (Term task id).
+-- TaskId: the Task id a call names a task by (Term task id).
 sig TaskId {}
 
 -- Scope: an action scope Permissions checks. The composition's vocabulary (Term action
@@ -133,13 +133,13 @@ one sig NotKnown, Unassigned, PermissionDenied extends Answer {}
 --   checked     the scopes the composition asked Permissions' permitted about (the gate).
 --   reached     the constituents the call called beyond the gate's permitted calls.
 --   wrote       the constituents whose records the call changed (its commit).
---   carried     the task ids the Personal Todo instance carries as the call reads it.
+--   carried     the task ids the Task instance carries as the call reads it.
 --   active      the assignments the Assignment instance holds active as the call reads it.
 --   recalled    the assignments the call had Assignment recall.
 --   transferred the assignment the call had Assignment stand transferred ([Reassign Task]).
 --   recorded    the assignments Assignment recorded active for the call.
---   removed     the task id the call had Personal Todo delete.
---   added       the task id Personal Todo's add answered the call.
+--   removed     the task id the call had Task delete.
+--   added       the task id Task's add answered the call.
 --   task, named, assigneeIn  the call's inputs: a task id, an assignment id, an assignee
 --               reference (or new assignee reference).
 --   answer      what a read answered.
@@ -231,7 +231,7 @@ pred admitted[c : Call] {
     c.checked in c.granted
 }
 
--- quiet: the call changes nothing in Assignment's or Personal Todo's records.
+-- quiet: the call changes nothing in Assignment's or Task's records.
 pred quiet[c : Call] {
     no c.recalled
     no c.transferred
@@ -269,8 +269,8 @@ pred refused[c : Call] {
     c not in RespCall implies no c.answer
 }
 
--- addWired: an admitted add calls Personal Todo's add with the description (Action wiring
--- 5); Personal Todo answers a fresh id (its Identity 2), or refuses and writes nothing.
+-- addWired: an admitted add calls Task's add with the description (Action wiring
+-- 5); Task answers a fresh id (its Identity 2), or refuses and writes nothing.
 pred addWired[c : AddCall] {
     c.reached = PersonalTodo
     no c.recalled + c.transferred + c.recorded + c.removed
@@ -279,8 +279,8 @@ pred addWired[c : AddCall] {
     no c.answer
 }
 
--- editWired: an admitted edit calls Personal Todo's edit with the task id and the new
--- description (Action wiring 6); Personal Todo writes the unit or refuses.
+-- editWired: an admitted edit calls Task's edit with the task id and the new
+-- description (Action wiring 6); Task writes the unit or refuses.
 pred editWired[c : EditCall] {
     c.reached = PersonalTodo
     quiet[c]
@@ -288,7 +288,7 @@ pred editWired[c : EditCall] {
     no c.answer
 }
 
--- completeWired: an admitted complete calls Personal Todo's complete with the task id
+-- completeWired: an admitted complete calls Task's complete with the task id
 -- (Action wiring 7) and recalls nothing (Action wiring 8).
 pred completeWired[c : CompleteCall] {
     c.reached = PersonalTodo
@@ -298,8 +298,8 @@ pred completeWired[c : CompleteCall] {
 }
 
 -- deleteWired: an admitted delete calls active_for with the task id and recalls the
--- assignment it answers, if any, then calls Personal Todo's delete (Action wiring 9, 10,
--- 10a). Personal Todo answers not-known for a task id it does not carry, and then nothing
+-- assignment it answers, if any, then calls Task's delete (Action wiring 9, 10,
+-- 10a). Task answers not-known for a task id it does not carry, and then nothing
 -- the delete wrote commits (Action wiring 18; Execution Contract Database 1).
 pred deleteWired[c : DeleteCall] {
     some c.task
@@ -317,7 +317,7 @@ pred deleteWired[c : DeleteCall] {
     no c.answer
 }
 
--- assignWired: an admitted assign reads Personal Todo for the task id and answers not-known
+-- assignWired: an admitted assign reads Task for the task id and answers not-known
 -- if it is not carried; only then calls Assignment's assign with the task id and assignee
 -- reference (Action wiring 13, 14, 26). Assignment refuses a blank assignee reference
 -- (invalid-request) and a task id it holds active (already-assigned), writing nothing.
@@ -381,7 +381,7 @@ pred recallWired[c : RecallCall] {
     }
 }
 
--- respWired: an admitted [Responsible Actor] reads Personal Todo for the task id and answers
+-- respWired: an admitted [Responsible Actor] reads Task for the task id and answers
 -- not-known if it is not carried (Action wiring 20, 26); otherwise calls active_for and
 -- answers the assignee reference of the assignment it answers, or unassigned for none
 -- (Composition state 2, Action wiring 21). A read writes nothing.
@@ -437,21 +437,21 @@ assert A_Invariant_1_1 {
 check A_Invariant_1_1 for 3 but 3 Call, 9 Scope
 
 -- A_Invariant_1_2: a call any of whose scopes Permissions answered denied reaches no
--- constituent beyond the gate: no Personal Todo read or write, no Assignment call, no other
+-- constituent beyond the gate: no Task read or write, no Assignment call, no other
 -- Permissions call.
 assert A_Invariant_1_2 {
     composed implies all c : Call | some c.checked - c.granted implies no c.reached
 }
 check A_Invariant_1_2 for 3 but 3 Call, 9 Scope
 
--- A_Invariant_3_1: a delete that takes a task out of the Personal Todo instance leaves no
+-- A_Invariant_3_1: a delete that takes a task out of the Task instance leaves no
 -- assignment active for it: the one active_for answered is recalled in the same commit.
 assert A_Invariant_3_1 {
     composed implies all c : DeleteCall | some c.removed implies no activeAfter[c] & task.(c.removed)
 }
 check A_Invariant_3_1 for 3 but 3 Call, 9 Scope
 
--- A_Invariant_3_2: no call leaves an active assignment naming a task id the Personal Todo
+-- A_Invariant_3_2: no call leaves an active assignment naming a task id the Task
 -- instance does not carry: none it leaves active names a task id it took out, and every
 -- assignment recorded for it names a task id the instance carried as the call read it, or
 -- one an assignment it read active already named (a reassign's successor). Whether that
@@ -465,7 +465,7 @@ assert A_Invariant_3_2 {
 }
 check A_Invariant_3_2 for 3 but 3 Call, 9 Scope
 
--- A_Invariant_4_1: [Responsible Actor], admitted, answers by joining Personal Todo's records
+-- A_Invariant_4_1: [Responsible Actor], admitted, answers by joining Task's records
 -- with Assignment's active_for (Term responsible actor): not-known for a task id the Personal
 -- Todo instance does not carry, unassigned for one it carries with no active assignment, and
 -- otherwise the assignee reference of the task's active assignment — never the assignee of a
@@ -529,7 +529,7 @@ run ShowSelfAssign {
     composed and some c : AssignCall | some c.recorded and c.recorded.assignee = c.actor
 } for 3 but 3 Call, 9 Scope
 
--- ShowAssignUnknown: an assign naming a task id the Personal Todo instance does not carry
+-- ShowAssignUnknown: an assign naming a task id the Task instance does not carry
 -- answers not-known and records nothing (Action wiring 13).
 run ShowAssignUnknown {
     composed and some c : AssignCall | admitted[c] and c.task not in c.carried and no c.recorded
@@ -565,7 +565,7 @@ run ShowUnassigned {
     composed and some c : RespCall | c.answer = Unassigned
 } for 3 but 3 Call, 9 Scope
 
--- ShowNotKnown: [Responsible Actor] answers not-known for a task id the Personal Todo
+-- ShowNotKnown: [Responsible Actor] answers not-known for a task id the Task
 -- instance does not carry, a deleted task's included (Action wiring 20).
 run ShowNotKnown {
     composed and some c : RespCall | c.answer = NotKnown

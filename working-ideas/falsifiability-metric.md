@@ -15,7 +15,7 @@ The thesis **fails** if the opposite holds: every new composition keeps minting 
 A composition's "Composition-level invariants" section is **not** a list of emergent invariants. It mixes three species, and only one counts:
 
 - **Emergent** — a must-be-true no single constituent owns, introducing state or a constraint that exists only at the seam. *(Counts.)* Example: Undo History's *identity preservation across delete/undo*; Attributed Permissions Admin's *attestation exclusivity* (Inv 7).
-- **Preservation** — "constituent X's invariants hold over the derived state." *(Does not count — it asserts the constituent still works, not that anything new is true.)* Example: Undo History Inv 4 ("Personal Todo's invariants are preserved"), Inv 5 ("Event Log's invariants are preserved"); APA Inv 5 ("Constituent invariants preserved").
+- **Preservation** — "constituent X's invariants hold over the derived state." *(Does not count — it asserts the constituent still works, not that anything new is true.)* Example: Undo History Inv 4 ("Task's invariants are preserved"), Inv 5 ("Event Log's invariants are preserved"); APA Inv 5 ("Constituent invariants preserved").
 - **Structural / typing** — entailed by the wiring's declared shape (range validity, etc.). *(Does not count — by-construction, no new obligation.)*
 
 So the raw section counts (Undo History 7, APA 8) are **not** the metric. Filtered to genuinely emergent: Undo History ≈ 5 (drop Inv 4, 5), APA ≈ 7 (drop Inv 5). Using the raw number would both over-count and be gameable — split a preservation invariant to inflate, or hide an emergent one in prose to deflate.
@@ -90,7 +90,7 @@ Ran the filter by hand on both richest specs. Headline: **the raw section counts
 | 1 | Log faithfulness | **emergent** | the action↔append contract; neither atom owns it |
 | 2 | State equivalence | **emergent** | visible state = replay; the event-sourcing seam |
 | 3 | Undo targets most-recent forward event | **emergent** | undo semantics; the modeled property |
-| 4 | Personal Todo's invariants preserved | *preservation* | constituent still holds |
+| 4 | Task's invariants preserved | *preservation* | constituent still holds |
 | 5 | Event Log's invariants preserved | *preservation* | constituent still holds |
 | 6 | Identity preservation across delete/undo | **emergent** | the showcase emergent property |
 | 7 | Reachability of prior states | **emergent** | undo-reachability; neither atom owns it |

@@ -16,7 +16,7 @@ A shared plan board and triage desk for the Grace Commons operation — the drai
 
 | Pattern | Role in the desk |
 |---|---|
-| Shared Todo (Personal Todo + Permissions + Assignment) | Record-space substrate: permission-gated shared tasks, at-most-one-responsible, cascade-on-delete. Its spec's first named use case is this app's shape. |
+| Shared Todo (Task + Permissions + Assignment) | Record-space substrate: permission-gated shared tasks, at-most-one-responsible, cascade-on-delete. Its spec's first named use case is this app's shape. |
 | Audit Trail (substrate → Event Log + Actor Identity + Tamper Evidence + Retention Window) | Attribution and sealing for record-space — load-bearing once actors include agents. |
 | Undo History | Replay-skip undo per timeline; the event-sourced state derivation the desk runs on. |
 | Event Log (additional instances) | One instance per draft branch — the decomposition the Branching Undo adversarial pass already proved ("per-branch log instances plus a lineage index"). |

@@ -35,9 +35,9 @@ Grace Commons distinguishes **atoms** from **compositions**.
 
 The test: does the contribution's specification name another atom? If no, it's an atom — store it flat as `atoms/<name>.md`. If yes, it's a composition — file it under `compositions/`.
 
-Atoms are freestanding: state, actions, and operational principles independent of every other atom. Personal Todo, Duplicate Prevention, Event Log.
+Atoms are freestanding: state, actions, and operational principles independent of every other atom. Task, Duplicate Prevention, Event Log.
 
-Compositions wire two or more atoms together with composition logic. Audit Trail (Event Log + retention + tamper-evidence + actor identity), Shared Todo (Personal Todo + Permissions + Assignment), Idempotent Reservation (Provisional Commitment + Duplicate Prevention).
+Compositions wire two or more atoms together with composition logic. Audit Trail (Event Log + retention + tamper-evidence + actor identity), Shared Todo (Task + Permissions + Assignment), Idempotent Reservation (Provisional Commitment + Duplicate Prevention).
 
 If you are not sure which side your contribution falls on, open an issue. The overhead of a conversation is lower than the overhead of placing it in the wrong folder.
 
@@ -65,7 +65,7 @@ Atoms operating in regulated domains carry two further sections beyond the base 
 
 Both conventions also apply to compositions that compose regulated atoms. [Idempotent Reservation](../library/compositions/idempotent-reservation.md) is the worked composition example carrying both.
 
-For non-regulated primitives, the *adversarial scenarios* are optional and often over-specification — Personal Todo's would be contrived. Use judgment; the test is whether an external evaluator with no developer access would have a meaningfully different verification surface from the atom's existing structure. *Generation acceptance* is not in that trade: it is required of every migrated spec, because a composition resting checks on a constituent has to be able to discover the constituent's posture without inferring it from an absence.
+For non-regulated primitives, the *adversarial scenarios* are optional and often over-specification — Task's would be contrived. Use judgment; the test is whether an external evaluator with no developer access would have a meaningfully different verification surface from the atom's existing structure. *Generation acceptance* is not in that trade: it is required of every migrated spec, because a composition resting checks on a constituent has to be able to discover the constituent's posture without inferring it from an absence.
 
 ---
 
@@ -130,7 +130,7 @@ Every Grace Commons pattern — atom or composition — is reviewed through thre
 - **Pass 2 — Conceptual independence (EOS — *The Essence of Software*, Daniel Jackson's framework of freestanding, composable concepts).** Does the spec absorb any responsibility that belongs in a separate freestanding atom?
 - **Pass 3 — Adversarial scrutiny (Linus mode — named for Linus Torvalds's blunt, unsparing code reviews).** Are there muddled identities, sloppy invariants, happy-path-only examples, or hidden load-bearing decisions?
 
-Each pass catches a different class of gap; none substitutes for the others. One clean sweep of the three is not grounding. The full bar is a **3×3 baseline** — three rounds of the three passes, nine passes — followed by a **Final Critique**, an AI-conducted adversarial round run at Opus *Happy Torvalds X2* depth and repeated until foundational findings reach zero; every pattern also carries both formal models. See [`pressure-testing.md`](../how/pressure-testing.md) for the full methodology and [`atoms/personal-todo.md`](../library/atoms/personal-todo.md) for a worked example.
+Each pass catches a different class of gap; none substitutes for the others. One clean sweep of the three is not grounding. The full bar is a **3×3 baseline** — three rounds of the three passes, nine passes — followed by a **Final Critique**, an AI-conducted adversarial round run at Opus *Happy Torvalds X2* depth and repeated until foundational findings reach zero; every pattern also carries both formal models. See [`pressure-testing.md`](../how/pressure-testing.md) for the full methodology and [`atoms/task.md`](../library/atoms/task.md) for a worked example.
 
 A pattern that has only survived part of that arc is *in process* — and that is a respectable state, provided the actual state is declared honestly per the status taxonomy (`unresolved`, `partially resolved`, `grounded (English) — formal layer pending`, `grounded`).
 

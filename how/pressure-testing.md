@@ -66,7 +66,7 @@ And the ones the frozen rules of 2026-08-30 add:
 
 **Time:** 15–30 minutes for an atom; longer for a composition with multiple constituents.
 
-**Personal Todo example.** First pass surfaced five gaps: actor (Behavior was incomplete — *who* acts?), description mutability (State + Decision were silent on edit), temporal metadata (State omitted timestamps), observability (Feedback didn't say what's queryable), identity policy (Decision punted on duplicate handling). Four were closed in-pattern; the fifth was extracted to Duplicate Prevention by Pass 2.
+**Task example.** First pass surfaced five gaps: actor (Behavior was incomplete — *who* acts?), description mutability (State + Decision were silent on edit), temporal metadata (State omitted timestamps), observability (Feedback didn't say what's queryable), identity policy (Decision punted on duplicate handling). Four were closed in-pattern; the fifth was extracted to Duplicate Prevention by Pass 2.
 
 ---
 
@@ -119,7 +119,7 @@ A sibling boundary error EOS also owns is **capability mis-attribution**: an inv
 
 **Time:** 10–20 minutes once familiar with the existing atom catalog. Faster as the catalog grows — a quick scan against existing atoms surfaces most over-absorptions.
 
-**Personal Todo example.** First-pass identity policy was absorbed in-pattern as a 24-hour deletion record. Pass 2 caught it: the same responsibility appears in comment double-post, payment idempotency, newsletter double-subscribe, form submission. It is not a property of Personal Todo — it is its own concept. Extracted as Duplicate Prevention. Personal Todo got cleaner; three other concepts now have a place to compose from.
+**Task example.** First-pass identity policy was absorbed in-pattern as a 24-hour deletion record. Pass 2 caught it: the same responsibility appears in comment double-post, payment idempotency, newsletter double-subscribe, form submission. It is not a property of Task — it is its own concept. Extracted as Duplicate Prevention. Task got cleaner; three other concepts now have a place to compose from.
 
 ---
 
@@ -162,7 +162,7 @@ A sibling boundary error EOS also owns is **capability mis-attribution**: an inv
 
 **Time:** 30–60 minutes for a thorough pass. The most labor-intensive of the three.
 
-**Personal Todo example.** Surfaced five gaps in the simplified post-Pass-1-and-2 spec: identity model muddled, `add` return value unspecified, description rules unspecified, timestamp monotonicity (the requirement that timestamps always move forward, never backward) malformed (chain inequality with optional terms), examples were happy-path only. All five fixed in a third revision; three additional responsibilities (concurrency, atomicity, clock semantics) named as explicit out-of-scope rather than fixed in-pattern.
+**Task example.** Surfaced five gaps in the simplified post-Pass-1-and-2 spec: identity model muddled, `add` return value unspecified, description rules unspecified, timestamp monotonicity (the requirement that timestamps always move forward, never backward) malformed (chain inequality with optional terms), examples were happy-path only. All five fixed in a third revision; three additional responsibilities (concurrency, atomicity, clock semantics) named as explicit out-of-scope rather than fixed in-pattern.
 
 ---
 
@@ -743,7 +743,7 @@ Two structural conventions emerged as Pass 3 findings on the first regulated ato
 
 Both conventions are **required** for patterns carrying the regulated overlay, patterns elsewhere whose examples invoke regulated domains (banking, healthcare, payments, hospitality with personal data, airline reservations), and compositions that compose any of the above.
 
-*Regulated adversarial scenarios* are **optional** for non-regulated primitives — Personal Todo's would be contrived. Use judgment; the test is whether an external evaluator with no developer access would have a meaningfully different verification surface from the atom's existing structure.
+*Regulated adversarial scenarios* are **optional** for non-regulated primitives — Task's would be contrived. Use judgment; the test is whether an external evaluator with no developer access would have a meaningfully different verification surface from the atom's existing structure.
 
 ***Generation acceptance* is no longer optional for anything, and the amendment has a cause (2026-09-14).** The old rule made it optional for non-regulated primitives on the argument that their bar *reduces to the invariants hold and rejections surface* — which is true and is not a reason to leave the pattern silent, because **optional and absent read alike from one layer up**. A census on 2026-09-14 found three atoms carrying no acceptance surface at all, all three from the earliest migration wave, composed between them by eleven of the corpus's compositions; Undo History rested thirteen `Check` rules on two constituents that audited none of their own rules, and nothing reported it, because a considered decline and an unconsidered silence are the same absence.
 
@@ -804,7 +804,7 @@ Five fields per open line — id, class, where, defect, fix — with `→` betwe
 
 The methodology applied to a pattern produces a Ledger, a Decisions list and a commit history. That record can itself be pressure-tested by re-running the three passes — does the recorded reasoning hold up under structural, conceptual-independence, and adversarial scrutiny?
 
-The methodology document itself is subject to its own three passes. This file has been written through the same arc that produced Personal Todo: name the structure, check for over-absorption, attack the remaining vagueness. If you find this document hand-waving anywhere, that is a Pass-3 finding against the methodology, and it should be fixed here the same way it would be fixed in any other spec.
+The methodology document itself is subject to its own three passes. This file has been written through the same arc that produced Task: name the structure, check for over-absorption, attack the remaining vagueness. If you find this document hand-waving anywhere, that is a Pass-3 finding against the methodology, and it should be fixed here the same way it would be fixed in any other spec.
 
 *Dated record, kept as written: the self-finding below was made while the formal-layer vote was in force, and the vote ended on 2026-11-09 (every pattern now carries both models; no vote). Where the record says vote-yes, vote-no, the vote or the model-present bar, read the rule above; the argument against the split rests on the seams it names, not on the vote.*
 

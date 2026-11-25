@@ -1451,28 +1451,6 @@
   "status": "done \u2014 2026-11-20",
   "title": "Permissions"
  },
- "personal-todo": {
-  "audience": "common",
-  "composed_by": [
-   "shared-todo"
-  ],
-  "domain": null,
-  "done": false,
-  "invariants": 9,
-  "kind": "atom",
-  "models": {
-   "als": true,
-   "tla": true,
-   "twins": 29
-  },
-  "regulated_by": [
-   "shared-todo"
-  ],
-  "security": false,
-  "standards": [],
-  "status": "doing",
-  "title": "Personal Todo"
- },
  "post": {
   "audience": "common",
   "composed_by": [],
@@ -1985,7 +1963,7 @@
  "shared-todo": {
   "audience": "common",
   "composes": [
-   "personal-todo",
+   "task",
    "permissions",
    "assignment"
   ],
@@ -2169,6 +2147,28 @@
   ],
   "status": "done \u2014 2026-11-21",
   "title": "Tamper Evidence"
+ },
+ "task": {
+  "audience": "common",
+  "composed_by": [
+   "shared-todo"
+  ],
+  "domain": null,
+  "done": false,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": true,
+   "twins": 29
+  },
+  "regulated_by": [
+   "shared-todo"
+  ],
+  "security": false,
+  "standards": [],
+  "status": "doing",
+  "title": "Task"
  },
  "tenure": {
   "audience": "common",
