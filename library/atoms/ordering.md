@@ -54,16 +54,6 @@ Kind: Type
 Identity 2: The atom MUST identify an entry by the entry's list id and item id.
 ```
 
-Term list id: the value naming the list a sequence orders, minted by another atom and compared by byte identity — a [List Id]; the atom reads nothing in it.
-
-#### List Id
-
-Stored as supplied and compared by byte identity.
-
-Kind:       Field
-Field of:   Sequence
-Projection: list_id
-
 Term item id: the value naming an item an entry orders, minted by another atom and compared by byte identity — an [Item Id]; the atom reads nothing in it.
 
 #### Item Id
@@ -293,7 +283,7 @@ The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which ato
 
 Term need key: key opaque; pairs entries.
 
-Term need key: key opaque; pairs sequences.
+Term need key: key list id; pairs sequences.
 
 ## Left to others
 
@@ -361,7 +351,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-24) from GLM's Ordering draft.
 
-Term terms: sequence, entry, list id, item id, place, first place, last place, bottom, items, ok.
+Term terms: sequence, entry, item id, place, first place, last place, bottom, items, ok.
+
+Term cited: list id: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->
@@ -372,7 +364,6 @@ Term terms: sequence, entry, list id, item id, place, first place, last place, b
 [Read Order]: #read-order
 [Sequence]: #sequence
 [Entry]: #entry
-[List Id]: #list-id
 [Item Id]: #item-id
 [Place]: #place
 [Invalid Id]: #invalid-id
