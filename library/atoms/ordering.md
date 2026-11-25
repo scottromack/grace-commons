@@ -297,10 +297,10 @@ Non-goal 4: The atom MUST NOT give an order a meaning.
 Non-goal 5: The atom MUST NOT keep one list's order per person.
 ```
 
-NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atom that holds the items (Non-goal 2); the app's pattern, which removes an entry as it deletes an item, a glue line (Non-goal 3); the author of the list (Non-goal 4, Non-goal 5).
+NOTE: the owners — the app's permission, gated before the call (Non-goal 1); the atom that holds the items (Non-goal 2); the app's pattern, which removes every entry an item holds as it deletes the item, a glue line (Non-goal 3); the author of the list (Non-goal 4, Non-goal 5).
 
 ```
-Composition note 1: A composing pattern MUST remove an item's entry when the composing pattern deletes the item.
+Composition note 1: A composing pattern MUST remove every entry an item holds when the composing pattern deletes the item.
 Composition note 2: A composing pattern MUST decide who may move an item, since [Move Item] checks no caller (Non-goal 1).
 ```
 
@@ -375,7 +375,7 @@ Term cited: list id: Declarations.
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-25` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -383,9 +383,9 @@ Term cited: list id: Declarations.
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-25
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 3, delta, frozen at 6092edd6 — foundational count 1, not clean, one sample
+last gate: 2026-11-25 — Final Critique 4, delta (the reach of Final Critique 3's settle, Operation 13 and the case-space row that cites it), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 2f4dd26f — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 0 foundational, 0 refining and 0 rhetorical and pressed three questions, each of which held under both triages: an entry carrying another list id stays owned by the list whose id it carries (Identity 2), and Operation 13 with its case-space row leaves it as it stands; two actions on two lists sharing one item touch two records, so neither overwrites the other; a read that finds no entry implicates none, so Operation 13 obliges no list id then; the blind second triage (an Opus subagent) found no foundational edge of its own and placed one refining, Kind C, cured: Composition note 1 said a composing pattern removes "an item's entry" when it deletes the item, which read as one entry where Identity 2 and Operation 13 let an item hold one in each list, so it now says every entry the item holds, and the Left to others note that restates it says the same; four points were placed rhetorical, Kind D, and left as written)
 
 open: none
 ```
