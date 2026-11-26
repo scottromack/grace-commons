@@ -172,8 +172,13 @@ def bond_layers(data: dict) -> dict:
 
     for p in atoms:
         depth(p)
+    # an atom drawn: one with an arrow left, out or in; an atom that needs nothing and that nothing needs (the
+    # hub tags aside) stands alone and is not drawn (Scott 2026-11-26 11:28 AM Central: "Dont list 'stand alones'")
+    needed = {q for p in atoms for q, _ in arrows[p]}
+    drawn = [p for p in atoms if arrows[p] or p in needed]
     return {"hubs": sorted({(o, hub_word[(o, ln)]) for o, ln in hubs}, key=str), "tags": tags,
-            "opaque": sorted(set(opaque)), "arrows": arrows, "layer": layer}
+            "opaque": sorted(set(opaque)), "arrows": arrows, "layer": layer, "drawn": drawn,
+            "alone": [p for p in atoms if p not in drawn]}
 
 
 def bond_graph(root: Path, data: dict | None = None) -> list[str]:
@@ -182,25 +187,27 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
     d = data or corpus(root)
     titles = d["titles"]
     v = bond_layers(d)
-    layer, arrows, tags = v["layer"], v["arrows"], v["tags"]
+    layer, arrows, tags = {p: v["layer"][p] for p in v["drawn"]}, v["arrows"], v["tags"]
+    drawn = v["drawn"]
     stem = {p: re.sub(r"\W", "_", p.stem) for p in d["atoms"]}
     init = '%%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%'
     hub_names = " and ".join(f"{titles[o]}'s {w}" for o, w in v["hubs"])
     L = ["## The bond graph", "",
-         "Every atom, grouped by layer: an arrow runs from an atom to each atom whose offer one of its needs meets "
-         "([Bonds](./bonds.md)), and an atom's layer is how deep its arrows go (an atom that needs nothing is "
-         "layer 0). Drawn from the atoms' need and offer lines by tools/grace/catalog.py; the "
-         "[Catalog](./catalog.md) lists the same lines atom by atom. Compositions keep the composition graph "
-         "below until they dissolve.", ""]
+         "The atoms that bond, grouped by layer: an arrow runs from an atom to each atom whose offer one of its "
+         "needs meets ([Bonds](./bonds.md)), and an atom's layer is how deep its arrows go (layer 0 is the "
+         "foundations, atoms other atoms need and that need none). An atom that needs nothing and that nothing "
+         "needs is not drawn; the [Catalog](./catalog.md) lists every atom with its need and offer lines. Drawn "
+         "from those lines by tools/grace/catalog.py. Compositions keep the composition graph below until they "
+         "dissolve.", ""]
     top = sorted(set(layer.values()), reverse=True)
     L += ["```mermaid", init, "flowchart TB"]
     for k in top:
         n = sum(1 for p in layer if layer[p] == k)
-        names = ", ".join(titles[p] for p in d["atoms"] if layer[p] == k) if n <= 6 else ""
+        names = ", ".join(titles[p] for p in drawn if layer[p] == k) if n <= 6 else ""
         label = f"Layer {k}: {n} atom{'s' if n != 1 else ''}" + (f"<br/>{names}" if names else "")
         L.append(f'  layer{k}["{label}"]')
     between: dict = {}
-    for p in d["atoms"]:
+    for p in drawn:
         for q, _ in arrows[p]:
             between[(layer[p], layer[q])] = between.get((layer[p], layer[q]), 0) + 1
     for (a, b), n in sorted(between.items(), reverse=True):
@@ -216,14 +223,16 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
             t = titles[p] + (f"<br/><small>{' · '.join(tags[p])}</small>" if tags[p] else "")
             return f'  {nid[p]}["{t}"]'
 
-        own = [p for p in d["atoms"] if layer[p] == k]
-        L += [f"### Layer {k}", "", "```mermaid", init, "flowchart LR"]
+        own = [p for p in drawn if layer[p] == k]
+        L += [f"### Layer {k}", "", "```mermaid", init, "flowchart TB" if k == 0 else "flowchart LR"]
         L += [box(p) for p in own]
         if k == 0:
-            for i in range(0, len(own), 6):
-                row = own[i:i + 6]
-                if len(row) > 1:
-                    L.append("  " + " ~~~ ".join(nid[p] for p in row))
+            # the foundations, each with its arrows up to the atoms that need it (drawn dashed, of a higher layer)
+            above = sorted({p for p in drawn if any(q in own for q, _ in arrows[p])}, key=lambda p: titles[p])
+            L += [box(p) for p in above]
+            L += [f"  class {','.join(nid[p] for p in above)} lower"] if above else []
+            L += [f'  {nid[p]} -->|"{w}"| {nid[q]}' for p in above for q, w in arrows[p] if q in own]
+            L.append("  classDef lower stroke-dasharray: 4 4")
         else:
             below = sorted({q for p in own for q, _ in arrows[p]} - set(own), key=lambda q: titles[q])
             L += [box(q) for q in below]
@@ -232,7 +241,8 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
             L.append("  classDef lower stroke-dasharray: 4 4")
         L += ["```", ""]
         L += [f"Layer {k}: " + ", ".join(f"[{titles[p]}](./atoms/{p.stem}.md)" for p in own) + "."
-              + (" A dashed box is an atom of a lower layer." if k else ""), ""]
+              + (" A dashed box is an atom of a lower layer." if k else
+                 " A dashed box is an atom of a higher layer that needs one of them."), ""]
     if v["hubs"]:
         L += [f"A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no "
               f"node and no arrows: {hub_names}. An app names the atom that meets it.", ""]

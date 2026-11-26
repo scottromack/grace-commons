@@ -17,14 +17,14 @@ weight here is *semantic leverage*: how many compositions rest on a pattern — 
 
 ## The bond graph
 
-Every atom, grouped by layer: an arrow runs from an atom to each atom whose offer one of its needs meets ([Bonds](./bonds.md)), and an atom's layer is how deep its arrows go (an atom that needs nothing is layer 0). Drawn from the atoms' need and offer lines by tools/grace/catalog.py; the [Catalog](./catalog.md) lists the same lines atom by atom. Compositions keep the composition graph below until they dissolve.
+The atoms that bond, grouped by layer: an arrow runs from an atom to each atom whose offer one of its needs meets ([Bonds](./bonds.md)), and an atom's layer is how deep its arrows go (layer 0 is the foundations, atoms other atoms need and that need none). An atom that needs nothing and that nothing needs is not drawn; the [Catalog](./catalog.md) lists every atom with its need and offer lines. Drawn from those lines by tools/grace/catalog.py. Compositions keep the composition graph below until they dissolve.
 
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart TB
   layer2["Layer 2: 3 atoms<br/>Assignment, Escalation, Sweep"]
   layer1["Layer 1: 4 atoms<br/>Durable Intent, Invitation, Ordering, Task"]
-  layer0["Layer 0: 46 atoms"]
+  layer0["Layer 0: 2 atoms<br/>Lease, List"]
   layer2 -->|"3 bonds"| layer1
   layer2 -->|"2 bonds"| layer0
   layer1 -->|"4 bonds"| layer0
@@ -77,64 +77,26 @@ Layer 1: [Durable Intent](./atoms/durable-intent.md), [Invitation](./atoms/invit
 
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
-flowchart LR
-  b0_actor_identity["Actor Identity"]
-  b0_approval_step["Approval Step<br/><small>actor id</small>"]
-  b0_calendar_time["Calendar Time"]
-  b0_capability["Capability<br/><small>actor id</small>"]
-  b0_capacity_constraint_enforcement["Capacity Constraint Enforcement"]
-  b0_cart["Cart"]
-  b0_category["Category"]
-  b0_comment["Comment"]
-  b0_communication["Communication"]
-  b0_condition_register["Condition Register"]
-  b0_consent["Consent<br/><small>actor id</small>"]
-  b0_credential["Credential<br/><small>actor id</small>"]
-  b0_duplicate_prevention["Duplicate Prevention"]
-  b0_erasure_tombstone["Erasure Tombstone"]
-  b0_event_log["Event Log"]
-  b0_favorite["Favorite"]
-  b0_gift_card["Gift Card"]
+flowchart TB
   b0_lease["Lease"]
-  b0_legal_hold["Legal Hold<br/><small>actor id</small>"]
   b0_list["List<br/><small>actor id</small>"]
-  b0_medication_order["Medication Order<br/><small>actor id · journal</small>"]
-  b0_message_preference["Message Preference<br/><small>actor id</small>"]
-  b0_moderation["Moderation"]
-  b0_money["Money"]
-  b0_notification["Notification"]
-  b0_observation["Observation<br/><small>actor id</small>"]
-  b0_owed_record["Owed Record"]
-  b0_party_identity["Party Identity<br/><small>actor id · journal</small>"]
-  b0_permissions["Permissions<br/><small>actor id</small>"]
-  b0_post["Post"]
-  b0_provenance["Provenance<br/><small>actor id</small>"]
-  b0_provisional_commitment["Provisional Commitment<br/><small>actor id · journal</small>"]
-  b0_punch_card["Punch Card"]
-  b0_reaction["Reaction"]
-  b0_recurrence["Recurrence"]
-  b0_restorable_delete["Restorable Delete"]
-  b0_retention_window["Retention Window"]
-  b0_role["Role"]
-  b0_selective_disclosure["Selective Disclosure"]
-  b0_session["Session<br/><small>actor id</small>"]
-  b0_state_machine["State Machine<br/><small>actor id</small>"]
-  b0_subscription["Subscription"]
-  b0_tag["Tag"]
-  b0_tamper_evidence["Tamper Evidence"]
-  b0_tenure["Tenure"]
-  b0_waitlist["Waitlist"]
-  b0_actor_identity ~~~ b0_approval_step ~~~ b0_calendar_time ~~~ b0_capability ~~~ b0_capacity_constraint_enforcement ~~~ b0_cart
-  b0_category ~~~ b0_comment ~~~ b0_communication ~~~ b0_condition_register ~~~ b0_consent ~~~ b0_credential
-  b0_duplicate_prevention ~~~ b0_erasure_tombstone ~~~ b0_event_log ~~~ b0_favorite ~~~ b0_gift_card ~~~ b0_lease
-  b0_legal_hold ~~~ b0_list ~~~ b0_medication_order ~~~ b0_message_preference ~~~ b0_moderation ~~~ b0_money
-  b0_notification ~~~ b0_observation ~~~ b0_owed_record ~~~ b0_party_identity ~~~ b0_permissions ~~~ b0_post
-  b0_provenance ~~~ b0_provisional_commitment ~~~ b0_punch_card ~~~ b0_reaction ~~~ b0_recurrence ~~~ b0_restorable_delete
-  b0_retention_window ~~~ b0_role ~~~ b0_selective_disclosure ~~~ b0_session ~~~ b0_state_machine ~~~ b0_subscription
-  b0_tag ~~~ b0_tamper_evidence ~~~ b0_tenure ~~~ b0_waitlist
+  b0_durable_intent["Durable Intent<br/><small>journal</small>"]
+  b0_escalation["Escalation<br/><small>journal</small>"]
+  b0_invitation["Invitation<br/><small>actor id · journal</small>"]
+  b0_ordering["Ordering"]
+  b0_sweep["Sweep<br/><small>journal</small>"]
+  b0_task["Task<br/><small>actor id · journal</small>"]
+  class b0_durable_intent,b0_escalation,b0_invitation,b0_ordering,b0_sweep,b0_task lower
+  b0_durable_intent -->|"critical section key"| b0_lease
+  b0_escalation -->|"critical section key"| b0_lease
+  b0_invitation -->|"list id"| b0_list
+  b0_ordering -->|"list id"| b0_list
+  b0_sweep -->|"critical section key"| b0_lease
+  b0_task -->|"list id"| b0_list
+  classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 0: [Actor Identity](./atoms/actor-identity.md), [Approval Step](./atoms/approval-step.md), [Calendar Time](./atoms/calendar-time.md), [Capability](./atoms/capability.md), [Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md), [Cart](./atoms/cart.md), [Category](./atoms/category.md), [Comment](./atoms/comment.md), [Communication](./atoms/communication.md), [Condition Register](./atoms/condition-register.md), [Consent](./atoms/consent.md), [Credential](./atoms/credential.md), [Duplicate Prevention](./atoms/duplicate-prevention.md), [Erasure Tombstone](./atoms/erasure-tombstone.md), [Event Log](./atoms/event-log.md), [Favorite](./atoms/favorite.md), [Gift Card](./atoms/gift-card.md), [Lease](./atoms/lease.md), [Legal Hold](./atoms/legal-hold.md), [List](./atoms/list.md), [Medication Order](./atoms/medication-order.md), [Message Preference](./atoms/message-preference.md), [Moderation](./atoms/moderation.md), [Money](./atoms/money.md), [Notification](./atoms/notification.md), [Observation](./atoms/observation.md), [Owed Record](./atoms/owed-record.md), [Party Identity](./atoms/party-identity.md), [Permissions](./atoms/permissions.md), [Post](./atoms/post.md), [Provenance](./atoms/provenance.md), [Provisional Commitment](./atoms/provisional-commitment.md), [Punch Card](./atoms/punch-card.md), [Reaction](./atoms/reaction.md), [Recurrence](./atoms/recurrence.md), [Restorable Delete](./atoms/restorable-delete.md), [Retention Window](./atoms/retention-window.md), [Role](./atoms/role.md), [Selective Disclosure](./atoms/selective-disclosure.md), [Session](./atoms/session.md), [State Machine](./atoms/state-machine.md), [Subscription](./atoms/subscription.md), [Tag](./atoms/tag.md), [Tamper Evidence](./atoms/tamper-evidence.md), [Tenure](./atoms/tenure.md), [Waitlist](./atoms/waitlist.md).
+Layer 0: [Lease](./atoms/lease.md), [List](./atoms/list.md). A dashed box is an atom of a higher layer that needs one of them.
 
 A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no node and no arrows: Actor Identity's actor id and Event Log's journal. An app names the atom that meets it.
 

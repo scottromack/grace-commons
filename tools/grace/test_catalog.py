@@ -59,6 +59,21 @@ class Catalog(unittest.TestCase):
         self.assertFalse(any("-->" in ln and ln.rstrip().endswith(("_actor_identity", "_event_log")) for ln in lines))
         self.assertTrue(any(ln.startswith('  b1_task["Task<br/><small>actor id') for ln in lines))
 
+    def test_bond_graph_leaves_out_stand_alones(self):
+        v = catalog.bond_layers(self.data)
+        lines = catalog.bond_graph(ROOT, self.data)
+        page = "\n".join(lines)
+        alone = {self.data["titles"][p] for p in v["alone"]}
+        # an atom that needs nothing and that nothing needs (hub tags aside) is neither drawn nor listed
+        self.assertIn("Money", alone)
+        self.assertNotIn("(./atoms/money.md)", page)
+        self.assertFalse(any(ln.lstrip().startswith("b0_money") for ln in lines))
+        # layer 0 holds only foundations: atoms some drawn atom's arrow reaches
+        reached = {q for p in v["drawn"] for q, _ in v["arrows"][p]}
+        for p in v["drawn"]:
+            if v["layer"][p] == 0:
+                self.assertIn(p, reached)
+
     def test_bond_graph_layers(self):
         v = catalog.bond_layers(self.data)
         by = {self.data["titles"][p]: k for p, k in v["layer"].items()}
