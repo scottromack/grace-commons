@@ -162,6 +162,10 @@ A-stack is the reference runtime. It is the minimal conforming implementation �
 
 The first two A-stack examples, in dependency order: **Personal Todo** (simplest atom — four actions, no regulated sections, covers the full pipeline with the description policy as a PF normalization example) and **Idempotent Reservation** (first composition — demonstrates multi-write atomicity in `place_hold`, the exactly-once emergent invariant, and the *extraction-pending* `token_results` records that the section titled Composition state classifies).
 
+### Composition state — the derived-index rule and the extraction rule
+
+- *the section's title* (renamed 2026-11-26 by the unit `execution contract: the app model`, which replaced the section *Composition model* with *App model*): the section is now *App state — the derived-index rule and the extraction rule*, under *App model*, and a composition not yet dissolved is held to it as an app. A page not yet moved to the app vocabulary cites it by the old title, *Composition state*, and the citation lands here.
+
 ## Deleted rules
 
 The contract's tombstones, moved here from the page on 2026-11-14 (GRACE-lang Hard invariant 25 and Term tombstone, since v0.71): each in the page's order, under the heading it stood under there, written in the one tombstone form `Deleted: Label. The owner, and why.` in place of the page's bold `**Label: Deleted.** The owner, and why.`, the owner and why word for word. A tombstone carries no obligation, and each still reserves its label: no rule of the [Execution Contract](./execution-contract.md) may carry it again, and a pattern's citation of it still resolves (`tools/grace/cites.py`, `check.py`, `ir.py` and `tools/linter/lint.py` read the contract's labels from the page and from this section).
