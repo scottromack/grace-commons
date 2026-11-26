@@ -602,7 +602,7 @@
    "sweep",
    "escalation"
   ],
-  "done": true,
+  "done": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -619,7 +619,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "done \u2014 2026-11-23",
+  "status": "doing",
   "substrates": [
    "audit-trail"
   ],
