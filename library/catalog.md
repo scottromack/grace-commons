@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 17 with bond lines; 2 app(s).
+53 atoms, 18 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -114,9 +114,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Message Preference](./atoms/message-preference.md)** (846 lines). Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format.
+**[Message Preference](./atoms/message-preference.md)** (914 lines). Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format.
 
-- No bond lines yet.
+- Mints preference id. Needs key actor id. Offers key preference id.
 
 **[Moderation](./atoms/moderation.md)** (579 lines). Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags.
 

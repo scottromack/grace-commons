@@ -31,6 +31,7 @@ flowchart LR
   b_invitation["Invitation"]
   b_lease["Lease"]
   b_list["List"]
+  b_message_preference["Message Preference"]
   b_ordering["Ordering"]
   b_party_identity["Party Identity"]
   b_permissions["Permissions"]
@@ -52,9 +53,11 @@ flowchart LR
   b_invitation -->|"actor id"| b_actor_identity
   b_invitation -->|"invitation events"| b_event_log
   b_list -->|"actor id"| b_actor_identity
+  b_message_preference -->|"actor id"| b_actor_identity
   b_ordering -.->|"opaque"| b_actor_identity
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list
+  b_ordering -.->|"opaque"| b_message_preference
   b_ordering -.->|"opaque"| b_party_identity
   b_ordering -.->|"opaque"| b_provenance
   b_ordering -.->|"opaque"| b_session

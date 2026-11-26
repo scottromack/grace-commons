@@ -56,6 +56,8 @@ Term party id: opaque — the one value naming one external party, minted when t
 
 Term chain id: opaque — the one value naming one custody chain, minted when the chain is originated and never reused.
 
+Term preference id: opaque — the one value naming one preference record, minted when the record is set and never reused in one database instance.
+
 Term task events: opaque — the record type of the journal records a to-do app appends for a task's actions; plain, carrying no seal.
 
 Term assignment events: opaque — the record type of the journal records a to-do app appends for an assignment's actions; plain, carrying no seal.
