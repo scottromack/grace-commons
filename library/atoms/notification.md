@@ -43,7 +43,7 @@ Identity 6: The atom MUST NOT identify a notification by the recipient reference
 Identity 7: Two notifications carrying one recipient reference and one payload MUST carry two notification ids.
 ```
 
-NOTE: watch the allocation ban (Identity 3).
+NOTE: watch the allocation ban (Execution Contract Logic confinement 3 owns it).
 
 Term notification: one delivery record — one recipient, one payload, one outcome.
 
@@ -167,13 +167,13 @@ Operation 32: IF a notification id is malformed THEN a terminal transition MUST 
 Operation 33: IF a recipient reference is malformed THEN [Pending For] MUST answer an empty list (Execution Contract Query 1).
 ```
 
-NOTE: watch the required input no rule records (Operation 30).
+NOTE: watch the required input no rule records (Execution Contract Input 4 owns it).
 
 NOTE: watch the untyped input (Operation 31, Operation 32, Operation 33, Term notification id, Term recipient reference).
 
 NOTE: the ids a [Pending For] answers come in the order Execution Contract Read 5 states; no rule of this atom names another (Operation 19).
 
-NOTE: watch the order an atom forbids (Operation 21).
+NOTE: watch the order an atom forbids (Execution Contract Read 5 owns the order).
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
@@ -638,7 +638,7 @@ Projection: storage-failure
 
 - **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — Notification is the structured-natural-language realization of the notification object: the message delivered from subject to observer.
 - **SMTP / RFC 5321** — SMTP (Simple Mail Transfer Protocol, defined in the Internet standard RFC (Request for Comments) 5321) email delivery as the canonical push transport. Two of the three terminal states map to an SMTP disposition: 2xx success (Delivered) and 5xx permanent failure (Failed); timeout without delivery (Expired) maps to none, since SMTP has no terminal disposition for it and the composing pattern owns the delivery window (Operation 14b).
-- **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) webhooks** — POST-to-URL delivery model standard in web systems. [Deliver] records a 2xx response; [Fail] records a 4xx/5xx or connection failure.
+- **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) webhooks** — the delivery model standard in web systems, an HTTP POST (the request that sends data) to a URL. [Deliver] records a 2xx response; [Fail] records a 4xx/5xx or connection failure.
 - **W3C (World Wide Web Consortium — the web standards body) Activity Streams 2.0** — semantic vocabulary for describing social and messaging events. Notification payloads in web deployments often conform to Activity Streams objects.
 - **Apple Push Notification Service / Firebase Cloud Messaging** — platform push notification services where [Deliver] corresponds to accepted delivery and [Fail] corresponds to a rejected or unregistered token.
 - **Daniel Jackson, *The Essence of Software*** — freestanding-atom posture; [Payload] as an opaque reference whose semantics are defined by the composing system.
@@ -648,7 +648,7 @@ Projection: storage-failure
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -656,9 +656,9 @@ Projection: storage-failure
 </summary>
 
 ```
-status: done — 2026-11-20
+status: done — 2026-11-26
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-20 — Final Critique 13, a delta round, frozen at 1216b9d1 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that Invariant 8.1 through 8.3 compare a terminal stamp with the creation instant across two clocks and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks the invariants as written and Logic confinement 7 gives the deployment the clocks' agreement and skew, a wording the settle added to Term now; five further items refuted (String 6 and Operation 33's citation of Query 1 stand, Operation 9 and Deliver persistence 3 own the retry, the NOTE and the String 8 and 9 references are no defect); 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-26 — Final Critique 14, a delta round, frozen at c00e24f8 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (claude-sonnet-5-5) counted foundational 0 and raised three refining items and one rhetorical, refuted by both triages bar the rhetorical: that Term now's "agreement across nodes" leaves a skew between nodes open (the Term names monotonicity too, which Logic confinement 7 gives the deployment and which an inversion of the two stamps would break, as Final Critique 13 found), that Term now's no-allowance clause is more than the name (Closed vocabulary 11 says MAY, and Logic confinement 18 asks a specification to name where the allowance is spent), that Capability requirement 9 is weaker than Logic confinement 16 (Logic confinement 16 lets the page's own rule stand beside it, and its reword would restate it); Capability requirement 7's first clause restates Conformance 9, rhetorical, no change; the checker's hits were cured in the settle as editorial: the NOTEs beside the deleted Identity 3, Operation 30 and Operation 21 point at the Execution Contract rules that own them, and POST and URL are glossed in the HTTP webhooks entry; the checker's Status Of and Invariant 7 hits are false (a bare value `notification`, and the empty heading the corpus keeps for a deleted invariant); 2026-11-20 — Final Critique 13, a delta round, frozen at 1216b9d1 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that Invariant 8.1 through 8.3 compare a terminal stamp with the creation instant across two clocks and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks the invariants as written and Logic confinement 7 gives the deployment the clocks' agreement and skew, a wording the settle added to Term now; five further items refuted (String 6 and Operation 33's citation of Query 1 stand, Operation 9 and Deliver persistence 3 own the retry, the NOTE and the String 8 and 9 references are no defect); 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
 
 open: none
 ```
