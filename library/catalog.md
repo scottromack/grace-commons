@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 28 with bond lines; 2 app(s).
+53 atoms, 29 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -222,9 +222,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Waitlist](./atoms/waitlist.md)** (700 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
+**[Waitlist](./atoms/waitlist.md)** (784 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
 
-- No bond lines yet.
+- Mints spot id, waitlist id. Offers key waitlist id; key spot id.
 
 ## Apps
 

@@ -249,6 +249,13 @@ class BondTest(unittest.TestCase):
         self.assertIn("names no need and offer", instance_codes("Bond instance 1: Key Needer is served by Key Offerer.")[0])
         self.assertNotIn("B-app-instance", check.ADVISORY)
 
+    def test_an_offers_own_existence_read_may_hold_its_title(self):
+        # unit `atom: Waitlist, converted`: `calls Read Waitlist` names the offering atom's own read (Key 26)
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record; calls Read Key Offerer.\n"))
+        self.assertNotIn("B-bond-names-atom", self.codes())
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by Guard Needer records; calls exists.\n"))
+        self.assertIn("B-bond-names-atom", self.codes())
+
     def test_a_cycle_of_needs_met_by_offers_fails_the_app(self):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True)
         app = self.root / "library" / "apps" / "pair" / "index.md"

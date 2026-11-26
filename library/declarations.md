@@ -62,6 +62,10 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term waitlist id: opaque — the one value naming one waitlist, minted when the waitlist is started and never reused.
+
+Term spot id: opaque — the one value naming one place on a waitlist, minted when the person joins and never reused.
+
 Term evidence id: opaque — the one value naming one sealed evidence, minted when the record set is sealed and never reused.
 
 Term communication id: opaque — the one value naming one recorded exchange, minted by the host when the communication is recorded and never reused.

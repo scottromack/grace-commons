@@ -2049,8 +2049,11 @@ def bond_findings(root: Path) -> list[Finding]:
                                             f"ends names `{name}`, no action the offering atom declares (bonds.md Key)"))
         # on end and ends name the line's own atom's actions, whose names may hold another atom's title as a word
         # (`ends Delete List`); Bond 6 reads the rest of the line (unit `bonds: on end for lists and assignments`)
+        # an offer's calls names the offering atom's own existence read (bonds.md Key 26), which may hold its own
+        # title as a word (Waitlist's `calls Read Waitlist`, unit `atom: Waitlist, converted`)
         named = ";".join(part for part in b["text"].split(";")
-                         if not re.match(r"\s*(on end|ends)\b", part))
+                         if not re.match(r"\s*(on end|ends)\b", part)
+                         and not (b["side"] == "offer" and re.match(r"\s*calls\b", part)))
         for t in titles:
             if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", named):
                 findings.append(Finding(b["path"], b["line"], "B-bond-names-atom",
