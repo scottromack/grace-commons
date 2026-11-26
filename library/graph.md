@@ -48,6 +48,7 @@ flowchart LR
   b_session["Session"]
   b_state_machine["State Machine"]
   b_sweep["Sweep"]
+  b_tamper_evidence["Tamper Evidence"]
   b_task["Task"]
   b_approval_step -->|"actor id"| b_actor_identity
   b_assignment -->|"task id"| b_task
@@ -87,6 +88,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_state_machine
+  b_ordering -.->|"opaque"| b_tamper_evidence
   b_ordering -.->|"opaque"| b_task
   b_ordering -->|"list id"| b_list
   b_party_identity -->|"actor id"| b_actor_identity

@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 27 with bond lines; 2 app(s).
+53 atoms, 28 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -210,9 +210,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Tamper Evidence](./atoms/tamper-evidence.md)** (708 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
+**[Tamper Evidence](./atoms/tamper-evidence.md)** (731 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
 
-- No bond lines yet.
+- Mints evidence id. Offers key evidence id.
 
 **[Task](./atoms/task.md)** (750 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
 

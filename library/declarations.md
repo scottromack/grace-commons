@@ -62,6 +62,8 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term evidence id: opaque — the one value naming one sealed evidence, minted when the record set is sealed and never reused.
+
 Term communication id: opaque — the one value naming one recorded exchange, minted by the host when the communication is recorded and never reused.
 
 Term commitment id: opaque — the one value naming one provisional commitment, minted when the hold is placed and never reused in one database instance.
