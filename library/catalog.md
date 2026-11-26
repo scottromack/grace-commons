@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 40 with bond lines; 2 app(s).
+53 atoms, 41 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -178,9 +178,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Retention Window](./atoms/retention-window.md)** (836 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
+**[Retention Window](./atoms/retention-window.md)** (866 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
 
-- No bond lines yet.
+- Mints retention id. Offers key retention id.
 
 **[Role](./atoms/role.md)** (636 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
 

@@ -70,6 +70,8 @@ Term pool id: opaque — the one value naming one bounded pool, minted when the 
 
 Term audit event id: opaque — the one value naming one audit event on a pool's audit log, minted when the event is appended and never reused across the event classes.
 
+Term retention id: opaque — the one value naming one retention of one record under one policy, minted when the record is placed under retention and never reused.
+
 Term subscription id: opaque — the one value naming one standing interest, minted when the subscription is made and never reused.
 
 Term disclosure id: opaque — the one value naming one recorded disclosure, minted when the disclosure is recorded and never reused.
