@@ -1157,7 +1157,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": "healthcare",
-  "done": true,
+  "done": false,
   "invariants": 14,
   "kind": "atom",
   "models": {
@@ -1168,7 +1168,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-05",
+  "status": "doing",
   "title": "Medication Order"
  },
  "message-preference": {

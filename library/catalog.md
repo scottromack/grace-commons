@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 19 with bond lines; 2 app(s).
+53 atoms, 20 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -110,9 +110,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints list id. Needs key actor id. Offers key list id.
 
-**[Medication Order](./atoms/medication-order.md)** (1330 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
+**[Medication Order](./atoms/medication-order.md)** (1408 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
 
-- No bond lines yet.
+- Mints order id. Needs key actor id; journal order events. Offers key order id.
 
 **[Message Preference](./atoms/message-preference.md)** (914 lines). Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format.
 
