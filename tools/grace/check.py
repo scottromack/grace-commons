@@ -1849,6 +1849,48 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
 
 
 APP_ATOM = re.compile(r"\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
+APP_ATOM_TITLE = re.compile(r"\[([^\]]+)\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
+# Unit `tooling: rounds read an app page` (2026-11-26): a bond instance names the needing atom, the kind and
+# (where the atom has more than one need of the kind) the records the need pairs, then the serving atom, the
+# kind and (for a key) the key: `Bond instance 1: Ordering's key need that pairs entries MUST be served by
+# Task's key offer of task id (Bonds Bond 7).`
+BOND_INSTANCE = re.compile(r"^Bond instance (\d+[a-z]?): (.+?)'s ([a-z]+) need(?: that pairs ([a-z][a-z ]*?))? "
+                           r"MUST be served by (.+?)'s ([a-z]+) offer(?: of ([a-z][a-z ]*?))? \(")
+
+
+def instance_findings(app: Path, text: str, mine: list[dict], words: dict[str, str], types: set[str]) -> list[Finding]:
+    """B-app-instance: each `Bond instance N:` line of an app names a need of one of the app's atoms that is an
+    ambiguous need (bonds.md Bond 4, Term ambiguous need) and an offer of the app's atoms the need meets (Term bond
+    instance)."""
+    out: list[Finding] = []
+    slug = {t.strip("*"): s for t, s in APP_ATOM_TITLE.findall(text)}
+    for i, line in enumerate(text.splitlines(), 1):
+        if not line.startswith("Bond instance "):
+            continue
+        m = BOND_INSTANCE.match(line)
+        if not m:
+            out.append(Finding(app, i, "B-app-instance", "the bond instance names no need and offer in the form "
+                               "`<atom>'s <kind> need [that pairs <records>] MUST be served by <atom>'s <kind> offer [of <key>] (`"))
+            continue
+        label, n_atom, n_kind, pairs, o_atom, o_kind, key = m.groups()
+        needs = [b for b in mine if b["side"] == "need" and b["kind"] == n_kind and b["path"].stem == slug.get(n_atom)
+                 and b["path"].parent.name == "atoms" and (pairs is None or pairs in b["fields"].get("pairs", set()))]
+        if len(needs) != 1:
+            out.append(Finding(app, i, "B-app-instance", f"Bond instance {label}: {n_atom} is not one of the app's atoms "
+                               f"with exactly one {n_kind} need" + (f" that pairs {pairs}" if pairs else "")
+                               + f" ({len(needs)} found)"))
+            continue
+        served = [o for o in mine if o["side"] == "offer" and bond_meets(needs[0], o, words, types)]
+        if len(served) < 2:
+            out.append(Finding(app, i, "B-app-instance", f"Bond instance {label}: the need meets {len(served)} offer(s) "
+                               "of the app's atoms, so it is no ambiguous need and no instance may be written (bonds.md Bond 4)"))
+            continue
+        if not any(o["kind"] == o_kind and o["path"].stem == slug.get(o_atom)
+                   and (key is None or o["fields"].get("key") == key) for o in served):
+            out.append(Finding(app, i, "B-app-instance", f"Bond instance {label}: {o_atom}'s {o_kind} offer"
+                               + (f" of {key}" if key else "") + " is no offer of the app's atoms the need meets "
+                               "(bonds.md Term bond instance)"))
+    return out
 
 
 def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, str], types: set[str]) -> list[Finding]:
@@ -1876,6 +1918,7 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
                                         f"{need['path'].name}:{need['line']}: the key need is served by an offer ({where}) "
                                         "that names no existence read under calls, so the app cannot make the key check "
                                         "(bonds.md Key 21 to 26)"))
+        findings += instance_findings(app, app.read_text(encoding="utf-8"), mine, words, types)
         cycle = need_cycle(mine, words, types)
         if cycle:
             findings.append(Finding(app, 1, "B-app-cycle",

@@ -224,6 +224,31 @@ class BondTest(unittest.TestCase):
         self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record; calls exists.\n"))
         self.assertEqual(self.codes(), [])
 
+    def test_a_bond_instance_names_an_ambiguous_need_and_an_offer_it_meets(self):
+        # unit `tooling: rounds read an app page`: B-app-instance reads each `Bond instance N:` line (Bond 4, Term bond instance)
+        (self.root / "library" / "apps" / "pair").mkdir(parents=True)
+        app = self.root / "library" / "apps" / "pair" / "index.md"
+        self.write("key-needer", atom("Key Needer", "Term need key: key opaque; pairs entries.\n"))
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record; calls exists.\n"))
+        self.write("section-offerer", atom("Section Offerer", "Term offer key: key section key; carried by sections; calls exists.\n"))
+        head = ("# Pair\n\n- [Key Needer](../../atoms/key-needer.md)\n- [Key Offerer](../../atoms/key-offerer.md)\n"
+                "- [Section Offerer](../../atoms/section-offerer.md)\n- [Guard Offerer](../../atoms/guard-offerer.md)\n"
+                "- [Guard Needer](../../atoms/guard-needer.md)\n\n```\n")
+
+        def instance_codes(line):
+            app.write_text(head + line + "\n```\n")
+            return [f.message for f in check.bond_findings(self.root) if f.code == "B-app-instance"]
+
+        good = "Bond instance 1: Key Needer's key need that pairs entries MUST be served by Key Offerer's key offer of invocation id (Bonds Bond 7)."
+        self.assertEqual(instance_codes(good), [])
+        self.assertEqual(instance_codes(good.replace("of invocation id", "of section key")), [
+            "Bond instance 1: Key Offerer's key offer of section key is no offer of the app's atoms the need meets (bonds.md Term bond instance)"])
+        self.assertIn("so it is no ambiguous need", instance_codes(
+            "Bond instance 1: Guard Needer's guard need MUST be served by Guard Offerer's guard offer (Bonds Bond 7).")[0])
+        self.assertIn("exactly one key need that pairs tasks", instance_codes(good.replace("pairs entries", "pairs tasks"))[0])
+        self.assertIn("names no need and offer", instance_codes("Bond instance 1: Key Needer is served by Key Offerer.")[0])
+        self.assertNotIn("B-app-instance", check.ADVISORY)
+
     def test_a_cycle_of_needs_met_by_offers_fails_the_app(self):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True)
         app = self.root / "library" / "apps" / "pair" / "index.md"
