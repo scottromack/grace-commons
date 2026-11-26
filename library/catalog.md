@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 18 with bond lines; 2 app(s).
+53 atoms, 19 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -26,9 +26,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key task id; key actor id; journal assignment events.
 
-**[Calendar Time](./atoms/calendar-time.md)** (843 lines). Calendar Time says what a date and a time of day mean in a place.
+**[Calendar Time](./atoms/calendar-time.md)** (921 lines). Calendar Time says what a date and a time of day mean in a place.
 
-- No bond lines yet.
+- Mints place id. Offers key place id.
 
 **[Capability](./atoms/capability.md)** (818 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
 

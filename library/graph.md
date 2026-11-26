@@ -24,6 +24,7 @@ Atoms as nodes, and an arrow from an atom to each atom whose offer one of its ne
 flowchart LR
   b_actor_identity["Actor Identity"]
   b_assignment["Assignment"]
+  b_calendar_time["Calendar Time"]
   b_credential["Credential"]
   b_durable_intent["Durable Intent"]
   b_escalation["Escalation"]
@@ -55,6 +56,7 @@ flowchart LR
   b_list -->|"actor id"| b_actor_identity
   b_message_preference -->|"actor id"| b_actor_identity
   b_ordering -.->|"opaque"| b_actor_identity
+  b_ordering -.->|"opaque"| b_calendar_time
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list
   b_ordering -.->|"opaque"| b_message_preference
