@@ -26,6 +26,7 @@ flowchart LR
   b_approval_step["Approval Step"]
   b_assignment["Assignment"]
   b_calendar_time["Calendar Time"]
+  b_capability["Capability"]
   b_consent["Consent"]
   b_credential["Credential"]
   b_durable_intent["Durable Intent"]
@@ -49,6 +50,7 @@ flowchart LR
   b_assignment -->|"task id"| b_task
   b_assignment -->|"actor id"| b_actor_identity
   b_assignment -->|"assignment events"| b_event_log
+  b_capability -->|"actor id"| b_actor_identity
   b_consent -->|"actor id"| b_actor_identity
   b_credential -->|"actor id"| b_actor_identity
   b_durable_intent -->|"critical section key"| b_lease
@@ -67,6 +69,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_actor_identity
   b_ordering -.->|"opaque"| b_approval_step
   b_ordering -.->|"opaque"| b_calendar_time
+  b_ordering -.->|"opaque"| b_capability
   b_ordering -.->|"opaque"| b_consent
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list

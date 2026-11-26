@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 23 with bond lines; 2 app(s).
+53 atoms, 24 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -30,9 +30,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints place id. Offers key place id.
 
-**[Capability](./atoms/capability.md)** (818 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
+**[Capability](./atoms/capability.md)** (882 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
 
-- No bond lines yet.
+- Mints capability id. Needs key actor id. Offers key capability id.
 
 **[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1129 lines). Capacity Constraint Enforcement holds one number against another.
 
