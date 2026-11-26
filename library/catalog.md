@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 29 with bond lines; 2 app(s).
+53 atoms, 30 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -102,9 +102,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Offers guard opaque.
 
-**[Legal Hold](./atoms/legal-hold.md)** (698 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
+**[Legal Hold](./atoms/legal-hold.md)** (737 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
 
-- No bond lines yet.
+- Mints hold id. Needs key actor id. Offers key hold id.
 
 **[List](./atoms/list.md)** (420 lines). List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it.
 
