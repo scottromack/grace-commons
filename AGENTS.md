@@ -74,6 +74,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 - [`risks.md`](./log/risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
 - [`changelog.md`](./log/changelog.md) — dated change records through 2026-07-12; closed 2026-10-07. What changed since is in the commit that made it and in each pattern's Decisions.
 - [`governance.md`](./how/governance.md) — draft admission/sealing proposal. [`measurement.md`](./evidence/measurement.md) — token-cost ledger. [`demos.md`](./evidence/demos.md) — live renders. [`glossary.md`](./how/glossary.md) — strict definitions for load-bearing English. [`ai-usage-log.md`](./log/ai-usage-log.md) — AI-assistance disclosure.
+- [`library/catalog.md`](./library/catalog.md) — generated, one entry per atom and app (what it is, the ids it mints, its needs and offers by bond kind and declared word, its length), small enough to load whole: read it first and open a page only for its rules (regenerated with the views by `python3 tools/taxonomy/generate_graph.py .`; the bond graph heads [`graph.md`](./library/graph.md)).
 - [`library/atoms/index.md`](./library/atoms/index.md) — generated browse-by-overlay catalog (regenerate via `python3 tools/taxonomy/generate_views.py .`). [`library/compositions/README.md`](./library/compositions/README.md) — compositions catalog.
 
 ---

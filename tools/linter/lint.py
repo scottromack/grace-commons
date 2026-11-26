@@ -3628,7 +3628,8 @@ def check_audit_claim(root: Path) -> list[Finding]:
 
 
 def check_views_current(root: Path) -> list[Finding]:
-    """V-views-current: the generated views — `graph.md`, `atoms/index.md`,
+    """V-views-current: the generated views — `graph.md`, `catalog.md` (which generate_graph.py writes
+    with it, unit `tooling: the catalog`), `atoms/index.md`,
     `_data/patterns.json`, `_data/stats.json`, `enforcement.md` — match what their generators produce
     from the corpus now (council read 204: thirteen migrations passed with the views
     behind). stats.json is compared without `commits`, which counts the repository's
@@ -3636,7 +3637,8 @@ def check_views_current(root: Path) -> list[Finding]:
     import shutil
     import subprocess
     import tempfile
-    views = ["library/graph.md", "library/atoms/index.md", "_data/patterns.json", "_data/stats.json", "evidence/enforcement.md"]
+    views = ["library/graph.md", "library/catalog.md", "library/atoms/index.md", "_data/patterns.json", "_data/stats.json",
+             "evidence/enforcement.md"]
 
     def view_text(path: Path, name: str) -> str:
         text = path.read_text(encoding="utf-8")
