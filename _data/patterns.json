@@ -441,7 +441,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 2,
   "kind": "atom",
   "models": {
@@ -452,7 +452,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-19",
+  "status": "doing",
   "title": "Comment"
  },
  "communication": {

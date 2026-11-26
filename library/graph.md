@@ -29,6 +29,7 @@ flowchart LR
   b_capability["Capability"]
   b_cart["Cart"]
   b_category["Category"]
+  b_comment["Comment"]
   b_communication["Communication"]
   b_condition_register["Condition Register"]
   b_consent["Consent"]
@@ -87,6 +88,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_cart
   b_ordering -.->|"opaque"| b_cart
   b_ordering -.->|"opaque"| b_category
+  b_ordering -.->|"opaque"| b_comment
   b_ordering -.->|"opaque"| b_communication
   b_ordering -.->|"opaque"| b_condition_register
   b_ordering -.->|"opaque"| b_consent

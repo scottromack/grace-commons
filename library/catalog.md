@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 37 with bond lines; 2 app(s).
+53 atoms, 38 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -46,9 +46,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints category id. Offers key category id.
 
-**[Comment](./atoms/comment.md)** (551 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
+**[Comment](./atoms/comment.md)** (634 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
 
-- No bond lines yet.
+- Mints comment id. Offers key comment id.
 
 **[Communication](./atoms/communication.md)** (785 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
