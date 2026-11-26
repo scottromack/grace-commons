@@ -53,6 +53,7 @@ flowchart LR
   b_selective_disclosure["Selective Disclosure"]
   b_session["Session"]
   b_state_machine["State Machine"]
+  b_subscription["Subscription"]
   b_sweep["Sweep"]
   b_tamper_evidence["Tamper Evidence"]
   b_task["Task"]
@@ -104,6 +105,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_state_machine
+  b_ordering -.->|"opaque"| b_subscription
   b_ordering -.->|"opaque"| b_tamper_evidence
   b_ordering -.->|"opaque"| b_task
   b_ordering -.->|"opaque"| b_tenure

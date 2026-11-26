@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 36 with bond lines; 2 app(s).
+53 atoms, 37 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -198,9 +198,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints history entry id, workflow id. Needs key actor id. Offers key workflow id; key history entry id.
 
-**[Subscription](./atoms/subscription.md)** (581 lines). Subscription records who wants to be told about what.
+**[Subscription](./atoms/subscription.md)** (651 lines). Subscription records who wants to be told about what.
 
-- No bond lines yet.
+- Mints subscription id. Offers key subscription id.
 
 **[Sweep](./atoms/sweep.md)** (412 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
 
