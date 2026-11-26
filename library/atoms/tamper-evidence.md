@@ -99,7 +99,7 @@ Term revocation surface: an action that marks an evidence as no longer to be rel
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
+Capability requirement 2: The deployment MUST supply the seal records PER Execution Contract Database 1, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Database 8, Execution Contract Read 1 through 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 3: The deployment MUST declare the deployment's mechanism.
 Capability requirement 4: The deployment MUST supply the cryptographic material at the seam (Execution Contract Logic confinement 8).
 Capability requirement 5: The deployment MUST supply record set match at the seam.
@@ -403,7 +403,7 @@ Verification caching 5: An implementation MUST NOT answer a cached verification 
 ## Composition notes
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it: a deployment declares which apps it wired in.
 Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
 Composition note 3: A deployment needing attributable evidence MUST supply an actor's credential as the mechanism credential of a keyed mechanism.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
@@ -427,7 +427,7 @@ Term value sets: record set match = yes | no. seal check = held | failed | unava
 
 Term bounds: string cap.
 
-Term cadences: empty — a seal cadence is the composing pattern's (Composition note 1).
+Term cadences: empty — a seal cadence is the composing pattern's (Execution Contract Conformance 9).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
@@ -678,7 +678,7 @@ It inherits from:
 
 ## Status
 
-`done — 2026-11-21` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -686,9 +686,9 @@ It inherits from:
 </summary>
 
 ```
-status: done — 2026-11-21
+status: done — 2026-11-26
 formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10, 35 and 36; Concurrency 2; Verification caching 1, 2, 4 and 5, 2026-11-12
-last gate: 2026-11-21 — Final Critique 20, a delta round, one reader (Linus opencode/minimax-m3), frozen at bc8d5fc0 — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Verification caching 4 and 5, the two rules Final Critique 19 added, and raised no finding; the blind second triage placed all five of its points refuted and found no defect of its own); last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+last gate: 2026-11-26 — Final Critique 21, a delta round (diff base bc8d5fc0, 3 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Capability requirement 2, 4 and 11 and raised no finding; the blind second triage refuted all three and kept one refining item, that Capability requirement 2's Database and Read list stops short of Database 6 and 8 and Read 5 and 6, which the page relies on, cured, with Composition note 1, which restated Execution Contract Conformance 9, deleted to it); 2026-11-21 — Final Critique 20, a delta round, one reader (Linus opencode/minimax-m3), frozen at bc8d5fc0 — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Verification caching 4 and 5, the two rules Final Critique 19 added, and raised no finding; the blind second triage placed all five of its points refuted and found no defect of its own); last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open: none
 ```
