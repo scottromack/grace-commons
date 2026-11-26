@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 14 with bond lines; 1 app(s).
+53 atoms, 14 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -238,3 +238,22 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 - Sweep needs guard critical section key: met by Lease.
 - Sweep needs key invocation id: met by Durable Intent.
 - Sweep needs journal closing record, recovery_intended: met by Event Log.
+
+**[Shared Todo as an app](./apps/todo/index.md)**. Atoms: Actor Identity, Assignment, Credential, Event Log, Invitation, List, Ordering, Permissions, Session, Task.
+
+- Assignment needs key task id: met by Task.
+- Assignment needs key actor id: met by Actor Identity.
+- Assignment needs journal assignment events: met by Event Log.
+- Credential needs key actor id: met by Actor Identity.
+- Invitation needs key list id: met by List.
+- Invitation needs key actor id: met by Actor Identity.
+- Invitation needs journal invitation events: met by Event Log.
+- List needs key actor id: met by Actor Identity.
+- Ordering needs key opaque: met by Actor Identity, List, Session, Task.
+- Ordering needs key list id: met by List.
+- Permissions needs key actor id: met by Actor Identity.
+- Session needs key actor id: met by Actor Identity.
+- Task needs key list id: met by List.
+- Task needs key actor id: met by Actor Identity.
+- Task needs journal task events: met by Event Log.
+- Shared Todo as an app needs permission actor id: met by Permissions.
