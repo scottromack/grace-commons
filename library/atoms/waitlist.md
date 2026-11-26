@@ -87,7 +87,7 @@ Term join instant: when a spot joined, stamped from the injected now — a [Join
 
 Term positive count: a whole number, one or more.
 
-Term front spot: the waiting spot of a waitlist carrying the lowest join number among the waitlist's waiting spots.
+Term front spot: the waiting spot carrying the lowest join number among its waitlist's waiting spots.
 
 Term ahead count: the number of waiting spots of a spot's waitlist carrying a join number below the spot's join number — an [Ahead Count]; zero for the front spot, computed at each [Read Spot] and never stored.
 
@@ -123,9 +123,9 @@ Kind:       Field
 Field of:   Waitlist
 Projection: state
 
-Term waitlist id: the opaque value naming one waitlist — a [Waitlist Id]; unique for the system's life.
+Term waitlist id: the opaque value naming one waitlist — a [Waitlist Id]; unique for the life of the database instance (Execution Contract Database 7).
 
-Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the system's life (Identity 4, Capability requirement 2) and drawn at random, so no one can guess another person's spot id, as a bearer-token pattern draws a token, though the id is no protection of the spot, which a caller's authority protects (Non-goal 9, Non-goal 10); a person who joins again gets a new spot id.
+Term spot id: the opaque value naming one spot — a [Spot Id]; unique for the life of the database instance (Execution Contract Database 7; Identity 4, Capability requirement 2) and drawn at random, so no spot id can be worked out from another, as a bearer-token pattern draws a token, though the id is no protection of the spot, which a caller's authority protects (Non-goal 9, Non-goal 10); a person who joins again gets a new spot id.
 
 ### The spots
 
@@ -504,9 +504,10 @@ The case space, and the rule that owns each case:
 
 - **Invariant 1 — First come, first served.**
   ```
-  Invariant 1.1: Two spots of one waitlist MUST NOT share a join number.
+  Invariant 1.1: Two spots one waitlist carries MUST NOT share a join number.
   Invariant 1.2: The atom MUST NOT call a spot other than the front spot of the spot's waitlist.
   Invariant 1.3: The atom MUST NOT change a spot's join number.
+  Invariant 1.4: A spot's first version MUST carry a join number above EVERY join number the spot's waitlist carried as of the commit before.
   ```
 - **Invariant 2 — One waiting spot per person.**
   ```
@@ -548,7 +549,7 @@ The case space, and the rule that owns each case:
 
 ### Concurrency
 
-Two calls on one waitlist are serialized (Execution Contract Database 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Execution Contract Database 2; Operation 2, Invariant 6.1). Two [Join] calls for one person: the later reads the spot the earlier recorded and answers [Already Waiting] (Execution Contract Database 2; Operation 10, Invariant 2.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the front spot then standing (Operation 22); a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting] (Operation 17). A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Operation 9, Invariant 5.2).
+Two calls on one waitlist are serialized (Execution Contract Database 2, Execution Contract Order 2). Two [Call Next] calls at one moment: the later reads the spot the earlier called and calls the next waiting spot, so no spot is called twice and none is passed over (Invariant 1.2, Invariant 4.1). Two [Start] calls for one offering: the later reads the waitlist the earlier recorded and answers its waitlist id (Execution Contract Database 2; Operation 2, Invariant 6.1). Two [Join] calls for one person: the later reads the spot the earlier recorded and answers [Already Waiting] (Execution Contract Database 2; Operation 10, Invariant 2.1). Two [Join] calls for two people: the later reads the join number the earlier recorded and takes the next one, so the two spots never share a join number (Execution Contract Database 2, Execution Contract Order 2; Operation 12, Invariant 1.1). A [Leave] racing a [Call Next] for the front spot: whichever lands first decides — a [Leave] that lands first leaves the spot, and the [Call Next] calls the front spot then standing (Operation 22); a [Call Next] that lands first calls the spot, and the [Leave] answers [Not Waiting] (Operation 17). A [Join] racing a [Close]: a [Join] that lands first records a waiting spot, which the [Close] then stands in unserved; a [Close] that lands first leaves the [Join] answering [Waitlist Closed] (Operation 9, Invariant 5.2).
 
 ### Indeterminate outcome
 
@@ -560,7 +561,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Close] undoes [Start], standing the waitlist in closed, which takes no new spot (Operation 26); [Leave] undoes [Join], standing the spot in left (Operation 18). [Leave], [Call Next] and [Close] are final (Invariant 4.1, Invariant 5.1), so no undo is owed beyond them: a person who left or was called joins again at the back (Operation 11, Operation 12), and a waitlist closed by mistake is started again as a new waitlist (Operation 4) (Execution Contract Undo 4).
+[Close] undoes [Start], standing the waitlist in closed, which takes no new spot (Operation 26) and ends every spot still waiting on it (Operation 27); [Leave] undoes [Join], standing the spot in left (Operation 18). [Leave], [Call Next] and [Close] are final (Invariant 4.1, Invariant 5.1), so no undo is owed beyond them: a person who left or was called joins again at the back (Operation 11, Operation 12), and a waitlist closed by mistake is started again as a new waitlist (Operation 4) (Execution Contract Undo 4).
 
 ## Optional
 
@@ -568,7 +569,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 Capability requirement 1: The deployment MUST supply at the seam, for each [Start] call, a waitlist id no waitlist has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 2: The deployment MUST supply at the seam, for each [Join] call, a spot id no spot has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 3: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Order 2, Execution Contract Read 1 through 6 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
 
@@ -628,7 +629,7 @@ NOTE: composing patterns — none yet. Forthcoming: Offer from Waitlist, which o
 
 ## Example
 
-The same pattern in three domains, then the rejection paths. A spot id is drawn at random; the short ones below stand in for real ones.
+The same pattern in three domains; the rejection paths stand under What people do. A spot id is drawn at random; the short ones below stand in for real ones.
 
 ### Pottery class
 
@@ -657,7 +658,7 @@ Any rule a school, a clinic or a shop must follow in running a waitlist binds th
 
 ### Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the waitlists and spots the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the waitlists and spots the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Database 8, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 #### Conformance checks
 
@@ -667,11 +668,11 @@ Check 1.2: An auditor MUST find EVERY spot carrying spot id, waitlist id, person
 Check 2.1: An auditor MUST find no two waitlists sharing a waitlist id (Identity 3).
 Check 2.2: An auditor MUST find no two spots sharing a spot id (Identity 4).
 Check 2.3: An auditor MUST find no two spots of one waitlist sharing a join number (Invariant 1.1).
-Check 2.4: An auditor MUST find no commit as of which two waiting spots of one waitlist share a person reference (Invariant 2.1).
-Check 2.5: An auditor MUST find no commit as of which two open waitlists share an offering reference (Invariant 6.1).
+Check 2.4: An auditor MUST find no two waiting spots of one waitlist sharing a person reference (Invariant 2.1).
+Check 2.5: An auditor MUST find no two open waitlists sharing an offering reference (Invariant 6.1).
 Check 2.6: An auditor MUST find EVERY spot's waitlist id naming a waitlist (Invariant 8.1).
-Check 2.7: An auditor MUST find no commit as of which a closed waitlist carries a waiting spot (Invariant 5.2).
-Check 3.1: An auditor MUST find no commit as of which a waiting spot carries a join number below the join number of a spot of the same waitlist standing in called (Invariant 1.2).
+Check 2.7: An auditor MUST find no closed waitlist carrying a waiting spot (Invariant 5.2).
+Check 3.1: An auditor MUST find no waiting spot carrying a join number below the join number of a spot of the same waitlist standing in called (Invariant 1.2).
 Check 3.2: An auditor MUST find EVERY version of a spot carrying the join number of the spot's first version (Invariant 1.3).
 Check 3.3: An auditor MUST find EVERY version of a spot carrying the waitlist id of the spot's first version (Invariant 3.1).
 Check 3.4: An auditor MUST find EVERY version of a spot carrying the person reference of the spot's first version (Invariant 3.2).
@@ -679,6 +680,7 @@ Check 3.5: An auditor MUST find EVERY version of a spot carrying the join instan
 Check 3.6: An auditor MUST find EVERY version of a spot later than the spot's first ended version carrying the spot state of the first ended version (Invariant 4.1).
 Check 3.7: An auditor MUST find EVERY version of a waitlist later than the waitlist's first closed version standing in closed (Invariant 5.1).
 Check 3.8: An auditor MUST find EVERY version of a waitlist carrying the offering reference of the waitlist's first version (Invariant 7.1).
+Check 3.9: An auditor MUST find EVERY spot's first version carrying a join number above EVERY join number the spot's waitlist carried as of the commit before (Invariant 1.4).
 Check 4.1: An auditor MUST find EVERY spot carrying a positive count as the spot's join number (Invariant 9.1).
 ```
 
@@ -696,6 +698,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing a called person confirmed as offered an opening MUST read the records of the pattern that held the opening (Non-goal 1).
 External check 2: An auditor needing an action attributed to an actor MUST read the records of the pattern that attributes actions (Non-goal 11).
 External check 3: An auditor needing a person reference confirmed as naming a real person MUST read the deployment's records of people (Non-goal 17).
+External check 4: An auditor needing a spot id confirmed as drawn from a cryptographically secure random source and not derived, or an offering reference or a person reference confirmed as recorded exactly as written in the call, MUST read the deployment's own declaration of the source spot ids are drawn from and the deployment's record of the calls (Identity 10 through 13).
 ```
 
 ### Vocabulary
@@ -708,13 +711,13 @@ Term records: waitlist — a line of spots for one offering, carrying waitlist i
 
 Term record verbs: identify, reuse, normalize, compare, draw, derive, carry, stand, remove, supply, declare, answer, record, write, set, stamp, change, share, call, name, find, read, hold, count, limit, compose, decide, notify, gate, attribute, distinguish, give, check, expire, move, bound, own.
 
-Term value sets: waitlist state = open | closed; spot state = waiting | called | left | unserved; waitlist action and spot action are declared above and cited here (GRACE-lang Closed vocabulary 15).
+Term value sets: waitlist state = open | closed; spot state = waiting | called | left | unserved; waitlist action and spot action are declared above and cited here (GRACE-lang Closed vocabulary 15); action rejection = invalid-offering-reference | not-known | invalid-person-reference | waitlist-closed | already-waiting | not-waiting | nobody-waiting | storage-failure.
 
 Term bounds: positive count (one, the floor of a join number); string cap (the bound on an offering reference's or a person reference's length in Unicode code points, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
-Term qualifiers: migrated — drafted in GRACE lang unknown (2026-11-17) through the Grace connector.
+Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-17) through the Grace connector.
 
 Term terms: waitlist, spot, waitlist id, spot id, offering reference, opening, person reference, seam, now, string cap, waitlist state, spot state, open waitlist, closed waitlist, waiting spot, ended spot, join number, highest join number, next join number, join instant, positive count, front spot, ahead count, waitlist action, spot action, version, first ended version, first closed version.
 
@@ -754,7 +757,7 @@ Term terms: waitlist, spot, waitlist id, spot id, offering reference, opening, p
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -762,9 +765,9 @@ Term terms: waitlist, spot, waitlist id, spot id, offering reference, opening, p
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-26
 formal: verified — waitlist.als + 18 twins (the static data model: State 1 through 4, Identity 3 and 4, Operation 4, 5 and 11 through 14, Invariant 1.1, 1.2, 2.1, 5.2, 6.1, 8.1 and 9.1 checked on every version a sequence of admitted calls leaves, Identity 1, 2 and 5 caught by the Identity 3 and 4 checks, Identity 6, 8, 12 and 13 by the Operation 4 and 11 checks); waitlist.tla + 41 twins (across steps: State 5 and 6, Invariant 1.2, 1.3, 3.1 through 3.3, 4.1, 5.1 and 7.1, Operation 1 through 4, 6 through 12 and 15 through 36, Identity 7 and 9 read through Operation 2, 4, 10 and 11; Operation 23 and 36 re-derived with their cures, Operation 36 over two waitlists, 2026-11-19); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 10 and 11 (the deployment's random draw) cannot be stated, 2026-11-19
-last gate: 2026-11-19 — Final Critique 4, delta, frozen at ce83afd1 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-19 — Final Critique 3, delta, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
+last gate: 2026-11-26 — Final Critique 5, a full round, three readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro; the first GRID and EOS passes lapsed on a loaded report and ran again), frozen at d7cd02ca — foundational count 0 after the blind second triage, clean, one sample; one report claimed 1 foundational (GRID's Database 8 claim) and the triages placed it refining: Execution Contract Database 8 binds every specification's state checks whether the page cites it or not, so no conforming build reads a check at head alone; cured: Invariant 1.4 and Check 3.9 say a spot's first version carries a join number above every one the waitlist carried before, External check 4 reads the id source and the references as recorded, the Proof cites Database 8 and four checks drop the horizon it states, Capability requirement 4 cites Order 2 and Read 1 through 6, Invariant 1.1 takes Standard sentence 2's form, the qualifiers line names GRACE lang v0.73, Term value sets declares the action rejection, the two ids' uniqueness scope is the database instance, Concurrency pairs two joins for two people, and the wording items (the spot id's claim, what undoes a write, the front spot, the Example's opening); the rest declined as settled by the corpus, the ahead count's kind left to the Watch list and Ordering and Duplicate Prevention asked of Scott; 2026-11-19 — Final Critique 4, delta, frozen at ce83afd1 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-19 — Final Critique 3, delta, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample; 2026-11-17 — Final Critique 2, delta, frozen at 8d7d3b9 — foundational count 0, clean, one sample; 2026-11-17 — Final Critique 1, full, frozen at e7a3151 — foundational count 5, cured, not clean, no sample
 
 open: none
 ```

@@ -222,7 +222,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints tenure id. Offers key tenure id.
 
-**[Waitlist](./atoms/waitlist.md)** (784 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
+**[Waitlist](./atoms/waitlist.md)** (787 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
 
 - Mints spot id, waitlist id. Offers key waitlist id; key spot id.
 

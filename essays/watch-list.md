@@ -22,7 +22,7 @@ NOTE: repeated cures are flagged (`NOTE: watch <name>` beside the strained rule)
 - **contradiction**: two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions. None found.
 - **the wire layer**: a term entry's `Projection:` line and the `Wire: pinned` field, with no naming convention of the layer's own. Fifty-three documents at council read 101; two findings against the layer itself, each a read's filter keys no line gave, keyed since by the Projection lines (Term filter axes): Selective Disclosure's Final Critique 7 and Provenance's Final Critique 12.
 - **the term entry grammar**: a term entry's fields drifting per document on the nothing surface. Nine at council read 12; the superset recurs in every migrated specification.
-- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. Four: Cart, Consent, Retention Window and Session.
+- **a term entry's kind**: `Kind: Field` carrying stored, derived and pinned values alike. Five: Cart, Consent, Retention Window, Session and Waitlist (the ahead count, its Final Critique 5).
 - **the cited line**: the `Term cited:` line written in two shapes this document never states, runs of names each closed by the owner, or a document and what it supplies. Twenty-one specifications: seven write the first shape, sixteen the second, two both (Durable Intent, Sweep and Escalation, split from Recoverable Invocation on 2026-11-23, each carry the first).
 - **the frozen surface's edge**: which families a cross-spec citation freezes. None standing since council read 13.
 - **the auditor's vocabulary**: the verbs a Generation acceptance section needs, richer than an atom's own rules use, with nothing owning the split. Not counted.
