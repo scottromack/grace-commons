@@ -28,6 +28,7 @@ flowchart LR
   b_calendar_time["Calendar Time"]
   b_capability["Capability"]
   b_communication["Communication"]
+  b_condition_register["Condition Register"]
   b_consent["Consent"]
   b_credential["Credential"]
   b_durable_intent["Durable Intent"]
@@ -80,6 +81,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_calendar_time
   b_ordering -.->|"opaque"| b_capability
   b_ordering -.->|"opaque"| b_communication
+  b_ordering -.->|"opaque"| b_condition_register
   b_ordering -.->|"opaque"| b_consent
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_legal_hold

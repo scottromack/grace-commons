@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 32 with bond lines; 2 app(s).
+53 atoms, 33 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -54,9 +54,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints communication id. Offers key communication id.
 
-**[Condition Register](./atoms/condition-register.md)** (677 lines). Condition Register keeps the permanent record of what a background run observed.
+**[Condition Register](./atoms/condition-register.md)** (764 lines). Condition Register keeps the permanent record of what a background run observed.
 
-- No bond lines yet.
+- Mints standing id. Offers key standing id.
 
 **[Consent](./atoms/consent.md)** (872 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
