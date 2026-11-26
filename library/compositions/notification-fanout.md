@@ -132,7 +132,7 @@ Action wiring 7: An admitted fanout MUST call Notification's create EXACTLY ONE 
 Action wiring 8: IF the subscribers_for answer carries a subscriber reference THEN an admitted fanout MUST call Notification's create with that subscriber reference as the recipient reference and with the payload.
 Action wiring 9: An admitted fanout MUST NOT call Notification's create for a subscriber reference the subscribers_for answer does not carry.
 Action wiring 10: IF Notification's create answers a notification id THEN an admitted fanout MUST record the notification id in the created list.
-Action wiring 11: IF Notification's create answers otherwise OR answers nothing within the create bound THEN an admitted fanout MUST record the subscriber reference in the failed list (Execution Contract Constituent failure 1).
+Action wiring 11: IF Notification's create answers otherwise OR answers nothing within the create bound THEN an admitted fanout MUST record the subscriber reference in the failed list (Execution Contract Constituent failure 1, Execution Contract Constituent failure 3).
 Action wiring 13: An admitted fanout answering a result MUST answer the fanout id, the created list, the failed list AND the firing instant.
 Action wiring 14: An admitted fanout MUST answer an empty created list AND an empty failed list for an empty subscribers_for answer.
 Action wiring 15: An admitted fanout MUST NOT commit two creates under one transaction PER the section titled Boundary rules in `execution-contract.md`.
@@ -159,8 +159,8 @@ Every constituent call [Fanout] makes, and for each call its answer, its refusal
 
 | Action | Call | Answer | Refusals | Failed read | No answer |
 |---|---|---|---|---|---|
-| [Fanout] | Subscription.subscribers_for | the subscriber references, answered (Action wiring 1, Action wiring 7) | none declared: subscribers_for refuses nothing | state-unavailable: Action wiring 4 (Execution Contract Constituent failure 3) | Action wiring 4 |
-| [Fanout] | Notification.create, once per subscriber reference | the notification id, recorded in the created list (Action wiring 10) | invalid-request: Action wiring 11; storage-failure: Action wiring 11 (Execution Contract Constituent failure 1) | state-unavailable: Action wiring 11 | Action wiring 11, Invariant 3.1, Execution Contract Error model 1 |
+| [Fanout] | Subscription.subscribers_for | the subscriber references, answered (Action wiring 1, Action wiring 7) | none declared: subscribers_for refuses nothing | state-unavailable: Action wiring 4, which answers subscribers-unavailable (Execution Contract Constituent failure 3) | Action wiring 4, which answers subscribers-unavailable |
+| [Fanout] | Notification.create, once per subscriber reference | the notification id, recorded in the created list (Action wiring 10) | invalid-request: Action wiring 11; storage-failure: Action wiring 11 (Execution Contract Constituent failure 1) | state-unavailable: Action wiring 11 (Execution Contract Constituent failure 3) | Action wiring 11, Invariant 3.1, Execution Contract Error model 1 |
 
 ### Wiring decision
 
@@ -511,14 +511,14 @@ Projection: boundary_window
 
 It inherits from:
 
-- **[Subscription](../atoms/subscription.md)** — standards inheritance in full: Observer pattern, pub-sub, WebSub, XMPP PubSub (XEP-0060 — publish-subscribe over the Extensible Messaging and Presence Protocol).
-- **[Notification](../atoms/notification.md)** — standards inheritance in full: Observer pattern, SMTP (Simple Mail Transfer Protocol — the standard email-delivery protocol), HTTP (Hypertext Transfer Protocol) webhooks, W3C Activity Streams, APNs/FCM (Apple Push Notification service / Firebase Cloud Messaging — the iOS and Android push-delivery services).
+- **[Subscription](../atoms/subscription.md)** — standards inheritance in full: Observer pattern, pub-sub, WebSub, XMPP PubSub (XMPP — the Extensible Messaging and Presence Protocol; XEP-0060, its publish-subscribe extension).
+- **[Notification](../atoms/notification.md)** — standards inheritance in full: Observer pattern, SMTP (Simple Mail Transfer Protocol — the standard email-delivery protocol), HTTP (Hypertext Transfer Protocol) webhooks, W3C Activity Streams, APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging) — the iOS and Android push-delivery services.
 
 ---
 
 ## Status
 
-`done — 2026-11-05` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -526,9 +526,9 @@ It inherits from:
 </summary>
 
 ```
-status: done — 2026-11-05
+status: done — 2026-11-26
 formal: verified — notification-fanout.als + 16 twins (the static data model: Invariant 1.1, 1.2, 1.3, 2.1, 4.1, 4.2, 8.1 and 8.3, Composition state 6, Action wiring 1, 2, 4, 5, 13, 14 and 18, Primitive policy 1 through 6 and Clock semantics 1 checked on every [Fanout] call's read, creates and answer, with Action wiring 3, 7 through 11, Wiring decision 3, Clock semantics 4 and Non-goal 7 and 8 checked through them); notification-fanout.tla + 10 twins (across steps, while subscribers join and cancel, creates fail and the delivery layer moves records: Invariant 3.1, 3.2, 5.1 and 8.2, Wiring decision 1 and 2, Non-goal 3 through 6 and Composes 6, with Action wiring 15 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 3.3 cannot be stated (Notification's record names no other record, so only the payload could, which Invariant 2.1 holds to the caller's); the read-latency and create bounds (Action wiring 4, 11) are a deployment's; owed rows: Primitive policy 7, 2026-11-12
-last gate: 2026-11-05 — Final Critique 11, a delta round, frozen at 63c13eb — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
+last gate: 2026-11-26 — Final Critique 12, a delta round, one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at b54aa06c — foundational count 0 after the blind second triage, clean, one sample; the diff base 63c13ebc reached 5 labels (Composes 7, Composition state 5, Action wiring 4, Action wiring 11, Indeterminate outcome 8) and Linus's report counted foundational 1, refuted by both triages: Action wiring 11's no-answer create goes on the failed list by design (Term unrecordable create names the record that may exist, Indeterminate outcome 3, 7, 7a and 8 and Execution Contract Error model 1 govern what a caller does next, Invariant 1.2 needs the subscriber on one of the two lists), and the proposed cure would leave that subscriber on neither; its refining item (an empty list is an answer, Action wiring 14) was refuted and its rhetorical one (Composes 7 restates Conformance 8, the form 23 compositions carry) left as written; the cures are editorial: the closure table's subscribers_for row names the subscribers-unavailable answer, Action wiring 11 and its closure-table cell cite Execution Contract Constituent failure 3 for the state-unavailable it lands, and XMPP and APNs/FCM are glossed at first use; 2026-11-05 — Final Critique 11, a delta round, frozen at 63c13eb — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 10 — foundational count 4, not clean, no sample
 
 open: none
 ```
