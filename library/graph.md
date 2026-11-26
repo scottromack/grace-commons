@@ -42,6 +42,7 @@ flowchart LR
   b_party_identity["Party Identity"]
   b_permissions["Permissions"]
   b_provenance["Provenance"]
+  b_recurrence["Recurrence"]
   b_session["Session"]
   b_state_machine["State Machine"]
   b_sweep["Sweep"]
@@ -78,6 +79,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_observation
   b_ordering -.->|"opaque"| b_party_identity
   b_ordering -.->|"opaque"| b_provenance
+  b_ordering -.->|"opaque"| b_recurrence
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_state_machine

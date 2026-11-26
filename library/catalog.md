@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 24 with bond lines; 2 app(s).
+53 atoms, 25 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -170,9 +170,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Recurrence](./atoms/recurrence.md)** (802 lines). Recurrence says which dates a repeating event falls on.
+**[Recurrence](./atoms/recurrence.md)** (870 lines). Recurrence says which dates a repeating event falls on.
 
-- No bond lines yet.
+- Mints series id. Offers key series id.
 
 **[Restorable Delete](./atoms/restorable-delete.md)** (552 lines). Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item.
 
