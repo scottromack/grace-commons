@@ -51,6 +51,7 @@ flowchart LR
   b_provenance["Provenance"]
   b_provisional_commitment["Provisional Commitment"]
   b_recurrence["Recurrence"]
+  b_role["Role"]
   b_selective_disclosure["Selective Disclosure"]
   b_session["Session"]
   b_state_machine["State Machine"]
@@ -103,6 +104,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_provenance
   b_ordering -.->|"opaque"| b_provisional_commitment
   b_ordering -.->|"opaque"| b_recurrence
+  b_ordering -.->|"opaque"| b_role
   b_ordering -.->|"opaque"| b_selective_disclosure
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine

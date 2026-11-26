@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 38 with bond lines; 2 app(s).
+53 atoms, 39 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -182,9 +182,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Role](./atoms/role.md)** (544 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
+**[Role](./atoms/role.md)** (638 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
 
-- No bond lines yet.
+- Mints holding id. Offers key holding id.
 
 **[Selective Disclosure](./atoms/selective-disclosure.md)** (609 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 

@@ -62,6 +62,8 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term holding id: opaque — the one value naming one person's holding of one role, minted when the role is granted and never reused.
+
 Term comment id: opaque — the one value naming one comment, minted when the comment is added or replied and never reused.
 
 Term subscription id: opaque — the one value naming one standing interest, minted when the subscription is made and never reused.
