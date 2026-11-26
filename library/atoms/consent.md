@@ -64,7 +64,7 @@ Term purpose: the opaque value naming the processing purpose the agreement cover
 Term granting actor: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granting Actor], as Execution Contract Logic confinement 13 canonicalizes it.
 
 ```
-State 2: A consent record's state MUST rest on grant instant, revocation instant and expiry instant against the evaluation instant.
+State 2: A consent record's state MUST rest on revocation instant and expiry instant against the evaluation instant.
 State 3: EVERY consent record MUST carry consent id, subject reference, purpose, granting actor, grant instant and state.
 State 4: IF expiry instant DOES NOT EQUAL blank THEN [Grant] MUST record the expiry instant on the consent record.
 State 5: IF metadata DOES NOT EQUAL blank THEN [Grant] MUST record the metadata on the consent record.
@@ -221,7 +221,7 @@ Role:      Outcome
 
 Term expiry instant: the optional instant a consent record's agreement runs out — an [Expiry Instant]; set at [Grant], never stamped later.
 
-Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
+Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction; opaque content of any value (Execution Contract Input 3).
 
 Term revoking actor: the opaque reference naming the actor that recorded the withdrawal — a [Revoking Actor], as Execution Contract Logic confinement 13 canonicalizes it.
 
@@ -445,7 +445,7 @@ Projection: already-expired
 
 #### Check
 
-The pure point-in-time query that evaluates the consent state for a (subject, [Purpose]) as of [At Time], returning one of `granted | revoked | expired | not-known`. It selects the record with the greatest [Grant Instant] ≤ [At Time], evaluates that record's [Revocation Instant] / [Expiry Instant] against [At Time], and never writes and never rejects (Invariant 10).
+The pure point-in-time query that evaluates the consent state for a (subject, [Purpose]) as of [At Time], returning one of `granted | revoked | expired | not-known`. It selects the record with the greatest [Grant Instant] ≤ [At Time], evaluates that record's [Revocation Instant] / [Expiry Instant] against [At Time], and never writes and never rejects (Operation 35, Operation 36).
 
 Kind: Operation
 
@@ -566,7 +566,7 @@ Projection: invalid-query
   ```
   Invariant 3.1: A revoked consent record MUST NOT leave revoked.
   Invariant 3.2: An expired consent record MUST NOT leave expired.
-  Invariant 3.3: A composing pattern returning a data subject to agreement MUST call [Grant].
+  Deleted: Invariant 3.3. Composition note 10 owns it.
   ```
 - **Invariant 4 — Revocation attribution is complete.**
   ```
@@ -618,6 +618,10 @@ NOTE: watch the cap's measure (Term string cap, Term bounds).
 
 NOTE: watch the cap's refusal (Operation 68, Operation 69, Operation 70, Operation 71, Operation 72, Operation 73).
 
+### What undoes a write
+
+No writing action of this atom is undone: Invariant 1.1, Invariant 3.1, Invariant 3.2 and Invariant 8.1 keep what [Grant] and [Revoke] write, and a data subject who agrees again is recorded by a fresh [Grant] (Check 4.1; Execution Contract Undo 4).
+
 ## While something is so
 
 ### Clock semantics
@@ -632,7 +636,7 @@ NOTE: a revocation instant earlier than now ends the agreement from that instant
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the consent records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 4, Execution Contract Input 1 and Execution Contract Conformance 9.
 Capability requirement 6: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply EVERY consent id PER Execution Contract Logic confinement 16.
 ```
@@ -681,7 +685,7 @@ Non-goal 6: The atom MUST NOT expand a purpose hierarchy.
 Non-goal 7: The atom MUST NOT interpret metadata.
 Non-goal 8: A deployment needing required metadata content MUST NOT call [Grant] BEFORE enforcing the content.
 Non-goal 9: The atom MUST NOT propagate a withdrawal downstream.
-Non-goal 10: A deployment needing propagation MUST compose a consent-revocation-propagation pattern.
+Non-goal 10: A deployment needing propagation MUST compose Propagate Consent Revocation Downstream.
 Non-goal 11: The atom MUST NOT hold a lawful basis the data subject did not give.
 Non-goal 12: The atom MUST NOT gate an action on a caller's authority.
 Deleted: Non-goal 13. Non-goal 12 owns it: the atom gates no action on a caller's authority; the app's permission does.
@@ -699,17 +703,18 @@ Non-goal 23: The atom MUST NOT suppress a processing act.
 Non-goal 24: The atom MUST NOT hold a purpose taxonomy.
 ```
 
-NOTE: the owners — an idempotency pattern (Non-goal 1, Non-goal 2); the deployment (Non-goal 11); a revocation-propagation pattern (Non-goal 9, Non-goal 10); the app's permission (Non-goal 12, Non-goal 13); a guardian-relationship pattern *(forthcoming)* (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); a legal-hold pattern (Non-goal 18); an audit pattern (Non-goal 20, Non-goal 25); an attestation pattern (Non-goal 20, Non-goal 21, Non-goal 25); a composing pattern (Non-goal 5, Non-goal 6, Non-goal 24, Composition note 5; Non-goal 23, Composition note 3).
+NOTE: the owners — an idempotency pattern (Non-goal 1); the deployment (Non-goal 11, Non-goal 22); [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md) (Non-goal 9, Non-goal 10); the app's permission (Non-goal 12); a guardian-relationship pattern *(forthcoming)* (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16); a retention pattern (Non-goal 18); a legal-hold pattern (Non-goal 18); an audit pattern (Non-goal 20, Non-goal 25); an attestation pattern (Non-goal 20, Non-goal 25); a composing pattern (Non-goal 3, Non-goal 4, Non-goal 5, Non-goal 6, Non-goal 7, Non-goal 8, Non-goal 24, Composition note 5; Non-goal 23, Composition note 3).
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: A composing pattern MUST NOT run a processing act BEFORE calling [Check].
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
+Composition note 2: A composing pattern MUST NOT run a processing act BEFORE calling [Check] for the act's subject reference and purpose.
 Composition note 3: A composing pattern MUST own the suppression of a processing act.
 Composition note 4: A composing pattern MUST own the propagation of a withdrawal.
 Composition note 5: A composing pattern MUST own the purpose taxonomy.
 Composition note 6: A composing pattern MUST own the retention of the consent records.
 Composition note 7: A composing pattern MUST own the authority to grant for a data subject.
 Composition note 9: A composing pattern MUST NOT poll for an elapsed consent record.
+Composition note 10: A composing pattern returning a data subject to agreement MUST call [Grant].
 ```
 
 ## Example
@@ -792,7 +797,7 @@ Term records: consent record — one agreement to one purpose, carrying consent 
 
 Term record verbs: share, name, accept, carry, identify, allocate, reuse, change, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, ignore, leave, supply, rest, offer, remove, suppress, hold, poll, appear, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, declare, call, run, merge.
 
-Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
+Term value sets: state = granted | revoked | expired. action outcome = granted | revoked | expired | not-known. action rejection = invalid-request | storage-failure. Revoke rejection = not-known | already-revoked | already-expired. Read answer = consent_records. Read rejection = invalid-query. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
 Term bounds: string cap (the bound on the length in Unicode code points of a string input, of a reference filter's value and of the allocated consent id, counted PER Execution Contract Input 2 on a write input and on the consent id as the host allocates it, and PER Execution Contract Query 5 on a reference filter's value, 1,024 where a deployment declares none).
 
@@ -842,7 +847,7 @@ Term terms: consent record, database instance, database name, seam, transition, 
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -850,9 +855,9 @@ Term terms: consent record, database instance, database name, seam, transition, 
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-26
 formal: verified — consent.als + 21 twins (the static data model: State 3, 4, 5, 6, 9 and 16, Expiry 5, Stored state 3, Invariant 2.1, 2.2, 4.1 through 4.3, 5.1, 6.2, 7.1, 7.2, 10.1 and 10.2, Instance 2, Operation 2 and 26 checked on every record admitted calls leave, at every instant it can be read against; Expiry 1 through 4 caught by the Invariant 2.1 check and Identity 3, 4 and 6 by the Instance 2 check); consent.tla + 9 twins (across steps, as the clock moves: Invariant 1.1, 1.2, 3.1, 3.2, 8.1, 9.1 and 10.3, Operation 1, 18, 36 and 49); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Identity 5; Operation 47, 48, 50 through 59, 64, 65 and 76 ([Read]'s query); Operation 66 through 75 and 77 (malformed and over-cap inputs), 2026-11-11
-last gate: 2026-11-20 — Final Critique 22, a delta round, frozen at 15e8c30 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (claude-haiku-5-5) claimed one foundational, that Operation 24 and 25 and the [Grant] expiry row compare a caller-stated instant with now and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks Operation 8, 9, 24 and 25 as written and the corpus words a caller-stated instant compared with now as spending none (Selective Disclosure's Term now), a wording the settle added to Term now; of four refining, one cured (Operation 46 restated Term evaluation instant, deleted) and three refuted (Operation 39 and Term candidate record own the malformed at time's answer with Operation 40, Check 1.1's Invariant 8.1 stands on the page); four rhetorical NOTE wordings left; 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
+last gate: 2026-11-26 — Final Critique 23, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/claude-haiku-5-5), frozen at bd35b8ce — foundational count 0 after the blind second triage, clean, one sample (the readers rated five findings foundational and the two triages placed every one below it: GRID's, that Composition note 1 restates Execution Contract Conformance 9, is refining (Kind C), cured by tombstone since the corpus cured the same line twice that way and a citation would keep the restated rule; EOS's first, that Term state names the derived state and the stored column, is refined away by the page's own State entry, Stored state 3 and the 2026-10-21 Decisions entry (a build answering an elapsed record granted breaks them), its cure restating Invariant 2.2 and Operation 64; its second, that the [Read] query's shape is unstated, rests on two false premises (a second key on a supported axis is no key outside the axes, and Query 1 and Query 4 decide every case) and its cure is the one Final Critique 10 reversed; Linus's first, that metadata is capped by no rule, is no cap at all by the 2026-11-02 ruling and cured as wording (Term metadata says opaque content of any value, Execution Contract Input 3); his second, that a withdrawal backdated before expiry is recorded nowhere, is the NOTE's stated case, and his cure breaks Invariant 3.2 and Operation 32. Cured in the round as refining: Composition note 1 and Invariant 3.3 tombstoned (Conformance 9, Composition note 10 own them), State 2 reading the two instants the derivation reads, the Undo 4 sentence, Non-goal 10 and the owners NOTE naming Propagate Consent Revocation Downstream and every Non-goal's owner without the deleted labels, Composition note 2 tied to the act's subject and purpose, the Check entry citing Operations 35 and 36, and Term value sets naming the five value sets the entries use. Placed no defect: the checker's four acronym hits (glossed at their first use), Identity 8 and Invariant 6.1 (reserved by the history file), the clock allowance (Term now spends none), the one-check-per-invariant claim (Checks 5.2, 6.1 and 6.2 were deleted as owned), and the NOTE on a lost answer); 2026-11-20 — Final Critique 22, a delta round, frozen at 15e8c30 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (claude-haiku-5-5) claimed one foundational, that Operation 24 and 25 and the [Grant] expiry row compare a caller-stated instant with now and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks Operation 8, 9, 24 and 25 as written and the corpus words a caller-stated instant compared with now as spending none (Selective Disclosure's Term now), a wording the settle added to Term now; of four refining, one cured (Operation 46 restated Term evaluation instant, deleted) and three refuted (Operation 39 and Term candidate record own the malformed at time's answer with Operation 40, Check 1.1's Invariant 8.1 stands on the page); four rhetorical NOTE wordings left; 2026-11-05 — Final Critique 21, a delta round, frozen at 4f85e1c — foundational count 0, clean, one sample
 
 open: none
 ```

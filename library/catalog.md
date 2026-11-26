@@ -58,7 +58,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints standing id. Offers key standing id.
 
-**[Consent](./atoms/consent.md)** (872 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
+**[Consent](./atoms/consent.md)** (877 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
