@@ -245,7 +245,7 @@ Projection: window-elapsed
 
 #### Storage Failure
 
-The refusal any action returns when the database refuses the write, or the journal refuses the append of Operation 43 (Execution Contract Constituent failure 1), after every precondition passes. No commitment is recorded, or the commitment remains [Held]. Definitive, which rests on Capability requirement 15.
+The refusal any action returns when the database refuses the write, or the journal refuses the append of Operation 43 (Execution Contract Database 1), after every precondition passes. No commitment is recorded, or the commitment remains [Held]. Definitive, which rests on Capability requirement 15.
 
 Kind:       Member
 Member of:  the action rejection
@@ -256,14 +256,14 @@ Projection: storage-failure
 
 #### Place Hold
 
-The behavior that records a new [Commitment] — assigning a fresh [Commitment Id] from the id material the seam supplies, setting [Resource], [Requester], [Placement Instant] and [Expiry Instant], standing the record in [Held], and answering the [Commitment Id]. Rejected [Invalid Request], [Resource Unavailable] or [Storage Failure].
+The behavior that records a new [Commitment] — assigning a fresh [Commitment Id] from the id material the seam supplies, setting [Resource], [Requester], [Placement Instant] and [Expiry Instant], standing the record in [Held], and answering the [Commitment Id]. Rejected [Invalid Request], [Registry Unavailable], [Resource Unavailable] or [Storage Failure].
 
 Kind: Operation
 
 ```
 place_hold(resource, requester, duration)
   answers commitment_id
-  refuses invalid-request | resource-unavailable | storage-failure
+  refuses invalid-request | registry-unavailable | resource-unavailable | storage-failure
 ```
 
 ```
@@ -272,6 +272,7 @@ Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-req
 Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration IS NOT IN the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
+Operation 44: IF the availability verdict EQUALS blank THEN [Place Hold] MUST answer registry-unavailable.
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh commitment id.
 Operation 9: An admitted place hold MUST record resource and requester.
@@ -298,6 +299,15 @@ Kind:       Member
 Member of:  the Place Hold rejection
 Role:       Outcome
 Projection: invalid-request
+
+#### Registry Unavailable
+
+The refusal [Place Hold] returns when the host could not read the registry's availability verdict at the seam (Operation 44), so no verdict was read; the host's failure to read, which the registry never gave. Distinct from [Resource Unavailable], which the registry gives once read: the place hold may be retried. No commitment is recorded. The app action that makes the call answers it unchanged (Execution Contract Constituent failure 2).
+
+Kind:       Member
+Member of:  the Place Hold rejection
+Role:       Outcome
+Projection: registry-unavailable
 
 #### Resource Unavailable
 
@@ -381,7 +391,7 @@ Projection: window-not-elapsed
 
 #### Read
 
-The read-only query answering every commitment the database holds, held and terminal, each with its stored fields. It changes nothing and refuses nothing.
+The read-only query answering every commitment the database holds, held and terminal, each with its stored fields. It changes nothing and refuses nothing; where the database cannot be read it answers state-unavailable, the family answer of Execution Contract Read 1, which is no refusal.
 
 Kind: Operation
 
@@ -436,6 +446,8 @@ Operation 41: [Read] MUST NOT refuse a call.
   Invariant 10.1: The atom MUST NOT remove a commitment from the database.
   ```
 
+A [Place Hold] is undone by a [Release], which returns the resource and stands the commitment in released. A [Confirm], a [Release] and an [Expire] are not undone by this atom: a terminal state is absorbing (Invariant 3.1), so a new [Place Hold] records afresh (Execution Contract Undo 4). The lapse instant follows the placement instant too, entailed by Invariant 7.2 with Invariant 6.1.
+
 Term degenerate window: a commitment whose expiry instant does not exceed the commitment's placement instant.
 
 Term late resolution: a commitment whose state EQUALS confirmed and whose expiry instant does not exceed the commitment's confirmation instant, OR one whose state EQUALS released and whose expiry instant does not exceed the commitment's release instant.
@@ -467,7 +479,7 @@ String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
-Term string input: resource OR requester — every caller-supplied string this atom accepts.
+Term string input: resource, requester OR commitment id — every caller-supplied string this atom accepts; a commitment id over the string cap names no commitment.
 
 ---
 
@@ -485,7 +497,8 @@ Capability requirement 11: The registry MUST NOT return the resource to availabi
 Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
 Capability requirement 20: The registry MUST NOT remove the resource from availability on a refused [Place Hold].
 Capability requirement 12: IF no [Expire] call answering storage-failure EXISTS for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST resolve the lapsed commitment WITHIN the reclamation window.
-Capability requirement 30: IF an [Expire] call answered storage-failure for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST resolve the lapsed commitment at the expire cadence's next firing.
+Capability requirement 33: The deployment MUST supply id material that is not blank and whose length does not EXCEED the string cap (Execution Contract Input 2).
+Capability requirement 30: IF an [Expire] call answered storage-failure for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST call [Expire] on the lapsed commitment at the expire cadence's next firing.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 21: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 22: The deployment MAY declare the duration bounds PER Execution Contract Input 2.
@@ -512,7 +525,7 @@ Term registry: the deployment's owner of what a resource is and what availabilit
 
 Term availability: whether the registry accepts a resource for a hold — the registry's own standing of the resource, which the atom never defines (Non-goal 11).
 
-Term availability verdict: the registry's answer on one resource, accepts OR refuses, which the host reads and injects at the seam (Capability requirement 16).
+Term availability verdict: the registry's answer on one resource, accepts OR refuses, or blank where the host could not read the registry, which the host reads and injects at the seam (Capability requirement 16).
 
 Term database instance: one named database a call is routed to; commitment id uniqueness ranges over one instance.
 
@@ -534,7 +547,7 @@ Term admitted confirm: a [Confirm] call the action admits (Execution Contract Re
 
 Term releasing action: an admitted release OR an admitted expire.
 
-Term reclamation window: the span a deployment firing [Expire] on a cadence declares as the bound on the reclamation lag (Capability requirement 8).
+Term reclamation window: the span a deployment firing [Expire] on a cadence declares as the bound on the reclamation lag of a commitment no [Expire] call answering storage-failure EXISTS for (Capability requirement 8, Capability requirement 12).
 
 Term expire cadence: the span between two firings of [Expire] a deployment firing [Expire] on a cadence declares (Capability requirement 7).
 
@@ -586,7 +599,7 @@ Deleted: Non-goal 20. Non-goal 19 owns it: the atom bounds no retention, and whi
 Non-goal 21: The atom MUST NOT pause a hold window.
 Non-goal 22: The atom MUST NOT offer a multi-commitment transaction.
 Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
-Non-goal 24: The atom MUST NOT hold a resource fungible below the commitment's grain.
+Non-goal 24: The atom MUST NOT hold a part of a resource.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
 Non-goal 26: A deployment needing two racing transitions ordered MUST read the sequence number of the journal the atom appends to.
 Non-goal 27: The atom MUST NOT remove a requester's personal data.
@@ -646,7 +659,7 @@ What differs across the five: resource semantics, window length, the regulatory 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
-- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred pattern *(forthcoming)* redacts the reference and leaves commitment id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist, and an erasure-record pattern keeps the permanent record that the destruction happened (Non-goal 27, Non-goal 28).
+- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred pattern *(forthcoming)* redacts the reference and leaves commitment id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist, and an erasure-record pattern keeps the permanent record that the destruction happened; a check over this atom's records does not answer the redaction (Execution Contract Database 6; Non-goal 27, Non-goal 28).
 - **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC (Coordinated Universal Time). Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. [Read] answers every commitment the database holds (Operation 38), and ordering *within* the window needs the commitment events the atom appends through its journal need (External check 2).
 
 ---
@@ -690,11 +703,12 @@ Check 2.2: An auditor MUST find no commitment leaving a terminal state across tw
 Check 3.1: An auditor MUST find no late resolution in the database (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the database (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the database (Invariant 6.1).
+Check 3.4: An auditor MUST find EVERY held commitment reading EXACTLY ONE OF open, lapsed against the read-time clock (Invariant 7.3).
 Check 4.1: An auditor MUST find no commitment's confirmation instant preceding the commitment's placement instant (Invariant 8.1).
 Check 4.2: An auditor MUST find no commitment's release instant preceding the commitment's placement instant (Invariant 8.2).
-Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Generation acceptance 1).
+Check 5.1: An auditor MUST find EVERY commitment's properties unchanged across EVERY committed version of the commitment (Invariant 5.1; Execution Contract Database 6, Execution Contract Generation acceptance 1).
 Check 5.2: An auditor MUST find no commitment id on two commitments (Identity 5).
-Check 7.1: An auditor MUST find a resource and a requester on EVERY commitment (State 1).
+Check 7.1: An auditor MUST find a resource and a requester on EVERY commitment (State 1; Execution Contract Database 6).
 Check 7.2: An auditor MUST find a placement instant and an expiry instant on EVERY commitment (State 1).
 ```
 
@@ -709,7 +723,7 @@ External check 1: A deployment needing the resource of a confirmed commitment re
 External check 2: A deployment needing the transitions of one commitment ordered MUST read the commitment events the atom appends through the atom's journal need (Operation 43).
 External check 3: A deployment needing a rejection observed MUST read the composing pattern that records a refused action (Non-goal 23).
 External check 4: A deployment needing a requester bound to an actor MUST read the composing attestation pattern (Non-goal 14).
-External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window AND find no reclamation lag that EXCEEDS the reclamation window (Capability requirement 8, Capability requirement 12).
+External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window AND find no reclamation lag of a commitment no [Expire] call answering storage-failure EXISTS for that EXCEEDS the reclamation window (Capability requirement 8, Capability requirement 12).
 ```
 
 ---
@@ -724,7 +738,7 @@ Term records: commitment — one resource held for one requester for a bounded w
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, return, refuse, write, find, resolve, name, compare, normalize, confirm, append, place, produce, map, attest, fall, precede, supply, release, run, declare, compose, remove, bind, decide, define, bound, surface, reach, accept, pause, call, guarantee, trim, case-fold, own.
 
-Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
+Term value sets: state = held | confirmed | released | expired. action rejection = storage-failure. resolving-action rejection = not-known | not-held | window-elapsed. Place Hold rejection = invalid-request | registry-unavailable | resource-unavailable. Expire rejection = window-not-elapsed. terminal state = confirmed | released | expired. terminal instant = confirmation instant | release instant | lapse instant. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placement instant | expiry instant.
 
 Term bounds: duration bounds, window bound, reclamation window, string cap, expire run bound, restart delay bound.
 
@@ -760,6 +774,7 @@ Term cited: sequence number: Bonds. The section titled Logic Confinement Princip
 [Released]: #released
 [Expired]: #expired
 [Invalid Request]: #invalid-request
+[Registry Unavailable]: #registry-unavailable
 [Resource Unavailable]: #resource-unavailable
 [Not Known]: #not-known
 [Not Held]: #not-held
@@ -781,7 +796,7 @@ Term cited: sequence number: Bonds. The section titled Logic Confinement Princip
 ```
 status: doing
 formal: verified — provisional-commitment.tla + 4 twins (2026-06-04); provisional-commitment.als + 13 twins (the static data model, 2026-11-11: Invariant 1.1, 2.2, 6.1, 7.1 through 7.3, 8.1 and 8.2, State 1 through 5 and Identity 5 checked on every commitment record an admitted [Place Hold], [Confirm], [Release] or [Expire] leaves, built from the version its call found; Invariant 7.1, 8.1 and 8.2 a cross-check with the TLA+ model; Invariant 8.1 and 8.2 resting on the deployment's clock never going backward (Execution Contract Logic confinement 7), Invariant 6.1 on Capability requirement 27 and Execution Contract Logic confinement 9, Identity 5 on fresh id material (Capability requirement 23); nothing testable in Alloy for Invariant 2.1, 3.1, 5.1 or 10.1: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 5.1, Invariant 10.1 and Identity 4 (across steps); owed rows: Invariant 5; Invariant 10; Identity 4; 2a: Capability requirement 12 — owed: an invariant under the model clock (a lapsed Held commitment is resolved within the window of a cadence); the confirm-within-window rule (Inv_ConfirmWithinWindow) is held, 2026-11-11
-last gate: 2026-11-25 — Final Critique 18, a delta round, one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample (the diff base 66dc7f3c, the reach of the Execution Contract's app model cb98fa3c on the page, 1 label, Capability requirement 15, the page's own text unchanged; Linus reported no foundational finding and pressed three questions, that Capability requirement 15's citation of Conformance 9 could let two builds treat the wiring declaration as required or optional, that Storage Failure's "remains [Held]" could leave a commitment in another state, and that "Definitive" could forbid a retry; the blind second triage, one cold reader on Opus 5.5, held all three and refuted both of Linus's refining wording changes, on Conformance 9 (which binds every deployment and which a relying page cites by its label, as eight other atoms do), on Operation 14, Operation 15, Operation 31 and Refusal 1 (a failed write is reached only from held, and place hold's first arm records nothing), and on Error model 1 and Read 4 (a retry is a new call); no cure to a rule of the page); 2026-11-20 — Final Critique 17, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 66dc7f3c — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 16, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a6 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 15, a delta round, frozen at a579d088 — foundational count 1 after the blind second triage, cured by the settle, not clean, no sample; 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
+last gate: 2026-11-26 — Final Critique 19, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro), frozen at bad327c5 — foundational count 2 after the first triage, not clean, three samples (no blind second triage: it is owed at a count of zero); the reclamation window bounded the lag of every lapsed commitment while Capability requirement 12 and 30 let a lapsed commitment an [Expire] call answered storage-failure for outlast it (Term reclamation window and External check 5 now name the commitments no storage-failure stands for, and Capability requirement 30 asks the next firing to call [Expire], which a refused write can fail again), and the registry's verdict had no arm where the host cannot read the registry (Operation 44, registry-unavailable); three foundational claims placed refuted or refining: two [Place Hold] calls racing on one resource (Non-goal 29 gives the critical section to the lease pattern, Scott's ruling of 2026-11-20), the atom's own sweep (Execution Contract Scheduled leg 1 gives a scheduled leg's cadence to the specification, and no wait on a call the atom does not own is in the page) and Check 5.1 and 7.1 against the erasure scenario (Execution Contract Database 6, now cited in both checks and the scenario); nine refining findings cured; 2026-11-25 — Final Critique 18, a delta round, one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample (the diff base 66dc7f3c, the reach of the Execution Contract's app model cb98fa3c on the page, 1 label, Capability requirement 15, the page's own text unchanged; Linus reported no foundational finding and pressed three questions, that Capability requirement 15's citation of Conformance 9 could let two builds treat the wiring declaration as required or optional, that Storage Failure's "remains [Held]" could leave a commitment in another state, and that "Definitive" could forbid a retry; the blind second triage, one cold reader on Opus 5.5, held all three and refuted both of Linus's refining wording changes, on Conformance 9 (which binds every deployment and which a relying page cites by its label, as eight other atoms do), on Operation 14, Operation 15, Operation 31 and Refusal 1 (a failed write is reached only from held, and place hold's first arm records nothing), and on Error model 1 and Read 4 (a retry is a new call); no cure to a rule of the page); 2026-11-20 — Final Critique 17, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 66dc7f3c — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 16, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a6 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 15, a delta round, frozen at a579d088 — foundational count 1 after the blind second triage, cured by the settle, not clean, no sample; 2026-11-20 — Final Critique 14, frozen at 28ae7e6e — foundational count 3, cured by the settle, not clean, no sample; 2026-11-05 — Final Critique 13, a delta round, frozen at 8adbf07 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 12 — foundational count 3, not clean, no sample
 
 open: none
 ```

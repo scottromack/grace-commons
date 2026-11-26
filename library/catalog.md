@@ -158,7 +158,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints chain id. Needs key actor id. Offers key chain id.
 
-**[Provisional Commitment](./atoms/provisional-commitment.md)** (801 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
+**[Provisional Commitment](./atoms/provisional-commitment.md)** (816 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
 
 - Mints commitment id. Needs key actor id; journal commitment events. Offers key commitment id.
 
