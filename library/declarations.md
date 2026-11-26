@@ -66,6 +66,10 @@ Term holding id: opaque — the one value naming one person's holding of one rol
 
 Term comment id: opaque — the one value naming one comment, minted when the comment is added or replied and never reused.
 
+Term pool id: opaque — the one value naming one bounded pool, minted when the pool is declared and never reused.
+
+Term audit event id: opaque — the one value naming one audit event on a pool's audit log, minted when the event is appended and never reused across the event classes.
+
 Term subscription id: opaque — the one value naming one standing interest, minted when the subscription is made and never reused.
 
 Term disclosure id: opaque — the one value naming one recorded disclosure, minted when the disclosure is recorded and never reused.

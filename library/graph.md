@@ -27,6 +27,7 @@ flowchart LR
   b_assignment["Assignment"]
   b_calendar_time["Calendar Time"]
   b_capability["Capability"]
+  b_capacity_constraint_enforcement["Capacity Constraint Enforcement"]
   b_cart["Cart"]
   b_category["Category"]
   b_comment["Comment"]
@@ -86,6 +87,8 @@ flowchart LR
   b_ordering -.->|"opaque"| b_approval_step
   b_ordering -.->|"opaque"| b_calendar_time
   b_ordering -.->|"opaque"| b_capability
+  b_ordering -.->|"opaque"| b_capacity_constraint_enforcement
+  b_ordering -.->|"opaque"| b_capacity_constraint_enforcement
   b_ordering -.->|"opaque"| b_cart
   b_ordering -.->|"opaque"| b_cart
   b_ordering -.->|"opaque"| b_category
