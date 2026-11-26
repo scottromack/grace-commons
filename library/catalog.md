@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 15 with bond lines; 2 app(s).
+53 atoms, 16 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -142,9 +142,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Party Identity](./atoms/party-identity.md)** (931 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
+**[Party Identity](./atoms/party-identity.md)** (961 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
 
-- No bond lines yet.
+- Mints party id. Needs key actor id. Offers key party id.
 
 **[Permissions](./atoms/permissions.md)** (663 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 
