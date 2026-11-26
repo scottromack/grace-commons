@@ -50,7 +50,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints comment id. Offers key comment id.
 
-**[Communication](./atoms/communication.md)** (785 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
+**[Communication](./atoms/communication.md)** (794 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
 - Mints communication id. Offers key communication id.
 

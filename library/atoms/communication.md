@@ -44,6 +44,7 @@ Identity 10: The atom MUST NOT normalize a medium.
 Identity 11: The atom MUST compare two media codepoint for codepoint.
 Identity 12: The atom MUST NOT normalize an outcome.
 Identity 13: The atom MUST compare two outcomes codepoint for codepoint.
+Identity 14: The atom MUST compare two occurred instants as instants.
 ```
 
 Term communication: one exchange between the business and people outside the business, kept from the [Record] call that logged the exchange — a [Communication].
@@ -52,13 +53,13 @@ Term detail: a medium, an occurred instant, outside participants, inside partici
 
 Term outside participant: a person outside the business who took part in an exchange, named by a person reference.
 
-Term outside participants: the outside participants a communication carries — the [Outside Participants]; never an empty list.
+Term outside participants: the outside participants a communication carries — the [Outside Participants]; never an empty list, which GRACE-lang Term blank reads as blank.
 
 Term inside participant: a person of the business who took part in an exchange, named by a person reference.
 
-Term inside participants: the inside participants a communication carries — the [Inside Participants]; an empty list where the call names none.
+Term inside participants: the inside participants a communication carries — the [Inside Participants]; an empty list where the [Record] call names none.
 
-Term item references: the item references a communication carries — the [Item References]; an empty list where the call names none.
+Term item references: the item references a communication carries — the [Item References]; an empty list where the [Record] call names none.
 
 NOTE: Capability requirement 4 through 7 are the atom's own rule for the canonical form of each reference, of a medium and of an outcome, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 13).
 
@@ -69,7 +70,7 @@ State 3: EVERY communication MUST stand in EXACTLY ONE OF active, withdrawn.
 State 4: The atom MUST NOT remove a communication.
 ```
 
-Term occurred instant: the instant the exchange happened, as the [Record] or [Change] call carries it — the [Occurred Instant]; never later than the injected now of the call that set it; a [Record] that leaves it blank is refused (Operation 45), which stands in place of Execution Contract Logic confinement 12, and a [Change] that leaves it blank omits it, and it stands (Operation 27, GRACE-lang Earned vocabulary 22).
+Term occurred instant: the instant the exchange happened, as the [Record] or [Change] call carries it — the [Occurred Instant]; never later than the future bound of the call that set it; a [Record] that leaves it blank is refused (Operation 45), which stands in place of Execution Contract Logic confinement 12, and a [Change] that leaves it blank omits it, and it stands (Operation 27, GRACE-lang Earned vocabulary 22).
 
 Term direction: which way an exchange went — the [Direction]; inbound or outbound.
 
@@ -109,7 +110,7 @@ Projection: medium
 
 #### Occurred Instant
 
-The instant the exchange happened, as the call carried it; never later than the injected now of the call that set it, and the order every history reads in.
+The instant the exchange happened, as the call carried it; never later than the future bound of the call that set it, and the order every history reads in.
 
 Kind:       Field
 Field of:   Communication
@@ -216,7 +217,7 @@ Term outcome: how an exchange went, such as connected or no-answer, one of the o
 ```
 Deleted: Operation 1. Operation 2 owns it, with Capability requirement 10 (Scott, 2026-11-19).
 Operation 2: IF the medium of the call DOES NOT EQUAL blank AND the medium of the call IS NOT IN the medium set THEN a detail action MUST answer invalid-medium.
-Operation 3: IF the occurred instant of the call DOES NOT EQUAL blank AND the injected now PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant.
+Operation 3: IF the occurred instant of the call DOES NOT EQUAL blank AND the future bound PRECEDES the occurred instant of the call THEN a detail action MUST answer invalid-occurred-instant (Execution Contract Logic confinement 18).
 Operation 5: IF a member of the outside participants of the call EQUALS blank OR a member of the outside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-outside-participants.
 Operation 6: IF a member of the inside participants of the call EQUALS blank OR a member of the inside participants of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-inside-participants.
 Operation 7: IF the summary of the call EXCEEDS the string cap THEN a detail action MUST answer invalid-summary.
@@ -236,6 +237,8 @@ Operation 24: IF the communication id of the call is malformed OR no communicati
 
 Term detail action: [Record] | [Change] — the actions that carry details.
 
+Term history action: [History For] — the action that answers a history.
+
 Term keyed action: [Change] | [Withdraw] | [Look Up] — the actions that name one communication by communication id; in a rule on a keyed action, the communication is the one carrying the communication id of the call.
 
 Term writing action: [Record] | [Change] | [Withdraw] — the actions that change the communications.
@@ -254,7 +257,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the communications |
 |---|---|---|---|
-| a detail action | the occurred instant later than now | [Invalid Occurred Instant] | none (Operation 3) |
+| a detail action | the occurred instant later than the future bound | [Invalid Occurred Instant] | none (Operation 3) |
 | a detail action | the occurred instant not an instant | [Invalid Occurred Instant] | none (Operation 12) |
 | a detail action | the medium over the string cap, not a string, or not in the medium set | [Invalid Medium] | none (Operation 2, Operation 11) |
 | a detail action | an outside participant blank or over the string cap, or not a list of strings | [Invalid Outside Participants] | none (Operation 5, Operation 13) |
@@ -270,7 +273,7 @@ The case space, and the rule that owns each case:
 
 The sales team's calls, made on Monday 2026-11-16:
 
-- `record("phone", "2026-11-23T09:00:00-06:00", ["jane-ruiz"])` — rejected as [Invalid Occurred Instant]: next Monday is later than now, and a call still to come belongs on a calendar (Operation 3, Non-goal 2).
+- `record("phone", "2026-11-23T09:00:00-06:00", ["jane-ruiz"])` — rejected as [Invalid Occurred Instant]: next Monday is later than the future bound, and a call still to come belongs on a calendar (Operation 3, Non-goal 2).
 - `record("phone", "2026-11-10T10:15:00-06:00", [])` — rejected as [Invalid Outside Participants]: nobody from outside the business took part (Operation 4).
 - `record("phone", "2026-11-10T10:15:00-06:00", ["jane-ruiz", ""])` — rejected as [Invalid Outside Participants]: one member is blank (Operation 5).
 - `record("fax", "2026-11-10T10:15:00-06:00", ["jane-ruiz"])` — rejected as [Invalid Medium]: the team's medium set has no fax (Operation 2).
@@ -301,7 +304,7 @@ Projection: invalid-medium
 
 #### Invalid Occurred Instant
 
-The refusal of an [Occurred Instant] later than now, or one that is not an instant, on [Record] or [Change], and of a blank one on [Record] (Operation 3, Operation 12, Operation 45).
+The refusal of an [Occurred Instant] later than the future bound, or one that is not an instant, on [Record] or [Change], and of a blank one on [Record] (Operation 3, Operation 12, Operation 45).
 
 Kind:       Member
 Member of:  the action rejection
@@ -418,7 +421,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the communications |
 |---|---|---|---|
-| [Record] | every detail valid, the medium in the medium set, any outcome in the outcome set, the occurred instant no later than now, database accepts | the communication id | one communication lands, active, carrying the details of the call (Operation 19, Operation 20, Operation 23, State 1) |
+| [Record] | every detail valid, the medium in the medium set, any outcome in the outcome set, the occurred instant no later than the future bound, database accepts | the communication id | one communication lands, active, carrying the details of the call (Operation 19, Operation 20, Operation 23, State 1) |
 | [Record] | the call leaves inside participants or item references blank, omitted or an empty list | the communication id | each such list is recorded empty (Operation 21, Operation 22, GRACE-lang Earned vocabulary 22) |
 | [Record] | the occurred instant blank | [Invalid Occurred Instant] | none (Operation 45) |
 | [Record] | the medium blank | [Invalid Medium] | none (Operation 44) |
@@ -452,6 +455,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Change] | the communication stands active, every supplied detail valid, database accepts | ok | every supplied detail is set, every other detail stands, and the earlier version stays readable (Operation 26, Operation 27, Operation 29, Execution Contract Database 5) |
 | [Change] | the communication stands active and the call supplies no detail | ok | none, no write (Operation 28) |
+| [Change] | the communication stands active, a supplied detail invalid | the refusal of that detail | none (Operation 2 through 8, Operation 10 through 18, the table above) |
 | [Change] | the communication stands withdrawn | [Not Active] | none (Operation 25) |
 
 ### Withdraw
@@ -574,7 +578,7 @@ A deployment that drops a medium from the medium set stops, at the next start, e
 
 ### A range or a reference that matches nothing
 
-A range whose end instant is earlier than its start instant holds no occurred instant, so [History For] answers an empty list, as it does for a reference no active communication carries. A deployment that writes one string for a person and for an item gets both in one history, so the deployment keeps the two schemes apart (Composition note 2).
+A range whose end instant is earlier than its start instant holds no occurred instant, so [History For] answers an empty list, as it does for a reference no active communication carries. A deployment that writes one string for a person and for an item gets both in one history, so the composing pattern keeps the two schemes apart (Composition note 2).
 
 ### What undoes a write
 
@@ -583,7 +587,7 @@ A range whose end instant is earlier than its start instant holds no occurred in
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1, Execution Contract Query 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1, Execution Contract Query 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MUST NOT normalize a person reference at the seam.
@@ -594,7 +598,8 @@ Capability requirement 8: The deployment MAY declare the medium set PER Executio
 Capability requirement 9: The deployment MAY declare the outcome set PER Execution Contract Logic confinement 17.
 Capability requirement 10: IF a member of the medium set EQUALS blank OR a member of the medium set EXCEEDS the string cap THEN the deployment MUST NOT declare the medium set.
 Capability requirement 11: IF a member of the outcome set EQUALS blank OR a member of the outcome set EXCEEDS the string cap THEN the deployment MUST NOT declare the outcome set.
-Capability requirement 12: The deployment MUST supply each communication id PER Execution Contract Logic confinement 16.
+Capability requirement 12: The deployment MUST supply each communication id PER Execution Contract Logic confinement 16 and Execution Contract Input 2.
+Capability requirement 13: The deployment MUST declare the clock allowance (Execution Contract Logic confinement 18).
 ```
 
 Term medium set: the media a deployment offers; phone, email, meeting, message, letter and visit where a deployment declares none.
@@ -605,9 +610,13 @@ Term person reference: the string naming one person who took part in an exchange
 
 Term item reference: the string naming one item an exchange was about, such as a customer, a deal or a repair, in the deployment's own scheme; the atom reads no scheme in it.
 
-Term string cap: the bound on the length of a person reference, an item reference, a medium, an outcome and a summary in Unicode code points; 1,024 code points where a deployment declares none.
+Term string cap: the bound on the length of a communication id, a person reference, an item reference, a medium, an outcome and a summary in Unicode code points; 1,024 code points where a deployment declares none; a communication id over the cap names no communication (Operation 24).
 
-Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
+Term clock allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance (Execution Contract Logic confinement 18).
+
+Term future bound: (now + the clock allowance) — the ceiling an occurred instant is checked against (Operation 3).
+
+Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, and the clock allowance at the seam.
 
 Term reference: the string a [History For] call names — a person reference or an item reference.
 
@@ -657,7 +666,7 @@ A sales team keeps the medium set it starts with and declares the outcome set co
 
 ### Property manager
 
-A property manager declares the medium set phone, email, letter and visit, and no outcome set. A tenant, Omar Haddad, phones the front desk about a leaking faucet: `record("phone", "2026-11-12T08:40:00-06:00", ["omar-haddad"], inside_participants=["front-desk"], direction="inbound", item_references=["unit-4b"])` answers `p-9`. The plumber's visit the next morning is logged the same way with medium visit and answers `p-10`. `history_for("unit-4b")` answers `p-9` then `p-10`, and `history_for("omar-haddad")` answers the same two, since Omar took part in both.
+A property manager declares the medium set phone, email, letter and visit, and no outcome set. A tenant, Omar Haddad, phones the front desk about a leaking faucet: `record("phone", "2026-11-12T08:40:00-06:00", ["omar-haddad"], inside_participants=["front-desk"], direction="inbound", item_references=["unit-4b"])` answers `p-9`. The plumber's visit the next morning is logged the same way, naming `omar-haddad`, with medium visit and answers `p-10`. `history_for("unit-4b")` answers `p-9` then `p-10`, and `history_for("omar-haddad")` answers the same two, since Omar took part in both.
 
 ## Source
 
@@ -700,7 +709,7 @@ External check 2: An auditor needing an item reference confirmed as naming a rea
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
-Term actors: the atom; the host; the deployment (also: a deployment); the implementation; the business caller; a composing pattern; the database; a communication; a detail action; a keyed action; a writing action; an auditor.
+Term actors: the atom; the host; the deployment (also: a deployment); the implementation; the business caller; a composing pattern; the database; a communication; a detail action; a keyed action; a writing action; a history action; an auditor.
 
 Term records: communication — one exchange between the business and people outside the business, carrying communication id, medium, occurred instant, outside participants, inside participants, item references and status, and where the call gave them, direction, summary and outcome.
 
@@ -708,13 +717,13 @@ Term record verbs: identify, allocate, take, reuse, own, normalize, compare, car
 
 Term value sets: detail action, keyed action and writing action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — active | withdrawn; direction — inbound | outbound; action rejection — invalid-medium | invalid-occurred-instant | invalid-outside-participants | invalid-inside-participants | invalid-direction | invalid-summary | invalid-item-references | invalid-outcome | not-known | not-active | storage-failure.
 
-Term bounds: string cap (the bound on the length of a person reference, an item reference, a medium, an outcome and a summary in Unicode code points, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on the length of a communication id, a person reference, an item reference, a medium, an outcome and a summary in Unicode code points, 1,024 where a deployment declares none); clock allowance (the margin a deployment declares between a caller's clock and the seam's).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang unknown (2026-11-16) through the Grace connector.
 
-Term terms: communication, communications, communication id, detail, details, medium, media, medium set, outcome, outcomes, outcome set, person reference, person references, outside participant, outside participants, inside participant, inside participants, item reference, item references, string cap, seam, occurred instant, direction, inbound, outbound, summary, status, active, withdrawn, detail action, keyed action, writing action, reference, start instant, end instant, range, match, matches, history, version.
+Term terms: communication, communications, communication id, detail, details, medium, media, medium set, outcome, outcomes, outcome set, person reference, person references, outside participant, outside participants, inside participant, inside participants, item reference, item references, string cap, clock allowance, future bound, seam, occurred instant, direction, inbound, outbound, summary, status, active, withdrawn, detail action, keyed action, writing action, history action, reference, start instant, end instant, range, match, matches, history, version.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->
@@ -764,8 +773,8 @@ Term terms: communication, communications, communication id, detail, details, me
 
 ```
 status: doing
-formal: verified — communication.als + 15 twins (the static data model: State 1 and 3, Identity 3 and 4, Operation 2, 3 and 10 read as what every version carries, Operation 19 through 22, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 and 2 caught by the Identity 3 and 4 checks, Identity 6, 8, 10 and 12 by the Operation 19 check); communication.tla + 45 twins (across steps, under medium and outcome sets the deployment may change between calls: State 4, Invariant 2.1 and 3.1, Operation 2 through 8, 10 through 19 and 23 through 46, State 2 read through Operation 19, Identity 7, 9, 11 and 13 through Operation 2, 10 and 38, deleted Operation 1 and 9 read through Operation 2 and 10); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 5 (the implementation's id scheme) cannot be stated, 2026-11-19
-last gate: 2026-11-19 — Final Critique 4, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
+formal: verified — communication.als + 15 twins (the static data model: State 1 and 3, Identity 3 and 4, Operation 2, 3 and 10 read as what every version carries, Operation 19 through 22, Invariant 1.1 checked on every version a sequence of admitted calls leaves, Identity 1 and 2 caught by the Identity 3 and 4 checks, Identity 6, 8, 10 and 12 by the Operation 19 check); communication.tla + 45 twins (across steps, under medium and outcome sets the deployment may change between calls: State 4, Invariant 2.1 and 3.1, Operation 2 through 8, 10 through 19 and 23 through 46, State 2 read through Operation 19, Identity 7, 9, 11 and 13 through Operation 2, 10 and 38, deleted Operation 1 and 9 read through Operation 2 and 10); on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), neither vetoed; Identity 5 (the implementation's id scheme) cannot be stated, 2026-11-19; model redraw deferred to Lean: the communication models, Operation 3 (the occurred instant is checked against the future bound, now and the clock allowance), Identity 14, 2026-11-26
+last gate: 2026-11-26 — Final Critique 5, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro), frozen at db605d70 — foundational count 2 after the first triage, not clean, three samples (no blind second triage: it is owed at a count of zero); an occurred instant was checked against now alone, where Execution Contract Logic confinement 18 has a caller's clock checked against the seam's with the deployment's clock allowance (Operation 3 now answers the future bound, now and the allowance, as Observation's does; Capability requirement 13), and no cap stood for the communication id, an input that names a record (Input 2; Term string cap now names it, Capability requirement 12 holds the id within it); two foundational claims placed refining: the occurred instant's comparison (an instant is the type instant, and Earned vocabulary 18 compares it with PRECEDES; Identity 14 now says so) and an empty list read as no blank (GRACE-lang Term blank reads empty as blank; Term outside participants says so); eleven refining findings cured; 2026-11-19 — Final Critique 4, a delta round, frozen at d81f35b5 — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```
