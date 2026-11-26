@@ -42,13 +42,13 @@ The guard is where the atom's restraint is sharpest. A declared transition may c
 
 ```
 Identity 1: The atom MUST identify a workflow by the workflow id.
-Identity 2: The atom MUST identify a history entry by the transition id.
-Identity 3: The host MUST allocate a workflow id at the seam.
-Identity 4: The host MUST allocate a transition id at the seam.
+Identity 2: The atom MUST identify a history entry by the history entry id.
+Identity 3: The host MUST supply at the seam the workflow id the atom mints.
+Identity 4: The host MUST supply at the seam the history entry id the atom mints.
 Identity 7: The atom MUST NOT change a workflow id.
-Identity 8: The atom MUST NOT change a transition id.
+Identity 8: The atom MUST NOT change a history entry id.
 Identity 9: Two workflows in one database instance MUST NOT share a workflow id.
-Identity 10: Two history entries in one workflow MUST NOT share a transition id.
+Identity 10: Two history entries in one workflow MUST NOT share a history entry id.
 Identity 13: The atom MUST NOT identify a workflow by the subject reference.
 Identity 14: The atom MUST admit a second workflow carrying a recorded subject reference.
 Identity 15: The atom MUST NOT confirm that a subject reference names a known subject.
@@ -57,13 +57,11 @@ Identity 16: The atom MUST NOT interpret an instance metadata.
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds, one for each workflow id.
 
-Term history entry: one recorded transition on one workflow, carrying transition id, sequence number, from state, to state, action, firing instant and the actor reference and guard satisfied [Fire] recorded.
-
-Term transition id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
+Term history entry: one recorded transition on one workflow, carrying history entry id, sequence number, from state, to state, action, firing instant and the actor reference and guard satisfied [Fire] recorded.
 
 Term subject reference: the opaque reference naming the entity whose lifecycle the workflow governs — a [Subject Reference]; a property of the workflow, never the workflow's identity.
 
-Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; opaque content of any value (Execution Contract Input 3), outside the string cap, recorded where not blank, never interpreted.
+Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; opaque content of any value (Execution Contract Input 3), exempt from the string cap, recorded where not blank, never interpreted.
 
 Term database instance: one named database a call is routed to; workflow id uniqueness ranges over one database instance.
 
@@ -75,7 +73,7 @@ NOTE: watch the seam citation (Term seam, Term transition).
 State 1: EVERY workflow MUST carry workflow id, a declaration, a current state, a transition history, next sequence number and an instantiation instant.
 State 2: A workflow MAY carry subject reference.
 State 3: A workflow MAY carry instance metadata.
-State 4: EVERY history entry MUST carry transition id, sequence number, from state, to state, action and firing instant.
+State 4: EVERY history entry MUST carry history entry id, sequence number, from state, to state, action and firing instant.
 State 5: A history entry MAY carry actor reference.
 State 6: The atom MUST NOT offer a workflow removal surface.
 State 7: The atom MUST NOT offer a history entry removal surface.
@@ -251,13 +249,13 @@ Kind:       Field
 Field of:   a declared transition
 Projection: guard
 
-#### Transition Id
+#### History Entry Id
 
 The opaque, immutable, system-generated identity of a transition history entry — assigned by [Fire], never reused within the workflow.
 
 Kind:       Field
 Field of:   the history entry
-Projection: transition_id
+Projection: history_entry_id
 
 #### Sequence Number
 
@@ -285,7 +283,7 @@ Projection: actor_ref
 
 #### Guard Satisfied
 
-The caller-asserted flag that a guarded transition's [Guard] condition is met — a [Fire] on a guarded transition fires only if it is true, and the history entry then records `guard_satisfied: true` (Invariant 8). Absent for unguarded transitions: there a true or false assertion gates nothing, and the history entry records none (Operation 30).
+The caller-asserted flag that a guarded transition's [Guard] condition is met — a [Fire] on a guarded transition fires only if it is true, and the history entry then records `guard_satisfied: true` (Invariant 8). Absent for unguarded transitions: there a true or false assertion gates nothing, and the history entry records none (Operation 30), since an assertion no guard asked for attests nothing.
 
 Kind:       Field
 Field of:   the history entry
@@ -312,8 +310,8 @@ Term guard satisfied: true | false — a [Guard Satisfied], the caller's asserti
 ### Every action
 
 ```
-Operation 2: IF actor reference IS IN whitespace strings THEN a writing action MUST answer invalid-request.
-Operation 77: IF actor reference EXCEEDS the string cap THEN a writing action MUST answer invalid-request (Execution Contract Input 2).
+Operation 2: IF the call carries actor reference AND actor reference IS IN whitespace strings THEN a writing action MUST answer invalid-request (on [Fire], a cleared fire only: Operation 64).
+Operation 77: IF actor reference EXCEEDS the string cap THEN a writing action MUST answer invalid-request (Execution Contract Input 2; on [Fire], a cleared fire only: Operation 64).
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -325,7 +323,7 @@ Operation 59: IF instance metadata DOES NOT EQUAL blank THEN an admitted instant
 Operation 71: IF instance metadata EQUALS blank THEN an admitted instantiate MUST NOT record instance metadata.
 Operation 60: IF actor reference DOES NOT EQUAL blank THEN an admitted instantiate MUST record actor reference on the workflow.
 Operation 67: An admitted instantiate MUST record the resolved instantiation instant.
-Operation 72: An admitted instantiate MUST record on the workflow the workflow id the host allocates (Identity 3).
+Operation 72: An admitted instantiate MUST record on the workflow the workflow id the host supplies at the seam (Identity 3).
 Operation 9: IF workflow id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 75: IF workflow id EXCEEDS the string cap THEN an addressed action MUST answer invalid-request (Execution Contract Input 2).
 Operation 11: IF the workflow id names no workflow THEN an addressed action MUST answer not-known.
@@ -340,7 +338,7 @@ Operation 29: An admitted fire over a guarded transition MUST record guard satis
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
 Operation 61: IF actor reference DOES NOT EQUAL blank THEN an admitted fire MUST record actor reference on the history entry.
 Operation 68: An admitted fire MUST record the resolved firing instant on the history entry.
-Operation 73: An admitted fire MUST record the transition id the host allocates on the history entry (Identity 4).
+Operation 73: An admitted fire MUST record on the history entry the history entry id the host supplies at the seam (Identity 4).
 Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
 Operation 35: A refused action MUST leave the workflow as the call found the workflow.
 Operation 36: A refused action MUST NOT append a history entry.
@@ -361,13 +359,11 @@ NOTE: watch the required input no rule records (Operation 67, Operation 68).
 
 NOTE: watch the cap's refusal (Operation 75 through 78, Declaration 20).
 
-NOTE: open 2026-10-31-a — no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given workflow id carries (State 2, State 3, State 15, Operation 67).
-
-Term addressed action: any action carrying a workflow id — [Fire], [Current], [History] and [Read Declaration].
+Term addressed action: any action carrying a workflow id — [Fire], [Current], [History], [Read Declaration] and [Read Workflow].
 
 Term writing action: [Instantiate] | [Fire] — the two actions that write.
 
-Term reading action: [Current] | [History] | [Read Declaration] | [Workflows About] — the four that do not.
+Term reading action: [Current] | [History] | [Read Declaration] | [Read Workflow] | [Workflows About] — the five that do not.
 
 Term resolved firing instant: the firing instant the history entry carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
@@ -381,7 +377,7 @@ Term firing check: Operation 2, Operation 19 through 20, Operation 66, Operation
 
 Term firing fault: a firing check the call fails.
 
-Term filter axes: transition id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others, a filter on sequence number or firing instant carrying a range.
+Term filter axes: history entry id | sequence number | from state | to state | action | actor reference | firing instant — the seven axes [History] accepts, and no others, a filter on sequence number or firing instant carrying a range.
 
 Term recording commit: the commit of the [Instantiate] call that recorded a workflow, one position in the single order Execution Contract Order 1 gives every commit.
 
@@ -389,22 +385,27 @@ Term admitted instantiate: an [Instantiate] call the action admits (Execution Co
 
 Term admitted fire: a [Fire] call the action admits (Execution Contract Read 4).
 
-Term admitted history: a [History] call whose workflow id names a workflow and whose every filter axis and filter value the guards admit.
+Term admitted history: a [History] call whose workflow id names a workflow and that Operation 43, Operation 45, Operation 57, Operation 58 and Operation 87 through 89 all admit.
+
+Term string filter: a filter on history entry id, from state, to state, action or actor reference.
+
+Term range filter: a filter on sequence number or firing instant, which carries a range.
 
 The case space, and the rule that owns each case:
 
 | # | Condition | [Fire] answers | Owner |
 |---|---|---|---|
-| 1 | workflow id or action is blank or over the string cap | invalid-request | Operation 9, Operation 10, Operation 75, Operation 76 |
-| 2 | both are well-formed, the workflow id names no workflow | not-known | Operation 11 |
-| 3 | the workflow exists, the current state is terminal | terminal | Operation 13 |
-| 4 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
-| 5 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
-| 6 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77 |
-| 7 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
-| 8 | every precondition passes, the database accepts the write | new_state | Operation 28; Invariant 1.1, Invariant 5.1 |
+| 1 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
+| 2 | workflow id or action is blank or over the string cap | invalid-request | Operation 9, Operation 10, Operation 75, Operation 76 |
+| 3 | both are well-formed, the workflow id names no workflow | not-known | Operation 11 |
+| 4 | the workflow exists, the current state is terminal | terminal | Operation 13 |
+| 5 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
+| 6 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
+| 7 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77 |
+| 8 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
+| 9 | every precondition passes, the database accepts the write | new_state | Operation 28; Invariant 1.1, Invariant 5.1 |
 
-Where two rows hold at once, the earlier row answers: the rows follow the refuses line (Execution Contract Refusal 1), except that row 6 answers only on a cleared fire (Operation 64) and so stands below rows 2 through 5.
+Where two rows hold at once, the earlier row answers: row 1 answers ahead of every refusal, since in an atom every guard runs after the read (Execution Contract Read 1); the other rows follow the refuses line (Execution Contract Refusal 1), except that row 7 answers only on a cleared fire (Operation 64) and so stands below rows 3 through 6.
 
 The case space, and the rule that owns each case:
 
@@ -419,11 +420,11 @@ Where two rows hold at once, the earlier row answers: row 1 answers a malformed 
 
 [Workflows About] writes nothing (Operation 50), and its refuses line lists invalid-request alone: row 1 refuses, row 2 is the answer Execution Contract Read 1 gives every action whose read fails, and rows 3 and 4 answer.
 
-NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused.
+NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 2 and row 7), so the answer alone does not say which guard refused.
 
 #### Invalid Request
 
-The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], an [Actor Reference] that is an empty or whitespace-only string or carries a value that is not a string (Execution Contract Input 3), a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant].
+The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], an [Actor Reference] the call carries as an empty or whitespace-only string or as a value that is not a string (Execution Contract Input 3), an absent [Actor Reference] being no refusal and recording nothing (Operation 60, Operation 61), a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant] (Operation 2, Operation 3, Operation 9, Operation 10, Operation 19, Operation 20, Operation 66, Operation 69, Operation 75 through 78).
 
 Kind:       Member
 Member of:  the action rejection
@@ -432,7 +433,7 @@ Projection: invalid-request
 
 #### Storage Failure
 
-The rejection any write action returns when the database write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Operation 35 through 37).
+The rejection any write action returns when the database write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Operation 33, Operation 35 through 37).
 
 Kind:       Member
 Member of:  the action rejection
@@ -441,7 +442,7 @@ Projection: storage-failure
 
 #### Not Known
 
-The rejection [Fire], [Current], [History], or [Read Declaration] returns when the [Workflow Id] references no workflow in the database.
+The rejection [Fire], [Current], [History], [Read Declaration] or [Read Workflow] returns when the [Workflow Id] references no workflow in the database (Operation 11).
 
 Kind:       Member
 Member of:  the action rejection
@@ -452,7 +453,7 @@ Projection: not-known
 
 #### Instantiate
 
-The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], recording the injected [Workflow Id], [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for an [Actor Reference] that is an empty or whitespace-only string or carries a value that is not a string, or a bad [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
+The behavior that validates a caller-supplied [Declaration] and creates a new workflow in its [Initial State], recording the injected [Workflow Id], [Workflow Metadata], [Actor Reference], and [Instantiation Instant], and starting an empty [Transition History]. Rejected [Invalid Declaration] for any declaration defect, [Invalid Request] for an [Actor Reference] the call carries as an empty or whitespace-only string or as a value that is not a string, or a bad [Instantiation Instant], an [Actor Reference] over the string cap, or a [Subject Reference] over the string cap, or [Storage Failure].
 
 Kind: Operation
 
@@ -467,6 +468,17 @@ Operation 78: IF subject reference EXCEEDS the string cap THEN [Instantiate] MUS
 Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiate] MUST answer invalid-request.
 ```
 
+The case space, and the rule that owns each case:
+
+| # | Condition | [Instantiate] answers | Owner |
+|---|---|---|---|
+| 1 | the declaration is malformed or not well-formed | invalid-declaration | Declaration 5 through 15, Declaration 18 through 20 |
+| 2 | the call carries an actor reference that is blank, over the string cap or not a string, a subject reference over the string cap, or an instantiation instant that is malformed or later than now | invalid-request | Operation 2, Operation 3, Operation 77, Operation 78; Execution Contract Input 1, Execution Contract Input 3 |
+| 3 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
+| 4 | every precondition passes, the database accepts the write | the workflow id | Operation 4 through 8, Operation 72 |
+
+Where two rows hold at once, the earlier row answers (Execution Contract Refusal 1). [Instantiate] decides on no record it reads, so no read-failure row stands.
+
 `instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → invalid-declaration. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
 
 `instantiate(declaration)` where `initial state: released` and `released` is terminal → invalid-declaration. A workflow born absorbed accepts nothing (Declaration 9).
@@ -475,7 +487,7 @@ Operation 3: IF now PRECEDES the resolved instantiation instant THEN [Instantiat
 
 #### Invalid Declaration
 
-The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, a blank state name, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, a blank [Action] or [Guard], or a state name, [Action] or [Guard] over the string cap.
+The rejection [Instantiate] returns for any declaration defect — a malformed [Declaration], an empty or duplicate-named [States] set, a blank state name, an [Initial State] that is missing or in [Terminal States], a [Terminal States] member missing from [States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, a blank [Action] or [Guard], or a state name, [Action] or [Guard] over the string cap (Declaration 5 through 15, Declaration 18 through 20).
 
 Kind:       Member
 Member of:  the Instantiate rejection
@@ -520,7 +532,7 @@ Operation 31: [Fire] MUST NOT evaluate a guard.
 
 #### Terminal
 
-The rejection [Fire] returns when the workflow's [Current State] is a [Terminal States] member — terminal states are absorbing (Invariant 4).
+The rejection [Fire] returns when the workflow's [Current State] is a [Terminal States] member — terminal states are absorbing (Operation 13, Invariant 4).
 
 Kind:       Member
 Member of:  the Fire rejection
@@ -529,7 +541,7 @@ Projection: terminal
 
 #### Invalid Transition
 
-The rejection [Fire] returns when no declared transition matches the [Current State] and the supplied [Action] — only declared transitions fire (Invariant 3).
+The rejection [Fire] returns when no declared transition matches the [Current State] and the supplied [Action] — only declared transitions fire (Operation 15, Invariant 3).
 
 Kind:       Member
 Member of:  the Fire rejection
@@ -538,7 +550,7 @@ Projection: invalid-transition
 
 #### Guard Not Satisfied
 
-The rejection [Fire] returns when the matched transition carries a [Guard] but the caller did not assert [Guard Satisfied] as true (Invariant 8).
+The rejection [Fire] returns when the matched transition carries a [Guard] but the caller did not assert [Guard Satisfied] as true (Operation 17, Invariant 8).
 
 Kind:       Member
 Member of:  the Fire rejection
@@ -567,7 +579,7 @@ Operation 38: [Current] MUST answer the workflow's current state.
 
 #### History
 
-The read-only query returning a workflow's [Transition History] in [Sequence Number] ascending order, filterable by [Transition Id], a [Sequence Number] range, [From State], [To State], [Action], [Actor Reference], or a [Firing Instant] range. Rejected [Not Known], [Invalid Query], or [Invalid Request].
+The read-only query returning a workflow's [Transition History] in [Sequence Number] ascending order, filterable by [History Entry Id], a [Sequence Number] range, [From State], [To State], [Action], [Actor Reference], or a [Firing Instant] range. Rejected [Not Known], [Invalid Query], or [Invalid Request].
 
 Kind: Operation
 
@@ -578,15 +590,31 @@ history(workflow_id, optional query)
 ```
 
 ```
-Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query.
+Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query (Operation 43, Operation 45, Operation 58, Operation 87 through 89).
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
 Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
+Operation 87: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query (String 5, Execution Contract Query 5).
+Operation 88: IF a string filter's value EXCEEDS the string cap THEN [History] MUST answer invalid-query (Execution Contract Query 5).
+Operation 89: IF a range filter lacks the range's start OR lacks the range's end THEN [History] MUST answer invalid-query (Execution Contract Query 1).
 ```
+
+The case space, and the rule that owns each case:
+
+| # | Condition | [History] answers | Owner |
+|---|---|---|---|
+| 1 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
+| 2 | the workflow id is blank or over the string cap | invalid-request | Operation 9, Operation 75 |
+| 3 | the workflow id names no workflow | not-known | Operation 11 |
+| 4 | the query is malformed | invalid-query | Operation 57; Operation 43, Operation 45, Operation 58, Operation 87 through 89 |
+| 5 | no history entry matches | an empty entry sequence | Operation 42 |
+| 6 | one or more history entries match | the matching history entries, sequence number ascending | Operation 39 |
+
+Where two rows hold at once, the earlier row answers: row 1 by Execution Contract Read 1, the others by the refuses line (Execution Contract Refusal 1).
 
 #### Invalid Query
 
-The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Reference], or one over the string cap; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key.
+The rejection [History] returns for a malformed filter — a null or whitespace-only [History Entry Id], [From State], [To State], [Action], or [Actor Reference], or one over the string cap; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key. A blank filter value is malformed: String 5 reads a whitespace-only value as blank, and a blank filter matches nothing a caller meant (Operation 43, Operation 45, Operation 57, Operation 58, Operation 87 through 89).
 
 Kind:       Member
 Member of:  the History rejection
@@ -611,6 +639,26 @@ read_declaration(workflow_id)
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
+```
+
+### Read Workflow
+
+#### Read Workflow
+
+The read-only query returning what a workflow carries beside its declaration and its history: its [Instantiation Instant] and [Current State], and the [Subject Reference], [Workflow Metadata] and [Actor Reference] where it carries them. It answers [Not Known] for a [Workflow Id] that names no workflow, so it is also the read that says whether a workflow id stands. Rejected [Not Known] or [Invalid Request].
+
+Kind: Operation
+
+```
+read_workflow(workflow_id)
+  answers workflow
+  refuses invalid-request | not-known
+```
+
+```
+Operation 90: [Read Workflow] MUST answer the workflow's instantiation instant and current state.
+Operation 91: [Read Workflow] MUST answer the subject reference, the instance metadata and the actor reference the workflow carries.
+Operation 92: [Read Workflow] MUST NOT answer a field the workflow does not carry.
 ```
 
 ### Workflows About
@@ -728,7 +776,7 @@ Capability requirement 5: The deployment MUST supply the workflow records PER Ex
 Capability requirement 7: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 ```
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the workflow id and the transition id here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the workflow id and the history entry id here.
 
 Term transition: the atom's evaluation of one call against the workflow records.
 
@@ -744,9 +792,11 @@ Term need key: key actor id; pairs actor references.
 
 ## Offers
 
-The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
+The bonds this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
-Term offer key: key workflow id; carried by workflows.
+Term offer key: key workflow id; carried by workflows; calls Read Workflow.
+
+Term offer key: key history entry id; carried by history entries; calls History.
 
 ## Left to others
 
@@ -824,10 +874,10 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ## Source
 
-- **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts: each declared state transition constitutes a regulated electronic record; the transition history is the audit trail that Part 11 section 11.50 (attributability) and Part 11 section 11.70 (record linking to prevent removal, substitution, or falsification) require. A pattern that attests the actor provides the section 11.50 attributability, and one that makes records tamper-evident the section 11.70 non-falsifiability. Invariants 3 (only-declared-transitions), 5 (history append-only and complete), and 7 (replay determinism) are the atom-level guarantees the regulated record depends on.
+- **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts: each declared state transition constitutes a regulated electronic record, and the transition history is the record of operator actions that section 11.10(e)'s secure, computer-generated, time-stamped audit trail must capture. Sections 11.50 (signature manifestations: the signer's name, the date and time, the meaning) and 11.70 (signatures linked to their records so they cannot be excised, copied or transferred to falsify one) bind electronic signatures, which this atom does not make: a pattern that attests the actor carries them. Invariants 3 (only-declared-transitions), 5 (history append-only and complete), and 7 (replay determinism) are the atom-level guarantees the regulated record depends on.
 - **ISO 9001:2015 clause 8.5.1 (Control of production and service provision)** — requires that production and service provision activities be controlled by documented procedures, including controlled transitions at defined points in the process lifecycle. A State Machine workflow governing a production process is the documented process record section 8.5.1 anticipates; the declaration is the procedure map; the transition history is the per-workflow proof of execution.
 - **BPMN 2.0 (Business Process Model and Notation 2.0 — an international standard for modeling business processes, published by the Object Management Group)** — a BPMN process model's states and sequence flows map directly to this atom's [States] and [Transitions]; a BPMN lane actor maps to an [Actor Reference] on [Fire] calls; a BPMN gateway condition maps to a [Guard] label on a declared transition.
-- **HL7 FHIR Task resource** — the HL7 FHIR Task resource uses a declared workflow state machine (`Task.status`) with a defined lifecycle (`requested → accepted → in-progress → completed | failed | cancelled | rejected`). This atom is the general primitive the FHIR Task lifecycle is an instance of. A conforming FHIR Task implementation may derive its state enforcement from this atom's declared-transition model.
+- **HL7 FHIR Task resource** — the HL7 FHIR Task resource uses a declared workflow state machine (`Task.status`) with a defined lifecycle (its codes, in R4: draft, requested, received, accepted, rejected, ready, cancelled, in-progress, on-hold, failed, completed, entered-in-error; a common path runs `requested → accepted → in-progress → completed`). This atom is the general primitive the FHIR Task lifecycle is an instance of. A conforming FHIR Task implementation may derive its state enforcement from this atom's declared-transition model.
 - **UML (Unified Modeling Language — the standard object-oriented modeling language published by the Object Management Group) statecharts and Harel statecharts** — the conceptual core of this atom. A UML statechart's states, transitions, events, and guards map directly to this atom's [States], [Transitions], [Action]s, and [Guard] labels. This atom is a flat (non-hierarchical, single-active-state) Mealy / Moore finite-state-machine (a finite state machine is a computational model with a finite set of states, a start state, a set of transitions, and one active state at a time) workflow; Harel nesting and parallel regions are out of scope (see Non-goal 3 through 7).
 - **SOX (Sarbanes-Oxley Act — US law on corporate financial reporting and records integrity) section 404** — internal control over financial reporting. For financial process workflows (approval chains, journal entry processing, purchase order lifecycle), State Machine workflows are the process-control records SOX auditors query to verify that required control steps occurred in the declared order.
 - **HIPAA (Health Insurance Portability and Accountability Act) section 164.530(j)** — documentation requirements for covered entities: policies and procedures must be documented. Workflows governing patient-care or administrative processes under HIPAA may use this atom's transition history as the documentation of process execution.
@@ -859,13 +909,14 @@ Check 5.3: An auditor MUST find EVERY history entry's fields unchanged across EV
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).
 Check 7.1: An auditor MUST find guard satisfied recorded as true on EVERY guarded declared transition's history entry (Invariant 8.1, Invariant 8.3).
 Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
-Check 8.1: An auditor MUST find transition id, sequence number, from state, to state, action and firing instant on EVERY history entry (State 4).
+Check 8.1: An auditor MUST find history entry id, sequence number, from state, to state, action and firing instant on EVERY history entry (State 4).
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 Check 8.3: An auditor MUST find no history entry whose firing instant PRECEDES the workflow's instantiation instant (Operation 20).
+Check 10.1: An auditor MUST find EVERY workflow AND EVERY history entry a committed version holds standing in EVERY later committed version (Invariant 10.1, Invariant 10.2; Execution Contract Generation acceptance 1).
 Check 9.1: An auditor MUST reconstruct the workflows carrying a subject reference from the workflow records, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and MUST find the workflow ids [Workflows About] answers for that subject reference to be the reconstruction's workflow ids in the reconstruction's order (Operation 80 through 83).
 ```
 
-Term cited: workflow id, actor id: Declarations.
+Term cited: workflow id, history entry id, actor id: Declarations.
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
@@ -881,20 +932,20 @@ External check 3: A deployment needing an actor reference bound to an actor MUST
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
-Term actors: the atom; the host; the transition; the deployment; a composing pattern; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the database; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the workflow's history entry count; the workflow's admitted fire count.
+Term actors: the atom; the host; the deployment; a composing pattern; a caller; an auditor; a regulator; an inspector; an investigator; the database.
 
-Term records: workflow — one running workflow, carrying workflow id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and the subject reference, instance metadata and actor reference [Instantiate] recorded. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and the actor reference and guard satisfied [Fire] recorded. actor reference — the actor id a workflow or a history entry carries for the party who instantiated the workflow or fired the transition.
+Term records: workflow — one running workflow, carrying workflow id, a declaration, a current state, a transition history, next sequence number, an instantiation instant and the subject reference, instance metadata and actor reference [Instantiate] recorded. history entry — one recorded transition, carrying history entry id, sequence number, from state, to state, action, firing instant and the actor reference and guard satisfied [Fire] recorded. actor reference — the actor id a workflow or a history entry carries for the party who instantiated the workflow or fired the transition.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, order.
 
-Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration] | [Workflows About]. guard satisfied = true | false. filter axes = transition id | sequence number | from state | to state | action | actor reference | firing instant.
+Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [History] | [Read Declaration] | [Read Workflow] | [Workflows About]. action rejection = invalid-request | not-known | storage-failure. Instantiate rejection = invalid-declaration. Fire rejection = terminal | invalid-transition | guard-not-satisfied. History rejection = invalid-query. guard satisfied = true | false. filter axes = history entry id | sequence number | from state | to state | action | actor reference | firing instant.
 Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
-Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12); converted to the bond shape in GRACE lang v0.75 (2026-11-26).
 
-Term terms: workflow, history entry, transition id, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, admitted history, recording commit, committed version, string input, string cap, whitespace strings.
+Term terms: workflow, history entry, subject reference, instance metadata, database instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, cleared fire, firing check, firing fault, filter axes, admitted instantiate, admitted fire, string filter, range filter, admitted history, recording commit, committed version, string input, string cap, whitespace strings.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -906,6 +957,7 @@ Term terms: workflow, history entry, transition id, subject reference, instance 
 [Current]: #current
 [History]: #history
 [Read Declaration]: #read-declaration
+[Read Workflow]: #read-workflow
 [Workflows About]: #workflows-about
 [Workflow Id]: #workflow-id
 [Subject Reference]: #subject-reference
@@ -923,7 +975,7 @@ Term terms: workflow, history entry, transition id, subject reference, instance 
 [To State]: #to-state
 [Action]: #action
 [Guard]: #guard
-[Transition Id]: #transition-id
+[History Entry Id]: #history-entry-id
 [Sequence Number]: #sequence-number
 [Firing Instant]: #firing-instant
 [Actor Reference]: #actor-reference
@@ -950,11 +1002,10 @@ Term terms: workflow, history entry, transition id, subject reference, instance 
 
 ```
 status: doing
-formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26
 last gate: 2026-11-17 — Final Critique 22, delta, frozen at 5a146b1 — foundational count 0, clean, one sample
 
-open:
-- 2026-10-31-a · refining · State 2; State 3; State 15; Operation 67 · no action answers a workflow's instance metadata, actor reference or instantiation instant, nor the subject reference a given workflow id carries, which the workflow records hold, and a composing pattern reads an atom only through the atom's declared surface (the section titled The atom interface contract in `execution-contract.md`); [Workflows About] (Operation 80 through 86) now answers the other way, the workflow ids carrying a given subject reference → a read answering them, or a non-goal saying none does and who owns the need
+open: none
 ```
 
 </details>

@@ -52,6 +52,8 @@ Term list id: opaque — the one value naming a list of tasks, minted when the l
 
 Term workflow id: opaque — the one value naming one running workflow, minted when the workflow is made and never reused.
 
+Term history entry id: opaque — the one value naming one recorded transition of a running workflow, minted when the history entry is appended and never reused in its workflow.
+
 Term party id: opaque — the one value naming one external party, minted when the party is enrolled and never reused.
 
 Term chain id: opaque — the one value naming one custody chain, minted when the chain is originated and never reused.

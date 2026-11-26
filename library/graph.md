@@ -64,6 +64,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_provenance
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
+  b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_task
   b_ordering -->|"list id"| b_list
   b_party_identity -->|"actor id"| b_actor_identity
