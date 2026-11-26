@@ -265,7 +265,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 
 ### Heading tables
 
-One table, one row a heading, the shape that carries it first. A heading a row names for both shapes is two rows, one a shape. The rows whose shape is `atom tree` or `composition tree` are the tree order's (the section titled *The tree order* below); a pattern whose first `##` heading is `What it is` is read against them, and every other pattern against the rows of its section shape.
+One table, one row a heading, the shape that carries it first. A heading a row names for both shapes is two rows, one a shape. The rows whose shape is `atom tree` or `composition tree` are the tree order's (the section titled *The tree order* below); a pattern whose first `##` heading is `What it is` is read against them, and every other pattern against the rows of its section shape. The rows whose shape is `app` are an app's headings (`library/apps/<app>/index.md`, the section titled *App model* in `execution-contract.md`); the Execution Contract classifies each of them in its section titled *Section-name classification*, and no pattern is read against them.
 
 | Shape | Heading | Level | Inside | Required | Unplaced children |
 |---|---|---|---|---|---|
@@ -395,6 +395,14 @@ One table, one row a heading, the shape that carries it first. A heading a row n
 | composition tree | Status | 2 | | yes | no |
 | composition tree | Ledger | 2 | | yes | no |
 | composition tree | Decisions | 2 | | yes | no |
+| app | What it is | 2 | | yes | no |
+| app | Jobs | 2 | | yes | no |
+| app | Atoms | 2 | | yes | no |
+| app | Bonds | 2 | | yes | no |
+| app | The app's permission need | 3 | Bonds | no | no |
+| app | Glue | 2 | | no | no |
+| app | Actions | 2 | | yes | no |
+| app | Status | 2 | | yes | no |
 
 The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `Retention asymmetry`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name. Which of them are standard label families, and what each of those means, is the table titled *Rule families* below; the rest are promotion candidates (`GRACE-lang.md` Standard label 4), and each carries the meaning of its heading (Standard label 3).
 
