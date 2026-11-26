@@ -17,7 +17,7 @@ toc: true
 
 ## What it is
 
-Tamper Evidence answers one question: has this set of records changed since it was sealed? Sealing records evidence, a permanent record holding a proof — a mathematical fingerprint of the records as they stood when sealed — and checking the evidence recomputes the fingerprint over the records presented and compares the two, so any change since sealing shows. The pattern detects tampering rather than preventing it: someone who can rewrite both the records and the evidence can rewrite both, and only a record of the evidence kept beyond their reach, which a separate pattern supplies, defeats that. It works the same with any fingerprinting method that has no known way to fake a match and that anyone holding the records and the evidence can check, and on its own it does not say when or by whom records were changed, who sealed, or whether the sealing instant can be trusted; each of those is a separate pattern built on top. This is the mechanism behind sealing financial transaction journals, medical-record change logs and payment-card access logs so auditors can confirm nothing was rewritten, and Git's commit history (a widely used system for tracking changes to software) rests on the same idea.
+Tamper Evidence answers one question: has this set of records changed since it was sealed? Sealing records evidence, a permanent record holding a proof — a mathematical fingerprint of the records as they stood when sealed — and checking the evidence recomputes the fingerprint over the records presented and compares the two, so any change since sealing shows. The pattern detects tampering rather than preventing it: someone who can rewrite both the records and the evidence can rewrite both, and only a record of the evidence kept beyond their reach, which a separate pattern supplies, defeats that. It works the same with any fingerprinting method that has no known way to fake a match and that anyone holding the records and the evidence can check, given the anchor's answer where the method uses an external anchor, and on its own it does not say when or by whom records were changed, who sealed, or whether the sealing instant can be trusted; each of those is a separate pattern built on top. This is the shape of the mechanism behind sealing financial transaction journals, medical-record change logs and payment-card access logs so auditors can confirm nothing was rewritten, and Git's commit history (a widely used system for tracking changes to software) rests on the same idea.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -94,7 +94,7 @@ Projection: record_set_ref
 
 #### Proof
 
-The cryptographic artifact that commits to the record set's content — a hash chain, Merkle root, signed root, RFC 3161 timestamp token, blockchain transaction id, or composite. Computed from the [Mechanism Credential] over the record set at the seam by the deployment's mechanism, recorded by [Seal] on the [Evidence], and re-checked by the seal check at [Verify]. Set on [Seal], immutable thereafter.
+The cryptographic artifact that commits to the record set's content — a hash chain, Merkle root, signed root, RFC (Request for Comments — the Internet's numbered standards series) 3161 timestamp token, blockchain transaction id, or composite. Computed from the [Mechanism Credential] over the record set at the seam by the deployment's mechanism, recorded by [Seal] on the [Evidence], and re-checked by the seal check at [Verify]. Set on [Seal], immutable thereafter.
 
 Kind:       Field
 Field of:   Evidence
@@ -122,7 +122,6 @@ The atom's single stable state: an [Evidence] that has been recorded. There are 
 
 Kind:      Member
 Member of: the evidence state
-Role:      Outcome
 
 Term evidence id: the opaque value naming one evidence — an [Evidence Id].
 
@@ -146,17 +145,17 @@ Operation 25: The business caller MUST NOT supply sealing instant.
 Operation 26: The implementation MUST own the mechanism.
 ```
 
-NOTE: watch the cap's refusal (Operation 34).
+NOTE: watch the cap's refusal (Operation 15, Operation 34).
 
 NOTE: watch the cap's floor (Capability requirement 6).
 
-Term verification set: the evidence the lookup of the evidence id finds, or the lookup miss where it finds none, taking each value the host injects as given and consulting none, the presented original record set, the host-injected record set match, where the mechanism's verification function consults one, that mechanism's own external anchor, and the seal check computed over them at the seam; everything [Verify] is allowed to read, and nothing else.
+Term verification set: the evidence the lookup of the evidence id finds, or the lookup miss where it finds none; the presented original record set; the host-injected record set match, taken as given; where the mechanism's verification function consults one, that mechanism's own external anchor; and the seal check computed over them at the seam — everything [Verify] is allowed to read, and nothing else.
 
 Where two [Seal] cases hold at once, the refusal listed first on [Seal]'s refuses line answers (Execution Contract Refusal 1).
 
 #### Proof Invalid
 
-The [Failed Verification] reason returned when the mechanism's verification function, run over the presented record set against the stored [Proof], does not check out — the structural signal of tampering, where no anchor change has reached the proof (Invariant 3.1).
+The [Failed Verification] reason returned when the mechanism's verification function, run over the presented record set against the stored [Proof], does not check out, an anchor change included. Where no anchor change has reached the proof (Invariant 3.1) it is the structural signal of tampering.
 
 Kind:       Member
 Member of:  the Failed Verification reason
@@ -174,7 +173,7 @@ Projection: record-set-mismatch
 
 #### Mechanism Verification Unavailable
 
-The [Failed Verification] reason returned when the mechanism's verification function requires an external service (for example, an RFC 3161 TSA's published certificate chain) that is unavailable at verify time — a transient, retryable condition, distinct from [Proof Invalid] and [Record Set Mismatch].
+The [Failed Verification] reason returned when the mechanism's verification function consults the mechanism's own external anchor and that anchor is unavailable at verify time — a transient, retryable condition, distinct from [Proof Invalid] and [Record Set Mismatch].
 
 Kind:       Member
 Member of:  the Failed Verification reason
@@ -265,7 +264,7 @@ Projection: mechanism-failure
 
 #### Storage Failure
 
-The refusal [Seal] returns when the database write fails after the [Proof] is computed. The computed [Proof] is discarded — the caller must treat it as definitive.
+The refusal [Seal] returns when the database write fails after the [Proof] is computed. The computed [Proof] is discarded — the caller must treat the failure as definitive.
 
 Kind:       Member
 Member of:  the Seal rejection
@@ -288,7 +287,7 @@ verify(evidence_id, original_record_set)
 ```
 Operation 13: [Verify] MUST take the original record set.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
-Operation 15: IF no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
+Operation 15: IF the evidence id EXCEEDS the string cap OR no evidence EXISTS for the evidence id THEN [Verify] MUST answer not-known.
 Operation 16: IF evidence EXISTS for the evidence id AND record set match EQUALS no THEN [Verify] MUST answer failed-verification carrying record-set-mismatch.
 Operation 17: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer failed-verification carrying mechanism-verification-unavailable.
 Operation 18: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer failed-verification carrying proof-invalid.
@@ -302,11 +301,11 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the seal records |
 |---|---|---|---|
-| [Verify] | no evidence under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
+| [Verify] | no evidence under that id, or an id over the string cap | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | evidence found, wrong records presented | [Record Set Mismatch] | none (Operation 16) |
 | [Verify] | right records, seal check unavailable | [Mechanism Verification Unavailable] | none (Operation 17) |
 | [Verify] | right records, seal check faulted | [Mechanism Verification Failure] | none (Operation 35) |
-| [Verify] | right records, proof does not hold | [Proof Invalid] | none (Operation 18) |
+| [Verify] | right records, seal check failed | [Proof Invalid] | none (Operation 18) |
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19, Operation 33) |
 
 #### Original Record Set
@@ -337,7 +336,7 @@ Projection: failed-verification
 
 #### Not Known
 
-The outcome [Verify] returns when the supplied [Evidence Id] references no recorded [Evidence] — a lookup miss, not a verification failure. It is exclusively an [Evidence Id] lookup miss; an absent or wrong record set routes to [Failed Verification] for reason [Record Set Mismatch] instead.
+The outcome [Verify] returns when the supplied [Evidence Id] references no recorded [Evidence] — a lookup miss, not a verification failure. It is exclusively an [Evidence Id] lookup miss, an id over the string cap among them, which names no evidence; an absent or wrong record set routes to [Failed Verification] for reason [Record Set Mismatch] instead.
 
 Kind:       Member
 Member of:  the Verify outcome
@@ -389,7 +388,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 4.1: [Verify] MUST consult the verification set.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
-  Invariant 4.4: [Verify] MUST take the proof, the record set reference and the record set match as values the host injects at the seam.
+  Invariant 4.4: [Verify] MUST take the record set match as the value the host injects at the seam.
   ```
 - **Invariant 5 — Id stability.**
   ```
@@ -402,7 +401,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
   ```
-  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence against one record set AND no verification answering mechanism-verification-failure EXISTS among the two verifications AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence AND the original record sets of the two verifications EQUAL AND no verification answering mechanism-verification-failure EXISTS among the two verifications AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Mechanism opacity.**
   ```
@@ -424,12 +423,16 @@ NOTE: watch the host's state (Invariant 4.3).
 
 ```
 Concurrency 1: Two [Seal] calls over one record set MUST record independent evidence.
-Concurrency 2: The atom MUST NOT order two [Seal] calls over one record set.
+Concurrency 2: The atom MUST NOT order two [Seal] calls over one record set beyond the position Execution Contract Order 1 gives each commit.
 ```
 
 NOTE: the evidence a [Read] answers come in the order Execution Contract Read 5 states; no rule of this atom names another, since the atom orders no seal (Concurrency 2, Operation 27).
 
 NOTE: watch the order an atom forbids (Concurrency 2).
+
+### What undoes a write
+
+No writing action of this atom is undone: State 2, State 6, State 7, Invariant 1.1 and Invariant 9.1 keep what [Seal] writes, and a record set sealed again is recorded by a fresh [Seal] (Concurrency 1; Execution Contract Undo 4).
 
 ## While something is so
 
@@ -465,7 +468,7 @@ Capability requirement 11: The deployment MUST supply at the seam, for each [Sea
 Capability requirement 12: The deployment MUST supply, at the seam, a seal check that answers faulted ONLY IF the mechanism's verification function cannot run to a result at the seam for a cause other than an unavailable anchor.
 ```
 
-Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or the mechanism failure reason where the mechanism cannot compute the proof; at [Verify], the seal check.
+Term cryptographic material: what the deployment's mechanism computes at the seam — at [Seal], either the proof, computed from the mechanism credential over the record set the record set reference names, with the anchoring instant where the mechanism anchors at seal time, or, where the mechanism cannot compute the proof, the mechanism failure reason; at [Verify], the seal check.
 
 Term sealed record set: the record set the record set reference names at the call of [Seal], over which the mechanism computes the proof (Term cryptographic material); an original record set that differs from it is a changed one.
 
@@ -477,13 +480,13 @@ Term business caller: the party whose action the call carries; never the source 
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none; the string inputs are the record set reference and the mechanism credential.
+Term string cap: the bound on a string input's length in Unicode code points; 4,096 code points where a deployment declares none; the string inputs are the record set reference, the mechanism credential and the evidence id of [Verify].
 
 Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original record set is the record set the evidence's record set reference names. A different record set answers no; the named record set answers yes even where its content differs, and the content difference is for seal check to decide. The atom cannot judge it: record set reference is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
 Term seal check: held | failed | unavailable | faulted — the mechanism's verification function, run over the presented record set against the recorded proof; faulted where it cannot run to a result at the seam for a cause other than an unavailable anchor, the counterpart of the mechanism failure reason at [Seal]. Named for the seal because an attestation pattern declares its own proof check over an attestation, and an audit pattern may wire both: one name for two judgments is a collision a composition cannot resolve (council read 13).
 
-Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
+Term original record set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content; two original record sets are equal where their content is.
 
 Term anchor change: a change in what the mechanism's own external anchor answers the mechanism's verification function for an evidence's proof, such as a revocation or a withdrawal of trust the anchoring authority records; a mechanism whose verification function consults no external anchor has none.
 
@@ -533,11 +536,11 @@ The same atom, five regulated domains, identical mechanic.
 
 ### Financial — transaction-log anchoring under SOX
 
-A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. At seal time, the chain tail is anchored to an RFC (Request for Comments — the Internet's numbered standards series) 3161 qualified timestamp authority, and the time on the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered since the seal.
+A bank's settlement system seals each day's transaction journal: `seal(journal_2026-05-10, hsm_signing_key) → evidence_a91`. The mechanism is a SHA-256 (Secure Hash Algorithm, 256-bit — a standard cryptographic hash function) hash chain over the day's transactions, with the chain's tail signed by an HSM-bound (Hardware Security Module — a dedicated tamper-resistant device for keys) key. At seal time, the chain tail is anchored to an RFC (Request for Comments — the Internet's numbered standards series) 3161 qualified timestamp authority, and the time on the authority's timestamp token is recorded as [Anchoring Instant] on the seal. Seven years later, during a SOX (Sarbanes-Oxley Act — US financial reporting law) section 404 audit, the external auditor presents the journal and `verify(evidence_a91, journal_2026-05-10) → verified` — confirming the day's transactions were not altered since the seal.
 
 ### Healthcare — EHR change-log integrity under HIPAA and 21 CFR Part 11
 
-A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new evidence. `verify(evidence, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log, not a modification of yesterday's; if anyone retroactively edited yesterday's entry, every evidence made over that entry before the edit would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
+A hospital EHR (Electronic Health Record — the digital patient chart system) appends every record amendment (correction, addendum, redaction) to a per-patient change log. The change log is sealed on a rolling Merkle-tree basis — each commit produces a new root and a new evidence. `verify(evidence, patient_change_log) → verified` confirms the log has not been silently rewritten since the seal. A correction added today is a new event in the log and is sealed by a new evidence; an evidence made before it verifies over the log as it stood when sealed, and if anyone retroactively edited yesterday's entry, every evidence made over that entry before the edit would fail verification. 21 CFR Part 11's (the US Code of Federal Regulations rule on electronic records and signatures) and HIPAA's (US Health Insurance Portability and Accountability Act) electronic-record integrity bar is satisfied structurally.
 
 ### Source control — Git's commit DAG
 
@@ -580,13 +583,31 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-11)
 
 The presented record set does not match the [Record Set Reference] the [Evidence] was made over. This is not a tampering signal — it is a caller error, structurally distinguishable from proof-invalid.
 
+**Unknown evidence — [Not Known].** A verifier asks for an evidence id the seal records never allocated:
+
+```
+verify(evidence_id: "evidence_zz9", original_record_set: journal_2026-05-10)
+→ not-known
+```
+
+A lookup miss is no verdict on the records; an id over the string cap is one too (Operation 15).
+
+**Anchor unreachable — [Mechanism Verification Unavailable].** The timestamp authority the mechanism anchors to cannot be reached at verify time:
+
+```
+verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10)
+→ failed-verification(mechanism-verification-unavailable)
+```
+
+The check could not be made, so the call can be retried; it is not a tampering signal (Operation 17). A check the mechanism cannot run for any other cause answers mechanism-verification-failure (Operation 35).
+
 ### Regulated adversarial scenarios
 
 Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator integrity audit.** A regulator asks *"how do I know these records weren't rewritten after the fact?"* The auditor takes the original record set from the host, the [Evidence Id] from the seal records, and runs [Verify] — independently, with their own implementation of the mechanism's verification function. [Verified] is a structural guarantee, not a procedural promise. Invariants 2 and 3 are the structural answer. A bound on when the records could have been forged is not the atom's to give: a qualified TSA's time on the [Evidence] sets one only through Trusted Timestamping *(forthcoming)* (Non-goal 9).
-- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They query the seal records for every [Evidence] whose [Record Set Reference] covers the suspect records and run [Verify] on each over the suspect records as they now stand: [Proof Invalid] says the records changed since that evidence was recorded, where no anchor change has reached its proof, and [Verified] says they have not. The atom answers that much for each evidence and no more. When the records were altered, and who altered them, is Forensic Attribution's *(forthcoming)*, which reads these answers against the times a trusted-timestamping pattern vouches for (Non-goal 9, Non-goal 15, Non-goal 16).
-- **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`. The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to a composing pattern that locks or versions the document.
+- **Breach forensics — "when was the record altered?"** An incident responder discovers anomalous data. They read every [Evidence] with [Read], take each one whose [Record Set Reference] the host says covers the suspect records (Non-goal 11), and run [Verify] on each over the suspect records as they now stand: [Proof Invalid] says the records changed since that evidence was recorded, where no anchor change has reached its proof, and [Verified] says they have not. The atom answers that much for each evidence and no more. When the records were altered, and who altered them, is Forensic Attribution's *(forthcoming)*, which reads these answers against the times a trusted-timestamping pattern vouches for (Non-goal 9, Non-goal 15, Non-goal 16).
+- **False-tamper-claim disproof.** A counterparty claims *"you modified the contract after I signed."* The system presents the contract and the [Evidence]; `verify(evidence, contract) → verified`, where no anchor change has reached the proof (Invariant 3.1). The claim is structurally disproven against the unmodified record set the system retains; the counterparty's burden shifts to producing a different record set they claim is the authoritative one, at which point the dispute becomes about *which version is canonical* rather than *whether it was tampered with*. The atom answers the second question; the first belongs to a composing pattern that locks or versions the document.
 
 ---
 
@@ -620,17 +641,17 @@ It inherits from:
 
 ### Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears the conformance checks from the seal records, the originating record sets and the deployment's declared mechanism (External check 4), and the external checks from the records each one names.
+This atom's acceptance is provable: an external auditor clears the conformance checks from the seal records, the originating record sets and the deployment's declared mechanism (External check 4), and the external checks from the source each one names.
 
 #### Conformance checks
 
 ```
 Check 1.1: An auditor MUST reconstruct EVERY evidence from the evidence's stored fields (Invariant 1.1, State 3).
-Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.3).
+Check 1.2: An auditor MUST NOT need state beyond those fields, the originating record set and, where the mechanism's verification function consults one, the mechanism's own external anchor (Invariant 4.1, Invariant 4.3).
 Check 1.3: An auditor MUST confirm that EVERY evidence field of an evidence EQUALS the evidence field in EVERY committed version of the evidence (Invariant 1.1, Execution Contract Generation acceptance 1, Execution Contract Database 5).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
-Check 3.1: IF the record set match of a verification over an original record set carrying a single-byte change, the least difference, to the sealed record set EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
+Check 3.1: IF the record set match of a verification over an original record set that differs from the sealed record set by one byte EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
 Check 3.2: IF the record set match of a verification over the sealed record set EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted AND no anchor change EXISTS for the recorded proof THEN an auditor MUST confirm that the verification answers verified (Invariant 3.1, Operation 19).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid, mechanism-verification-unavailable and mechanism-verification-failure as four distinct reasons (Operation 16, Operation 17, Operation 18, Operation 35).
@@ -662,7 +683,7 @@ Term value sets: record set match = yes | no. seal check = held | failed | unava
 
 Term bounds: string cap.
 
-Term cadences: empty — a seal cadence is the composing pattern's (Execution Contract Conformance 9).
+Term cadences: empty — a seal cadence is the composing pattern's (Non-goal 14).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
@@ -710,8 +731,8 @@ Term terms: now, evidence, evidence id, record set reference, seam, transition, 
 
 ```
 status: doing
-formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; owed rows: Identity 1; Operation 10, 35 and 36; Concurrency 2; Verification caching 1, 2, 4 and 5, 2026-11-12
-last gate: 2026-11-26 — Final Critique 21, a delta round (diff base bc8d5fc0, 3 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Capability requirement 2, 4 and 11 and raised no finding; the blind second triage refuted all three and kept one refining item, that Capability requirement 2's Database and Read list stops short of Database 6 and 8 and Read 5 and 6, which the page relies on, cured, with Composition note 1, which restated Execution Contract Conformance 9, deleted to it); 2026-11-21 — Final Critique 20, a delta round, one reader (Linus opencode/minimax-m3), frozen at bc8d5fc0 — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Verification caching 4 and 5, the two rules Final Critique 19 added, and raised no finding; the blind second triage placed all five of its points refuted and found no defect of its own); last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
+formal: verified — tamper-evidence.als + 15 twins (the static data model: State 1, 3, 4 and 5, Identity 5 and 8, Invariant 5.1 and 6.1, Operation 1, 3, 4, 6 through 9, 11 and 34, and Non-goal 13 checked on every evidence an admitted [Seal] records, with Identity 2 and 4, Operation 5 and 25 checked through them); tamper-evidence.tla + 16 twins (across steps, while the clock moves and anchor changes arrive: Invariant 1.1, 2.1, 3.1, 3.2, 4.3, 7.1 and 9.1, State 2, Operation 2, 14 through 20, 27, 28, 29 and 33, with Invariant 4.1 and 5.2, State 6 and 7, Identity 6 and 7, Operation 22b and Concurrency 1 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 2.2 and 8.1 (the mechanism's soundness, read from the Mechanism Registry), Invariant 4.4 and 8.2, Capability requirement 7 through 12 (the deployment's seal check, record set presentation and evidence id, the models' input) and Operation 13 and 26 cannot be stated; model redraw deferred to Lean: tamper-evidence.tla, Operation 15; owed rows: Identity 1; Operation 10, 35 and 36; Concurrency 2; Verification caching 1, 2, 4 and 5, 2026-11-12
+last gate: 2026-11-26 — Final Critique 22, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro), frozen at d7cd02ca — foundational count 1, cured, not clean, no sample; 2026-11-26 — Final Critique 21, a delta round (diff base bc8d5fc0, 3 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Capability requirement 2, 4 and 11 and raised no finding; the blind second triage refuted all three and kept one refining item, that Capability requirement 2's Database and Read list stops short of Database 6 and 8 and Read 5 and 6, which the page relies on, cured, with Composition note 1, which restated Execution Contract Conformance 9, deleted to it); 2026-11-21 — Final Critique 20, a delta round, one reader (Linus opencode/minimax-m3), frozen at bc8d5fc0 — foundational count 0 after the blind second triage, clean, one sample (Linus's report held its three questions on Verification caching 4 and 5, the two rules Final Critique 19 added, and raised no finding; the blind second triage placed all five of its points refuted and found no defect of its own); last gate: 2026-11-21 — Final Critique 19, a delta round, frozen at c974ccd8 — foundational count 1, cured, not clean, no sample; 2026-11-21 — Final Critique 18, a full round, frozen at 80f8bac — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 17, a delta round, frozen at 700b167 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 16, a full round, frozen at cd7c4bb — foundational count 3, all cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at b1ae778 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 36e6d47 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at f84da63 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at dd11876 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 11, a delta round, frozen at d28642a — foundational count 3, all cured, not clean, no sample; 2026-10-24 — Final Critique 10 — foundational count 0, clean, one sample
 
 open: none
 ```

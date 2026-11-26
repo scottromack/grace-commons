@@ -210,7 +210,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Tamper Evidence](./atoms/tamper-evidence.md)** (731 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
+**[Tamper Evidence](./atoms/tamper-evidence.md)** (752 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
 
 - Mints evidence id. Offers key evidence id.
 

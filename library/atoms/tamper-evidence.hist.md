@@ -128,6 +128,7 @@ Deleted: Concurrent seal 2. Concurrency 2 owns it.
 Deleted: Retention coupling 1. The composing pattern that owns the purge owns it (Retention asymmetry 2): a copy of a purged record set can still verify.
 Deleted: Retention coupling 2. Retention asymmetry 2 owns it.
 Deleted: Retention coupling 3. The composing pattern that owns the purge owns it (Retention asymmetry 2): what a seal over destroyed records proves.
+Deleted: Retention asymmetry 1. Retention coupling 1, above, held it under the family's old name; Retention asymmetry 2 owns it.
 ```
 
 ### Edge cases › Verification caching
