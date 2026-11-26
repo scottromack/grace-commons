@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 26 with bond lines; 2 app(s).
+53 atoms, 27 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -50,9 +50,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Communication](./atoms/communication.md)** (729 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
+**[Communication](./atoms/communication.md)** (785 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
-- No bond lines yet.
+- Mints communication id. Offers key communication id.
 
 **[Condition Register](./atoms/condition-register.md)** (677 lines). Condition Register keeps the permanent record of what a background run observed.
 
