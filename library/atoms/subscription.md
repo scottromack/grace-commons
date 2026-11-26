@@ -543,7 +543,7 @@ Projection: not-active
 - **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — the canonical object-oriented formulation of the subscriber/publisher relationship. Subscription is the structured-natural-language realization of the Subscriber role: an actor with a named interest in a class of events.
 - **Publish-subscribe** (Birman & Joseph, 1987; subsequently AMQP (Advanced Message Queuing Protocol — the open messaging-middleware standard), Apache Kafka, etc.) — topic-based subscription as the mechanism for decoupling event producers from consumers. Subscription records the consumer-side interest; the composing fanout pattern is the broker.
 - **WebSub** (W3C — World Wide Web Consortium, the web's standards body — Recommendation) — web-native publish-subscribe over HTTP (HyperText Transfer Protocol — the request/response protocol of the web). The subscription resource in WebSub is the web analog of this atom.
-- **XMPP PubSub** (XEP-0060, an XMPP Extension Protocol — publish-subscribe over the Extensible Messaging and Presence Protocol) — structured publish-subscribe over XMPP. Subscription nodes are the protocol-level analog.
+- **XMPP PubSub** (XMPP — the Extensible Messaging and Presence Protocol; XEP-0060, an XMPP Extension Protocol, its publish-subscribe extension) — structured publish-subscribe over XMPP. Subscription nodes are the protocol-level analog.
 - **Daniel Jackson, *The Essence of Software*** — freestanding-atom posture; [Event Scope] as an opaque reference whose semantics are defined by the composing system.
 - **Eiffel's design-by-contract** — preconditions on [Subscribe] and [Cancel]; named rejection reasons.
 
@@ -551,7 +551,7 @@ Projection: not-active
 
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -559,9 +559,9 @@ Projection: not-active
 </summary>
 
 ```
-status: done — 2026-11-20
+status: done — 2026-11-26
 formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 32 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1); 2026-11-20, with an audience cap of 2: Operation 33 (Op33_FullScopeRefused, broken by subscription-buggy-subscribe-ignores-audience-cap.tla), its order behind Operation 6 (Op6_ActivePairRefused, broken by subscription-buggy-subscribe-full-before-already.tla) and Term audience cap at the read (AudienceCap_ReadWithinCap)); nothing testable for Operation 23: the answer's order is no state a model can find wrong; owed rows: none, 2026-11-11
-last gate: 2026-11-20 — Final Critique 13, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 94946e30 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 12, a delta round, frozen at 6c79ec3e — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 11, a delta round, frozen at 125fa86b — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
+last gate: 2026-11-26 — Final Critique 14, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 2a39051c — foundational count 0 after the blind second triage, clean, one sample; the diff base 94946e30 reached one label, Capability requirement 8 (its text unchanged; the Execution Contract rule it cites, Conformance 9, was reworded), and Linus's report counted foundational 0 with two refining items and one rhetorical: that the rule's MUST restates Conformance 9 (rhetorical, the corpus's form of the capability line on every atom that cites the declaration, Authority 6 read with the Capability requirement family), that "composing patterns" is narrower than Conformance 9's "apps" (not a gap, the PER tail brings Conformance 9 in whole and the page's Composition notes bind a composing pattern), and that the NOTE calls a Capability requirement a composition note (wording only: a NOTE carries nothing, GRACE-lang Surface 3 and Surface 17); the cure is the checker's: the XMPP PubSub entry glosses XMPP at first use; 2026-11-20 — Final Critique 13, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 94946e30 — foundational count 0 after the blind second triage, clean, one sample; 2026-11-20 — Final Critique 12, a delta round, frozen at 6c79ec3e — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 11, a delta round, frozen at 125fa86b — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at c904915 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 9, a delta round, frozen at e1e522d — foundational count 2, cured, not clean, no sample
 
 open: none
 ```
