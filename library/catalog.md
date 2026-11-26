@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 14 with bond lines; 2 app(s).
+53 atoms, 15 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -194,9 +194,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints session id. Needs key actor id. Offers key session id.
 
-**[State Machine](./atoms/state-machine.md)** (944 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
+**[State Machine](./atoms/state-machine.md)** (972 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
-- No bond lines yet.
+- Mints workflow id. Needs key actor id. Offers key workflow id.
 
 **[Subscription](./atoms/subscription.md)** (581 lines). Subscription records who wants to be told about what.
 

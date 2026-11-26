@@ -34,6 +34,7 @@ flowchart LR
   b_ordering["Ordering"]
   b_permissions["Permissions"]
   b_session["Session"]
+  b_state_machine["State Machine"]
   b_sweep["Sweep"]
   b_task["Task"]
   b_assignment -->|"task id"| b_task
@@ -53,10 +54,12 @@ flowchart LR
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list
   b_ordering -.->|"opaque"| b_session
+  b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_task
   b_ordering -->|"list id"| b_list
   b_permissions -->|"actor id"| b_actor_identity
   b_session -->|"actor id"| b_actor_identity
+  b_state_machine -->|"actor id"| b_actor_identity
   b_sweep -->|"critical section key"| b_lease
   b_sweep -->|"invocation id"| b_durable_intent
   b_sweep -->|"closing record, recovery_intended"| b_event_log
