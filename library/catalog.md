@@ -18,7 +18,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints actor id. Offers key actor id.
 
-**[Approval Step](./atoms/approval-step.md)** (864 lines). Approval Step records a single authorization gate.
+**[Approval Step](./atoms/approval-step.md)** (868 lines). Approval Step records a single authorization gate.
 
 - Mints step id. Needs key actor id. Offers key step id.
 

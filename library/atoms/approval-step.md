@@ -42,7 +42,7 @@ The app's permission governs *standing* authorization — a persistent grant, ch
 
 An assignment pattern governs *responsibility binding* — who owns the work, with a lifecycle of its own. This atom governs the decision. A document may be assigned to an author and simultaneously submitted to a reviewer; the two coexist without overlapping. Confusing them produces either a spec that cannot record the approval or one that loses track of who owns the work.
 
-A general state machine is the general engine: states and transitions declared by the deployment, opaque to the atom. This atom is a *specific* state machine whose four states, four transitions and approval semantics are fixed here — one named approver, a decision that is itself a compliance record, a required reason on rejection. The axis is specificity: an external evaluator knows this atom's states from the spec and must read a general state machine's declaration to know that one's. The two are the fixed and declared poles of the same category, and they compose into a gated workflow.
+A general state machine is the general engine: states and transitions declared by the deployment, opaque to the atom. This atom is a *specific* state machine whose four states, three transitions out of pending and approval semantics are fixed here — one named approver, a decision that is itself a compliance record, a required reason on rejection. The axis is specificity: an external evaluator knows this atom's states from the spec and must read a general state machine's declaration to know that one's. The two are the fixed and declared poles of the same category, and they compose into a gated workflow.
 
 </details>
 
@@ -73,7 +73,7 @@ Term submitter reference: the opaque reference naming the actor requesting appro
 
 Term scope: the string naming the kind of approval requested — a [Scope]; recorded and filtered on, never interpreted.
 
-Term reference: subject reference, approver reference, submitter reference, deciding actor, withdrawing actor, step id OR scope — every string this atom compares for equality.
+Term reference: subject reference, approver reference, submitter reference, deciding actor, withdrawing actor, step id OR scope — every string this atom compares for equality, a reason, a decision reason and a withdrawal reason excepted.
 
 ```
 State 2: The atom MUST NOT offer a re-open surface.
@@ -94,7 +94,7 @@ State 15: The atom MUST NOT record a receipt instant.
 
 #### Approval Step
 
-The record this atom defines: a single authorization gate binding a required approval to one named approver, for a specified subject and scope, with a lifecycle from submission through one terminal decision. It carries its [Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [Submission Instant], [Reason], the [State] field, and the state-specific decision/withdrawal fields; the submission fields are immutable from creation. A fresh approval need is a new Approval Step, never a re-opened one.
+The record this atom defines: a single authorization gate binding a required approval to one named approver, for a specified subject and scope, with a lifecycle from submission through one terminal decision. It carries its [Step Id], [Subject Reference], [Approver Reference], [Submitter Reference], [Scope], [Submission Instant], [Reason], the [State] field, and the state-specific decision/withdrawal fields; the submission fields are immutable from creation. A fresh approval need is a new Approval Step, never a re-opened one. No action of the atom is undone: a step is never re-opened, reversed or removed (State 2 through 5, Invariant 10.1), so no undo is owed (Execution Contract Undo 4).
 
 Kind: Type
 
@@ -132,7 +132,7 @@ Projection: submitter_ref
 
 #### Scope
 
-The non-empty string naming the kind of approval being requested (for example `"financial:journal-entry:post"`). Set on [Submit], immutable. The atom does not interpret scope semantics; it records the scope as an auditable field and uses it as an exact-match filter axis for [Read].
+The non-blank string naming the kind of approval being requested (for example `"financial:journal-entry:post"`). Set on [Submit], immutable. The atom does not interpret scope semantics; it records the scope as an auditable field and uses it as an exact-match filter axis for [Read].
 
 Kind:       Field
 Field of:   Approval Step
@@ -304,13 +304,13 @@ Term attribution check: Operation 15 through 19, Operation 57, Operation 64 thro
 
 Term attribution fault: an attribution check the call fails.
 
-Term filter axes: step id | subject reference | approver reference | submitter reference | scope | state | submission instant | decision instant | withdrawal instant — the nine axes [Read] accepts, and no others.
+Term filter axes: step id | subject reference | approver reference | submitter reference | scope | state | submission instant | decision instant | withdrawal instant — the nine axes [Read] accepts, and no others, each spelled as its field's projection.
 
 Term string axes: step id | subject reference | approver reference | submitter reference | scope — the axes whose filter value carries a string.
 
 Term carried reason: the reason the call's input holds, blank included — a call that omits reason carries none, and the omission is no blank reason (State 8, String 6).
 
-Term admitted submit: a [Submit] call whose references, scope, carried reason and resolved submission instant the guards all admit.
+Term admitted submit: a [Submit] call whose references, scope, carried reason and resolved submission instant the guards, Execution Contract Input 2 included, all admit.
 
 Term authorization anchor: the approver reference on a deciding action, and the submitter reference on [Withdraw].
 
@@ -324,7 +324,9 @@ Term admitted withdraw: an admitted resolve on [Withdraw].
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
-Term landing read: a [Read] of the step by step id after a lost resolving action, whose answer shows the step's state and its deciding actor or withdrawing actor, and a [Read] filtered on subject reference, approver reference, submitter reference, scope and a range of submission instant spanning the call's resolved submission instant after a lost [Submit] — where the call supplied the instant, a range holding that instant, and where the call left it blank, the range from the instant the caller sent the call, less the clock allowance, to the instant of the landing read, plus the clock allowance (Execution Contract Logic confinement 18) — the read whose answer shows whether the call landed; where an earlier [Submit] carries the same field set, its answer holds both steps and shows only that a step carrying the field set stands (Indeterminate outcome 4).
+Term matching steps: the steps that satisfy every supplied filter — the answer of an admitted read.
+
+Term landing read: a [Read] of the step by step id after a lost resolving action, whose answer shows the step's state and its deciding actor or withdrawing actor, and a [Read] filtered on subject reference, approver reference, submitter reference, scope and a range of submission instant spanning the call's resolved submission instant after a lost [Submit] — where the call supplied the instant, a range holding that instant, and where the call left it blank, the range from the instant the caller sent the call, less the clock allowance, to the instant the caller sent the landing read, plus the clock allowance (Execution Contract Logic confinement 18) — the read whose answer shows whether the call landed; where an earlier [Submit] carries the same field set, its answer holds both steps and shows only that a step carrying the field set stands (Indeterminate outcome 4).
 
 Term success token: approved on [Approve], rejected_outcome on [Reject] and withdrawn on [Withdraw] — the answer an admitted resolve returns.
 
@@ -609,7 +611,7 @@ String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
+String 6: The atom MUST read an absent string input that the signature does not mark optional as blank.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
@@ -639,7 +641,7 @@ Term business caller: the party whose action the call carries; never the source 
 
 Term query: what a read asks for — a [Query]; any combination of the filter axes, a filter on submission instant, decision instant or withdrawal instant carrying a range.
 
-Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted PER Execution Contract Input 2 on a write input and PER Execution Contract Query 5 on a filter's value; 1,024 code points where a deployment declares none.
 
 ## Needs
 
@@ -685,7 +687,7 @@ NOTE: the owners — an idempotency pattern (Non-goal 1, Non-goal 2); a quorum p
 ---
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it: every deployment declares which composing patterns it wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the segregation policy over a submitter reference and an approver reference.
 Composition note 4: A composing pattern MUST own the attestation binding a deciding actor.
@@ -715,11 +717,13 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 ### Multiple gates on one subject
 
+The three endings above are three alternative histories of step-001, not one sequence: run in order on one step, the second and third would answer not-pending (Operation 13).
+
 A cross-border entry needs both finance and tax sign-off. Two [Submit] calls produce `step-010` and `step-011` on the same subject reference, each with its own approver reference. Approving one leaves the other pending and untouched (Invariant 9.1). Whether the subject has any open gate is `read({subject_ref: X, state: pending})` — a non-empty answer means at least one gate is open. Whether *both* were required, and whether two approvals are enough, is another pattern's (Non-goal 3).
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A SOX section 404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {start: …, end: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
+- **Regulator audit.** A SOX section 404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {start: …, end: …}})` answers the gates with full attribution, and Check 2.1 through 3.5 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
 - **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows deciding actor equal to approver reference, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is another pattern's, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
 - **Breach forensics.** An investigator examining unauthorized approval attempts finds that the database holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so unauthorized attempts leave no trace here at all. The attempt log is the composing another pattern's, and these records' contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
 
@@ -791,7 +795,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, terminal instant, attribution check, attribution fault, filter axes, string axes, query, carried reason, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, landing read, success token, committed version, string input, blank, string cap.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, resolved decision instant, resolved submission instant, submission field, attribution field, attribution reference, terminal instant, attribution check, attribution fault, filter axes, string axes, query, carried reason, admitted submit, authorization anchor, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, matching steps, landing read, success token, committed version, string input, blank, string cap.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -844,7 +848,7 @@ Term terms: step, step id, subject reference, approver reference, submitter refe
 ```
 status: doing
 formal: verified — approval-step.tla + 3 twins (2026-06-03); approval-step.als + 10 twins (the static data model, 2026-11-11: Invariant 2.1, 4.1, 4.2, 5.1, 6.1 through 6.4, 7.1, 8.1, 8.2 and State 13 checked on every record [Submit] or one admitted resolve leaves, Invariant 4 and 5 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1, 3, 9 and 10: each compares a step with a later version of it or with a second step, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and Invariant 3 (across steps); owed rows: Invariant 1; Invariant 3, 2026-11-11
-last gate: 2026-11-20 — Final Critique 19, a delta round, one reader (Linus, opencode/beam-free), frozen at 05c032a5 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Operation 61 obliges recording only a supplied reason and so leaves what an admitted submit with an omitted reason records unowned, and its four refining and two rhetorical reports were refuted or placed rhetorical by both triages on rules the page and the method state: Earned vocabulary 21 and 22 read a supplied optional input as non-blank and an omitted one as blank, State 8 makes the reason optional, Term records says a step carries a reason where supplied or set, the Reason entry names the field, Term attribution check lists Operation 57 and Term terminal state names the three terminal members, so no two conforming builds differ); 2026-11-20 — Final Critique 18, frozen at 6c79ec3 — foundational count 1 after the blind second triage, cured, not clean, no sample; 2026-11-20 — Final Critique 17, a delta round, frozen at 88bcb94 — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 16, a delta round, frozen at 44b2d6a — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
+last gate: 2026-11-26 — Final Critique 20, frozen at bd35b8ce — foundational count 1, cured, not clean, no sample (Term string cap restated a narrower measure than Execution Contract Input 2, now cited per Input 2 and Query 5; the omitted-reason, landing-read range, Term reference and Operation 18 reports were placed refining or refuted by rules the page and the method state, and their wording cures are in the same commit); 2026-11-20 — Final Critique 19, a delta round, one reader (Linus, opencode/beam-free), frozen at 05c032a5 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Operation 61 obliges recording only a supplied reason and so leaves what an admitted submit with an omitted reason records unowned, and its four refining and two rhetorical reports were refuted or placed rhetorical by both triages on rules the page and the method state: Earned vocabulary 21 and 22 read a supplied optional input as non-blank and an omitted one as blank, State 8 makes the reason optional, Term records says a step carries a reason where supplied or set, the Reason entry names the field, Term attribution check lists Operation 57 and Term terminal state names the three terminal members, so no two conforming builds differ); 2026-11-20 — Final Critique 18, frozen at 6c79ec3 — foundational count 1 after the blind second triage, cured, not clean, no sample; 2026-11-20 — Final Critique 17, a delta round, frozen at 88bcb94 — foundational count 1, cured, not clean, no sample; 2026-11-20 — Final Critique 16, a delta round, frozen at 44b2d6a — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 15, a delta round, frozen at 00843d2 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 075c6e4 — foundational count 1, cured by a held cure, not clean, no sample; 2026-11-03 — Final Critique 13, a delta round, frozen at 30a4db8 — foundational count 1, cured, not clean, no sample; 2026-11-02 — Final Critique 12, a delta round, frozen at e63380b — foundational count 1, cured, not clean, no sample; 2026-10-29 — Final Critique 11 — foundational count 0, clean, one sample
 
 open: none
 ```
