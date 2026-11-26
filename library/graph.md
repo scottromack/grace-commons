@@ -34,6 +34,7 @@ flowchart LR
   b_ordering["Ordering"]
   b_party_identity["Party Identity"]
   b_permissions["Permissions"]
+  b_provenance["Provenance"]
   b_session["Session"]
   b_state_machine["State Machine"]
   b_sweep["Sweep"]
@@ -55,12 +56,14 @@ flowchart LR
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list
   b_ordering -.->|"opaque"| b_party_identity
+  b_ordering -.->|"opaque"| b_provenance
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_task
   b_ordering -->|"list id"| b_list
   b_party_identity -->|"actor id"| b_actor_identity
   b_permissions -->|"actor id"| b_actor_identity
+  b_provenance -->|"actor id"| b_actor_identity
   b_session -->|"actor id"| b_actor_identity
   b_state_machine -->|"actor id"| b_actor_identity
   b_sweep -->|"critical section key"| b_lease

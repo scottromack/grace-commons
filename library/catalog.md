@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 16 with bond lines; 2 app(s).
+53 atoms, 17 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -154,9 +154,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Provenance](./atoms/provenance.md)** (917 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
+**[Provenance](./atoms/provenance.md)** (984 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
 
-- No bond lines yet.
+- Mints chain id. Needs key actor id. Offers key chain id.
 
 **[Provisional Commitment](./atoms/provisional-commitment.md)** (761 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
 
