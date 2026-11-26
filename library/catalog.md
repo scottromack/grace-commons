@@ -94,7 +94,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Invitation](./atoms/invitation.md)** (847 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
+**[Invitation](./atoms/invitation.md)** (878 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
 
 - Needs key list id; key actor id; journal invitation events.
 

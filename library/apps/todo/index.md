@@ -67,9 +67,9 @@ Every need of the ten atoms but one meets exactly one offer of the ten, and that
 Bond instance 1: Ordering's key need that pairs entries MUST be served by Task's key offer of task id (Bonds Bond 7).
 ```
 
-Cascades written: none. Deleting a list takes its tasks, their entries and their assignments, and its sequence, by the on end fields of the atoms' own lines (Bonds Key 3): List's Delete List ends the list id, so Task's Delete List Tasks and Ordering's Remove List Sequence run; each task deleted ends its task id, so Ordering's Remove Item Everywhere (through Bond instance 1) and Assignment's Recall For Task run. Every one of these runs from an on end field, in Delete List's own transaction, so the cascade needs no glue line (Bonds Key 3, Key 4).
+Cascades written: none. Deleting a list takes its tasks, their entries and their assignments, its sequence and its pending invitations, by the on end fields of the atoms' own lines (Bonds Key 3): List's Delete List ends the list id, so Task's Delete List Tasks, Ordering's Remove List Sequence and Invitation's Revoke List Invitations run; each task deleted ends its task id, so Ordering's Remove Item Everywhere (through Bond instance 1) and Assignment's Recall For Task run. Every one of these runs from an on end field, in Delete List's own transaction, so the cascade needs no glue line (Bonds Key 3, Key 4).
 
-Not ended by deleting a list: its open invitations, since Invitation's list id need names no on end, and the grants on it, since the permission scope is opaque, not a key. An open invitation to a deleted list can still be accepted: Accept answers accepted, accept grants writes a `member` grant on a list id no record carries, and List's Read List of that list answers none. The list id is never minted again (Bonds Key 16).
+Not ended by deleting a list: the grants on it, since the permission scope is opaque, not a key. A grant on a deleted list reaches nothing: List's Read List of that list answers none, and the list id is never minted again (Bonds Key 16).
 
 ### The app's permission need
 
