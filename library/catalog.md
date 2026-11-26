@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 25 with bond lines; 2 app(s).
+53 atoms, 26 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -158,9 +158,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints chain id. Needs key actor id. Offers key chain id.
 
-**[Provisional Commitment](./atoms/provisional-commitment.md)** (761 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
+**[Provisional Commitment](./atoms/provisional-commitment.md)** (801 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
 
-- No bond lines yet.
+- Mints commitment id. Needs key actor id; journal commitment events. Offers key commitment id.
 
 **[Punch Card](./atoms/punch-card.md)** (527 lines). Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item.
 

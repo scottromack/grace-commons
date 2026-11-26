@@ -42,6 +42,7 @@ flowchart LR
   b_party_identity["Party Identity"]
   b_permissions["Permissions"]
   b_provenance["Provenance"]
+  b_provisional_commitment["Provisional Commitment"]
   b_recurrence["Recurrence"]
   b_session["Session"]
   b_state_machine["State Machine"]
@@ -79,6 +80,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_observation
   b_ordering -.->|"opaque"| b_party_identity
   b_ordering -.->|"opaque"| b_provenance
+  b_ordering -.->|"opaque"| b_provisional_commitment
   b_ordering -.->|"opaque"| b_recurrence
   b_ordering -.->|"opaque"| b_session
   b_ordering -.->|"opaque"| b_state_machine
@@ -89,6 +91,8 @@ flowchart LR
   b_party_identity -->|"party events"| b_event_log
   b_permissions -->|"actor id"| b_actor_identity
   b_provenance -->|"actor id"| b_actor_identity
+  b_provisional_commitment -->|"actor id"| b_actor_identity
+  b_provisional_commitment -->|"commitment events"| b_event_log
   b_session -->|"actor id"| b_actor_identity
   b_state_machine -->|"actor id"| b_actor_identity
   b_sweep -->|"critical section key"| b_lease

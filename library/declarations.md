@@ -62,6 +62,8 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term commitment id: opaque — the one value naming one provisional commitment, minted when the hold is placed and never reused in one database instance.
+
 Term series id: opaque — the one value naming one repeat over calendar dates, minted when the series is opened and never reused.
 
 Term capability id: opaque — the one value naming one capability, minted by the host when the capability is allocated and never reused.
@@ -81,6 +83,8 @@ Term assignment events: opaque — the record type of the journal records a to-d
 Term invitation events: opaque — the record type of the journal records a to-do app appends for an invitation's actions; plain, carrying no seal.
 
 Term party events: opaque — the record type of the journal records Party Identity's admitted actions append; plain, carrying no seal.
+
+Term commitment events: opaque — the record type of the journal records Provisional Commitment's admitted actions append; plain, carrying no seal.
 
 Term order events: opaque — the record type of the journal records Medication Order's admitted actions append; plain, carrying no seal.
 

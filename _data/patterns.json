@@ -1591,7 +1591,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1611,7 +1611,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Provisional Commitment"
  },
  "punch-card": {
