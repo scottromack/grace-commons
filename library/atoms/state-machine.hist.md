@@ -97,6 +97,7 @@ Deleted: Operation 51. Capability requirement 1 owns it.
 Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 81. Operation 80 owns it.
 ```
 
 ### Structure › Invariants › Invariant 10 — Record durability

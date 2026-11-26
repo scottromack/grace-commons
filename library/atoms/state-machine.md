@@ -121,6 +121,12 @@ Term well-formed declaration: a declaration Declaration 5 through 15 and Declara
 
 ---
 
+#### Workflow
+
+One running workflow: the record this atom holds for each [Workflow Id], carrying a [Declaration], a [Current State] and a [Transition History]; [Read Workflow] answers what the record carries beside the declaration and the history.
+
+Kind: Type
+
 #### Workflow Id
 
 The opaque, immutable, system-generated identity of a workflow — assigned on [Instantiate], never reused, byte-order sortable (Execution Contract Logic confinement 10). It is the workflow's identity; the [Declaration], [Current State], and [Transition History] are properties.
@@ -373,7 +379,7 @@ Term matched transition: the one declared transition whose from state is the cur
 
 Term cleared fire: a [Fire] call Operation 11, Operation 13, Operation 15 and Operation 17 all admit.
 
-Term firing check: Operation 2, Operation 19 through 20, Operation 66, Operation 69 and Operation 77 — every check [Fire] makes on a cleared fire.
+Term firing check: Operation 2, Operation 19 through 20, Operation 66, Operation 69 and Operation 77, and Execution Contract Input 1 and Input 3 on an actor reference or a guard satisfied the call carries malformed — every check [Fire] makes on a cleared fire.
 
 Term firing fault: a firing check the call fails.
 
@@ -400,8 +406,8 @@ The case space, and the rule that owns each case:
 | 3 | both are well-formed, the workflow id names no workflow | not-known | Operation 11 |
 | 4 | the workflow exists, the current state is terminal | terminal | Operation 13 |
 | 5 | the current state is not terminal, no declared transition matches | invalid-transition | Operation 15 |
-| 6 | a declared transition matches, it carries a guard, guard satisfied is not true | guard-not-satisfied | Operation 17 |
-| 7 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77 |
+| 6 | a declared transition matches, it carries a guard, guard satisfied is not true, a value neither true nor false included | guard-not-satisfied | Operation 17 |
+| 7 | the call is a cleared fire, a firing check fails | invalid-request | Operation 64; Operation 2, Operation 19, Operation 20, Operation 66, Operation 69, Operation 77; Execution Contract Input 1, Execution Contract Input 3 |
 | 8 | every precondition passes, the database refuses the write | storage-failure | Operation 33 |
 | 9 | every precondition passes, the database accepts the write | new_state | Operation 28; Invariant 1.1, Invariant 5.1 |
 
@@ -414,7 +420,7 @@ The case space, and the rule that owns each case:
 | 1 | the subject reference is blank, over the string cap or not a string | invalid-request | Operation 85, Operation 86 |
 | 2 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
 | 3 | no workflow carries the subject reference | an empty list | Operation 84 |
-| 4 | one or more workflows carry the subject reference | the workflow id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit | Operation 80 through 83 |
+| 4 | one or more workflows carry the subject reference | the workflow id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit | Operation 80, Operation 82 and Operation 83 |
 
 Where two rows hold at once, the earlier row answers: row 1 answers a malformed subject reference whatever the workflow records hold or fail to answer (Operation 86; Execution Contract Query 5).
 
@@ -424,7 +430,7 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
 
 #### Invalid Request
 
-The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], an [Actor Reference] the call carries as an empty or whitespace-only string or as a value that is not a string (Execution Contract Input 3), an absent [Actor Reference] being no refusal and recording nothing (Operation 60, Operation 61), a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant] (Operation 2, Operation 3, Operation 9, Operation 10, Operation 19, Operation 20, Operation 66, Operation 69, Operation 75 through 78).
+The rejection an action returns for a malformed argument — a null or whitespace-only [Workflow Id] or [Action], an [Actor Reference] the call carries as an empty or whitespace-only string or as a value that is not a string (Execution Contract Input 3), an absent [Actor Reference] being no refusal and recording nothing (Operation 60, Operation 61, Execution Contract Input 4), a [Workflow Id], [Action], [Actor Reference] or [Subject Reference] over the string cap (Execution Contract Input 2), a supplied instant that is not an instant, a supplied [Guard Satisfied] that is neither true nor false on an unguarded transition, or an [Instantiation Instant] / [Firing Instant] that is in the future or (for [Firing Instant]) before [Instantiation Instant] (Operation 2, Operation 3, Operation 9, Operation 10, Operation 19, Operation 20, Operation 66, Operation 69, Operation 75 through 78).
 
 Kind:       Member
 Member of:  the action rejection
@@ -513,7 +519,7 @@ Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 76: IF action EXCEEDS the string cap THEN [Fire] MUST answer invalid-request (Execution Contract Input 2).
 Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
-Operation 17: IF the matched transition carries a guard AND guard satisfied DOES NOT EQUAL true THEN [Fire] MUST answer guard-not-satisfied.
+Operation 17: IF the matched transition carries a guard AND guard satisfied DOES NOT EQUAL true, a guard satisfied that is neither true nor false included, THEN [Fire] MUST answer guard-not-satisfied.
 Operation 19: IF now PRECEDES the resolved firing instant THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved firing instant PRECEDES the workflow's instantiation instant THEN [Fire] MUST answer invalid-request.
 Operation 66: IF the resolved firing instant is malformed THEN [Fire] MUST answer invalid-request (Execution Contract Input 1).
@@ -645,7 +651,7 @@ Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 
 #### Read Workflow
 
-The read-only query returning what a workflow carries beside its declaration and its history: its [Instantiation Instant] and [Current State], and the [Subject Reference], [Workflow Metadata] and [Actor Reference] where it carries them. It answers [Not Known] for a [Workflow Id] that names no workflow, so it is also the read that says whether a workflow id stands. Rejected [Not Known] or [Invalid Request].
+The read-only query returning what a [Workflow] carries beside its declaration and its history: its [Instantiation Instant] and [Current State], and the [Subject Reference], [Workflow Metadata] and [Actor Reference] where it carries them. It answers [Not Known] for a [Workflow Id] that names no workflow, so it is also the read that says whether a workflow id stands. Rejected [Not Known] or [Invalid Request].
 
 Kind: Operation
 
@@ -676,8 +682,7 @@ workflows_about(subject_ref)
 ```
 
 ```
-Operation 80: [Workflows About] MUST answer the workflow id of EVERY workflow carrying the subject reference.
-Operation 81: [Workflows About] MUST answer the workflow id of EVERY workflow carrying the subject reference whose current state IS IN the terminal states.
+Operation 80: [Workflows About] MUST answer the workflow id of EVERY workflow carrying the subject reference, a workflow whose current state IS IN the terminal states included.
 Operation 82: [Workflows About] MUST order the answer by instantiation instant, earliest first.
 Operation 83: [Workflows About] MUST order two workflows sharing an instantiation instant by recording commit, earliest first.
 Operation 84: [Workflows About] MUST answer an empty list for a subject reference no workflow carries (Identity 15).
@@ -866,7 +871,7 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A US Food and Drug Administration (FDA) inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 1.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the record of the pattern that evaluates the guard.
+- **Regulator audit.** A United States (US) Food and Drug Administration (FDA) inspector auditing under 21 CFR Part 11 and ISO (International Organization for Standardization) 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 1.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the record of the pattern that evaluates the guard.
 - **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves provably, against the declaration.
 - **Breach investigation.** An investigator reconstructing an anomaly window filters the history by firing instant range and finds the entries generously bracketed. Because sequence number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
@@ -959,6 +964,7 @@ Term terms: workflow, history entry, subject reference, instance metadata, datab
 [Read Declaration]: #read-declaration
 [Read Workflow]: #read-workflow
 [Workflows About]: #workflows-about
+[Workflow]: #workflow
 [Workflow Id]: #workflow-id
 [Subject Reference]: #subject-reference
 [Workflow Metadata]: #workflow-metadata
@@ -1003,7 +1009,7 @@ Term terms: workflow, history entry, subject reference, instance metadata, datab
 ```
 status: doing
 formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26
-last gate: 2026-11-17 — Final Critique 22, delta, frozen at 5a146b1 — foundational count 0, clean, one sample
+last gate: 2026-11-26 — Final Critique 23, delta, frozen at 772fe78 — foundational count 1, cured, not clean, one sample
 
 open: none
 ```
