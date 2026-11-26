@@ -211,6 +211,19 @@ class BondTest(unittest.TestCase):
         self.write("guard-offerer", atom("Guard Offerer", ""))
         self.assertEqual(self.codes(), ["B-app-unmet", "B-bond-unmet"])
 
+    def test_an_app_key_need_served_by_an_offer_with_no_existence_read_is_reported(self):
+        # unit `bonds: a key is checked on write`: the app checks a written key through the offer's existence read
+        (self.root / "library" / "bonds.md").write_text(BONDS.replace("carried by, the records.", "carried by, the records; calls, the read."))
+        (self.root / "library" / "apps" / "pair").mkdir(parents=True)
+        app = self.root / "library" / "apps" / "pair" / "index.md"
+        app.write_text("# Pair\n\n- [Key Offerer](../../atoms/key-offerer.md)\n- [Key Needer](../../atoms/key-needer.md)\n")
+        self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs closing record.\n"))
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record.\n"))
+        self.assertEqual(self.codes(), ["B-app-key-read"])
+        self.assertIn("B-app-key-read", check.ADVISORY)
+        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record; calls exists.\n"))
+        self.assertEqual(self.codes(), [])
+
     def test_a_cycle_of_needs_met_by_offers_fails_the_app(self):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True)
         app = self.root / "library" / "apps" / "pair" / "index.md"
@@ -219,7 +232,8 @@ class BondTest(unittest.TestCase):
         # the offerer comes to need what the needer offers: guard-needer -> guard-offerer -> guard-needer
         self.write("guard-offerer", atom("Guard Offerer", OFFER + "\nTerm need key: key invocation id; pairs closing record.\n"))
         self.write("guard-needer", atom("Guard Needer", NEED + "\nTerm offer key: key invocation id; carried by closing record.\n"))
-        self.assertEqual(self.codes(), ["B-app-cycle"])
+        # the key offer names no existence read, so the app's key check is reported too (advisory)
+        self.assertEqual(self.codes(), ["B-app-cycle", "B-app-key-read"])
         self.assertNotIn("B-app-cycle", check.ADVISORY)
         self.assertEqual(check.need_cycle([], {}, set()), [])
 

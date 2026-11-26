@@ -469,7 +469,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-app-key-read"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -1862,6 +1862,20 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
             if not any(o["side"] == "offer" and bond_meets(need, o, words, types) for o in mine):
                 findings.append(Finding(app, 1, "B-app-unmet",
                                         f"{need['path'].name}:{need['line']}: the {need['kind']} need meets no offer of the app's atoms (bonds.md Bond 10)"))
+        # Unit `bonds: a key is checked on write` (Scott 2026-11-25 11:10 PM Central, "Foreign keys are checked on write
+        # and acted on at delete"): the app checks a written key through the offering atom's existence read (bonds.md
+        # Key 21 to 26), so a key need served by an offer that names no read under calls cannot be checked. Advisory
+        # until every key offer carries its read: each atom's read rides in its own next unit.
+        for need in (b for b in mine if b["side"] == "need" and b["kind"] == "key"):
+            # an ambiguous need is served by the one offer its bond instance names, which the gate does not read yet:
+            # it is reported once, and only where no offer it meets names a read
+            served = [o for o in mine if o["side"] == "offer" and bond_meets(need, o, words, types)]
+            if served and not any(o["fields"].get("calls") for o in served):
+                where = ", ".join(f"{o['path'].name}:{o['line']}" for o in served)
+                findings.append(Finding(app, 1, "B-app-key-read",
+                                        f"{need['path'].name}:{need['line']}: the key need is served by an offer ({where}) "
+                                        "that names no existence read under calls, so the app cannot make the key check "
+                                        "(bonds.md Key 21 to 26)"))
         cycle = need_cycle(mine, words, types)
         if cycle:
             findings.append(Finding(app, 1, "B-app-cycle",
