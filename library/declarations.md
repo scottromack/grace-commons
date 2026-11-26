@@ -62,6 +62,10 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term cart id: opaque — the one value naming one cart, minted when the cart is opened and never reused.
+
+Term line id: opaque — the one value naming one line on a cart, minted when the line is added and never reused.
+
 Term standing id: opaque — the one value naming one span of a standing condition, minted by the host when the standing record opens and never reused.
 
 Term notification id: opaque — the one value naming one delivery record, minted when the notification is created and never reused.

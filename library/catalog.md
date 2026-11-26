@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 33 with bond lines; 2 app(s).
+53 atoms, 34 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -38,9 +38,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Cart](./atoms/cart.md)** (631 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
+**[Cart](./atoms/cart.md)** (729 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
 
-- No bond lines yet.
+- Mints cart id, line id. Offers key cart id; key line id.
 
 **[Category](./atoms/category.md)** (622 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
 
