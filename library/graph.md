@@ -23,6 +23,7 @@ Atoms as nodes, and an arrow from an atom to each atom whose offer one of its ne
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
   b_actor_identity["Actor Identity"]
+  b_approval_step["Approval Step"]
   b_assignment["Assignment"]
   b_calendar_time["Calendar Time"]
   b_consent["Consent"]
@@ -43,6 +44,7 @@ flowchart LR
   b_state_machine["State Machine"]
   b_sweep["Sweep"]
   b_task["Task"]
+  b_approval_step -->|"actor id"| b_actor_identity
   b_assignment -->|"task id"| b_task
   b_assignment -->|"actor id"| b_actor_identity
   b_assignment -->|"assignment events"| b_event_log
@@ -61,6 +63,7 @@ flowchart LR
   b_medication_order -->|"order events"| b_event_log
   b_message_preference -->|"actor id"| b_actor_identity
   b_ordering -.->|"opaque"| b_actor_identity
+  b_ordering -.->|"opaque"| b_approval_step
   b_ordering -.->|"opaque"| b_calendar_time
   b_ordering -.->|"opaque"| b_consent
   b_ordering -.->|"opaque"| b_durable_intent

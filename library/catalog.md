@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 21 with bond lines; 2 app(s).
+53 atoms, 22 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -18,9 +18,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints actor id. Offers key actor id.
 
-**[Approval Step](./atoms/approval-step.md)** (825 lines). Approval Step records a single authorization gate.
+**[Approval Step](./atoms/approval-step.md)** (864 lines). Approval Step records a single authorization gate.
 
-- No bond lines yet.
+- Mints step id. Needs key actor id. Offers key step id.
 
 **[Assignment](./atoms/assignment.md)** (669 lines). Assignment records who is responsible for a piece of work, and keeps the history of everyone who has held that responsibility.
 

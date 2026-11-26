@@ -87,7 +87,7 @@
    "multi-party-approval"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -109,7 +109,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Approval Step"
  },
  "assignment": {
