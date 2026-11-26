@@ -225,14 +225,14 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Revoke] | id names an active grant | ok | [Active] → [Revoked], revocation instant stamped; the grant id, subject reference, action scope and grant instant stand (Operation 11, State 5, Invariant 1.1, Invariant 4.2) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
-| [Revoke] | id names nothing | [Not Known] | none (Operation 9) |
+| [Revoke] | id names nothing, over-length id included | [Not Known] | none (Operation 9, String 8) |
 | [Revoke] | database refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13, Operation 15) |
 
 Where two [Revoke] cases hold at once, the refusal listed first on [Revoke]'s refuses line answers (Execution Contract Refusal 1).
 
 #### Not Known
 
-The refusal [Revoke] returns when the supplied [Grant Id] references no grant the database holds.
+The refusal [Revoke] returns when the supplied [Grant Id] references no grant the database holds, an over-length id among them (String 8).
 
 Kind:       Member
 Member of:  the Revoke rejection
@@ -412,6 +412,7 @@ String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string as empty.
 String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer invalid-request.
 String 7: [Check] MUST read an over-length string input as matching nothing.
+String 8: [Revoke] MUST read an over-length grant id as naming no grant.
 ```
 
 NOTE: watch the cap's floor (Term string cap).
@@ -487,7 +488,7 @@ NOTE: the owners — patterns the app chooses: one that attests who issued a gra
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 
 ```
-Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Deleted: Composition note 1. Execution Contract Conformance 9 owns it: a deployment declares which apps it wired in.
 Composition note 2: A composing pattern MUST own the scope vocabulary.
 Composition note 3: A composing pattern MUST own the binding between the authenticated caller and the subject reference.
 Composition note 4: A composing pattern needing grantor attribution MUST attest [Grant] under the grantor's credential.
@@ -534,7 +535,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 Permissions is a foundational access-control primitive with wide regulatory anchoring:
 
-- **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-53 Rev. 5, AC family (Access Control)** — AC-2 (Account Management), AC-3 (Access Enforcement), AC-6 (Least Privilege), AC-17 (Remote Access). The atom's grant-based evaluation surface is the operational form of AC-3's access enforcement function.
+- **NIST (National Institute of Standards and Technology — US federal standards body) SP (Special Publication) 800-53 Rev. 5, AC family (Access Control)** — AC-2 (Account Management), AC-3 (Access Enforcement), AC-6 (Least Privilege), AC-17 (Remote Access). The atom's grant-based evaluation surface is the operational form of AC-3's access enforcement function.
 - **NIST SP 800-207 (Zero Trust Architecture)** — least-privilege access per request, with explicit per-resource authorization. The atom's [Check] query per (subject, scope) is the structural form of per-request evaluation.
 - **ISO/IEC 27001 clause A.9 (Access Control)** — the International Organization for Standardization / International Electrotechnical Commission information-security standard; logical access control, user access management, review of user access rights. The grant records are the access-rights record clause A.9.2 requires.
 - **HIPAA section 164.312(a)(1) (Technical Safeguards — Access Control)** — unique user identification, emergency access procedure, automatic logoff, encryption. The minimum-necessary principle (section 164.514(d)) is operationalized as narrow action scopes. The grant records demonstrate compliance.
@@ -633,7 +634,7 @@ Term cited: actor id: Declarations.
 
 ## Status
 
-`done — 2026-11-25` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -641,9 +642,9 @@ Term cited: actor id: Declarations.
 </summary>
 
 ```
-status: done — 2026-11-25
-formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19; State 11; model redraw deferred to Lean: permissions.als, State 11, 2026-11-25
-last gate: 2026-11-25 — Final Critique 15, a delta round (diff base c3a23fde, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 4b89d32b — foundational count 0 after the blind second triage, clean, no sample; 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde — foundational count 0 after the blind second triage, clean, no sample
+status: doing
+formal: verified — permissions.als + 11 twins (the static data model, re-derived 2026-11-12 as every version an ordered sequence of admitted [Grant] and [Revoke] calls leaves, and 2026-11-19 over the rule of 2026-11-16: State 1 through 5, Identity 1, Invariant 8.1 and 11.1, Operation 2, 4 and 5, String 6, with Identity 7 checked through Invariant 11.1 on the records as they stand after every call; the 2026-06-03 model's pre/post checks of Invariant 1, 2, 3 and 10 and its checks of [Check]'s answer taken over by the TLA+ model); permissions.tla + 27 twins (the operation sequences, 2026-11-12, re-derived 2026-11-19 with [Grant] calls in flight together, while the clock moves: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 7.1, 9.1, 9.2, 10.1 and 11.1, Identity 8, Check 2.1, Operation 1, 7, 9, 10, 11, 15, 17, 20, 26, 28, 33 and 34, Grant concurrency 1, with Invariant 1.2, 3.2 and 6.1, Identity 6 and 7, Operation 3, 13, 18, 21 and 22 checked through them; Operation 6's check retired with the rule, and the twins permissions-buggy-check-latest-grant-only and permissions-buggy-revoke-by-pair, which the rule made equivalent to the model, replaced); Invariant 9.2 at an instant a grant was both granted and revoked in is a finding (the grant stood in active at that instant and is not live at it; the model reads an instant at its end); Grant concurrency 1 where a [Revoke] of the first call's grant commits between two concurrent calls' commits, the 2026-11-19 re-derivation's one finding against Operation 1 (two calls, two grants), is cured the same day (page-finding 41), with the third call in flight and the refused write that restating the check found: the rule now speaks of the admitted calls with no [Revoke] of the pair's grant between the calls' commits, and the check states it as it reads, holding with two calls in flight and, on a scratch copy, three; Invariant 6.2 cannot be stated; coverage 2026-11-19 (unit `atoms/permissions.md formal layer`): owed rows: Operation 27; String 1 through 4 and 7, 2026-11-19; State 11; String 8; model redraw deferred to Lean: permissions.als, State 11, 2026-11-25; model redraw deferred to Lean: permissions.als, String 8, 2026-11-26
+last gate: 2026-11-26 — Final Critique 16, a delta round (diff base 4b89d32b, 9 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 65987fe9 — foundational count 1 after the blind second triage, not clean, no sample; Linus counted 0 and held its three questions, and the blind second triage (one cold Opus subagent) placed one foundational Kind A that no rule of the page or the Execution Contract answers: [Revoke]'s grant id over the string cap (Input 2 answers invalid-request, the refuses line lists none), cured by String 8 and the not-known table row; the checker's one true hit (SP unglossed) cured; Composition note 1, which restated Execution Contract Conformance 9, deleted to it (the blind second triage's refining, outside the reach); 2026-11-25 — Final Critique 15, a delta round (diff base c3a23fde, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 4b89d32b — foundational count 0 after the blind second triage, clean, no sample; 2026-11-20 — Final Critique 14, a delta round, frozen at c3a23fde — foundational count 0 after the blind second triage, clean, no sample
 
 open: none
 ```

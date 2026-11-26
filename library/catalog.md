@@ -146,7 +146,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints party id. Needs key actor id. Offers key party id.
 
-**[Permissions](./atoms/permissions.md)** (663 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
+**[Permissions](./atoms/permissions.md)** (664 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 
 - Needs key actor id. Offers permission opaque.
 
