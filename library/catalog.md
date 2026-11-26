@@ -194,7 +194,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints session id. Needs key actor id. Offers key session id.
 
-**[State Machine](./atoms/state-machine.md)** (1029 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
+**[State Machine](./atoms/state-machine.md)** (1030 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
 - Mints history entry id, workflow id. Needs key actor id. Offers key workflow id; key history entry id.
 

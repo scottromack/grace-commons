@@ -420,7 +420,7 @@ The case space, and the rule that owns each case:
 | 1 | the subject reference is blank, over the string cap or not a string | invalid-request | Operation 85, Operation 86 |
 | 2 | the read of the workflow records fails | state-unavailable | Execution Contract Read 1, Execution Contract Read 3 |
 | 3 | no workflow carries the subject reference | an empty list | Operation 84 |
-| 4 | one or more workflows carry the subject reference | the workflow id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit | Operation 80, Operation 82 and Operation 83 |
+| 4 | one or more workflows carry the subject reference | the workflow id of each, terminal ones included, by instantiation instant earliest first, two sharing one by recording commit, two sharing both by workflow id | Operation 80, Operation 82, Operation 83 and Operation 93 |
 
 Where two rows hold at once, the earlier row answers: row 1 answers a malformed subject reference whatever the workflow records hold or fail to answer (Operation 86; Execution Contract Query 5).
 
@@ -671,7 +671,7 @@ Operation 92: [Read Workflow] MUST NOT answer a field the workflow does not carr
 
 #### Workflows About
 
-The read-only query returning the [Workflow Id] of every workflow carrying a given [Subject Reference], a workflow in a terminal state among them, by [Instantiation Instant] earliest first, two sharing one by the commit that recorded each. It answers an empty list for a [Subject Reference] no workflow carries. Rejected [Invalid Request] for a [Subject Reference] that is blank, over the string cap or not a string.
+The read-only query returning the [Workflow Id] of every workflow carrying a given [Subject Reference], a workflow in a terminal state among them, by [Instantiation Instant] earliest first, two sharing one by the commit that recorded each, and two recorded in one commit by workflow id. It answers an empty list for a [Subject Reference] no workflow carries. Rejected [Invalid Request] for a [Subject Reference] that is blank, over the string cap or not a string.
 
 Kind: Operation
 
@@ -685,6 +685,7 @@ workflows_about(subject_ref)
 Operation 80: [Workflows About] MUST answer the workflow id of EVERY workflow carrying the subject reference, a workflow whose current state IS IN the terminal states included.
 Operation 82: [Workflows About] MUST order the answer by instantiation instant, earliest first.
 Operation 83: [Workflows About] MUST order two workflows sharing an instantiation instant by recording commit, earliest first.
+Operation 93: [Workflows About] MUST order two workflows sharing an instantiation instant and a recording commit by workflow id, ascending (Execution Contract Logic confinement 10).
 Operation 84: [Workflows About] MUST answer an empty list for a subject reference no workflow carries (Identity 15).
 Operation 85: IF the subject reference is malformed THEN [Workflows About] MUST answer invalid-request (Execution Contract Query 1, Execution Contract Query 5).
 Operation 86: IF the subject reference is malformed AND the read of the workflow records fails THEN [Workflows About] MUST answer invalid-request (Execution Contract Read 1).
@@ -918,7 +919,7 @@ Check 8.1: An auditor MUST find history entry id, sequence number, from state, t
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 Check 8.3: An auditor MUST find no history entry whose firing instant PRECEDES the workflow's instantiation instant (Operation 20).
 Check 10.1: An auditor MUST find EVERY workflow AND EVERY history entry a committed version holds standing in EVERY later committed version (Invariant 10.1, Invariant 10.2; Execution Contract Generation acceptance 1).
-Check 9.1: An auditor MUST reconstruct the workflows carrying a subject reference from the workflow records, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and MUST find the workflow ids [Workflows About] answers for that subject reference to be the reconstruction's workflow ids in the reconstruction's order (Operation 80 through 83).
+Check 9.1: An auditor MUST reconstruct the workflows carrying a subject reference from the workflow records, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and then by workflow id, ascending, and MUST find the workflow ids [Workflows About] answers for that subject reference to be the reconstruction's workflow ids in the reconstruction's order (Operation 80 through 83, Operation 93).
 ```
 
 Term cited: workflow id, history entry id, actor id: Declarations.
@@ -1008,8 +1009,8 @@ Term terms: workflow, history entry, subject reference, instance metadata, datab
 
 ```
 status: doing
-formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26
-last gate: 2026-11-26 — Final Critique 23, delta, frozen at 772fe78 — foundational count 1, cured, not clean, one sample
+formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Operation 93, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26
+last gate: 2026-11-26 — Final Critique 24, delta, frozen at 7058080 — foundational count 1, cured, not clean, one sample
 
 open: none
 ```
