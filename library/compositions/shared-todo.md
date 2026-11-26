@@ -16,6 +16,8 @@ toc: true
 {:toc}
 </details>
 
+**Superseded** by [Shared Todo as an app](../apps/todo/index.md) (2026-11-26): this pattern stays as frozen history and is no longer a source of truth.
+
 ## Summary
 
 Shared Todo turns a single-user task list into a shared, multi-person one where every change is gated by a permission check and every task has at most one person responsible for it at a time.
@@ -622,7 +624,7 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`done — 2026-11-21` — see the Ledger.
+`done — 2026-11-21` — see the Ledger. Superseded by [Shared Todo as an app](../apps/todo/index.md) on 2026-11-26, after the app passed Scott's design review: frozen history, no longer a source of truth.
 
 <details markdown="block">
 <summary>

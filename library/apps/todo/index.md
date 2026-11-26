@@ -61,7 +61,7 @@ Not in the app (the design of 2026-11-24): Capability (Permissions covers sharin
 
 Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names the one instance it writes and defines no kind.
 
-Every need of the ten atoms but one meets exactly one offer of the ten, and that offer serves it with nothing written (Bond 8): the list id needs by List's offer, the actor id needs by Actor Identity's, Assignment's task id need by Task's, and the three journal needs by the one Event Log (Bond 9). Ordering's item need is keyed on `opaque`, so it meets every key offer of the app's atoms (list id, task id, actor id, session id): an ambiguous need, served by the one instance below.
+Every need of the ten atoms but one meets exactly one offer of the ten, and that offer serves it with nothing written (Bond 8): the list id needs by List's offer, the actor id needs by Actor Identity's, and Assignment's task id need by Task's. The three journal needs, Task's, Assignment's and Invitation's, each meet the one journal offer, Event Log's, so the one Event Log serves all three with nothing written (Bond 8 and Bond 9). Ordering's item need is keyed on `opaque`, so it meets every key offer of the app's atoms (list id, task id, actor id, session id): an ambiguous need, served by the one instance below.
 
 ```
 Bond instance 1: Ordering's key need that pairs entries MUST be served by Task's key offer of task id (Bonds Bond 7).
@@ -80,6 +80,8 @@ App permission 1: rename list, delete list, add task, edit task, move task, dele
 App permission 2: read list, claim and complete MUST be gated on the scope `member` of the list the action is on.
 App permission 3: make list, accept, decline, sign in and sign out MUST NOT be gated.
 ```
+
+Make list's grant is an effect of the generated action, not a gate: once List's Make List answers, make list calls Permissions' Grant of `author` and `member` on the new list to the caller, and no check is asked before it (App permission 3).
 
 The subject of every check is the caller (Bonds permission 3), the actor id that [Session](../../atoms/session.md)'s Validate answers for the call's session.
 
