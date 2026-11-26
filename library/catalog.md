@@ -102,7 +102,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Offers guard opaque.
 
-**[Legal Hold](./atoms/legal-hold.md)** (697 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
+**[Legal Hold](./atoms/legal-hold.md)** (698 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
 
 - No bond lines yet.
 
