@@ -170,7 +170,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Recurrence](./atoms/recurrence.md)** (870 lines). Recurrence says which dates a repeating event falls on.
+**[Recurrence](./atoms/recurrence.md)** (872 lines). Recurrence says which dates a repeating series falls on.
 
 - Mints series id. Offers key series id.
 

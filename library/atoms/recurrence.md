@@ -17,12 +17,12 @@ toc: true
 
 ## What it is
 
-Recurrence says which dates a repeating event falls on. A series starts on a date and repeats daily, weekly, monthly or yearly, every period or every few periods, on the days its parts pick: chosen months, days of the month such as the 15th or the last day, and days of the week, with an ordinal where one is wanted, such as the second Tuesday or the last Friday. A position narrows each period's picks to the first or the last of them, so the last weekday of the month is the month's Mondays through Fridays with the last one kept. A series ends after so many dates, on an end date, or never, and single dates can be taken out as exceptions and put back. It follows iCalendar's repeat rules (RFC 5545, the Internet standard for calendar exchange), the ones every calendar app exchanges: a date the calendar does not hold, such as February 30 or the 31st of a short month, is never produced, so "the 31st, or the month's last day" is written as the last day among the 28th through the 31st that the month holds. Recurrence answers dates only; the time of day, the place and what its clocks do, holidays and reminders belong to the patterns that compose it.
+Recurrence says which dates a repeating series falls on. A series starts on a date and repeats daily, weekly, monthly or yearly, every period or every few periods, on the days its parts pick: chosen months, days of the month such as the 15th or the last day, and days of the week, with an ordinal where one is wanted, such as the second Tuesday or the last Friday. A position narrows each period's picks to the places it names, such as the first or the last of them, so the last weekday of the month is the month's Mondays through Fridays with the last one kept. A series ends after so many dates, on an end date, or never, and single dates can be taken out as exceptions and put back. It follows iCalendar's repeat rules (RFC 5545, the Internet standard for calendar exchange), the ones every calendar app exchanges: a date the calendar does not hold, such as February 30 or the 31st of a short month, is never produced, so "the 31st, or the month's last day" is written as the last day among the 28th through the 31st that the month holds. Recurrence answers dates only; the time of day, the place and what its clocks do, holidays and reminders belong to the patterns that compose it.
 
 <details markdown="block">
 <summary>WHY</summary>
 
-Calendars, billing, reminders and report schedules all need repeats, and each reinvents them, often wrongly: the monthly charge on the 31st that skips or spills, the every-other-week meeting whose weeks start on the wrong day, the series that loses count when a meeting is cancelled. iCalendar (RFC 5545) settled what a repeat rule says, and every calendar exchange speaks it, so this atom takes its decisions as the answer key for the parts most software needs: a frequency and an interval, the week start, months, days of the month, days of the week with ordinals, positions within each period, a limit or an end date, and exceptions. Where RFC 5545 leaves a choice open the atom decides, and the Decisions say how: a start the series does not generate is no occurrence; a date the calendar lacks is never generated or counted; exceptions take dates out of the series without moving its limit. The atom answers calendar dates, not moments: a repeat says which days, and what time of day, in which place, and what the clocks do there on a given day belong to a time-zone pattern, through which a composing pattern resolves each date, as RFC 5545 reads a recurrence's local time.
+Calendars, billing, reminders and report schedules all need repeats, and each reinvents them, often wrongly: the monthly charge on the 31st that skips or spills, the every-other-week meeting whose weeks start on the wrong day, the series that loses count when a meeting is cancelled. iCalendar (RFC 5545) settled what a repeat rule says, and every calendar exchange speaks it, so this atom takes its decisions as the answer key for the parts most software needs: a frequency and an interval, the week start, months, days of the month, days of the week with ordinals, positions within each period, a limit or an end date, and exceptions. Where RFC 5545 leaves a choice open the atom decides, and the Decisions say how: a start the series does not generate is no occurrence; a date the calendar lacks is never generated or counted; exceptions take dates out of the series without moving its limit.
 
 </details>
 
@@ -110,7 +110,7 @@ Projection: start
 
 #### Frequency
 
-How long one period of a series is: daily, weekly, monthly or yearly, as RFC 5545's FREQ; repeats within a day are another pattern's.
+How long one period of a series is: daily, weekly, monthly or yearly, as RFC 5545's FREQ; repeats within a day are left to others (Non-goal 1).
 
 Kind:       Field
 Field of:   Series
@@ -190,7 +190,7 @@ Projection: exceptions
 
 Term series id: the opaque value naming one series — a [Series Id]; unique for the system's life.
 
-Term limit: how many generated dates a series holds, counted from the start, as the call carries it — a [Limit]; RFC 5545's COUNT; blank for a series without one.
+Term limit: how many generated dates a series holds, counted from the start, the dates taken out still counting, as the call carries it — a [Limit]; RFC 5545's COUNT; blank for a series without one.
 
 ## What people do
 
@@ -214,7 +214,7 @@ Term period number: how many periods a period lies past the period holding the s
 
 Term repeating period: a period whose period number is zero or more and a whole multiple of the interval: every period for an interval of 1, every other period for 2.
 
-Term day match: the date a month day names in a month: for a month day above zero, the date of that day number; for one below zero, the date that many days back from the month's end, the last day counting as -1; no date where the month is too short.
+Term day match: the date a month day names in a month: for a month day above zero, the date of that day number; for one below zero, the date that many days back from the month's end, the last day counting as -1; no date where the month length is below the number of days the month day names.
 
 Term entry match: the dates a day entry names in a stretch of dates: every date of the entry's day of the week, for an entry with no ordinal; for an ordinal n, the nth such date counted from the stretch's first date where n is above zero, or from its last date where n is below zero, and no date where the stretch holds fewer.
 
@@ -232,11 +232,13 @@ Term selected dates: the picked dates of a repeating period, in date order, each
 
 Term generated date: a selected date of a repeating period that is a range date and is the series' start or falls later.
 
-Term end bound: for a series with a limit, the generated date the limit reaches, counting the generated dates in date order from 1, and none where the series generates fewer dates than the limit; for a series with an end date, the end date; none for a series with neither.
+Term end bound: for a series with a limit, the generated date the limit reaches, counting the generated dates in date order from 1, and none where the series generates fewer dates than the limit; for a series with an end date, the end date; none for a series with neither; a bound of none stands later than every date.
 
 Term window: the dates from the from date through the through date of an [Occurrences] call.
 
 Term window count: the number of occurrences the window holds.
+
+Term dates: the dates an [Occurrences] call answers — the occurrences the window holds, in date order.
 
 NOTE: the terms build in this order. A repeating period's picks come from the frequency (Term daily picks through Term yearly picks); its picked dates are those picks; the selected dates are the picked dates the positions keep; the generated dates are the selected dates the start and the date range keep; the occurrences are the generated dates the end bound and the exceptions leave. Positions count over a period's picks, and where some of those picks precede the start they still count (Edge cases, *A start the series does not generate*, says it).
 
@@ -261,7 +263,7 @@ The case space, and the rule that owns each case:
 - `open(2026-11-02, weekly, 1, monday, none, none, none, none, 10, 2027-01-04)` — rejected as [Invalid End]: a limit and an end date both.
 - `except(s4, 2026-02-30)` — rejected as [Invalid Date].
 - `occurrences(s4, 2027-01-31, 2026-11-01)` — rejected as [Invalid Window].
-- `occurrences(s9, 0001-01-01, 9999-12-31)` on a daily series — rejected as [Too Many Occurrences]: the window holds more than the occurrence cap.
+- `occurrences(s9, 0001-01-01, 9999-12-31)`, s9 a daily series with neither limit nor end date — rejected as [Too Many Occurrences]: the window holds more than the occurrence cap.
 - `read(s404)`, where no series `s404` exists — rejected as [Not Known].
 
 This covers every refusal but [Storage Failure], which answers when the database refuses a write.
@@ -615,7 +617,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### A clock change on an occurrence
 
-An occurrence is a calendar date, with no time of day and no place. A pattern that keeps a series at 02:30 in Chicago resolves each date at 02:30 in its place, and on the night the clocks go forward that time does not exist there; RFC 5545 reads such a recurrence the way it reads any explicit local time, moved forward by the skipped length, and a time shown twice as its first showing (RFC 5545 erratum 4271), which is a time-zone pattern's compatible choice (Composition note 2).
+An occurrence is a calendar date, with no time of day and no place. A pattern that keeps a series at 02:30 in Chicago resolves each date at 02:30 in its place, and on the night the clocks go forward that time does not exist there; RFC 5545 reads such a recurrence the way it reads any explicit local time, moved forward by the skipped length, and a time shown twice as its first showing (RFC 5545 erratum 4271), which is the compatible choice of Calendar Time's resolve (Composition note 2).
 
 ### A date the calendar does not hold
 
@@ -634,17 +636,17 @@ For a weekly series repeating every two weeks or more on several days, the week 
 ```
 Capability requirement 1: The deployment MUST supply at the seam, for each [Open] call, a series id no series has carried PER Execution Contract Logic confinement 3.
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
-Capability requirement 3: The deployment MAY declare the occurrence cap PER Execution Contract Input 2.
+Capability requirement 3: The deployment MAY declare the occurrence cap (Term occurrence cap; Operation 34).
 Capability requirement 4: The deployment MAY declare the limit cap PER Execution Contract Input 2.
 ```
 
-Term occurrence cap: the most occurrences one [Occurrences] call answers; 1,000 where a deployment declares none — a default cap a deployment may override as Execution Contract Input 2 allows, though a call over it answers too-many-occurrences (Operation 34), this atom's own answer in place of Input 2's invalid-request.
+Term occurrence cap: the most occurrences one [Occurrences] call answers; 1,000 where a deployment declares none — a default cap a deployment may override (Capability requirement 3), though a call over it answers too-many-occurrences (Operation 34), this atom's own answer in place of Input 2's invalid-request.
 
 Term limit cap: the largest limit a series may carry; 1,000 where a deployment declares none.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each series id here.
 
-Term occurrence: a generated date that is not later than the end bound, where the series has one, and that the exceptions do not hold — a date [Occurrences] answers.
+Term occurrence: a generated date that is not later than the end bound, where the series has one, and that the exceptions do not hold — a date an [Occurrences] call whose window holds it answers.
 
 ## Offers
 
@@ -668,7 +670,7 @@ Non-goal 10: The atom MUST NOT phrase a series.
 Non-goal 11: The atom MUST NOT hold a series' owner.
 ```
 
-NOTE: the owners — Scheduler *(forthcoming)*, for repeats within a day and for acting on an occurrence, such as a reminder (Non-goal 1, 9); Calendar Event *(forthcoming)*, the pattern that keeps an event, its time of day, its one-off dates and its moved occurrences, and resolves each date in the event's place through a time-zone pattern (Non-goal 2, 3, 7, 8; External check 1); Business Calendar *(forthcoming)* (Non-goal 4, 5; External check 2); Calendar System *(forthcoming)* (Non-goal 6); Localization *(forthcoming)*, which says a series in the reader's words (Non-goal 10); the composing pattern that knows the person, such as one built on a party or a session pattern (Non-goal 11).
+NOTE: the owners — Scheduler *(forthcoming)*, for repeats within a day and for acting on an occurrence, such as a reminder (Non-goal 1, 9); Calendar Event *(forthcoming)*, the pattern that keeps an event, its time of day, its one-off dates and its moved occurrences, and resolves each date in the event's place through Calendar Time (Non-goal 2, 3, 7, 8; External check 1); Business Calendar *(forthcoming)* (Non-goal 4, 5; External check 2); Calendar System *(forthcoming)* (Non-goal 6); Localization *(forthcoming)*, which says a series in the reader's words (Non-goal 10); the composing pattern that knows the person, such as one built on a party or a session pattern (Non-goal 11).
 
 Where the atom breaks down: a series by week number or by day of the year, RFC 5545's BYWEEKNO and BYYEARDAY; a series in a calendar other than the Gregorian, RFC 7529's RSCALE; a series whose next date depends on when the last one was done, such as every three months after the last service.
 
@@ -677,11 +679,11 @@ Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern that keeps a time of day for a series MUST resolve each occurrence at that time of day in the event's place.
 ```
 
-NOTE: composing patterns — none yet. Forthcoming: Calendar Event, which wires this atom to a time-zone pattern: each occurrence's date at the event's time of day, resolved through that pattern's resolve with the choice compatible, as RFC 5545 reads a recurrence's local time; the daylight-saving cases of the maintainer's ruling live in that wiring.
+NOTE: composing patterns — none yet. Forthcoming: Calendar Event, which wires this atom to Calendar Time: each occurrence's date at the event's time of day, resolved through Calendar Time's resolve with the choice compatible, as RFC 5545 reads a recurrence's local time; the daylight-saving cases of the maintainer's ruling live in that wiring.
 
 ## Example
 
-The same atom in five uses, then the rejection paths. Lists are written in brackets, `none` for an empty one; dates are calendar dates with no place.
+The same atom in five uses; its rejection paths are the bullets under Every action. Lists are written in brackets, `none` for an empty one and for a limit or an end date the call leaves out, which Operation 11 through 13 and Operation 37 read as blank (GRACE-lang Term blank); dates are calendar dates with no place.
 
 ### Every second Tuesday, read two ways
 
@@ -795,7 +797,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-07) through the Grace connector.
 
-Term terms: series, series id, seam, calendar, calendar date, month length, date range, range date, day of the week, start, frequency, interval, week start, months, month days, day entries, positions, limit, end date, exceptions, month number, month day number, position number, positive count, admitted day entry, selector, occurrence cap, limit cap, series action, exception action, query action, period, period number, repeating period, day match, entry match, daily picks, weekly picks, monthly picks, yearly picks, picked dates, selected dates, generated date, end bound, occurrence, window, window count, fixed parts, version, conformance table.
+Term terms: series, series id, seam, calendar, calendar date, month length, date range, range date, day of the week, start, frequency, interval, week start, months, month days, day entries, positions, limit, end date, exceptions, month number, month day number, position number, positive count, admitted day entry, selector, occurrence cap, limit cap, series action, exception action, query action, period, period number, repeating period, day match, entry match, daily picks, weekly picks, monthly picks, yearly picks, picked dates, selected dates, generated date, end bound, occurrence, window, window count, dates, fixed parts, version, conformance table.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -850,7 +852,7 @@ Term terms: series, series id, seam, calendar, calendar date, month length, date
 ```
 status: doing
 formal: verified — recurrence.als + 10 twins (vote yes, on the maintainer's ruling (after-grounding item 14, 2026-11-06: "Recurrence gets an Alloy model (it is mostly shape)"); every Invariant checked, 1.1 through 3.4, with the build order of the Terms, the exceptions that keep a limit's bound and the limit cap; the twin drops Operation 27's guard from [End] and Invariant 2.2 catches it; the daylight-saving cases that ruling gives a TLA model belong to the wiring of this atom with Calendar Time, not to this page); coverage 2026-11-10 (unit formal: more coverage for the yes votes); recurrence.tla + 15 twins (across steps, 2026-11-11: one series under [Open], [Except], [Restore] and [End], refusals in each refuses line's order, with the answer [Occurrences] gives in every state they leave: Invariant 1.1, 1.2, 2.1, 2.2 and 3.1 through 3.4, a cross-check with the Alloy model, the date taken out that still counts toward a limit (Term end bound), and Operation 7 and 8, both ways); nothing testable in TLA+ for the daylight-saving cases: an occurrence is a date with no time of day (Non-goal 2, 3), so what a clock change does to a time on it is Calendar Time's resolve, through the wiring of a composing pattern (Composition note 2); coverage 2026-11-11 (unit `atoms/recurrence.md formal layer`): no owed rows, 2026-11-11
-last gate: 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-26 — Final Critique 3, frozen at bad327c5 — foundational count 1, cured, not clean, no sample (Term end bound left a bound of none unordered against a date, so Invariant 2.2, Invariant 3.3 and Check 3.2 compared a date with nothing and an auditor could fail a conforming deployment; it now says a bound of none stands later than every date; the other reports were placed refining or refuted and their wording cures are in the same commit; Linus's foundational report on the invalid-position example quoted an eleven-value call the frozen text does not carry); 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
