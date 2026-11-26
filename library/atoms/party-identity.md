@@ -329,6 +329,7 @@ Operation 36: An admitted verify MUST NOT record a reason on a state change even
 Operation 37: A transitioning action MUST answer the state change id.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 43: A refused action MUST NOT append an event.
+Operation 62: EVERY admitted enroll, admitted verify, admitted suspend, admitted reinstate AND admitted close MUST append one party events record through the atom's journal need.
 Operation 44: The atom MUST NOT offer a party removal surface.
 Operation 45: The atom MUST NOT offer an event removal surface.
 Operation 46: The atom MUST NOT offer an enrollment field update surface.
@@ -380,7 +381,7 @@ Term admitted reinstate: a [Reinstate] call the action admits (Execution Contrac
 
 Term admitted close: a [Close] call the action admits (Execution Contract Read 4).
 
-Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
+Term admitted read: a [Read] call that Operation 48 and Operation 49 admit.
 
 #### Invalid Request
 
@@ -615,13 +616,11 @@ Projection: invalid-query
   Invariant 6.2: The atom MUST NOT append a verification event BEFORE a prior verification event.
   Invariant 6.3: A party's verification event list length MUST NOT fall.
   ```
-- **Invariant 7 — Enrollment fields are immutable under the atom's actions.**
 - **Invariant 8 — No transition is silent.**
   ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
   Invariant 8.2: A party's state change log length MUST NOT fall.
   ```
-- **Invariant 11 — Action atomicity.**
 
 ## When something happens
 
@@ -708,11 +707,13 @@ The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which ato
 
 Term need key: key actor id; pairs acting references.
 
+Term need journal: records party events; calls append; arms event_id.
+
 ## Offers
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
-Term offer key: key party id; carried by parties.
+Term offer key: key party id; carried by parties; calls Read.
 
 ## Left to others
 
@@ -755,13 +756,13 @@ Composition note 5: A composing pattern that attests actors MUST bind an attesta
 Composition note 6: A composing pattern that keeps an audit trail MUST record EVERY verification event and EVERY state change event.
 Composition note 7: A composing pattern that records consent MUST name the party id as the data subject.
 Composition note 8: A composing pattern MUST NOT scrub an enrollment field.
-Composition note 11: A composing pattern that keeps a journal MUST append an event on EVERY admitted action.
-Composition note 12: A composing pattern that keeps a journal MUST append an event on EVERY refused action.
+Deleted: Composition note 11. Operation 62 owns it: the atom appends through its own journal need, and which atom serves the need is the app's choice.
+Deleted: Composition note 12. Operation 43 owns it: a refused action commits nothing, so no journal holds it.
 ```
 
 ---
 
-Term composing pattern: a pattern an app wires beside this atom — one that attests actors, records consent, bounds retention, keeps a journal or an audit trail, runs the verification workflow or invites a party; an identity resolution pattern, an attribute update pattern, a trusted timestamping pattern or a document records pattern.
+Term composing pattern: a pattern an app wires beside this atom — one that attests actors, records consent, bounds retention, keeps an audit trail, runs the verification workflow or invites a party; an identity resolution pattern, an attribute update pattern, a trusted timestamping pattern or a document records pattern.
 
 ## Example
 
@@ -798,7 +799,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 - **GDPR Article 4(1)** — the enrollment fields are personal data, and this atom holds some rather than opaque references alone.
 - **GDPR Articles 5–6** — lawful basis for processing, typically Article 6(1)(c) or 6(1)(b); processing *beyond* the regulatory obligation is a pattern that records consent's.
 - **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: no pattern scrubs an enrollment field (Non-goal 3, Non-goal 12, Composition note 8), an erasure lands in the records the document reference and the evidence reference name, and the party record leaves whole through the purge of a pattern that bounds retention, once its retention allows (Execution Contract Database 4).
-- **HIPAA 45 CFR section 164.514** — patient identity must be established before protected health information records exist; the patient is a party here.
+- **HIPAA 45 CFR section 164.514** — paragraph (h) requires a covered entity to verify the identity and authority of a person requesting protected health information before disclosing it, and a patient whose identity a recorded check established is a party here; paragraphs (a) and (b), the de-identification standards, are not this atom's, which holds identifying fields and de-identifies none.
 
 It inherits from:
 
@@ -837,7 +838,7 @@ Check 7.3: An auditor MUST find no state change id on two state change events (I
 
 NOTE: Invariant 1.1 owes no check here: Execution Contract Database 6 binds the atom's own actions, and a purge another specification declares, as a pattern that bounds retention does under Execution Contract Database 4, is answered by that specification's records (Capability requirement 10, Non-goal 13).
 
-Term cited: party id, actor id: Declarations.
+Term cited: party id, actor id, party events: Declarations.
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 
@@ -850,7 +851,7 @@ External check 4: A deployment needing an acting reference bound to an actor MUS
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing pattern that bounds retention (Non-goal 13).
-External check 8: A deployment needing an answer observed MUST read the composing journal (Non-goal 19).
+External check 8: A deployment needing an answer observed MUST read the app's journal (Non-goal 19).
 External check 11: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 14).
 
 ```

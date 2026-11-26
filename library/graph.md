@@ -68,6 +68,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_task
   b_ordering -->|"list id"| b_list
   b_party_identity -->|"actor id"| b_actor_identity
+  b_party_identity -->|"party events"| b_event_log
   b_permissions -->|"actor id"| b_actor_identity
   b_provenance -->|"actor id"| b_actor_identity
   b_session -->|"actor id"| b_actor_identity

@@ -142,9 +142,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Party Identity](./atoms/party-identity.md)** (961 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
+**[Party Identity](./atoms/party-identity.md)** (962 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
 
-- Mints party id. Needs key actor id. Offers key party id.
+- Mints party id. Needs key actor id; journal party events. Offers key party id.
 
 **[Permissions](./atoms/permissions.md)** (664 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 

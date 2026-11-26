@@ -1374,7 +1374,7 @@
   ],
   "domain": null,
   "done": true,
-  "invariants": 9,
+  "invariants": 7,
   "kind": "atom",
   "models": {
    "als": true,
