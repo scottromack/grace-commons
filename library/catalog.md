@@ -130,7 +130,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints notification id. Offers key notification id.
 
-**[Observation](./atoms/observation.md)** (851 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
+**[Observation](./atoms/observation.md)** (860 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
 - Mints observation id. Needs key actor id. Offers key observation id.
 
