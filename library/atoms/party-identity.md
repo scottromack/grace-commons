@@ -23,11 +23,11 @@ The record keeps the party's enrollment, the full history of identity checks —
 
 The central guarantee is that a party cannot stand verified without a passing check recorded since the most recent suspension, so a downstream process can require *a verified party* and trust that the standing rests on a recorded check rather than a flipped flag.
 
-Party Identity records the results of identity checks and does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties; it keeps parties apart from actors: an actor signs, a party is verified. Proving who took an action is another atom's; Party Identity keeps the recorded checks a party's verified standing rests on. It holds every party id it mints.
+Party Identity records the results of identity checks and does not perform them — no document scan, no biometric match, no sanctions screen — and it does not deduplicate parties; it keeps parties apart from actors: an actor signs, a party is verified. Proving who took an action is the work of a pattern that attests actors; Party Identity keeps the recorded checks a party's verified standing rests on. It holds every party id it mints.
 
 Every regulated system that deals with external parties — banks onboarding customers, hospitals enrolling patients, broker-dealers establishing counterparties, employers verifying staff — must establish *who* the party is before regulated activity begins, and must keep that record through the party's whole lifecycle. The shape is constant: attributes are collected, identity is verified against external evidence, the party becomes verified, and downstream activity relies on that. When circumstances change — a sanctions match, an expired document, an investigation — the party is suspended, re-verified, and either reinstated or permanently closed.
 
-The compliance framing is consistent across regimes. FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 require customer due diligence before a business relationship begins. The BSA (Bank Secrecy Act) and AML (Anti-Money Laundering) Customer Identification Program (31 CFR — the US Code of Federal Regulations — Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 4(1) makes the attributes collected here personal data. HIPAA (the US Health Insurance Portability and Accountability Act) requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
+The compliance framing is consistent across regimes. FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendation 10 requires customer due diligence before a business relationship begins. The BSA (Bank Secrecy Act) and AML (Anti-Money Laundering) Customer Identification Program (31 CFR — the US Code of Federal Regulations — Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 4(1) makes the attributes collected here personal data. HIPAA (the US Health Insurance Portability and Accountability Act) requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
 
 ## What it keeps
 
@@ -631,7 +631,7 @@ Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the call
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the database (Execution Contract Error model 1).
 ```
 
-NOTE: a caller who lost an [Enroll]'s answer finds the enrollment by reading the parties without a party id filter (Indeterminate outcome 3): a query carrying no filter matches every party (Execution Contract Query 4), each party answered with its enrollment fields (Operation 51, State 1), among them the name, date of birth and document reference the lost call carried; a range over enrollment instant narrows the read only as far as the deployment's clock allows (Execution Contract Logic confinement 7).
+NOTE: a caller who lost an [Enroll]'s answer reads the parties without a party id filter (Indeterminate outcome 3): a query carrying no filter matches every party (Execution Contract Query 4), each party answered with its enrollment fields (Operation 51, State 1), among them the name, date of birth and document reference the lost call carried, so the read narrows to candidates. The enrolling actor reference narrows them further, and a range over enrollment instant does so only as far as the deployment's clock allows (Execution Contract Logic confinement 7). The atom detects no duplicate (Non-goal 1, Identity 16), so where two identical enrollments remain, the caller treats both as live or closes one with a reason, as the enrollment-in-error example does.
 
 ## While something is so
 
@@ -792,7 +792,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ## Source
 
-- **FATF Recommendations 10–12 (customer due diligence)** — identify the customer and verify identity using reliable independent sources; identify beneficial owners; conduct ongoing due diligence. The [Enroll] → [Verify] lifecycle is the structural form; the beneficial-ownership graph is a composing pattern's (Non-goal 11) and the monitoring schedule is too (Non-goal 8).
+- **FATF Recommendations 10–12 (customer due diligence, record-keeping and politically exposed persons)** — identify the customer and verify identity using reliable independent sources; identify beneficial owners; conduct ongoing due diligence. The [Enroll] → [Verify] lifecycle is the structural form; the beneficial-ownership graph is a composing pattern's (Non-goal 11) and the monitoring schedule is too (Non-goal 8).
 - **BSA/AML — 31 CFR Part 1020 (FinCEN — the Financial Crimes Enforcement Network — Customer Identification Program)** — minimum identity attributes, verification by documentary or non-documentary method, and five-year retention past the relationship's end. The enrollment fields are the attributes; [Verification Method] records which kind was used; retention is the work of a pattern that bounds it (Non-goal 13).
 - **FinCEN Beneficial Ownership Rule — 31 CFR section 1010.230** — each beneficial owner is a party record in their own right; the ownership relationship is not.
 - **EU (European Union) 5th Anti-Money Laundering Directive (AMLD5)** — enhanced due diligence and beneficial-ownership registries, aligned with FATF.
@@ -857,7 +857,6 @@ External check 6: A deployment needing a document reference resolved MUST read t
 External check 7: A deployment needing a party's record retention bounded MUST read the composing pattern that bounds retention (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the app's journal (Non-goal 19).
 External check 11: A deployment needing an evidence reference resolved MUST read the composing pattern's document records (Identity 14).
-
 ```
 
 ---
@@ -872,7 +871,7 @@ Term records: party — one external party, carrying party id, name, date of bir
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
+Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference. action rejection = invalid-request | storage-failure — the codes every writing action's refuses line carries. party-action rejection = not-known | already-closed — the codes every party action's refuses line carries.
 
 Term bounds: length bound.
 
