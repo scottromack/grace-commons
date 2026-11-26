@@ -1316,7 +1316,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -1327,7 +1327,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Observation"
  },
  "ordering": {

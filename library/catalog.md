@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 22 with bond lines; 2 app(s).
+53 atoms, 23 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -130,9 +130,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Observation](./atoms/observation.md)** (819 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
+**[Observation](./atoms/observation.md)** (851 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
-- No bond lines yet.
+- Mints observation id. Needs key actor id. Offers key observation id.
 
 **[Ordering](./atoms/ordering.md)** (453 lines). Ordering keeps the sequence of one list's items: each new item enters at the bottom, one item moves to a new place at a time, and the order reads back, first place to last.
 

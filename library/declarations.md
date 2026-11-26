@@ -62,6 +62,8 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term observation id: opaque — the one value naming one recorded observation, minted when the observation is recorded and never reused in one database instance.
+
 Term step id: opaque — the one value naming one approval step, minted when the step is submitted and never reused in one database instance.
 
 Term consent id: opaque — the one value naming one consent record, minted when the consent is granted and never reused in one database instance.

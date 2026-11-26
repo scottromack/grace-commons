@@ -36,6 +36,7 @@ flowchart LR
   b_list["List"]
   b_medication_order["Medication Order"]
   b_message_preference["Message Preference"]
+  b_observation["Observation"]
   b_ordering["Ordering"]
   b_party_identity["Party Identity"]
   b_permissions["Permissions"]
@@ -62,6 +63,7 @@ flowchart LR
   b_medication_order -->|"actor id"| b_actor_identity
   b_medication_order -->|"order events"| b_event_log
   b_message_preference -->|"actor id"| b_actor_identity
+  b_observation -->|"actor id"| b_actor_identity
   b_ordering -.->|"opaque"| b_actor_identity
   b_ordering -.->|"opaque"| b_approval_step
   b_ordering -.->|"opaque"| b_calendar_time
@@ -70,6 +72,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_list
   b_ordering -.->|"opaque"| b_medication_order
   b_ordering -.->|"opaque"| b_message_preference
+  b_ordering -.->|"opaque"| b_observation
   b_ordering -.->|"opaque"| b_party_identity
   b_ordering -.->|"opaque"| b_provenance
   b_ordering -.->|"opaque"| b_session
