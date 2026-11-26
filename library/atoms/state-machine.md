@@ -919,7 +919,7 @@ Check 8.1: An auditor MUST find history entry id, sequence number, from state, t
 Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
 Check 8.3: An auditor MUST find no history entry whose firing instant PRECEDES the workflow's instantiation instant (Operation 20).
 Check 10.1: An auditor MUST find EVERY workflow AND EVERY history entry a committed version holds standing in EVERY later committed version (Invariant 10.1, Invariant 10.2; Execution Contract Generation acceptance 1).
-Check 9.1: An auditor MUST reconstruct the workflows carrying a subject reference from the workflow records, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and then by workflow id, ascending, and MUST find the workflow ids [Workflows About] answers for that subject reference to be the reconstruction's workflow ids in the reconstruction's order (Operation 80 through 83, Operation 93).
+Check 9.1: An auditor MUST find the workflow ids [Workflows About] answers for a subject reference to be the workflow ids of EVERY workflow carrying that subject reference, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and then by workflow id, ascending (Operation 80, Operation 82, Operation 83, Operation 93).
 ```
 
 Term cited: workflow id, history entry id, actor id: Declarations.
@@ -1000,7 +1000,7 @@ Term terms: workflow, history entry, subject reference, instance metadata, datab
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-26` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -1008,9 +1008,9 @@ Term terms: workflow, history entry, subject reference, instance metadata, datab
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-26
 formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what [History] and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Operation 93, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26
-last gate: 2026-11-26 — Final Critique 24, delta, frozen at 7058080 — foundational count 1, cured, not clean, one sample
+last gate: 2026-11-26 — Final Critique 25, a delta round, frozen at 7a43e1e — foundational count 0 after the blind second triage, clean, one sample; Linus's rerun claimed one foundational (Check 9.1 carrying two obligations), placed rhetorical by the first triage and refining by the blind second, cured
 
 open: none
 ```
