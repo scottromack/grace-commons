@@ -1273,7 +1273,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1289,7 +1289,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "done \u2014 2026-11-26",
+  "status": "doing",
   "title": "Notification"
  },
  "notification-fanout": {

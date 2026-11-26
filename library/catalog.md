@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 31 with bond lines; 2 app(s).
+53 atoms, 32 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -126,9 +126,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Notification](./atoms/notification.md)** (678 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
+**[Notification](./atoms/notification.md)** (746 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
 
-- No bond lines yet.
+- Mints notification id. Offers key notification id.
 
 **[Observation](./atoms/observation.md)** (851 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
