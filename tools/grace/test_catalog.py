@@ -45,13 +45,30 @@ class Catalog(unittest.TestCase):
 
     def test_bond_graph_edges(self):
         lines = catalog.bond_graph(ROOT, self.data)
-        self.assertIn('  b_task -->|"list id"| b_list', lines)
-        # a need meeting more than one offer is drawn dashed (bonds.md: an app that composes them writes the bond)
-        for need_path, need_line in self.data["meets"]:
-            met = self.data["meets"][(need_path, need_line)]
-            if len(met) > 1 and need_path in self.data["atoms"]:
-                arrows = [ln for ln in lines if ln.startswith("  b_" + need_path.stem.replace("-", "_") + " ")]
-                self.assertTrue(any("-.->" in ln for ln in arrows))
+        self.assertIn('  b1_task -->|"list id"| b1_list', lines)
+        # an opaque key need (Ordering's) meets every key offer, so it is drawn as no arrow, and said once
+        self.assertFalse(any(ln.startswith("  b1_ordering ") and '"opaque"' in ln for ln in lines))
+        self.assertTrue(any(ln.startswith("Ordering can order the records of any atom") for ln in lines))
+
+    def test_bond_graph_hubs_are_tags(self):
+        v = catalog.bond_layers(self.data)
+        hubs = {self.data["titles"][o] for o, _ in v["hubs"]}
+        self.assertEqual(hubs, {"Actor Identity", "Event Log"})
+        lines = catalog.bond_graph(ROOT, self.data)
+        # no arrow points at a hub; the needing atoms carry its word as a tag
+        self.assertFalse(any("-->" in ln and ln.rstrip().endswith(("_actor_identity", "_event_log")) for ln in lines))
+        self.assertTrue(any(ln.startswith('  b1_task["Task<br/><small>actor id') for ln in lines))
+
+    def test_bond_graph_layers(self):
+        v = catalog.bond_layers(self.data)
+        by = {self.data["titles"][p]: k for p, k in v["layer"].items()}
+        # an atom that needs nothing is layer 0; an atom is one deeper than the deepest atom it needs
+        self.assertEqual(by["List"], 0)
+        self.assertEqual(by["Task"], 1)
+        self.assertEqual(by["Assignment"], 2)
+        for p, arrows in v["arrows"].items():
+            for q, _ in arrows:
+                self.assertGreater(v["layer"][p], v["layer"][q])
 
     def test_the_page_is_current(self):
         self.assertEqual((ROOT / "library" / "catalog.md").read_text(encoding="utf-8"), self.text)

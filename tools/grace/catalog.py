@@ -125,35 +125,122 @@ def catalog(root: Path, data: dict | None = None) -> str:
     return "\n".join(L).rstrip("\n") + "\n"
 
 
+HUB_SHARE = 6  # an offer met by the needs of one atom in six or more is drawn as a tag, not a node
+
+
+def bond_layers(data: dict) -> dict:
+    """The bond graph as the readable view draws it (unit `site: the bond graph made readable`): the hub
+    offers, the opaque key needs, the real arrows left, and each atom's layer. A hub is an offer the needs of
+    one atom in HUB_SHARE or more meet (Actor Identity's actor id, Event Log's journal); it is drawn as a tag
+    in each needing atom's box. A key need typed opaque (Ordering's) meets every key offer and is drawn as no
+    arrow. An atom's layer is its depth in the arrows left: an atom with none is layer 0."""
+    d = data
+    atoms = d["atoms"]
+    met_by: dict = {}
+    for p in atoms:
+        for need in (b for b in d["lines"][p] if b["side"] == "need"):
+            for o in d["meets"][(p, need["line"])]:
+                met_by.setdefault((o["path"], o["line"]), set()).add(p)
+    hubs = {k for k, v in met_by.items() if len(v) * HUB_SHARE >= len(atoms)}
+    hub_word = {}
+    for p in atoms:
+        for o in (b for b in d["lines"][p] if b["side"] == "offer" and (p, b["line"]) in hubs):
+            hub_word[(p, o["line"])] = word(o) if o["kind"] == "key" else o["kind"]
+    tags = {p: [] for p in atoms}
+    opaque = []
+    arrows = {p: [] for p in atoms}
+    for p in atoms:
+        for need in (b for b in d["lines"][p] if b["side"] == "need"):
+            if need["kind"] == "key" and word(need) == "opaque":
+                opaque.append(p)
+                continue
+            for o in d["meets"][(p, need["line"])]:
+                k = (o["path"], o["line"])
+                if k in hubs:
+                    if hub_word[k] not in tags[p]:
+                        tags[p].append(hub_word[k])
+                elif o["path"] != p:
+                    arrows[p].append((o["path"], word(need) or need["kind"]))
+    layer: dict = {}
+
+    def depth(p, seen=()):
+        if p not in layer:
+            if p in seen:
+                return 0
+            layer[p] = 1 + max(depth(q, seen + (p,)) for q, _ in arrows[p]) if arrows[p] else 0
+        return layer[p]
+
+    for p in atoms:
+        depth(p)
+    return {"hubs": sorted({(o, hub_word[(o, ln)]) for o, ln in hubs}, key=str), "tags": tags,
+            "opaque": sorted(set(opaque)), "arrows": arrows, "layer": layer}
+
+
 def bond_graph(root: Path, data: dict | None = None) -> list[str]:
-    """The bond graph as Markdown lines for graph.md: a Mermaid flowchart of every bonded atom, an edge from
-    the needing atom to each atom whose offer its need meets, labelled by the need's declared word."""
+    """The bond graph as Markdown lines for graph.md: the layers in one diagram, then one small diagram per
+    layer with its atoms and their real arrows, each labelled by the need's declared word (bond_layers)."""
     d = data or corpus(root)
     titles = d["titles"]
-    bonded = [p for p in d["atoms"] if d["lines"][p]]
+    v = bond_layers(d)
+    layer, arrows, tags = v["layer"], v["arrows"], v["tags"]
+    stem = {p: re.sub(r"\W", "_", p.stem) for p in d["atoms"]}
+    init = '%%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%'
+    hub_names = " and ".join(f"{titles[o]}'s {w}" for o, w in v["hubs"])
     L = ["## The bond graph", "",
-         "Atoms as nodes, and an arrow from an atom to each atom whose offer one of its needs meets, labelled "
-         "by the need's declared word ([Bonds](./bonds.md)). A dashed arrow is a need that meets more than one "
-         "offer, of which an app that composes them names one. Drawn from the atoms' need and offer lines by "
-         "tools/grace/catalog.py; the [Catalog](./catalog.md) lists the same lines atom by atom. Compositions "
-         "keep the composition graph below until they dissolve.", ""]
-    if not bonded:
-        return L + ["*(No atom carries a bond line yet.)*", ""]
-    nid = {p: "b_" + re.sub(r"\W", "_", p.stem) for p in bonded}
-    L += ["```mermaid", '%%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%', "flowchart LR"]
-    for p in bonded:
-        L.append(f'  {nid[p]}["{titles[p]}"]')
-    unmet = []
-    for p in bonded:
-        for need in (b for b in d["lines"][p] if b["side"] == "need"):
-            met = d["meets"][(p, need["line"])]
-            if not met:
-                unmet.append(f"{titles[p]} ({shown(need)})")
-            arrow = "-.->" if len(met) > 1 else "-->"
-            for o in met:
-                label = word(need) or need["kind"]
-                L.append(f'  {nid[p]} {arrow}|"{label}"| {nid[o["path"]]}')
+         "Every atom, grouped by layer: an arrow runs from an atom to each atom whose offer one of its needs meets "
+         "([Bonds](./bonds.md)), and an atom's layer is how deep its arrows go (an atom that needs nothing is "
+         "layer 0). Drawn from the atoms' need and offer lines by tools/grace/catalog.py; the "
+         "[Catalog](./catalog.md) lists the same lines atom by atom. Compositions keep the composition graph "
+         "below until they dissolve.", ""]
+    top = sorted(set(layer.values()), reverse=True)
+    L += ["```mermaid", init, "flowchart TB"]
+    for k in top:
+        n = sum(1 for p in layer if layer[p] == k)
+        names = ", ".join(titles[p] for p in d["atoms"] if layer[p] == k) if n <= 6 else ""
+        label = f"Layer {k}: {n} atom{'s' if n != 1 else ''}" + (f"<br/>{names}" if names else "")
+        L.append(f'  layer{k}["{label}"]')
+    between: dict = {}
+    for p in d["atoms"]:
+        for q, _ in arrows[p]:
+            between[(layer[p], layer[q])] = between.get((layer[p], layer[q]), 0) + 1
+    for (a, b), n in sorted(between.items(), reverse=True):
+        L.append(f'  layer{a} -->|"{n} bond{"s" if n != 1 else ""}"| layer{b}')
     L += ["```", ""]
+
+    for k in top:
+        # each diagram names its nodes apart (b<layer>_<atom>): Mermaid draws every diagram of a page into one
+        # document, so one id in two diagrams draws both into the first
+        nid = {p: f"b{k}_{stem[p]}" for p in d["atoms"]}
+
+        def box(p):
+            t = titles[p] + (f"<br/><small>{' · '.join(tags[p])}</small>" if tags[p] else "")
+            return f'  {nid[p]}["{t}"]'
+
+        own = [p for p in d["atoms"] if layer[p] == k]
+        L += [f"### Layer {k}", "", "```mermaid", init, "flowchart LR"]
+        L += [box(p) for p in own]
+        if k == 0:
+            for i in range(0, len(own), 6):
+                row = own[i:i + 6]
+                if len(row) > 1:
+                    L.append("  " + " ~~~ ".join(nid[p] for p in row))
+        else:
+            below = sorted({q for p in own for q, _ in arrows[p]} - set(own), key=lambda q: titles[q])
+            L += [box(q) for q in below]
+            L += [f"  class {','.join(nid[q] for q in below)} lower"] if below else []
+            L += [f'  {nid[p]} -->|"{w}"| {nid[q]}' for p in own for q, w in arrows[p]]
+            L.append("  classDef lower stroke-dasharray: 4 4")
+        L += ["```", ""]
+        L += [f"Layer {k}: " + ", ".join(f"[{titles[p]}](./atoms/{p.stem}.md)" for p in own) + "."
+              + (" A dashed box is an atom of a lower layer." if k else ""), ""]
+    if v["hubs"]:
+        L += [f"A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no "
+              f"node and no arrows: {hub_names}. An app names the atom that meets it.", ""]
+    if v["opaque"]:
+        L += [f"{', '.join(titles[p] for p in v['opaque'])} can order the records of any atom that offers a key, "
+              "so its opaque key need is drawn as no arrows; an app names which atom's key (a bond instance).", ""]
+    unmet = [f"{titles[p]} ({shown(n)})" for p in d["atoms"] for n in d["lines"][p]
+             if n["side"] == "need" and not d["meets"][(p, n["line"])]]
     if unmet:
         L += ["Needs no atom's offer meets: " + "; ".join(unmet) + ".", ""]
     return L
