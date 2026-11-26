@@ -34,18 +34,20 @@ Every pattern that moves value needs the same few facts, and each one that state
 Identity 1: The atom MUST identify a money by the money's currency AND the money's amount.
 Identity 2: The atom MUST compare two currencies codepoint for codepoint.
 Identity 3: The atom MUST NOT normalize a currency.
+Identity 4: The atom MUST NOT normalize a rounding.
+Identity 5: The atom MUST compare two roundings codepoint for codepoint.
 ```
 
 Term amount: how many of the currency's minor unit a money holds — an [Amount]; a whole number, negative, zero or positive.
 
-Term minor unit: the smallest unit of a currency — the cent of a dollar, or the yen itself; for a code from ISO 4217, the unit that standard's minor unit exponent gives.
+Term minor unit: the smallest unit of a currency — the cent of a dollar, or the yen itself.
 
 ```
 State 1: EVERY money MUST carry currency and amount.
 State 2: The atom MUST NOT store a money.
 ```
 
-Term whole number: a number with no fraction — negative, zero or positive.
+Term whole number: a number with no fraction — negative, zero or positive; an amount, a numerator, a denominator or a share is read to its last digit, never through an approximation.
 
 Term positive count: a whole number, one or more.
 
@@ -59,7 +61,7 @@ Kind: Type
 
 #### Currency
 
-The unit of account a money is counted in, such as an ISO 4217 code; a string of one or more codepoints and no more than the [Currency Cap], held as supplied and compared codepoint for codepoint.
+The unit of account a money is counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes); a string of one or more codepoints and no more than the [Currency Cap], held as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Money
@@ -85,8 +87,6 @@ Term currency: the unit of account an amount is counted in, such as a code from 
 Operation 1: IF the money IS NOT IN the well-formed moneys THEN an action MUST answer invalid-money.
 Operation 2: IF the other money IS NOT IN the well-formed moneys THEN a pair action MUST answer invalid-money.
 Operation 3: IF the other money's currency DOES NOT EQUAL the money's currency THEN a pair action MUST answer mixed-currency.
-Operation 21: A first part MUST carry the part's stepped share as amount PER Execution Contract Logic confinement 9.
-Operation 22: A part outside the first parts MUST carry the part's base share as amount PER Execution Contract Logic confinement 9.
 Operation 23: An action MUST NOT write.
 Operation 24: An action MUST NOT read a record.
 ```
@@ -105,7 +105,7 @@ Term sum: the money's amount plus the other money's amount.
 
 Term difference: the money's amount less the other money's amount.
 
-Term order: less | equal | greater — how the money's amount stands against the other money's amount.
+Term order: less | equal | greater — an [Order]; how the money's amount stands against the other money's amount.
 
 Term rate: a numerator and a denominator together, the pair a [Multiply] call scales a money by — a number and never a money; 8.25 percent is the numerator 825 with the denominator 10000.
 
@@ -115,7 +115,7 @@ Term quotient: the size of the product divided by the denominator, rounded down 
 
 Term remainder: the size of the product less the quotient times the denominator — what the division leaves over; zero or more, and below the denominator.
 
-Term rounding: the rule a [Multiply] call names for the rounded size — a [Rounding]; one of the roundings, named on every call.
+Term rounding: the rule a [Multiply] call names for the rounded size — a [Rounding]; one of the roundings, which a call names or is refused (Operation 14).
 
 Term roundings: down | up | half-up | half-even — the four roundings. Each answers a rounded size from the quotient and the remainder and never reads a sign, so a money and the money's negation round to negations.
 
@@ -133,7 +133,7 @@ Term rounded product: the rounded size, negated where the product is below zero.
 
 Term share total: the shares of one [Split] call, added up.
 
-Term parts: every part of one [Split] answer, in the order of the shares.
+Term parts: every part of one [Split] answer, in the order of the shares — [Parts].
 
 Term share product: the money's size times the part's share — a whole number, kept exact however large.
 
@@ -149,7 +149,7 @@ Term base share: the part's base size, negated where the money's amount is below
 
 Term leftover: the money's size less the base sizes of the parts, added up — how many minor units the base sizes leave over.
 
-Term first parts: as many short parts as the leftover counts, taken from the front of the order of the shares.
+Term first parts: the first short parts in the order of the shares, as many as the leftover counts.
 
 Term step: one minor unit in the direction of the money's amount — 1 for a money above zero, -1 for a money below zero; a money of zero has no step, since its leftover is zero and no part is a first part.
 
@@ -161,7 +161,7 @@ Term gap: the part's size times the share total, less the part's share product �
 
 Term round trip: an [Add] of the other money to the money, then a [Subtract] of the same other money from the result; an [Add] or a [Subtract] that answers a refusal has no round trip.
 
-Term negated call: a [Multiply] or a [Split] call naming the money's negation where another call names the money, every other input the same.
+Term negated call: a [Multiply] or a [Split] call naming the money's negation where another call names the money, every other input the same; a [Multiply] or a [Split] that answers a refusal has no negated call (Execution Contract Read 4).
 
 The case space, and the rule that owns each case:
 
@@ -242,7 +242,7 @@ Projection: too-many-parts
 
 #### Invalid Shares
 
-[Split]'s refusal of [Shares] holding no share, or holding a share that is no whole number from one through the [Number Cap].
+[Split]'s refusal of [Shares] holding no share or being no list at all, or holding a share that is no whole number from one through the [Number Cap].
 
 Kind:       Member
 Member of:  the action rejection
@@ -319,6 +319,7 @@ compare(money, other_money)
 Operation 8: IF the other money's amount EXCEEDS the money's amount THEN [Compare] MUST answer less.
 Operation 9: IF the money's amount EQUALS the other money's amount THEN [Compare] MUST answer equal.
 Operation 10: IF the money's amount EXCEEDS the other money's amount THEN [Compare] MUST answer greater.
+Operation 25: [Compare] MUST answer EXACTLY ONE order.
 ```
 
 The case space, and the rule that owns each case:
@@ -425,6 +426,8 @@ Operation 17: IF the share count EXCEEDS the part cap THEN [Split] MUST answer t
 Operation 18: IF the share count EQUALS zero THEN [Split] MUST answer invalid-shares.
 Operation 19: IF a share IS NOT IN the capped counts THEN [Split] MUST answer invalid-shares.
 Operation 20: [Split] MUST answer EXACTLY ONE part PER share, in the order of the shares.
+Operation 21: A first part MUST carry the part's stepped share as amount PER Execution Contract Logic confinement 9.
+Operation 22: A part outside the first parts MUST carry the part's base share as amount PER Execution Contract Logic confinement 9.
 ```
 
 The case space, and the rule that owns each case:
@@ -433,7 +436,7 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Split] | one share or more, no more than the part cap, each a capped count | the parts, adding back up to the money | Operation 20 through 22 |
 | [Split] | more shares than the part cap | [Too Many Parts] | Operation 17 |
-| [Split] | no share, or a share that is no capped count | [Invalid Shares] | Operation 18, Operation 19 |
+| [Split] | no share, no list of shares at all, or a share that is no capped count | [Invalid Shares] | Operation 18, Operation 19 |
 
 #### Shares
 
@@ -442,6 +445,18 @@ The list a [Split] call names, one whole number from one through the [Number Cap
 Kind:         Parameter
 Parameter of: Split
 Projection:   shares
+
+#### Order
+
+How the money stands against the other money: less, equal or greater; answered by [Compare], never stored.
+
+Kind: Type
+
+#### Parts
+
+Every part of one [Split] answer, one per share, in the order of the shares; answered by [Split], never stored.
+
+Kind: Type
 
 #### Part Cap
 
@@ -482,6 +497,7 @@ Projection:   part_cap
 - **Invariant 7 — No answer passes the number cap.**
   ```
   Invariant 7.1: A result's size MUST NOT EXCEED the number cap.
+  Invariant 7.2: A part's size MUST NOT EXCEED the number cap.
   ```
 
 NOTE: why Invariant 4.1 holds — the part remainders of one [Split] call add up to the leftover times the share total; a part outside the short parts adds nothing, and a short part adds less than the share total; so wherever a minor unit is left over the leftover is below the short count, and the first parts are there to take every leftover minor unit (Term first parts, Operation 21).
@@ -506,7 +522,7 @@ Term number cap: the largest size of a whole number a call names or answers, an 
 
 Term part cap: the most shares one [Split] call names — a [Part Cap]; 1,000 where a deployment declares none, and a call over the part cap answers too-many-parts (Operation 17).
 
-Term currency cap: the bound on a currency's length in Unicode code points — a [Currency Cap]; 1,024 code points where a deployment declares none, a default cap a deployment may override as Execution Contract Input 2 allows, though a call naming a currency over the currency cap answers invalid-money (Operation 1, Operation 2), this atom's own answer in place of Input 2's invalid-request, and the length is counted on the currency as the call carries it (Execution Contract Input 2).
+Term currency cap: the bound on a currency's length in Unicode code points — a [Currency Cap]; 1,024 code points where a deployment declares none, a default cap a deployment may override as Execution Contract Input 2 allows, though a call naming a currency over the currency cap answers invalid-money (Operation 1, Operation 2), this atom's own answer in place of Input 2's invalid-request.
 
 Term capped number: a whole number whose size is no more than the number cap.
 
@@ -542,7 +558,7 @@ Term denominator: the bottom of a rate — a [Denominator]; a capped count.
 
 Term shares: the list of capped counts a [Split] call names, one per part — the [Shares]; a part is due the part's share out of the share total.
 
-Term share count: the number of shares one [Split] call names.
+Term share count: the number of shares one [Split] call names; zero where the call names no list of shares.
 
 Term part: one money a [Split] call answers — a [Money]; the part's share is the share at the part's place in the shares.
 
@@ -578,11 +594,11 @@ NOTE: composing patterns — none yet. Forthcoming: Currency, Pricing, Tax, Paym
 
 ## Example
 
-The same pattern in three settings, then the rejection paths. An amount is a whole number of the currency's minor unit, so `1999` in US dollars is $19.99.
+The same pattern in three settings; the rejection paths stand under What people do. An amount is a whole number of the currency's minor unit, so `1999` in United States dollars is $19.99.
 
 ### Checkout
 
-A shop sells in US dollars. A basket holds a book at $19.99 and a pen at $2.50: `add(money("USD", 1999), money("USD", 250))` answers `money("USD", 2249)`. Sales tax at 8.25 percent is the numerator 825 with the denominator 10000, and the shop's tax rule rounds half-up: `multiply(money("USD", 2249), 825, 10000, half-up)` answers `money("USD", 186)`, since 2249 times 825 is 1855425, the quotient by 10000 is 185, and twice the remainder of 5425 is more than 10000. Named down, the same call answers 185. The basket with tax is `add(money("USD", 2249), money("USD", 186))`, which answers `money("USD", 2435)`, $24.35.
+A shop sells in United States dollars. A basket holds a book at $19.99 and a pen at $2.50: `add(money("USD", 1999), money("USD", 250))` answers `money("USD", 2249)`. Sales tax at 8.25 percent is the numerator 825 with the denominator 10000, and the shop's tax rule rounds half-up: `multiply(money("USD", 2249), 825, 10000, half-up)` answers `money("USD", 186)`, since 2249 times 825 is 1855425, the quotient by 10000 is 185, and twice the remainder of 5425 is more than 10000. Named down, the same call answers 185. The basket with tax is `add(money("USD", 2249), money("USD", 186))`, which answers `money("USD", 2435)`, $24.35.
 
 ### Shared bill
 
@@ -602,7 +618,7 @@ Money is a primitive that stays below regulation: the rules that bind money bind
 - **Java's `RoundingMode`** — the four rounding names as widely shipped: down toward zero, up away from zero, half-up for an exact half away from zero, half-even for an exact half to the even neighbour.
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design, leaving currency, pricing, tax, payment and the ledger to concepts of their own.
 
-The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unrounded and the amount paid rounded to the nearest cent, bind Currency, which the atom's exact rate and named rounding leave room for (Non-goal 1). Tax rounding rules and cash rounding bind the patterns that calculate a tax and take a payment (Non-goal 7, Non-goal 8).
+The euro conversion rules of Council Regulation (EC) No 1103/97 of the European Community, a rate used unrounded and the amount paid rounded to the nearest cent, bind Currency, which the atom's exact rate and named rounding leave room for (Non-goal 1). Tax rounding rules and cash rounding bind the patterns that calculate a tax and take a payment (Non-goal 7, Non-goal 8).
 
 ---
 
@@ -610,9 +626,9 @@ The euro conversion rules of Council Regulation (EC) No 1103/97, a rate used unr
 
 ### Generation acceptance
 
-Acceptable when the checks below hold for every call an auditor makes: the atom stores nothing, so the calls and the deployment's database log are the whole evidence. Invariant 2.1, Invariant 3.1, Invariant 4.1, Invariant 6.1 and Invariant 6.2 are claimed for a money of any size and a split into any number of parts, so each is owed a proof over every size and not a test at a few.
+Acceptable when the checks below hold for every call an auditor makes: the atom stores nothing, so the calls and the committed versions the database keeps are the whole evidence. Invariant 2.1, Invariant 3.1, Invariant 4.1, Invariant 6.1 and Invariant 6.2 are claimed for a money of any size and a split into any number of parts the part cap admits, so each is owed a proof over every size and not a test at a few.
 
-The conformance table, each row a call and the answer the atom owes, under the default caps and in US dollars but for the row in yen:
+The conformance table, each row a call and the answer the atom owes, under the default caps and in United States dollars but for the row in yen:
 
 | Call | Answer | Rules |
 |---|---|---|
@@ -640,6 +656,7 @@ The conformance table, each row a call and the answer the atom owes, under the d
 | `split(money("USD", 2), [2, 1, 1])` | 1, 1, 0 | Term short part |
 | `split(money("USD", 5), [1, 1, 1, 1, 1, 1, 1])` | 1, 1, 1, 1, 1, 0, 0 | Term leftover |
 | `split(money("USD", 100), [2, 3, 5])` | 20, 30, 50 | Operation 22 |
+| `split(money("USD", 999999999999999999), [999999999999999999, 1])` | 999999999999999999, 0 | Term share product: thirty-six digits on the way |
 | `split(money("USD", -1), [1, 1])` | -1, 0 | Term step |
 | `split(money("USD", 0), [1, 1])` | 0, 0 | Term leftover |
 | `add(money("USD", 100), money("EUR", 100))` | mixed-currency | Operation 3 |
@@ -653,6 +670,8 @@ The conformance table, each row a call and the answer the atom owes, under the d
 | `multiply(money("USD", 100), 1, 2)` | invalid-rounding | Operation 14 |
 | `split(money("USD", 100), [])` | invalid-shares | Operation 18 |
 | `split(money("USD", 100), [2, 0, 3])` | invalid-shares | Operation 19 |
+| `split(money("USD", 100), 3)` | invalid-shares | Operation 18, Term share count |
+| a [Split] of `money("USD", 100)` by 1,001 shares of 1 | too-many-parts | Operation 17 |
 
 Term conformance table: the table above, each row a call and the answer the atom owes under the default caps, in the currencies the call names.
 
@@ -669,6 +688,7 @@ Check 5.1: An auditor MUST find EVERY round trip answering the money (Invariant 
 Check 6.1: An auditor MUST find EVERY negated [Multiply] call answering the negation of the result of the [Multiply] call naming the money (Invariant 6.1).
 Check 6.2: An auditor MUST find EVERY negated [Split] call answering the negation of EVERY part of the [Split] call naming the money (Invariant 6.2).
 Check 7.1: An auditor MUST find no result whose size EXCEEDS the number cap (Invariant 7.1).
+Check 7.2: An auditor MUST find no part whose size EXCEEDS the number cap (Invariant 7.2).
 Check 8.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on the row's call under the default caps, in the currencies the call names (Operation 1 through 22).
 ```
 
@@ -680,7 +700,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the number cap confirmed against the moneys, the numerators, the denominators and the shares held MUST read the number cap the deployment declares and the records of the composing patterns that hold a money, a numerator, a denominator or a share, as the records stood at the declaration (Capability requirement 3).
 External check 2: An auditor needing the number cap, the part cap and the currency cap confirmed above zero MUST read the caps the deployment declares (Capability requirement 4, Capability requirement 5, Capability requirement 8).
 External check 3: An auditor needing a money's currency and amount confirmed held together MUST read the records of the composing patterns that hold a money (Composition note 3).
-External check 4: An auditor needing every action confirmed to write and read no record MUST read the database log of the deployment across the calls of the actions (Operation 23, Operation 24).
+External check 4: An auditor needing every action confirmed to write and read no record MUST read the committed versions the database keeps (Execution Contract Database 5) across the calls of the actions for a write, and the deployment's own declaration of what the actions read for a read (Operation 23, Operation 24).
 External check 5: An auditor needing the currency cap confirmed against the currencies held MUST read the currency cap the deployment declares and the records of the composing patterns that hold a currency, as the records stood at the declaration (Capability requirement 7).
 External check 6: An auditor needing the part cap confirmed against the lists of shares held MUST read the part cap the deployment declares and the records of the composing patterns that hold a list of shares, as the records stood at the declaration (Capability requirement 9).
 ```
@@ -721,6 +741,8 @@ Term terms: money, currency, amount, minor unit, whole number, positive count, s
 [Denominator]: #denominator
 [Rounding]: #rounding
 [Shares]: #shares
+[Order]: #order
+[Parts]: #parts
 [Number Cap]: #number-cap
 [Part Cap]: #part-cap
 [Currency Cap]: #currency-cap
@@ -746,7 +768,7 @@ Term terms: money, currency, amount, minor unit, whole number, positive count, s
 ```
 status: doing
 formal: verified — money.als + 6 twins (the static data model, one call and its answer: State 1, Identity 2, Invariant 1.1, 1.2 and 7.1 checked, Identity 3 caught by the Invariant 1.1 and 1.2 checks); money.tla + 28 twins (each action as a function of the call's inputs, and the calls around it: Operation 1 through 24 and Invariant 2.1, 3.1, 4.1, 5.1, 6.1 and 6.2 checked, Identity 2 cross-checked by the Operation 3 check, State 2 by the Operation 23 check), with TLAPS proofs over the same model that discharge Invariant 2.1, 3.1, 4.1, 6.1 and 6.2 at every size (tlapm --strict, 714 obligations, none owed); the vote yes of 2026-11-13, on the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed, 2026-11-13
-last gate: 2026-11-19 — Final Critique 5, a full round, three readers (GRID glm-5.3-flash, EOS mimo-v2.6-pro, Linus minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; three reports claimed 3 foundational (GRID's pipeline claim and range-citation claim, Linus's held-past-the-cap claim) and the triages placed them refuted, refuted and refining: Execution Contract Q makes an action that reads no record outside Read 1 and Conformance 1 binds a transition, Money having none; the range-citation check flags only the four retired spellings; Capability requirement 3 binds the declaration and the held-after-declaration answer is Operation 1's and Composition note 1's, the checks now read the records as they stood at the declaration; cured: Capability requirement 9 floors the part cap against held share lists (External check 6), Invariant 6.1, 6.2 and Check 6.1, 6.2 name the call whose result is negated, the ISO 20022 sentence cites Term number cap, Term currency cap drops the corpus-default claim, the qualifiers line takes the declared form; the rhetorical items cured in a word (JPY glossed, Invariant 6 retitled, the Summary's ledger entry, three bare-number lists as ranges) and the rest declined; 2026-11-13 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8b6954c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; it raised External check 1's missing source for the declared cap as refining, cured, and the later holding of a money past the cap as refining Kind C, recorded in the NOTE beside Capability requirement 3); 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
+last gate: 2026-11-26 — Final Critique 6, a full round, three readers (GRID glm-5.3-flash, EOS minimax-m3, Linus mimo-v2.6-pro; the first GRID and EOS passes lapsed on a loaded report and ran again), frozen at d7cd02ca — foundational count 1, cured, not clean, no sample; EOS's first pass found a `shares` input that is no list, reached by none of Operation 17 through 19, and Opus 5.5 placed it foundational (Kind A, coverage): Operation 20 answers no part and Invariant 4.1 breaks, where another build answers invalid-shares; the negated call's refusal pair (Linus's and EOS's foundational claim) was placed refining, since Execution Contract Read 4 scopes Invariant 6.1 and 6.2 and their checks to an admitted call; cured: Term share count is zero where the call names no list, and the Split case row, the Invalid Shares entry and a conformance row say so, Term negated call cites Read 4, Identity 4 and 5 compare a rounding codepoint for codepoint, Invariant 7.2 and Check 7.2 bound a part by the number cap, a Split row past sixty-four bits and a Too Many Parts row join the conformance table, Operation 25 answers exactly one order, External check 4 reads the committed versions, Term whole number reads to its last digit, ISO, US and EC are glossed, Order and Parts take term entries, Operations 21 and 22 move under Split, and the wording items; the rest declined as the corpus's own forms (the caps' Parameter kind, Source's "inherits from", the rounding vocabularies' two scopes); 2026-11-19 — Final Critique 5, a full round, three readers (GRID glm-5.3-flash, EOS mimo-v2.6-pro, Linus minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; three reports claimed 3 foundational (GRID's pipeline claim and range-citation claim, Linus's held-past-the-cap claim) and the triages placed them refuted, refuted and refining: Execution Contract Q makes an action that reads no record outside Read 1 and Conformance 1 binds a transition, Money having none; the range-citation check flags only the four retired spellings; Capability requirement 3 binds the declaration and the held-after-declaration answer is Operation 1's and Composition note 1's, the checks now read the records as they stood at the declaration; cured: Capability requirement 9 floors the part cap against held share lists (External check 6), Invariant 6.1, 6.2 and Check 6.1, 6.2 name the call whose result is negated, the ISO 20022 sentence cites Term number cap, Term currency cap drops the corpus-default claim, the qualifiers line takes the declared form; the rhetorical items cured in a word (JPY glossed, Invariant 6 retitled, the Summary's ledger entry, three bare-number lists as ranges) and the rest declined; 2026-11-13 — Final Critique 4, a delta round, one reader (Linus mimo-v2.6-pro), frozen at 8b6954c — foundational count 0, clean, one sample, the blind second triage agreeing (it placed no item foundational; it raised External check 1's missing source for the declared cap as refining, cured, and the later holding of a money past the cap as refining Kind C, recorded in the NOTE beside Capability requirement 3); 2026-11-13 — Final Critique 3 (delta), frozen at 18002aa — foundational count 1, cured, not clean, no sample
 
 open: none
 ```

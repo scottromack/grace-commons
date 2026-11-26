@@ -122,7 +122,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Money](./atoms/money.md)** (766 lines). Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency.
+**[Money](./atoms/money.md)** (788 lines). Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency.
 
 - No bond lines yet.
 
