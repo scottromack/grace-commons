@@ -98,7 +98,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key list id; key actor id; journal invitation events.
 
-**[Lease](./atoms/lease.md)** (550 lines). A **lease** lets one worker have a thing to itself until a set time.
+**[Lease](./atoms/lease.md)** (563 lines). A **lease** lets one worker have a thing to itself until a set time.
 
 - Offers guard opaque.
 

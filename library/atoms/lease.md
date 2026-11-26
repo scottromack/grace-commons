@@ -8,6 +8,13 @@ toc: true
 
 # Lease
 
+<details markdown="block">
+<summary>Table of contents</summary>
+{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
+1. TOC
+{:toc}
+</details>
+
 ## What it is
 
 A **lease** lets one worker have a thing to itself until a set time. The worker asks for the thing by its name (the key), gets it until, say, 10:00:30, does its work and hands it back. If it never hands it back — it crashed, hung or lost the network — the thing frees itself at 10:00:30, and the next worker waits no longer than that. Stated exactly, a lease is a grant of exclusive standing over a key, to a named holder, until a declared instant.
@@ -25,7 +32,7 @@ A pattern that needs one writer at a time on a key, where a writer can stop with
 
 ## What it keeps
 
-### The empties
+### The leases
 
 ```
 Identity 1: The atom MUST identify a lease by the pair (key, holder).
@@ -134,11 +141,11 @@ Term share term: `((budget - time_spent_before_take) - call_pause_bound)`, the t
 
 Term live: a lease whose remaining term EXCEEDS the write margin, unanswered being no.
 
-Term expired: a lease that is not live, a [Remaining] that answers none or no answer included — a reading the holder acts on, never a transition the host makes (Invariant 2.2).
+Term expired: a reading the holder acts on, never a transition the host makes (Invariant 2.2): a [Remaining] that answered none, a [Remaining] whose answer leaves the lease not live (Term live), or a call that answered no answer.
 
 Term unanswered: yes | no — yes for a grant under which a [Take], a [Try Take], a [Remaining] or a [Release] answered no answer, and for the rest of that grant.
 
-Term no answer: a call that returns neither its answers nor a refusal within the call pause bound, or, for a blocking [Take], within the longest duration declared for the key and the call pause bound (Composition note 5d). Capability requirement 7 is the premise, holding every call to its effect or its failure inside the bound; a no answer stays reachable under the premise, since a call that took effect may still return nothing to the holder, and Sizing 7 and Sizing 8 are the holder's fallback for that call.
+Term no answer: a call that returns neither its answers nor a failure within the call pause bound, or, for a blocking [Take], within the longest duration declared for the key and the call pause bound (Composition note 5d). Capability requirement 7 is the premise, holding every call to its effect or its failure inside the bound; a no answer stays reachable under the premise, since a call that took effect may still return nothing to the holder, and Sizing 7 and Sizing 8 are the holder's fallback for that call.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -207,7 +214,7 @@ Operation 1b: [Take] MUST answer EXACTLY ONE OF expires_at, unavailable, a [Take
 Operation 2: The [Take] of the waiter first in arrival order MUST succeed at the first host reading at which the key is free.
 Operation 2c: The host MUST admit a waiter at a host reading only once EVERY [Take] arriving at the reading stands in the line.
 Operation 3: [Take] MUST NOT wait past the waiter's last reading.
-Operation 4: IF a waiter's bound DOES NOT EXCEED the host's reading AND another holder holds the key THEN [Take] MUST answer unavailable.
+Operation 4: IF a waiter's bound DOES NOT EXCEED the host's reading AND another holder holds the key once the host has admitted at the reading (Operation 2c) THEN [Take] MUST answer unavailable.
 Operation 5d: The host MUST NOT answer a [Take] that waited across a host restart.
 ```
 
@@ -316,7 +323,7 @@ Capability requirement 8: The deployment MUST supply parties that answer a holde
 Capability requirement 9: The deployment MUST NOT supply a party that applies a holder's write the party refused.
 Capability requirement 10: The deployment MUST NOT supply a party that applies one write of a holder a second time.
 Capability requirement 11: The deployment MUST NOT deliver one take to the host a second time.
-Capability requirement 12: The deployment MUST supply holder clocks under which the host's measure of EVERY holder's span DOES NOT EXCEED the holder's measure of the span (Execution Contract Logic confinement 7).
+Capability requirement 12: The deployment MUST supply holder clocks under which EVERY holder's span read on the granting host's clock DOES NOT EXCEED the span read on the holder's own clock (Execution Contract Logic confinement 7).
 Capability requirement 13: The deployment MUST hold EVERY write of a unit of work inside the unit's bound, a pause of the holder's own process included.
 ```
 
@@ -374,6 +381,10 @@ Term unit's bound: the bound the composing pattern declares on a unit of work, f
 
 Term the holder: the party the host holds the key for.
 
+## Needs
+
+None: the holder is a bearer value (Term holder), the key is opaque and the composing pattern's (Composition note 4), and the duration is a span the composing pattern declares (Composition note 5d), so this atom declares no need.
+
 ## Offers
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
@@ -404,10 +415,10 @@ Composition note 1: A composing pattern MUST name this atom as a capability requ
 Composition note 4: A composing pattern MUST own which key protects which work.
 Composition note 5: A composing pattern MUST own how long the grant lasts, the share term of a share of a budget excepted (Sizing 6).
 Composition note 5a: A composing pattern MUST own the holder value.
-Composition note 5d: A composing pattern MUST declare the longest duration a take on a key asks for.
-Composition note 5e: A caller MAY take ONLY IF the duration asked for EXCEEDS zero.
 Composition note 5b: A composing pattern MUST own the release.
 Composition note 5c: IF a call in flight EXISTS under a grant THEN the holder MUST NOT release the grant.
+Composition note 5d: A composing pattern MUST declare the longest duration a take on a key asks for.
+Composition note 5e: A caller MAY take ONLY IF the duration asked for EXCEEDS zero.
 Composition note 5f: IF a holder has issued [Release] for a grant THEN the holder MUST NOT issue a write under the grant.
 Composition note 6: A pattern fencing a downstream system MUST carry a fence per Fence 1 through 10.
 Composition note 7: A pattern MUST NOT invent a second deadline concept for a fence.
@@ -425,7 +436,7 @@ The examples share one composing pattern's numbers: a call pause bound of 2 s, s
 
 **A critical section around a write.** A process takes key `act-17` with holder value `h-91c2` for 30 s at host reading 1000 and receives expires_at 1030. Its writes carry no fence, so it asks the host what remains: at 1001 the answer is 29 s, above the start floor, and it starts a unit within 2 s of asking, whose writes land by 1013. At 1013 the answer is 17 s, and a second unit runs. At 1025 the answer is 5 s: below the start floor, so no unit starts, but above the write margin, so the lease reads live and one lone write issued by 1027 lands by 1029, before the instant. It releases and is answered released. A second process arriving at 1010 waits at most the first's remaining term, 20 s, and then either takes the key or is told unavailable because an earlier waiter took it first — and it writes only under a grant of its own.
 
-**A fence carried to a database.** The same process passes expires_at less the database's allowance of 1 s, 1029, into the database call as a deadline. The process pauses for longer than anyone budgeted; its term passes at 1030; the key goes to the next holder. The paused process wakes at 1041 and issues its write anyway — and the database refuses it, because 1029 has passed on the database's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
+**A fence carried to a database.** The same process passes expires_at less the database's allowance of 1 s, 1029, into the database call as a deadline. The process pauses for longer than anyone budgeted; its term passes at 1030; the key goes to the next holder. The paused process wakes at 1041 and issues its write anyway, a write Sizing 3a already forbade, since no live reading stands within a call pause of it; the fence is the backstop against a holder whose discipline failed — and the database refuses it, because 1029 has passed on the database's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
 
 **A holder that dies.** A process takes the key at 1000 for 30 s and is killed at 1005. Nothing is notified. The key stays held until 1030, and the next take waits exactly that long. This is the case that motivates Invariant 3: a host that released the key on the death would hand it over while the dead process's last write was still in flight.
 
@@ -439,7 +450,7 @@ The examples share one composing pattern's numbers: a call pause bound of 2 s, s
 
 ## Source
 
-The concept is not itself regulated. It appears in regulated patterns as the mechanism by which a single-writer obligation is met, and those patterns anchor their own regimes; the atom's contribution is that the obligation is met by an argument stated once. The nearest external discipline is the fencing token of the distributed-systems literature on lock services, where a lock that ends on a belief about liveness is shown to admit two writers. Its cure differs from this one: a fencing token is a number that rises with every grant, which the store compares with the highest it has seen, where a fence here is a deadline the store judges on its own clock, less a declared allowance (Fence 3 through 6).
+The concept is not itself regulated. It appears in regulated patterns as the mechanism by which a single-writer obligation is met, and those patterns anchor their own regimes; the atom's contribution is that the obligation is met by an argument stated once. The concept is the lease of Cary G. Gray and David R. Cheriton, *Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency* (SOSP 1989, pp. 202–210): rights over a resource for a limited time, which end at their term whether or not the holder answers. The nearest external discipline is the lock service's fencing token, as in the sequencer of Mike Burrows, *The Chubby lock service for loosely-coupled distributed systems* (OSDI 2006, pp. 335–350), a lock generation number a server checks before it applies a write, where a lock that ends on a belief about liveness is shown to admit two writers. Its cure differs from this one: a fencing token is a number that rises with every grant, which the store compares with the highest it has seen, where a fence here is a deadline the store judges on its own clock, less a declared allowance (Fence 3 through 6).
 
 ## Proof
 
@@ -482,6 +493,8 @@ Check 8.4: An auditor MUST confirm that the host receives no take a second time 
 Check 8.5: An auditor MUST confirm that no holder's span the host's clock measures exceeds the same span the holder's clock measures (Capability requirement 12).
 Check 8.6: An auditor MUST confirm that every write of a unit of work lands inside the unit's bound (Capability requirement 13).
 ```
+
+NOTE: no check reads Invariant 3.1, which the signatures hold: no answer of any call reports a holder's death, so a host has no way to give one.
 
 Term fence margin: `(expires_at - fence)`.
 
@@ -529,7 +542,7 @@ Term terms: fresh holder value, call in flight, unfenced write, key, holder, tak
 
 ```
 status: doing
-formal: verified — lease.tla + 6 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12; 2026-10-04); lease.als + 9 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 5.1, 6.1 and 6.2 checked on every lease state a successful take or a release answered released leaves, on what the host derives from it at one reading (State 2) and answers there whatever is believed about a holder's death, and on every instant a holder mints and hands a fenced party; Invariant 1, 2, 3.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.2, 2.1's release arm, 4.1 and 4.2: 1.2 orders two takes and a release is a step that stores free, and 4.1 and 4.2 compare a waiter's bound with the one its arrival set, which the host does not keep beside the bound (State 4), so one state cannot show them and they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 4.2 (a second waiter, across steps); owed rows: Invariant 4.2; 2a: Sizing 3a — held as an invariant: the model clock and Pause bound it (Inv_NoLateWrite, twin lease-buggy-margin); no row owed, 2026-11-12; Capability requirement 12 (a holder clock measures no span short) — the model's one clock holds it, twin lease-buggy-drift breaks Inv_NoLateWrite, 2026-11-21
+formal: verified — lease.tla + 6 twins + 1 probe (vote yes: one holder, the terminus, the fence and the write margin are temporal claims; 14,480 states, holding at clock bounds 8, 10 and 12; 2026-10-04, four twins and the probe; -buggy-waiter 2026-11-11, 83b9f8b8; -buggy-drift 2026-11-21, bdc46e4a); lease.als + 9 twins (the static data model, 2026-11-12: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 5.1, 6.1 and 6.2 checked on every lease state a successful take or a release answered released leaves, on what the host derives from it at one reading (State 2) and answers there whatever is believed about a holder's death, and on every instant a holder mints and hands a fenced party; Invariant 1, 2, 3.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.2, 2.1's release arm, 4.1 and 4.2: 1.2 orders two takes and a release is a step that stores free, and 4.1 and 4.2 compare a waiter's bound with the one its arrival set, which the host does not keep beside the bound (State 4), so one state cannot show them and they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 4.2 (a second waiter, across steps), still owed 2026-11-26: lease.tla's header lists a second waiter and arrival order as not modelled; owed rows: Invariant 4.2; Sizing 3a's row (2a) owes nothing: held as an invariant, the model clock and Pause bound it (Inv_NoLateWrite, twin lease-buggy-margin), 2026-11-12; Capability requirement 12 (a holder clock measures no span short) — the model's one clock holds it, twin lease-buggy-drift breaks Inv_NoLateWrite, 2026-11-21
 last gate: 2026-11-24 — Final Critique 11, a delta round, one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 0ea88b89 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Operation 2c states no reading by which a waiter's admission must occur, so a build that defers the first waiter's admission from the reading at which the holder releases to the next reading conforms, was placed refining by the blind second triage and refuted as foundational by the first, foundational by neither: Operation 2 says the first waiter in arrival order MUST succeed at the first host reading at which the key is free and Check 4.1 tests it, so the deferring build breaks both, and Operation 2c only orders the admission after the arrivals at that reading; the finder's cure, "at that reading", would restate Operation 2; cured, refining: Term waiter's bound cites Term arrival term for the arrival reading plus the arrival term and for the arrival term being zero, where it cited Invariant 4.1 and Operation 2c for the sums, and Term waiter's last reading cites Execution Contract Logic confinement 9 for the exact arithmetic that lets a bound fall between two readings, not for the later reading reaching it; the reader's other refining reports, that Operation 5 restates Invariant 4.1 and that Check 4.4 has no tie-break for two [Take] calls at one reading, were placed refining D by the blind second triage and left as written: Operation 5 is the host's act and Invariant 4.1 the standing property, each cited by a check, and Term arrival order orders two calls at one reading as the host received them); 2026-11-24 — Final Critique 10, a delta round, one reader (Linus claude-sonnet-5-5), frozen at b6ad4b52 — foundational count 1 after the blind second triage, not clean, one sample (Linus's three foundational reports were placed refining by both triages: F1, that a [Take] arriving where the key is free and a waiter stands has no grant to take a bound from, is answered by Term arrival term, zero where the key is free at arrival, so the bound is the arrival reading; F2, that a failed read at a waiter's last reading leaves the waiter standing or not, is answered by Operation 3 and Operation 5b, which bind the waiter at the last reading whatever the call answered; F3, that Check 4.1 and Check 4.4 need readings no record carries, is answered by the page's own Generation acceptance, which runs its checks against a host implementation; the blind second triage on Opus 5.5 found the foundational one the reader did not draw: no rule ordered, within one host reading, the admission of the first waiter against the arrival of a [Take], so a [Take] arriving at reading 10 as a grant ends is answered unavailable by one host and waits on the next waiter's grant at another; cured, foundational: Operation 2c admits a waiter at a reading only once every [Take] arriving at the reading stands in the line, which Operation 6c already assumed, and Check 4.4 tests it; cured, refining: Term waiter's bound names the arrival reading where no grant held the key, Term waiter's last reading no longer says the host has admitted or answered the waiter by that reading, which was false across a host restart and under a failed read, Operation 5b says hold on the line for carry forward, and the Generation acceptance says the auditor sets the host's clock for the two checks that read its readings; the reader's refining reports on Execution Contract Logic confinement 9, on a Waitlist composition, on Operation 5b's Check 4.4 citation and on the clock reading of a standing [Take] were refuted, the Waitlist one by Scott's ruling of 2026-11-22 06:55Z); 2026-11-24 — Final Critique 9, a delta round, one reader (Linus beam-free), frozen at 49b7bbbe — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Term waiter's last reading gives every waiter a last reading and then says a waiter admitted at an earlier reading has no reading past the admission, so a waiter admitted at reading 5 with bound 8 and host readings 0, 5 and 10 has a last reading of 10 and none past 5, was placed refining by both triages, foundational by neither: the build that carries the admitted waiter on to reading 10 would answer one [Take] twice, which Operation 1b forbids, so one behaviour conforms; cured, refining: the term says the admitted waiter stopped standing at [Take] at the admission, Term waiter's bound gives the instant only where the host admits the waiter at no earlier reading, and Check 4.4 tests Operation 1a's own case, a [Take] on a free key with no waiter standing; the finder's fix, which scoped the first clause to a waiter not yet admitted, made the existence of the reading turn on an act of the host the same entry says moves nothing, and dropped the citation of Execution Contract Logic confinement 9); 2026-11-22 — Final Critique 8, a delta round, one reader (Linus minimax-m3), frozen at 6e98e08e — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Term waiter's last reading reads as constitutive or as descriptive and a build holding a later waiter queued past its bound differs from one answering it, was placed refining by the first triage and rhetorical by the blind second triage, foundational by neither: Operation 4 answers a waiter whose bound is reached while another holder holds the key, whichever way clause 2 is read, and the trace's two bounds contradict Term waiter's bound and Invariant 4.1; Linus's fix, an AND, would have left Operation 3 and Operation 5b binding a host to answer when it answers; cured, refining: Term waiter's last reading says the bound and the host's clock fix the reading and no act of the host moves it, and its last clause says no reading past the admission; Check 7.5 names the write margin Sizing 9 names, not the product the term declares); 2026-11-22 — Final Critique 7, a delta round, one reader (Linus minimax-m3), frozen at fbd975b6 — foundational count 1 (Term waiter's last reading joined two clauses by a comma, the first host reading at which the bound is reached and the reading at which the host admits or answers, which name different readings where the holder releases before the bound, so a build could read Operation 3 as binding the answer to the first reading that reaches the bound and another as the tautology that a host answers when it answers; Linus's fix, dropping the first clause, left Operation 3 and Operation 5b vacuous, so the settle's own cure keeps the first clause as the definition and says the host has admitted or answered by that reading), not clean, no sample (cured: Term waiter's last reading; the refining cure is Check 7.5 and the new Check 7.9, which read Sizing 9 and Sizing 5d apart; the rhetorical cure is Composition note 9, which now says Composition note 9a excepted, the exception 9a states); 2026-11-22 — Final Critique 6, a delta round, frozen at 132f19c9 — foundational count 1 (a waiter's bound can fall between two readings of the host's clock, so at the first reading at which the key is free Operation 2 admitted the first waiter, Operation 5b barred it and Operation 3 left no build conforming; Linus's second foundational, a take again leaving two grants or a revoked one, refuted on Invariant 1 and Invariant 2), not clean, no sample (cured: Term waiter's last reading, which Operation 3 and Operation 5b now name; the refining cures are Sizing 5d, which refuses a unit's bound under the call pause bound, and Composition note 9, which now carries the exception Composition note 9a lifts); 2026-11-22 — Final Critique 5, full, three fresh readers (GRID, EOS, Linus) — not clean, 4 foundational (EOS reported 7, GRID 0, Linus 0; EOS's host-adapter finding refuted on Term host, its share-term and take-again findings placed refining), cured in the patch (the next round is a delta round); 2026-10-04 — Final Critique 4, fresh reader, three passes, frozen at 46804b7 — 0 foundational, 44 refining reports, 13 rhetorical reports
 
 open: none
