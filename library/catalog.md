@@ -118,7 +118,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints preference id. Needs key actor id. Offers key preference id.
 
-**[Moderation](./atoms/moderation.md)** (579 lines). Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags.
+**[Moderation](./atoms/moderation.md)** (631 lines). Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags.
 
 - No bond lines yet.
 
