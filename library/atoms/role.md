@@ -2,8 +2,6 @@
 title: Role
 id: 74
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Role

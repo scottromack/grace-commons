@@ -182,7 +182,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Role](./atoms/role.md)** (638 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
+**[Role](./atoms/role.md)** (636 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
 
 - Mints holding id. Offers key holding id.
 
