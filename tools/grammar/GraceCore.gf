@@ -4,12 +4,15 @@
 abstract GraceCore = {
   flags startcat = Rule ;
   cat
-    Rule ; Cond ; Clause ; [Clause]{2} ; Obl ; Modal ; V ; Op ;
+    Rule ; Subj ; Cond ; Clause ; [Clause]{2} ; Obl ; Modal ; V ; Op ;
     Obj ; Atom ; [Atom]{2} ; W ; [W]{1} ; Tail ; [Tail]{0} ;
   fun
     -- the statement: [IF condition THEN] subject modal act object tails
-    RPlain : Atom -> Obl -> Rule ;
-    RIf    : Cond -> Atom -> Obl -> Rule ;
+    RPlain : Subj -> Obl -> Rule ;
+    RIf    : Cond -> Subj -> Obl -> Rule ;
+    -- the subject: a phrase, or a phrase whose relative clause compares ("A workflow whose current state IS IN ...")
+    SAtom : Atom -> Subj ;
+    SCmp  : Atom -> Op -> Atom -> Subj ;
     MkObl  : Modal -> V -> Obj -> [Tail] -> Obl ;
     -- the condition: one clause, or clauses joined by AND or by OR, never both
     COne : Clause -> Cond ;
@@ -17,6 +20,7 @@ abstract GraceCore = {
     COr  : [Clause] -> Cond ;
     CCmp    : Atom -> Op -> Atom -> Clause ;
     CExists : Atom -> Clause ;
+    CPred   : Atom -> Clause ;          -- a predicate the spec's own verbs carry (normalize.py, the condition)
     -- the object: none, a phrase, phrases joined by AND or OR, or a comparison the object states
     ONone : Obj ;
     OAtom : Atom -> Obj ;

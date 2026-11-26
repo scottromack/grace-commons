@@ -1,6 +1,6 @@
 concrete GraceCoreEng of GraceCore = {
   lincat
-    Rule, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail = Str ;
+    Rule, Subj, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail = Str ;
     [Clause] = {and : Str ; or : Str} ;
     [Atom] = {and : Str ; or : Str} ;
     [W] = Str ; [Tail] = Str ;
@@ -15,6 +15,9 @@ concrete GraceCoreEng of GraceCore = {
     ConsClause x xs = {and = x ++ "AND" ++ xs.and ; or = x ++ "OR" ++ xs.or} ;
     CCmp a op b = a ++ op ++ b ;
     CExists a = a ++ "EXISTS" ;
+    CPred a = a ;
+    SAtom a = a ;
+    SCmp a op b = a ++ op ++ b ;
     ONone = [] ;
     OAtom a = a ;
     OAnd as = as.and ;
