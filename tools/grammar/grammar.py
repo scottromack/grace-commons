@@ -4,6 +4,7 @@ assets/design/grammar-tree.md, the pretest).
 
     python3 tools/grammar/grammar.py pretest library/atoms/money.md [--keep <dir>]   # the report, JSON
     python3 tools/grammar/grammar.py tree library/atoms/money.md "Operation 8"        # one rule's trees
+    python3 tools/grammar/grammar.py corpus <dir>                                      # every atom, a report each
 
 GRACE-lang.md stays the spec; the grammar is checked against it. GraceCore.gf holds the rule shape
 (section 5) and the closed vocabulary (sections 13 and 14), its constructors named for their role.
@@ -53,7 +54,7 @@ into onto across through throughout before after below above beside than then so
 where when what while this these those its it their them they no not any each both either neither or and
 nor other another every all some one two three only also own same such per via including whether if
 outside inside beyond until upon past near along around behind except among toward towards despite unless once
-EVERY EXACTLY ONE OF NO , . ; : 's""".split()
+EVERY EXACTLY ONE OF NO , . ; : 's '""".split()
 # the External check form's own word (spec-format.md, the External check row: "a check needing evidence
 # the records do not carry"; every External check reads "An auditor needing ... MUST read ...")
 FORM_WORDS = ["needing"]
@@ -74,15 +75,56 @@ def tokenize(text: str) -> list[str]:
     if text.endswith("."):
         text = text[:-1]
     out = []
-    for m in re.finditer(r"\[[^\]]+\]|[A-Za-z][A-Za-z-]*(?:'s)?|\d+|[(),.;:]", text):
+    # a bracket marker, a code span, a word (an identifier's underscore included), a possessive, a label's
+    # number with its letter ("4a"), a number, punctuation, and any other character as itself, so that no
+    # character of a rule is dropped unseen (an em dash or a rule symbol fails where it stands)
+    for m in re.finditer(r"\[[^\]\n]+\]|`[^`\n]+`|[A-Za-z][A-Za-z_-]*(?:'s|')?|'s\b|\d+[a-z]\b|\d+|-|[(),.;:]|\S",
+                         text):
         t = m.group(0)
-        if t.endswith("'s") and not t.startswith("["):
+        if t.startswith("`"):                          # a code span is one token; gf splits at spaces
+            out.append(t.replace(" ", "_"))
+            continue
+        if t.endswith("'s") and len(t) > 2 and not t.startswith("["):
             out += [t[:-2], "'s"]
             continue
-        out.append(t)
+        if t.endswith("'") and len(t) > 1:          # a plural possessive, "the series' exceptions"
+            out += [t[:-1], "'"]
+            continue
+        # a bracket marker is one token, and gf splits tokens at spaces: its spaces are written `_`
+        out.append(t.replace(" ", "_") if t.startswith("[") else t)
     fw = set(FUNCTION_WORDS)
-    return [t.lower() if t not in KEYWORDS and t[:1].isupper() and t.lower() in fw and t not in fw else t
-            for t in out]
+    # a capitalised function word is lowered where a sentence starts (the rule's first word, or the first
+    # after a reserved token, "THEN The"), never inside a phrase ("the section titled Which closing stands")
+    out = [t.lower() if (i == 0 or out[i - 1] in KEYWORDS) and t not in KEYWORDS and t[:1].isupper()
+           and (len(t) == 1 or not t.isupper()) and t.lower() in fw and t not in fw else t for i, t in enumerate(out)]
+    return [t for i, t in enumerate(out) if not (t in (",", ":") and edge_comma(out, i))]
+
+
+MODAL_HEADS = {"MUST", "MAY"}
+
+
+def edge_comma(toks: list[str], i: int) -> bool:
+    """A comma is a separator (the corpus run, step 1, and GLM's comma policy): between two words of
+    one phrase it separates a list's members, and the tree keeps it; at a phrase's edge it separates
+    nothing, and the tree drops it, as normalize.py does. A phrase's edges are the rule's ends, a
+    reserved token on either side, and the end of the act (`find, for EVERY row ...`)."""
+    if i == 0 or i == len(toks) - 1 or toks[i - 1] in KEYWORDS or toks[i + 1] in KEYWORDS:
+        return True
+    if i >= 2 and toks[i - 2] in MODAL_HEADS:
+        return True
+    return i >= 3 and toks[i - 2] == "NOT" and toks[i - 3] == "MUST"
+
+
+# what a source may give the lexicon: a word, a bracket marker, a possessive or a list's punctuation; a code
+# span and a rule symbol are never a word (a rule carrying one fails where it stands)
+LEX_TOKEN = re.compile(r"[A-Za-z][A-Za-z_-]*|\[[^\]`]+\]|'s|'|[,.;:]")
+
+
+def reserved(t: str) -> bool:
+    """An upper-case token is a reserved token (GRACE-lang Casing 2), never a domain word (Casing 5): the
+    lexicon takes none, or a tail the grammar lacks (BEFORE, WITHIN, ONLY AFTER) reads as a phrase's
+    word. GRACE's quantifiers in a phrase (EVERY, EXACTLY ONE OF, NO) are FUNCTION_WORDS."""
+    return len(t) > 1 and t.isupper() and t not in FUNCTION_WORDS
 
 
 def inflections(w: str) -> set[str]:
@@ -101,7 +143,7 @@ def words_of(texts: list[str], inflect: bool = True) -> set[str]:
     out: set[str] = set()
     for s in texts:
         for t in tokenize(s):
-            if t in KEYWORDS or t.isdigit():
+            if t in KEYWORDS or t.isdigit() or reserved(t) or not LEX_TOKEN.fullmatch(t):
                 continue
             out.add(t)
             if inflect and re.fullmatch(r"[a-z][a-z-]*", t):
@@ -141,8 +183,9 @@ def page_sources(page: Path, root: Path) -> dict[str, list[str]]:
     text = page.read_text(encoding="utf-8")
     lines = text.splitlines()
     pg = [ln[5:] for ln in lines if ln.startswith("Term ")]
-    pg += [ln[5:] for ln in lines if ln.startswith("#### ")]
-    pg += ["[" + ln[5:].strip() + "]" for ln in lines if ln.startswith("#### ")]
+    # a term entry's or an action's heading: #### in the section shape, ### for an action in the tree order
+    heads = [ln.lstrip("#").strip() for ln in lines if ln.startswith(("### ", "#### "))]
+    pg += heads + ["[" + h + "]" for h in heads]
     pg += re.findall(r"```\n([a-z_]+\([^`]*?)```", text, re.S)
     labels = re.findall(r"^\s*([A-Z][A-Za-z-]*(?: [a-z]+)*) \d", text, re.M)
     ec = (root / "library" / "execution-contract.md").read_text(encoding="utf-8")
@@ -166,14 +209,17 @@ def lexicon(page: Path, root: Path, need: set[str] | None = None) -> tuple[dict[
     for w in FUNCTION_WORDS + FORM_WORDS:
         lex.setdefault(w, "function words")
     if need:
+        for w in need:
+            if re.fullmatch(r"\d+[a-z]", w):              # a lettered label number, "Sizing 4a"
+                lex.setdefault(w, "page")
         d = dicteng()
         for w in sorted(need):
-            if w not in lex and w not in KEYWORDS and (w in d or w.lower() in d) and not w.isdigit():
+            if w not in lex and w not in KEYWORDS and not reserved(w) and (w in d or w.lower() in d) and not w.isdigit():
                 lex[w] = "DictEng"
         # a hyphenated word every part of which a source supplies ("non-blank", "byte-exactly")
         for w in sorted(need):
-            parts = w.split("-")
-            if w not in lex and len(parts) > 1 and all(x in lex or x in d for x in parts if x):
+            parts = [x for x in w.split("-") if x]       # a bare "-" has no parts: it is a sign, never a compound
+            if w not in lex and not reserved(w) and len(parts) > 1 and all(x in lex or x in d for x in parts if x):
                 lex[w] = "compound"
     text = page.read_text(encoding="utf-8")
     m = re.search(r"^Term record verbs: (.*)\.$", text, re.M)
@@ -269,9 +315,16 @@ def tidy(s: str) -> str:
     # the tokenizer lowers a leading function word (The, A, Two ...); compare it lowered on both sides
     s = re.sub(r"=([A-Z][a-z]*) ", lambda m: "=" + (m.group(1).lower() if m.group(1).lower() in FUNCTION_WORDS
                else m.group(1)) + " ", s)
-    s = s.replace(" 's", "'s").replace(" ,", ",").replace(" ;", ";").replace(" :", ":")
+    s = s.replace(" 's", "'s").replace(" ' ", "' ").replace(" ,", ",").replace(" ;", ";").replace(" :", ":")
+    s = re.sub(r"- (\d)", r"-\1", s)                       # "step-2", split at the digit
+    s = re.sub(r"\b(AND|OR|THEN|EQUAL|EXCEED|PRECEDE|EQUALS|EXCEEDS|PRECEDES|EXISTS|IN), ", r"\1 ", s)
+    s = re.sub(r"^(\w+)=: ?", r"\1=", s)
+    # a comma at a phrase's edge is a separator on both sides (edge_comma)
+    s = re.sub(r"^(\w+)=, ?", r"\1=", s)
+    s = re.sub(r",(?= (?:AND|OR|THEN|PER|ONLY|IS|EQUALS|EXCEEDS|PRECEDES|DOES|EXISTS|WITHIN|BEFORE|AFTER)\b)", "", s)
     s = re.sub(r"(\d) \. (\d)", r"\1.\2", s)
-    return s.rstrip(",").strip()
+    s = re.sub(r"\[[^\]]*\]|`[^`]*`", lambda m: m.group(0).replace("_", " "), s)
+    return s.rstrip(",:").strip()
 
 
 def clause_text(c: dict) -> str:
@@ -279,10 +332,18 @@ def clause_text(c: dict) -> str:
 
 
 def canon(fields: list[str]) -> str:
-    """The fields in one order: the tails (timing, only_if, cited) sorted, since normalize.py's form is
-    the same whatever the order of a rule's tails (GRACE-lang Hard invariant 15)."""
-    head = [f for f in fields if not f.startswith(("timing=", "only_if=", "cited="))]
-    return "|".join(head + sorted(f for f in fields if f not in head))
+    """The fields in the order they stand. Tail order stays in the tree: GRACE-lang Hard invariant 15
+    reads "The parser MUST NOT infer from rule order", which speaks of the order of rules, not of a
+    rule's tails (GLM's S1, settled in the corpus run). normalize.py sorts a rule's timing tails and
+    writes ONLY IF after them; a rule whose tails stand in another order opens loop 1, and
+    `tail_order_only` names that cause."""
+    return "|".join(fields)
+
+
+def tail_order_only(a: str, b: str) -> bool:
+    """The two forms differ only in the order of their tails."""
+    fa, fb = a.split("|"), b.split("|")
+    return a != b and sorted(fa) == sorted(fb)
 
 
 def norm_fields(form: dict) -> str:
@@ -294,7 +355,10 @@ def norm_fields(form: dict) -> str:
     for ob in form.get("obligations", []):
         parts.append("modal=" + ob.get("modal", ""))
         parts.append("act=" + ob.get("act", ""))
-        parts.append("object=" + ob.get("object", ""))
+        obj = ob.get("object", "")
+        if "exclusive" in ob:      # normalize.py keeps EXACTLY ONE OF's members apart from the object
+            obj = (obj + " EXACTLY ONE OF " + ", ".join(ob["exclusive"])).strip()
+        parts.append("object=" + obj)
         for t in ob.get("timing", []):
             parts.append(f"timing={t['kind']} {t.get('term', '')}")
         for g in ob.get("only_if", []):
@@ -323,31 +387,72 @@ def shape(form: dict, text: str) -> str:
 SHAPES = ["plain MUST", "plain MUST NOT", "IF … MUST", "plain MAY", "IF … MUST NOT", "WHEN", "other"]
 
 
-def fragment(text: str, toks: list[str], error: str | None) -> str:
-    """The fragment a failure sits in (grammar-tree.md, *Every failure is attributed per fragment*)."""
-    at = None
-    m = re.search(r"token (\d+)", error or "")
-    if m:
-        at = int(m.group(1)) - 1
-    if "`" in text or '"' in text:
-        return "a quoted identifier"
-    if "EXACTLY ONE OF" in text:
-        return "EXACTLY ONE OF"
-    if re.search(r"\([^)]*(\d\s*[-+*/×÷]\s*\d| [-+*/×÷] )[^)]*\)", text):
-        return "arithmetic in parentheses"
-    if at is not None and "(" in toks[:at + 1] and ")" not in toks[toks.index("(") if "(" in toks else 0:at + 1]:
-        return "a parenthetical citation"
-    head = text.split(" THEN ")[0] if text.startswith("IF ") else ""
-    if " AND " in head and " OR " in head:
-        return "coordination scope (A AND B OR C)"
-    if text.lstrip().startswith("WHEN"):
-        return "WHEN"
-    tail = text.split(" PER ")[-1] if " PER " in text else ""
-    if tail and at is not None and re.search(r"\b(whose|that|which|where)\b", tail):
-        return "a relative clause in a tail"
-    if error and error.startswith("The parser failed"):
-        return "a word no source supplies" if at is not None and toks[at] not in KEYWORDS else "the rule shape"
-    return "the rule shape"
+# GLM's S2: "ought" is an English modal outside GRACE-lang's three; a page finding, never a modal
+NOT_MODALS = {"ought", "should", "shall", "must", "may", "might", "can", "could", "will", "would"}
+
+
+def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str) -> tuple[str, str, str]:
+    """The home a rule's failure is filed to (grammar, page, normalize.py, GRACE-lang), the fragment, and
+    the cure proposed, by the token the parser stopped at and what stands before it. The rules, each read
+    on the corpus run's clusters (assets/design/grammar-tree-corpus.md in the council):
+
+      grammar     GRACE-lang admits the form and the Rule lacks it: the absence form's `EXISTS for`, a WHEN
+                  block, the tails ONLY AFTER, WITHIN, BEFORE and ONLY UNDER, IS AUTHORITATIVE FOR, a code
+                  span; or two trees.
+      GRACE-lang  no clause admits it and normalize.py takes it as text: a parenthetical before the rule's
+                  end (a mid-rule citation, an arm's payload, a tuple), AND joining subjects, a comparison
+                  inside a phrase (held with SCmp).
+      page        the page writes outside GRACE-lang: a word no source supplies, a modal outside the three,
+                  EXISTS qualified otherwise than by `for`,
+                  a lower-case reserved word, IS or ONLY outside its form, a second obligation, OR outside
+                  a condition, a rule symbol.
+    """
+    at = row.get("failed at")
+    m = re.search(r"token (\d+)", row.get("error") or "")
+    i = int(m.group(1)) - 1 if m else None
+    before = toks[:i] if i is not None and i <= len(toks) else toks
+    prev = before[-1] if before else ""
+    if row["verdict"] == "ambiguous":
+        return "grammar", "two trees", "one reading: the grammar takes a record verb as one word, as normalize.py's act is"
+    if text.lstrip().startswith("WHEN") or at == "WHEN":
+        return "grammar", "a WHEN block (GRACE-lang section 9)", "admit WHEN in the grammar"
+    if at is None:
+        return "grammar", "the rule ends where the Rule wants more", "read the rule; admit the shape or file it"
+    if at == "for" and prev == "EXISTS":
+        return "grammar", "EXISTS for an identifier (the absence form)", "admit `EXISTS for` in the grammar (Term absence form)"
+    if prev == "EXISTS":
+        return "page", f"EXISTS qualified otherwise than by for ({at})", "rephrase with for (Term absence form), or amend the form"
+    if at in ("BEFORE", "WITHIN", "AFTER", "UNDER") or (at == "ONLY" and prev not in KEYWORDS):
+        return "grammar", f"the {at} tail (GRACE-lang section 7)", "admit the tail in the grammar"
+    if at in ("AUTHORITATIVE", "FOR"):
+        return "grammar", "IS AUTHORITATIVE FOR (GRACE-lang section 10)", "admit the authority shape in the grammar"
+    if at.startswith("`"):
+        return "grammar", "a code span", "admit a code span as a phrase's word (Term rule symbol)"
+    if at in NOT_MODALS:
+        return "page", f"'{at}', no modal of GRACE-lang's three", "rephrase in closed vocabulary"
+    if at in ("after", "within", "before", "exactly") and prev in ("ONLY", "MUST", "NOT") or at == "exactly":
+        return "page", f"a reserved word in lower case ({at})", "write it in upper case or rephrase (Casing 2)"
+    if at == "(" or (")" in before and "(" in before and at not in lex):
+        return "GRACE-lang", "a parenthetical before the rule's end", "say where a citation, an arm's payload or a tuple stands, or rephrase"
+    if ")" in before and before.index(")") < len(before) and before[-1] == ")":
+        return "GRACE-lang", "words after a parenthetical", "say where a citation, an arm's payload or a tuple stands, or rephrase"
+    if at in ("DOES", "EXISTS", "EQUALS", "EXCEEDS", "PRECEDES", "EQUAL", "IS"):
+        return "GRACE-lang", "a comparison inside a phrase (held with SCmp)", "rule whether a phrase may carry an operator"
+    if at == "AND" and "MUST" not in before and "MAY" not in before:
+        return "GRACE-lang", "AND joining subjects", "rule whether AND joins subjects, or write lower-case and"
+    if at in ("MUST", "MAY") or (at == "AND" and prev != ","):
+        return "page", "a second obligation", "split the rule (Rule shape 3)"
+    if at in ("OR", "or", "and", "NOT"):
+        return "page", f"{at} where the Rule takes none (Hard invariant 7, 8)", "rephrase"
+    if prev in ("IS", "ONLY") or prev == "NOT" and len(before) > 1 and before[-2] == "IS":
+        return "page", f"{prev} outside its reserved form", "rephrase in closed vocabulary"
+    if at not in lex and at not in KEYWORDS and not at.isdigit():
+        if not LEX_TOKEN.fullmatch(at):
+            return "page", f"a rule symbol ({at})", "rephrase (Earned vocabulary 16)"
+        if at.isupper() and len(at) > 1:
+            return "page", f"an upper-case token GRACE-lang does not reserve ({at})", "write it in lower case"
+        return "page", "a word no source supplies", "declare it or rephrase"
+    return "grammar", f"a known word where the Rule takes none ({at})", "read the rule"
 
 
 def spans(toks: list[str], members: list[list[str]]) -> list[tuple[int, int, list[str]]]:
@@ -411,22 +516,28 @@ def pretest(page: Path, root: Path = ROOT, keep: Path | None = None) -> dict:
         n = len(p["trees"])
         row = {"label": k, "shape": shape(form, r["text"]), "trees": n,
                "verdict": "one tree" if n == 1 else ("ambiguous" if n > 1 else "failed"), "error": p.get("error")}
+        row["unlowered"] = form.get("kind") == "unlowered"
         if n == 1:
             row["tree"] = one[k]
+            row["uses"] = [c for c in ("CPred", "SCmp", "OOr") if re.search(rf"\b{c}\b", one[k])]
             a, b = tree_fields(norm.get(k, "")), norm_fields(form)
             row["loop 1"] = a == b
             if a != b:
                 row["tree_fields"], row["normalize_fields"] = a, b
+                row["loop 1 cause"] = "tail order" if tail_order_only(a, b) else (
+                    "normalize.py cannot lower the rule" if row["unlowered"] else
+                    "a closing parenthetical with no number: a citation to the grammar, text to normalize.py"
+                    if a.count("|cited=") > b.count("|cited=") else "the fields differ")
             row["loop 2"] = back.get(k, {}).get("trees") == [one[k]]
             mine = [(what, sw_res.get(lab, {"trees": []})["trees"]) for kk, lab, what in sw_index if kk == k]
             row["swaps"] = len(mine)
             row["swaps parsed"] = sum(1 for _, ts in mine if ts)
             row["swaps same tree"] = [what for what, ts in mine if one[k] in ts]
         else:
-            row["fragment"] = fragment(r["text"], toks[k], p.get("error"))
             m = re.search(r'token (\d+): "?([^"]+)"?', p.get("error") or "")
             if m:
                 row["failed at"] = m.group(2)
+            row["home"], row["fragment"], row["cure"] = home(row, toks[k], lex, form, r["text"])
         rows.append(row)
     by_shape = {s: {"rules": 0, "one tree": 0, "ambiguous": 0, "failed": 0} for s in SHAPES}
     for row in rows:
@@ -453,13 +564,44 @@ def pretest(page: Path, root: Path = ROOT, keep: Path | None = None) -> dict:
         "words used, by source": supplied, "words used": len(used),
         "lexicon size, by source": {s: sum(1 for w in lex.values() if w == s) for s in SOURCES},
         "dicteng": str(dicteng_path()), "examples": examples,
-        "failures": [{k: r.get(k) for k in ("label", "shape", "verdict", "fragment", "failed at", "error")}
-                     for r in rows if r["verdict"] != "one tree"],
+        "failures": [{k: r.get(k) for k in ("label", "shape", "verdict", "fragment", "failed at", "home", "cure",
+                                            "error")} for r in rows if r["verdict"] != "one tree"],
+        "one tree without CPred": sum(1 for r in ones if "CPred" not in r["uses"]),
+        "one tree without CPred or SCmp": sum(1 for r in ones if not {"CPred", "SCmp"} & set(r["uses"])),
+        "uses": {c: [r["label"] for r in ones if c in r["uses"]] for c in ("CPred", "SCmp", "OOr")},
         "seconds": round(time.monotonic() - t0, 1), "rows": rows, "build": str(out),
     }
 
 
+def atoms(root: Path = ROOT) -> list[Path]:
+    """Every atom page: library/atoms/*.md but its history files, index.md and the taxonomy note."""
+    return sorted(p for p in (root / "library" / "atoms").glob("*.md")
+                  if not p.name.endswith(".hist.md") and p.name not in ("index.md", "TAXONOMY.md", "_TAXONOMY.md"))
+
+
+def corpus(out: Path, root: Path = ROOT) -> dict:
+    """The pretest's full method on every atom, one JSON report each in `out`, and the totals."""
+    out.mkdir(parents=True, exist_ok=True)
+    t0, totals = time.monotonic(), {"atoms": 0, "rules": 0, "one tree": 0, "seconds": {}}
+    for page in atoms(root):
+        with tempfile.TemporaryDirectory(prefix="grammar-") as d:
+            rep = pretest(page, root, Path(d))
+        rep.pop("build", None)
+        (out / f"{page.stem}.json").write_text(json.dumps(rep, indent=1, ensure_ascii=False), encoding="utf-8")
+        totals["atoms"] += 1
+        totals["rules"] += rep["rules"]
+        totals["one tree"] += rep["one tree"]
+        totals["seconds"][page.stem] = rep["seconds"]
+        print(f"{page.stem}: {rep['one tree']}/{rep['rules']} in {rep['seconds']} s", file=sys.stderr, flush=True)
+    totals["total seconds"] = round(time.monotonic() - t0, 1)
+    (out / "_totals.json").write_text(json.dumps(totals, indent=1), encoding="utf-8")
+    return totals
+
+
 def main(argv: list[str]) -> int:
+    if len(argv) >= 3 and argv[1] == "corpus":
+        print(json.dumps(corpus(Path(argv[2])), indent=1))
+        return 0
     if len(argv) >= 3 and argv[1] == "pretest":
         rep = pretest(ROOT / argv[2], ROOT, Path(argv[argv.index("--keep") + 1]) if "--keep" in argv else None)
         print(json.dumps(rep, indent=1, ensure_ascii=False))

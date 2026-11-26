@@ -29,6 +29,34 @@ class Tokens(unittest.TestCase):
                          ["[Add]", "MUST", "answer", "PER", "Execution", "Contract", "Logic", "confinement", "9"])
 
 
+    def test_edge_comma_is_a_separator(self):
+        # Money Check 8.1: the comma after the act separates nothing (normalize.py drops it)
+        self.assertEqual(grammar.tokenize("The check MUST find, for EVERY row, the sum."),
+                         ["the", "check", "MUST", "find", "for", "EVERY", "row", ",", "the", "sum"])
+        # a list comma between two words of one phrase stays in the tree
+        self.assertIn(",", grammar.tokenize("The atom MUST keep the amount, the currency and the scale."))
+        # a comma before a reserved token is an edge
+        self.assertNotIn(",", grammar.tokenize("IF the cap EQUALS blank, THEN [Add] MUST answer over-cap."))
+
+    def test_reserved_tokens_keep_their_case(self):
+        # a reserved tail is never lowered into a phrase word (Casing 2, 3): the corpus run found BEFORE,
+        # WITHIN and AFTER read as "before", "within", "after" inside an object
+        toks = grammar.tokenize("A workflow MUST NOT record a change BEFORE the landing read.")
+        self.assertIn("BEFORE", toks)
+        self.assertEqual(toks[0], "a")
+
+    def test_a_negative_sign_is_kept(self):
+        # "EQUALS -1" and "EQUALS 1" are two meanings; the sign is a token, never dropped
+        self.assertIn("-", grammar.tokenize("IF the day count EQUALS -1 THEN [Add] MUST answer late."))
+        self.assertNotIn("-", grammar.lexicon(MONEY, ROOT, {"-"})[0])     # a sign, never a compound word
+
+    def test_tail_order_stays(self):
+        a = "subject=x|modal=MAY|act=declare|object=y|only_if=y EXCEEDS 0|timing=PER z"
+        b = "subject=x|modal=MAY|act=declare|object=y|timing=PER z|only_if=y EXCEEDS 0"
+        self.assertNotEqual(grammar.tree_fields(a), grammar.tree_fields(b))
+        self.assertTrue(grammar.tail_order_only(grammar.tree_fields(a), grammar.tree_fields(b)))
+
+
 class Lexicon(unittest.TestCase):
     def test_sources_in_order(self):
         lex, verbs = grammar.lexicon(MONEY, ROOT, {"payment", "moneys", "the"})
@@ -56,7 +84,8 @@ class Parse(unittest.TestCase):
     TEXTS = ["IF the other money's amount EXCEEDS the money's amount THEN [Compare] MUST answer less.",
              "IF the sum's size EXCEEDS the number cap THEN [Add] MUST answer over-cap.",
              "IF the sum's size PRECEDES the number cap THEN [Add] MUST answer over-cap.",
-             "The atom MUST NOT take a payment.", "The atom MUST NOT take a zorbleflax."]
+             "The atom MUST NOT take a payment.", "The atom MUST NOT take a zorbleflax.",
+             "The atom ought to take a payment."]
 
     @classmethod
     def setUpClass(cls):
@@ -84,6 +113,10 @@ class Parse(unittest.TestCase):
         if grammar.dicteng():
             self.assertEqual(len(self.trees(self.TEXTS[3])), 1)
         self.assertEqual(self.trees(self.TEXTS[4]), [])
+
+    def test_ought_is_no_modal(self):
+        # GLM's S2: "ought" is filed to the page, never admitted as a modal
+        self.assertEqual(self.trees(self.TEXTS[5]), [])
 
 
 if __name__ == "__main__":
