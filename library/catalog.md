@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 35 with bond lines; 2 app(s).
+53 atoms, 36 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -186,9 +186,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Selective Disclosure](./atoms/selective-disclosure.md)** (598 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
+**[Selective Disclosure](./atoms/selective-disclosure.md)** (609 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
-- No bond lines yet.
+- Mints disclosure id. Offers key disclosure id.
 
 **[Session](./atoms/session.md)** (893 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 

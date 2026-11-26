@@ -15,7 +15,7 @@ toc: true
 {:toc}
 </details>
 
-## Summary
+## What it is
 
 Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
@@ -27,10 +27,6 @@ A few questions need other patterns to answer — whether a referenced consent w
 
 *Also known as: a disclosure log, an accounting of disclosures, a data-sharing register.*
 
----
-
-## Intent
-
 <details markdown="block">
 <summary>WHY</summary>
 
@@ -38,15 +34,15 @@ Regulated systems handling personal data, financial records or protected health 
 
 This atom is the accountability layer that makes those answers possible, and the line it holds is between *recording* and *performing*. An atom that also performed disclosures — retrieving subject data, applying redaction, routing to recipients — would absorb concepts from storage layers, redaction engines and notification systems, each with its own state, its own invariants and its own composing pattern. Absorbing them destroys freestanding status and produces a spec that cannot be composed independently of the technologies it would have to name. The atom specifies the accountability obligation; the implementation specifies the mechanics of delivery.
 
-Four adjacent concepts are distinguished, and every distinction is load-bearing. [Audit Trail](../compositions/audit-trail.md) answers *what happened in this system* for any action, any actor, any subject; this atom answers *what was disclosed about this subject, to whom, under what authority* for one class of event. [Consent](./consent.md) governs authorization — *may I?* — and is a precondition check; this atom records *I did*, after the fact, whether the basis was consent, compulsion or regulation. [Legal Hold](./legal-hold.md) governs compelled *preservation*; this atom records compelled *disclosure*, and the two address opposite obligations on the same records. [Actor Identity](./actor-identity.md) answers *who authorized an action*; this atom answers *to whom was subject data disclosed*. Both carry attribution fields and they are different kinds of attribution — a disclosure to a regulator names the regulator here and may name the authorizing compliance officer in a composing attestation.
+Four adjacent concepts are distinguished, and every distinction is load-bearing. An audit pattern answers *what happened in this system* for any action, any actor, any subject; this atom answers *what was disclosed about this subject, to whom, under what authority* for one class of event. A consent pattern governs authorization — *may I?* — and is a precondition check; this atom records *I did*, after the fact, whether the basis was consent, compulsion or regulation. A legal-hold pattern governs compelled *preservation*; this atom records compelled *disclosure*, and the two address opposite obligations on the same records. An attestation pattern answers *who authorized an action*; this atom answers *to whom was subject data disclosed*. Both carry attribution fields and they are different kinds of attribution — a disclosure to a regulator names the regulator here and may name the authorizing compliance officer in a composing attestation.
 
 The authority field is where the atom earns its name. Three types and no others — consent, legal-hold, regulatory — cover the complete space of legitimate disclosure bases: data-subject authorization, legal compulsion, regulatory mandate. Refusing a fourth value is a structural claim, not a validation convenience: a disclosure falling outside those three is not a legitimate disclosure, and the database must not be able to say otherwise. Splitting the field into a machine-queryable type and a human-readable reference is what keeps the accounting both filterable and readable by the regulator who has to act on it.
 
 </details>
 
-## Structure
+## What it keeps
 
-### Identity model
+### The disclosure records
 
 ```
 Identity 1: The atom MUST identify a disclosure record by the disclosure id.
@@ -69,8 +65,6 @@ NOTE: watch the id's length against the cap (Identity 2).
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, as Capability requirement 9 requires.
-
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
 Term recipient: the opaque string naming the party the data reached — a [Recipient].
@@ -79,11 +73,7 @@ Term scope: the opaque string naming what subset of the subject's data was discl
 
 Term database instance: one named database a call is routed to; disclosure id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the disclosure id here.
-
 NOTE: watch the seam citation (Term seam).
-
-### State
 
 ```
 State 1: EVERY disclosure record MUST carry disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
@@ -96,344 +86,7 @@ State 7: The atom MUST NOT offer a batch record surface.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
-Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing Event Log holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so the comparison of External check 3 spends no clock allowance (Execution Contract Logic confinement 18).
-
-### Capability requirement
-
-```
-Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 5 and Execution Contract Input 1.
-Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
-Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
-```
-
-NOTE: watch the id the host supplies to two calls (Capability requirement 9).
-
-NOTE: watch the deployment's composition note (Execution Contract Conformance 9).
-
-### Operations
-
-```
-record(subject_ref, recipient, scope, authority, optional disclosed_at)
-  answers recorded(disclosure_id)
-  refuses invalid-request | unknown-authority-type | storage-failure
-
-read(filters)
-  answers the matching disclosure records
-  refuses invalid-query
-```
-
-```
-Operation 1: IF subject reference EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 2: IF recipient EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 7: IF now PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
-Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
-Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
-Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
-Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
-Operation 13: An admitted record MUST answer the disclosure id.
-Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
-Operation 16: A refused [Record] MUST NOT record a disclosure record.
-Operation 17: A refused [Record] MUST leave the database as the call found the database.
-Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
-Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending (Execution Contract Logic confinement 10).
-Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
-Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
-Operation 23: IF a disclosure id, subject reference OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
-Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
-Operation 25: IF a disclosure instant range's before PRECEDES the range's after THEN [Read] MUST answer invalid-query.
-Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
-Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
-Operation 29: [Read] MUST NOT write.
-Operation 30: [Read] MUST NOT answer storage-failure.
-Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
-Operation 38: IF the resolved disclosure instant is malformed THEN [Record] MUST answer invalid-request (Execution Contract Input 1).
-Operation 42: An admitted record MUST take the disclosure record's authority type from the call's authority type.
-Operation 43: An admitted record MUST take the disclosure record's authority reference from the call's authority reference.
-Operation 44: IF a string input EXCEEDS the string cap THEN [Record] MUST answer invalid-request.
-Operation 45: IF a string input EXCEEDS the string cap THEN [Read] MUST answer invalid-query (Execution Contract Query 5).
-```
-
-NOTE: watch the required input no rule records (Operation 39, Operation 40, Operation 41, Operation 42, Operation 43).
-
-NOTE: watch the cap's refusal (Operation 44, Operation 45).
-
-Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; Operation 7 compares a disclosure instant the caller states with now as the call carries it, so the atom spends no clock allowance (Execution Contract Logic confinement 18).
-
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries the two sub-fields, authority type and authority reference, and a sub-field of an authority beyond those two is further content of the type; a call's authority carrying a further field is still an authority (Execution Contract Input 1), no rule of this atom refuses it for the further field, and the further field is not recorded.
-
-Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
-
-Term authority types: the three members of authority type, cited here from that declaration (GRACE-lang Closed vocabulary 15).
-
-Term authority reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
-
-Term disclosure instant: the instant the disclosure happened — a [Disclosure Instant]; the input a call may supply, and the field a record carries from the resolved disclosure instant.
-
-Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
-
-Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter keyed by the projection of the field its axis names, and a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
-
-NOTE: watch the wire layer (Term filter axes).
-
-Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit and whose write commits (Execution Contract Read 4).
-
-Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
-
-Term record sequence: the run of disclosure records an admitted read answers, in disclosure instant then disclosure id ascending order (Operation 18, Operation 19); empty where none matches (Operation 20).
-
-| # | Condition | [Record] answers |
-|---|---|---|
-| 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
-| 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
-| 3 | every precondition passes, the database refuses the write | storage-failure |
-| 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)`, the stored record's fields standing from then on (Invariant 1.1) |
-
-### Invariants
-
-- **Invariant 1 — Record immutability.**
-  ```
-  Invariant 1.1: A stored disclosure record's field MUST NOT change.
-  Invariant 1.2: The atom MUST NOT offer an action that changes a stored disclosure record.
-  ```
-- **Invariant 2 — Authority completeness.**
-  ```
-  Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
-  ```
-- **Invariant 3 — Field completeness.**
-  ```
-  Invariant 3.2: EVERY disclosure record's subject reference, recipient, scope and authority reference MUST stand non-blank.
-  ```
-- **Invariant 4 — Temporal soundness.**
-  ```
-  Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the now the record's creation read.
-  ```
-- **Invariant 5 — Unrecorded transmissions.**
-  ```
-  Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
-  ```
-- **Invariant 6 — Record durability and append-only nature.**
-  ```
-  Invariant 6.1: The atom MUST NOT remove a disclosure record from the database.
-  ```
-
----
-
-## Examples
-
-### Consent-authorized disclosure to a research partner
-
-A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosure instant was supplied, so the record carries the injected reading (Term resolved disclosure instant).
-
-### Regulatory-mandate disclosure to a public health authority
-
-A communicable-disease report goes to a state health department under a reporting statute: `record("patient-88213", "State Dept of Health — Epidemiology", "medical-record:communicable-disease-report", {type: regulatory, reference: "HIPAA §164.512(b) — public health reporting"}, disclosed_at: "2026-03-04T09:15:00Z")` → `recorded("01HQ3K...")`, with the host injecting `now: 2026-03-04T11:20:00Z`. The supplied instant precedes now, so it stands (Operation 7). Backdating to the moment of the actual transmission is the point — the record documents when the disclosure happened, not when it was keyed.
-
-### Legal-Hold-compelled disclosure to an investigator
-
-`record("patient-88213", "Office of Inspector General — Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`, with the host injecting `now: 2026-03-04T16:40:00Z`. The hold id is an opaque pointer; whether the hold was active is [Legal Hold](./legal-hold.md)'s record and not this atom's guard (Non-goal 9).
-
-### The Article 15 answer
-
-A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", "authority.type": "consent"})` narrows to one. The regulatory question's answer is provable.
-
-### Rejection paths
-
-`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject reference EQUALS blank (Operation 1; GRACE-lang Term blank).
-
-`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Execution Contract Refusal 1).
-
-`record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → invalid-request. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
-
-`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04T16:40:00Z` → invalid-request. Nothing is written (Operation 7, Operation 16).
-
-`read({subject_ref: "patient-88213", "authority.reference": "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
-
-`read({disclosed_at: {after: "2026-06-01T00:00:00Z", before: "2026-03-01T00:00:00Z"}})` → invalid-query (Operation 25).
-
-`read({subject_ref: "patient-99999"})` → an empty record sequence. No disclosure of that subject's data has been recorded, which is itself the compliance answer (Operation 20).
-
-### Regulated adversarial scenarios
-
-- **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01T00:00:00Z", before: "2026-12-31T23:59:59Z"}})` answers the complete set in order, each with its authority, on a deployment whose clock reads whole seconds: a range holds both its ends, and 23:59:59 is then the year's last instant. State 1 and Invariant 3 are what make the answer usable — every field on every record, none blank, so no entry has to be explained (Check 2.1, Check 2.2).
-- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The database yields the record and its `authority.reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) records are what prove the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
-- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads every disclosure record in the window and groups by recipient. The atom never removes a record (Invariant 6.1), and the database removes none except by an action a specification declares (Execution Contract Database 4), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left, and a record a composed retention pattern purged in between left by a purge that pattern's own records show (Execution Contract Database 6). What the investigator cannot learn here is whether a transmission happened that nobody recorded: the atom cannot detect one (Invariant 5.2), and Capability requirement 6 is cleared against egress logs rather than against these records (External check 2).
-
----
-
-## Generation acceptance
-
-This atom's acceptance is provable: an external auditor clears it from the disclosure records, with their committed versions (Execution Contract Generation acceptance 1).
-
-### Conformance checks
-
-```
-Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1).
-Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
-Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
-Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
-Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
-Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
-Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
-Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
-```
-
-NOTE: EVERY check names the rule the check tests.
-
-Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
-
-### External checks
-
-```
-External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
-External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
-External check 3: A deployment needing a backdated disclosure instant detected, and Invariant 4.1 cleared, MUST read the composing Event Log's receipt instant beside the disclosure record's disclosure instant (State 10; Invariant 4.1).
-External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
-```
-
-Term authority records: the composing pattern's own records of the authorities a disclosure's authority reference names (Non-goal 7, Non-goal 8).
-
-Term egress record: the deployment's own record of what left the deployment, read beside the disclosure records to clear Capability requirement 6 (External check 2).
-
-## Non-goals
-
-```
-Non-goal 1: The atom MUST NOT retrieve a subject's data.
-Non-goal 2: The atom MUST NOT redact a subject's data.
-Non-goal 3: The atom MUST NOT transmit a subject's data.
-Non-goal 4: The atom MUST NOT confirm that a scope names what a transmission carried.
-Non-goal 5: The atom MUST NOT bound a scope's vocabulary.
-Non-goal 6: The atom MUST NOT bound a recipient's vocabulary.
-Non-goal 7: The atom MUST NOT confirm that an authority reference names a live authority.
-Non-goal 8: The atom MUST NOT confirm that an authority reference agrees with the authority type.
-Non-goal 9: A deployment needing an authority's legitimacy confirmed MUST compose the authority's own pattern.
-Non-goal 10: The atom MUST NOT decide who may call an action.
-Non-goal 11: A deployment needing an authorization decision MUST compose Permissions.
-Non-goal 12: The atom MUST NOT record who called [Record].
-Non-goal 13: A deployment needing the recording actor bound MUST compose Actor Identity.
-Non-goal 14: The atom MUST NOT read two [Record] calls carrying one field set as one disclosure.
-Non-goal 15: A deployment needing at-most-once recording MUST compose Duplicate Prevention.
-Non-goal 16: The atom MUST NOT detect a rewrite under the database.
-Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
-Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
-Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
-Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
-Non-goal 21: The atom MUST NOT bound disclosure instant from below.
-Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
-Non-goal 23: A deployment needing a verifiable time anchor MUST compose Trusted Timestamping.
-Non-goal 24: A deployment needing a backdated disclosure instant detected MUST compose Event Log.
-```
-
-NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); [Consent](./consent.md) and [Legal Hold](./legal-hold.md) (Non-goal 7, Non-goal 8, Non-goal 9); [Permissions](./permissions.md) (Non-goal 10, Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); the compliance team, and [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) for an access request (Non-goal 20); [Event Log](./event-log.md) (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
-
----
-
-## Edge cases
-
-### Concurrency
-
-```
-Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject reference.
-Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
-```
-
-### String policy
-
-```
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-```
-
-NOTE: the canonicalization Logic confinement 13 carries at the seam is the deployment's, not a normalization of a string input the atom makes.
-
-Term string input: subject reference, recipient, scope, authority type, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
-
-Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
-
-Term string cap: the bound on a string input's length and on a disclosure id's length (Execution Contract Input 2); 1,024 code points where a deployment declares none.
-
-### Correction by append
-
-```
-Correction 1: The atom MUST NOT edit a disclosure record.
-Correction 2: The atom MUST NOT remove a disclosure record.
-Correction 3: A caller correcting a disclosure record MUST call [Record] again.
-Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that carries the corrected disclosure record's disclosure id.
-```
-
-Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects, by carrying the corrected disclosure record's disclosure id exactly as the corrected record carries it.
-
----
-
-## Composition notes
-
-```
-Composition note 2: A composing pattern MUST own the authorization of a call.
-Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
-Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
-Composition note 5: A composing pattern MUST own the tamper seal over the disclosure records.
-Composition note 6: A composing pattern MUST own the retention of the disclosure records.
-Composition note 7: A composing pattern MUST own at-most-once recording.
-Composition note 8: A composing pattern closing Capability requirement 6 MUST own the only disclosure surface.
-```
-
-<details markdown="block">
-<summary>WHY</summary>
-
-[Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
-
-</details>
-
-NOTE: composing patterns — [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
-
----
-
-## Terms
-
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
-
-### Vocabulary
-
-Term actors: the atom; the host; the deployment; a composing pattern; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference.
-
-Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
-
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, name, claim, transmit, redact, retrieve, persist, call, produce, evaluate, agree.
-
-Term value sets: authority type = consent | legal-hold | regulatory.
-
-Term bounds: string cap (the bound on a string input's length and on a disclosure id's length, 1,024 code points where a deployment declares none, Execution Contract Input 2).
-
-Term cadences: empty.
-
-Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
-
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
-
-Term cited: now, resolved disclosure instant, reference, string cap, committed version, admitted record — `execution-contract.md` Logic confinement 11, 12 and 13, Input 2, Generation acceptance 1 and Read 4.
-
-Term composing pattern: [Consent](./consent.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Duplicate Prevention](./duplicate-prevention.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Capability-Backed Sharing](../compositions/capability-backed-sharing.md), [Immutable Ledger](../compositions/immutable-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md); Trusted Timestamping *(forthcoming)*.
-
-#### Record
-
-The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if no instant or in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
-
-Kind: Operation
-
-#### Read
-
-The read-only query returning the matching disclosure records in [Disclosure Instant] then [Disclosure Id] ascending order, filtered by filters on [Disclosure Id], [Subject Reference], [Recipient], [Authority Type], or a [Disclosure Instant] range, which holds both its ends, so a range whose after and before are one instant matches the records at that instant (Execution Contract Query 2). Never writes; an empty result is not a rejection. Rejected [Invalid Query] for a malformed filter.
-
-Kind: Operation
+Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing event log pattern holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so the comparison of External check 3 spends no clock allowance (Execution Contract Logic confinement 18).
 
 #### Disclosure Id
 
@@ -485,7 +138,7 @@ Projection: authority.type
 
 #### Authority Reference
 
-The opaque, non-blank string identifying the specific authority — a Consent id, a Legal Hold id, or a regulatory citation. The human-readable half of [Authority]; the atom validates its presence, not its legitimacy.
+The opaque, non-blank string identifying the specific authority — a consent id, a legal-hold id, or a regulatory citation. The human-readable half of [Authority]; the atom validates its presence, not its legitimacy.
 
 Kind:       Field
 Field of:   the authority field
@@ -498,6 +151,47 @@ The timestamp of the disclosure event. Set on [Record] or defaulted to the injec
 Kind:       Field
 Field of:   the disclosure record
 Projection: disclosed_at
+
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; the type carries the two sub-fields, authority type and authority reference, and a sub-field of an authority beyond those two is further content of the type; a call's authority carrying a further field is still an authority (Execution Contract Input 1), no rule of this atom refuses it for the further field, and the further field is not recorded.
+
+Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
+
+Term authority reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
+
+Term disclosure instant: the instant the disclosure happened — a [Disclosure Instant]; the input a call may supply, and the field a record carries from the resolved disclosure instant.
+
+Term disclosure id: the opaque string naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, as Capability requirement 9 requires.
+
+## What people do
+
+### Every action
+
+NOTE: watch the required input no rule records (Operation 39, Operation 40, Operation 41, Operation 42, Operation 43).
+
+NOTE: watch the cap's refusal (Operation 44, Operation 45).
+
+Term authority types: the three members of authority type, cited here from that declaration (GRACE-lang Closed vocabulary 15).
+
+Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
+
+Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter keyed by the projection of the field its axis names, and a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
+
+NOTE: watch the wire layer (Term filter axes).
+
+Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit and whose write commits (Execution Contract Read 4).
+
+Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
+
+Term record sequence: the run of disclosure records an admitted read answers, in disclosure instant then disclosure id ascending order (Operation 18, Operation 19); empty where none matches (Operation 20).
+
+The case space, and the rule that owns each case:
+
+| # | Condition | [Record] answers |
+|---|---|---|
+| 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
+| 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
+| 3 | every precondition passes, the database refuses the write | storage-failure |
+| 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)`, the stored record's fields standing from then on (Invariant 1.1) |
 
 #### Invalid Request
 
@@ -535,6 +229,332 @@ Member of:  the read rejection
 Role:       Outcome
 Projection: invalid-query
 
+### Record
+
+#### Record
+
+The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if no instant or in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
+
+Kind: Operation
+
+```
+record(subject_ref, recipient, scope, authority, optional disclosed_at)
+  answers recorded(disclosure_id)
+  refuses invalid-request | unknown-authority-type | storage-failure
+```
+
+```
+Operation 1: IF subject reference EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 2: IF recipient EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 7: IF now PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
+Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
+Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
+Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
+Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
+Operation 13: An admitted record MUST answer the disclosure id.
+Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
+Operation 16: A refused [Record] MUST NOT record a disclosure record.
+Operation 17: A refused [Record] MUST leave the database as the call found the database.
+Operation 38: IF the resolved disclosure instant is malformed THEN [Record] MUST answer invalid-request (Execution Contract Input 1).
+Operation 42: An admitted record MUST take the disclosure record's authority type from the call's authority type.
+Operation 43: An admitted record MUST take the disclosure record's authority reference from the call's authority reference.
+Operation 44: IF a string input EXCEEDS the string cap THEN [Record] MUST answer invalid-request.
+```
+
+`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject reference EQUALS blank (Operation 1; GRACE-lang Term blank).
+
+`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Execution Contract Refusal 1).
+
+`record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → invalid-request. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
+
+`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04T16:40:00Z` → invalid-request. Nothing is written (Operation 7, Operation 16).
+
+### Read
+
+#### Read
+
+The read-only query returning the matching disclosure records in [Disclosure Instant] then [Disclosure Id] ascending order, filtered by filters on [Disclosure Id], [Subject Reference], [Recipient], [Authority Type], or a [Disclosure Instant] range, which holds both its ends, so a range whose after and before are one instant matches the records at that instant (Execution Contract Query 2). Never writes; an empty result is not a rejection. Rejected [Invalid Query] for a malformed filter.
+
+Kind: Operation
+
+```
+read(filters)
+  answers the matching disclosure records
+  refuses invalid-query
+```
+
+```
+Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
+Operation 19: An admitted read MUST order two disclosure records sharing a disclosure instant by disclosure id ascending (Execution Contract Logic confinement 10).
+Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
+Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
+Operation 23: IF a disclosure id, subject reference OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
+Operation 25: IF a disclosure instant range's before PRECEDES the range's after THEN [Read] MUST answer invalid-query.
+Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
+Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
+Operation 29: [Read] MUST NOT write.
+Operation 30: [Read] MUST NOT answer storage-failure.
+Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
+Operation 45: IF a string input EXCEEDS the string cap THEN [Read] MUST answer invalid-query (Execution Contract Query 5).
+```
+
+`read({subject_ref: "patient-88213", "authority.reference": "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
+
+`read({disclosed_at: {after: "2026-06-01T00:00:00Z", before: "2026-03-01T00:00:00Z"}})` → invalid-query (Operation 25).
+
+`read({subject_ref: "patient-99999"})` → an empty record sequence. No disclosure of that subject's data has been recorded, which is itself the compliance answer (Operation 20).
+
+## What is and what should never be (Invariants)
+
+- **Invariant 1 — Record immutability.**
+  ```
+  Invariant 1.1: A stored disclosure record's field MUST NOT change.
+  Invariant 1.2: The atom MUST NOT offer an action that changes a stored disclosure record.
+  ```
+- **Invariant 2 — Authority completeness.**
+  ```
+  Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
+  ```
+- **Invariant 3 — Field completeness.**
+  ```
+  Invariant 3.2: EVERY disclosure record's subject reference, recipient, scope and authority reference MUST stand non-blank.
+  ```
+- **Invariant 4 — Temporal soundness.**
+  ```
+  Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the now the record's creation read.
+  ```
+- **Invariant 5 — Unrecorded transmissions.**
+  ```
+  Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
+  ```
+- **Invariant 6 — Record durability and append-only nature.**
+  ```
+  Invariant 6.1: The atom MUST NOT remove a disclosure record from the database.
+  ```
+
+---
+
+## When something happens
+
+### Concurrency
+
+```
+Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject reference.
+Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
+```
+
+### Correction by append
+
+```
+Correction 1: The atom MUST NOT edit a disclosure record.
+Correction 2: The atom MUST NOT remove a disclosure record.
+Correction 3: A caller correcting a disclosure record MUST call [Record] again.
+Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that carries the corrected disclosure record's disclosure id.
+```
+
+Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects, by carrying the corrected disclosure record's disclosure id exactly as the corrected record carries it.
+
+---
+
+## While something is so
+
+### String policy
+
+```
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+```
+
+NOTE: the canonicalization Logic confinement 13 carries at the seam is the deployment's, not a normalization of a string input the atom makes.
+
+Term string input: subject reference, recipient, scope, authority type, authority reference OR a filter's key OR a filter's value on an axis other than disclosure instant — every caller-supplied string this atom accepts, but not a further field a call's authority carries.
+
+Term reference: subject reference — the one opaque reference this atom records, as Execution Contract Logic confinement 13 canonicalizes it at the seam; a recipient, a scope, an authority reference and a disclosure id are opaque strings, and no references.
+
+## Optional
+
+```
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 5 and Execution Contract Input 1.
+Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
+Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
+Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
+```
+
+NOTE: watch the id the host supplies to two calls (Capability requirement 9).
+
+NOTE: watch the deployment's composition note (Execution Contract Conformance 9).
+
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the disclosure id here.
+
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; Operation 7 compares a disclosure instant the caller states with now as the call carries it, so the atom spends no clock allowance (Execution Contract Logic confinement 18).
+
+Term string cap: the bound on a string input's length and on a disclosure id's length (Execution Contract Input 2); 1,024 code points where a deployment declares none.
+
+## Offers
+
+The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
+
+Term offer key: key disclosure id; carried by disclosure records; calls Read.
+
+## Left to others
+
+```
+Non-goal 1: The atom MUST NOT retrieve a subject's data.
+Non-goal 2: The atom MUST NOT redact a subject's data.
+Non-goal 3: The atom MUST NOT transmit a subject's data.
+Non-goal 4: The atom MUST NOT confirm that a scope names what a transmission carried.
+Non-goal 5: The atom MUST NOT bound a scope's vocabulary.
+Non-goal 6: The atom MUST NOT bound a recipient's vocabulary.
+Non-goal 7: The atom MUST NOT confirm that an authority reference names a live authority.
+Non-goal 8: The atom MUST NOT confirm that an authority reference agrees with the authority type.
+Non-goal 9: A deployment needing an authority's legitimacy confirmed MUST compose the authority's own pattern.
+Non-goal 10: The atom MUST NOT decide who may call an action.
+Deleted: Non-goal 11. Non-goal 10 owns it: the atom decides no caller's authority; the app's permission does.
+Non-goal 12: The atom MUST NOT record who called [Record].
+Deleted: Non-goal 13. Non-goal 12 owns it: the atom binds no recording actor, and which pattern attests one is the app's choice.
+Non-goal 14: The atom MUST NOT read two [Record] calls carrying one field set as one disclosure.
+Deleted: Non-goal 15. Non-goal 14 owns it: the atom records two calls as two disclosures, and which pattern makes recording at-most-once is the app's choice.
+Non-goal 16: The atom MUST NOT detect a rewrite under the database.
+Deleted: Non-goal 17. Non-goal 16 owns it: the atom detects no rewrite, and which pattern makes the records tamper-evident is the app's choice.
+Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
+Deleted: Non-goal 19. Non-goal 18 owns it: the atom bounds no retention, and which pattern does is the app's choice.
+Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
+Non-goal 21: The atom MUST NOT bound disclosure instant from below.
+Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Deleted: Non-goal 24. Non-goal 23 owns it: the atom records no receipt instant, and which pattern detects a backdated disclosure instant is the app's choice.
+```
+
+NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); a consent pattern and a legal-hold pattern (Non-goal 7, Non-goal 8, Non-goal 9); the app's permission (Non-goal 10, Non-goal 11); an attestation pattern (Non-goal 12, Non-goal 13); an idempotency pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); the compliance team, and a data-rights pattern for an access request (Non-goal 20); an event log pattern (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
+
+---
+
+```
+Composition note 2: A composing pattern MUST own the authorization of a call.
+Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
+Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
+Composition note 5: A composing pattern MUST own the tamper seal over the disclosure records.
+Composition note 6: A composing pattern MUST own the retention of the disclosure records.
+Composition note 7: A composing pattern MUST own at-most-once recording.
+Composition note 8: A composing pattern closing Capability requirement 6 MUST own the only disclosure surface.
+```
+
+<details markdown="block">
+<summary>WHY</summary>
+
+A data-rights pattern uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
+
+</details>
+
+NOTE: composing patterns — a sharing pattern, a ledger pattern, a data-rights pattern.
+
+---
+
+Term composing pattern: a consent pattern, a legal-hold pattern, the app's permission, an attestation pattern, an idempotency pattern, a tamper-evidence pattern, a retention pattern, an event log pattern, a sharing pattern, a ledger pattern, a data-rights pattern; Trusted Timestamping *(forthcoming)*.
+
+## Example
+
+### Consent-authorized disclosure to a research partner
+
+A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosure instant was supplied, so the record carries the injected reading (Term resolved disclosure instant).
+
+### Regulatory-mandate disclosure to a public health authority
+
+A communicable-disease report goes to a state health department under a reporting statute: `record("patient-88213", "State Dept of Health — Epidemiology", "medical-record:communicable-disease-report", {type: regulatory, reference: "HIPAA §164.512(b) — public health reporting"}, disclosed_at: "2026-03-04T09:15:00Z")` → `recorded("01HQ3K...")`, with the host injecting `now: 2026-03-04T11:20:00Z`. The supplied instant precedes now, so it stands (Operation 7). Backdating to the moment of the actual transmission is the point — the record documents when the disclosure happened, not when it was keyed.
+
+### Legal-Hold-compelled disclosure to an investigator
+
+`record("patient-88213", "Office of Inspector General — Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`, with the host injecting `now: 2026-03-04T16:40:00Z`. The hold id is an opaque pointer; whether the hold was active is a legal-hold pattern's record and not this atom's guard (Non-goal 9).
+
+### The Article 15 answer
+
+A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", "authority.type": "consent"})` narrows to one. The regulatory question's answer is provable.
+
+### Regulated adversarial scenarios
+
+- **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01T00:00:00Z", before: "2026-12-31T23:59:59Z"}})` answers the complete set in order, each with its authority, on a deployment whose clock reads whole seconds: a range holds both its ends, and 23:59:59 is then the year's last instant. State 1 and Invariant 3 are what make the answer usable — every field on every record, none blank, so no entry has to be explained (Check 2.1, Check 2.2).
+- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The database yields the record and its `authority.reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and a consent pattern's records are what prove the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
+- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads every disclosure record in the window and groups by recipient. The atom never removes a record (Invariant 6.1), and the database removes none except by an action a specification declares (Execution Contract Database 4), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left, and a record a composed retention pattern purged in between left by a purge that pattern's own records show (Execution Contract Database 6). What the investigator cannot learn here is whether a transmission happened that nobody recorded: the atom cannot detect one (Invariant 5.2), and Capability requirement 6 is cleared against egress logs rather than against these records (External check 2).
+
+---
+
+## Source
+
+- **GDPR Article 15(1)(c)** — the data subject's right of access includes the right to know the recipients or categories of recipients to whom their personal data has been or will be disclosed. Selective Disclosure is the accountability layer that makes Article 15(1)(c) responses provable. Every disclosure record's [Recipient] field and [Authority] field are the data the Article 15 response draws from.
+- **GDPR Article 30 (Records of processing activities)** — controllers must maintain records of processing activities, including categories of recipients to whom personal data has been or will be disclosed, and transfers to third countries or international organizations. Disclosure records under this atom are the processing-activity records Article 30 requires for the disclosure category of processing.
+- **HIPAA section 164.528 (Accounting of disclosures of protected health information)** — individuals have the right to receive an accounting of disclosures of their PHI (Protected Health Information — individually identifiable health data covered by HIPAA) made by a covered entity or business associate. The accounting must include the date of each disclosure, the name and, if known, the address of the recipient, a brief description of the PHI disclosed, and a brief statement of the purpose. The record carries the date ([Disclosure Instant]), the recipient's name ([Recipient]), a description of the PHI ([Scope]) and a pointer to the basis ([Authority Reference]); the recipient's address and the statement of purpose are not fields of this atom, and the calling system or a composing pattern supplies them. The atom is the record structure of section 164.528's accounting, not the whole of it.
+- **SEC Rule 17a-4** — broker-dealers must preserve records in non-rewriteable, non-erasable format, accessible to regulators on demand. Disclosure records for broker-dealer records are themselves required records under 17a-4. Composing with a tamper-evidence pattern satisfies the non-rewriteable, non-erasable standard; this atom provides the disclosure record structure.
+
+---
+
+## Proof
+
+### Generation acceptance
+
+This atom's acceptance is provable: an external auditor clears it from the disclosure records, with their committed versions (Execution Contract Generation acceptance 1).
+
+#### Conformance checks
+
+```
+Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1).
+Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
+Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
+Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
+Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
+Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
+Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
+Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
+
+#### External checks
+
+```
+External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
+External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
+External check 3: A deployment needing a backdated disclosure instant detected, and Invariant 4.1 cleared, MUST read the composing event log pattern's receipt instant beside the disclosure record's disclosure instant (State 10; Invariant 4.1).
+External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
+```
+
+Term authority records: the composing pattern's own records of the authorities a disclosure's authority reference names (Non-goal 7, Non-goal 8).
+
+Term egress record: the deployment's own record of what left the deployment, read beside the disclosure records to clear Capability requirement 6 (External check 2).
+
+### Vocabulary
+
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+Term actors: the atom; the host; the deployment; a composing pattern; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference.
+
+Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
+
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, name, claim, transmit, redact, retrieve, persist, call, produce, evaluate, agree.
+
+Term value sets: authority type = consent | legal-hold | regulatory.
+
+Term bounds: string cap (the bound on a string input's length and on a disclosure id's length, 1,024 code points where a deployment declares none, Execution Contract Input 2).
+
+Term cadences: empty.
+
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
+
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
+
+Term cited: now, resolved disclosure instant, reference, string cap, committed version, admitted record — `execution-contract.md` Logic confinement 11, 12 and 13, Input 2, Generation acceptance 1 and Read 4.
+
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -557,18 +577,9 @@ Projection: invalid-query
 
 ---
 
-## Standards references
-
-- **GDPR Article 15(1)(c)** — the data subject's right of access includes the right to know the recipients or categories of recipients to whom their personal data has been or will be disclosed. Selective Disclosure is the accountability layer that makes Article 15(1)(c) responses provable. Every disclosure record's [Recipient] field and [Authority] field are the data the Article 15 response draws from.
-- **GDPR Article 30 (Records of processing activities)** — controllers must maintain records of processing activities, including categories of recipients to whom personal data has been or will be disclosed, and transfers to third countries or international organizations. Disclosure records under this atom are the processing-activity records Article 30 requires for the disclosure category of processing.
-- **HIPAA section 164.528 (Accounting of disclosures of protected health information)** — individuals have the right to receive an accounting of disclosures of their PHI (Protected Health Information — individually identifiable health data covered by HIPAA) made by a covered entity or business associate. The accounting must include the date of each disclosure, the name and, if known, the address of the recipient, a brief description of the PHI disclosed, and a brief statement of the purpose. The record carries the date ([Disclosure Instant]), the recipient's name ([Recipient]), a description of the PHI ([Scope]) and a pointer to the basis ([Authority Reference]); the recipient's address and the statement of purpose are not fields of this atom, and the calling system or a composing pattern supplies them. The atom is the record structure of section 164.528's accounting, not the whole of it.
-- **SEC Rule 17a-4** — broker-dealers must preserve records in non-rewriteable, non-erasable format, accessible to regulators on demand. Disclosure records for broker-dealer records are themselves required records under 17a-4. Composing with Tamper Evidence satisfies the non-rewriteable, non-erasable standard; this atom provides the disclosure record structure.
-
----
-
 ## Status
 
-`done — 2026-11-20` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -576,7 +587,7 @@ Projection: invalid-query
 </summary>
 
 ```
-status: done — 2026-11-20
+status: doing
 formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12
 last gate: 2026-11-25 — Final Critique 22, a delta round, frozen at 2a39051 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (claude-sonnet-5-5) on the three rules the diff since Final Critique 21 reaches, Identity 9, Capability requirement 9 and Operation 19, counted no foundational finding; its one refining report, that Capability requirement 9 restates Execution Contract Logic confinement 3, was refuted by both triages, since the rule carries the deployment's id source PER the contract rules that set it, as spec-format asks of a Capability requirement and as Capability requirement 1 does for now); 2026-11-20 — Final Critique 21, a delta round, frozen at 67a1099 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (claude-haiku-5-5) claimed one foundational, that External check 3's comparison of the receipt instant with the disclosure instant spends no clock allowance where the Record call and its Event Log append are separate actions: refuted by both triages, since the receipt instant is the Record call's own now, which a composing Event Log holds in one composition action (Execution Contract Logic confinement 19), an append in a separate action holds no receipt instant under Term receipt instant, and no invariant breaks; its one refining report, Operation 45 against Input 2 and Query 5, was refuted too, Query 5 giving the answer Operation 45 states); 2026-11-20 — Final Critique 20, a delta round, frozen at 5017a1f — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 19, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
 

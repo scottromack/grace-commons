@@ -1845,7 +1845,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -1869,7 +1869,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-20",
+  "status": "doing",
   "title": "Selective Disclosure"
  },
  "session": {
