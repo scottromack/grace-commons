@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 30 with bond lines; 2 app(s).
+53 atoms, 31 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -218,9 +218,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 
-**[Tenure](./atoms/tenure.md)** (690 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
+**[Tenure](./atoms/tenure.md)** (760 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
 
-- No bond lines yet.
+- Mints tenure id. Offers key tenure id.
 
 **[Waitlist](./atoms/waitlist.md)** (784 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
 

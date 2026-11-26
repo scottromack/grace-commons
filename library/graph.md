@@ -51,6 +51,7 @@ flowchart LR
   b_sweep["Sweep"]
   b_tamper_evidence["Tamper Evidence"]
   b_task["Task"]
+  b_tenure["Tenure"]
   b_waitlist["Waitlist"]
   b_approval_step -->|"actor id"| b_actor_identity
   b_assignment -->|"task id"| b_task
@@ -94,6 +95,7 @@ flowchart LR
   b_ordering -.->|"opaque"| b_state_machine
   b_ordering -.->|"opaque"| b_tamper_evidence
   b_ordering -.->|"opaque"| b_task
+  b_ordering -.->|"opaque"| b_tenure
   b_ordering -.->|"opaque"| b_waitlist
   b_ordering -.->|"opaque"| b_waitlist
   b_ordering -->|"list id"| b_list
