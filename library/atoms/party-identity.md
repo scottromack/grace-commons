@@ -27,7 +27,7 @@ Party Identity records the results of identity checks and does not perform them 
 
 Every regulated system that deals with external parties — banks onboarding customers, hospitals enrolling patients, broker-dealers establishing counterparties, employers verifying staff — must establish *who* the party is before regulated activity begins, and must keep that record through the party's whole lifecycle. The shape is constant: attributes are collected, identity is verified against external evidence, the party becomes verified, and downstream activity relies on that. When circumstances change — a sanctions match, an expired document, an investigation — the party is suspended, re-verified, and either reinstated or permanently closed.
 
-The compliance framing is consistent across regimes. FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 require customer due diligence before a business relationship begins. The BSA/AML (Bank Secrecy Act / Anti-Money Laundering) Customer Identification Program (31 CFR — the US Code of Federal Regulations — Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 4(1) makes the attributes collected here personal data. HIPAA (the US Health Insurance Portability and Accountability Act) requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
+The compliance framing is consistent across regimes. FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 require customer due diligence before a business relationship begins. The BSA (Bank Secrecy Act) and AML (Anti-Money Laundering) Customer Identification Program (31 CFR — the US Code of Federal Regulations — Part 1020) sets minimum attributes and five-year retention past the relationship's end. GDPR (General Data Protection Regulation — the European Union's data-protection law) Article 4(1) makes the attributes collected here personal data. HIPAA (the US Health Insurance Portability and Accountability Act) requires patient identity before clinical records exist. The domain varies; the structural obligation does not.
 
 ## What it keeps
 
@@ -38,7 +38,7 @@ Identity 1: The atom MUST identify a party by the party id.
 Identity 2: The atom MUST identify a verification event by the verification id.
 Identity 3: The atom MUST identify a state change event by the state change id.
 Identity 4: The atom MUST take an assigned id from the id material the seam supplies.
-Identity 5: The atom MUST NOT generate an assigned id.
+Deleted: Identity 5. Execution Contract Logic confinement 3 owns it: the host injects every id the atom assigns.
 Identity 6: The atom MUST NOT change an assigned id.
 Identity 7: Two parties MUST NOT share a party id.
 Identity 8: Two verification events MUST NOT share a verification id.
@@ -60,7 +60,7 @@ Term state change event: the record of one transition — the prior state, the n
 
 Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and the atom never changes.
 
-Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the one reference an action's call carries for who acted, which the action records: on a state change event an admitted verify appends, the verifying actor reference.
+Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the one reference an action's call carries for who acted, which the action records. On a state change event an admitted verify appends, the acting reference is the verifying actor reference.
 
 Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
@@ -347,7 +347,7 @@ NOTE: watch read-order polarity (Operation 52).
 
 NOTE: watch the listing page (Operation 51, Operation 61, Term matching party).
 
-Term date form: four digits of year, two of month and two of day, joined by hyphens, as `1984-03-02` — the calendar date form of ISO 8601 (the International Organization for Standardization's standard for writing dates and times).
+Term date form: four ASCII digits of year from 0001 to 9999, two ASCII digits of month and two of day, joined by hyphens, as `1984-03-02` — the calendar date form of ISO 8601 (the International Organization for Standardization's standard for writing dates and times).
 
 Term date of birth start: the first instant of the calendar date the date of birth names, in the timezone the deployment takes its clock reading in (Execution Contract Logic confinement 7).
 
@@ -573,7 +573,7 @@ Operation 60: [Read] MUST NOT answer invalid-request.
 
 #### Query
 
-The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis outside those, or a value its axis does not admit (a blank [Party Id] among them), is [Invalid Query] rather than a silently dropped filter; a well-formed [Party Id] naming no party, as every one over the length bound does (Capability requirement 14), matches nothing.
+The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis outside those, or a value its axis does not admit (a blank [Party Id] among them), is [Invalid Query] rather than a silently dropped filter; a well-formed [Party Id] naming no party, as every one over the length bound does (Execution Contract Input 2), matches nothing.
 
 Kind:         Parameter
 Parameter of: Read
@@ -618,7 +618,7 @@ Projection: invalid-query
   ```
 - **Invariant 8 — No transition is silent.**
   ```
-  Invariant 8.1: EVERY transitioning action MUST append a state change event.
+  Invariant 8.1: EVERY party MUST stand in the state the party's state change log reaches from unverified in insertion order.
   Invariant 8.2: A party's state change log length MUST NOT fall.
   ```
 
@@ -665,9 +665,9 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 7: The deployment MAY declare the length bound PER Execution Contract Input 2.
 Capability requirement 10: The deployment MUST supply the party records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
 Capability requirement 11: The deployment MUST supply id material naming no record of the database instance.
-Capability requirement 12: The deployment MUST NOT supply the same id material to two calls.
-Capability requirement 13: The deployment MUST NOT supply blank id material.
-Capability requirement 14: The deployment MUST supply id material whose EVERY assigned id DOES NOT EXCEED the length bound.
+Deleted: Capability requirement 12. Execution Contract Logic confinement 16 owns it: the host supplies one id it allocates to one call.
+Deleted: Capability requirement 13. Execution Contract Input 2 owns it: the host allocates an id that is not blank.
+Deleted: Capability requirement 14. Execution Contract Input 2 owns it: the host allocates an id that does not exceed the cap.
 Capability requirement 15: The deployment MUST supply id material whose verification id DOES NOT EQUAL the state change id.
 ```
 
@@ -687,7 +687,7 @@ Kind:         Parameter
 Parameter of: Enroll, Verify, Suspend, Reinstate and Close
 Projection:   now
 
-Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns, each fresh: carried by no record of the database instance when the atom assigns it (Capability requirement 11, Capability requirement 12).
+Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns, each fresh: carried by no record of the database instance when the atom assigns it (Capability requirement 11), supplied to one call (Execution Contract Logic confinement 16), and not blank and within the length bound (Execution Contract Input 2).
 
 Term database instance: one named database a call is routed to; assigned id uniqueness ranges over one instance.
 
@@ -817,17 +817,19 @@ This atom's acceptance is provable: an external auditor clears it from the party
 #### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1, State 1).
+Check 1.1: An auditor MUST find no party whose state DOES NOT EQUAL unverified AND DOES NOT EQUAL verified AND DOES NOT EQUAL suspended AND DOES NOT EQUAL closed (Invariant 2.1, State 1).
 Check 1.2: An auditor MUST find no party leaving closed across two committed versions of the party (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
 Check 3.1: An auditor MUST find verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant on EVERY verification event (State 4).
 Check 3.2: An auditor MUST find EVERY verification event unchanged across EVERY committed version of the party carrying the verification event (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 3.3: An auditor MUST find no fall in a party's verification event list length across two committed versions of the party (Invariant 6.3; Execution Contract Generation acceptance 1).
-Check 3.4: An auditor MUST find EVERY verification event whose verification result EQUALS EXACTLY ONE OF passed, failed (Operation 21).
-Check 4.2: An auditor MUST find the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
+Check 3.4: An auditor MUST find no verification event whose verification result DOES NOT EQUAL passed AND DOES NOT EQUAL failed (Operation 21).
+Check 3.5: An auditor MUST find EVERY verification event in the same place in the party's verification event list across EVERY committed version of the party carrying the verification event (Invariant 6.2; Execution Contract Generation acceptance 1).
+Check 4.2: An auditor MUST find the state change id, the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
 Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
 Check 4.4: An auditor MUST find no fall in a party's state change log length across two committed versions of the party (Invariant 8.2; Execution Contract Generation acceptance 1).
 Check 4.5: An auditor MUST find no reason on a state change event an admitted verify appended (Operation 36).
+Check 4.6: An auditor MUST find no state change event recording a transition outside the permitted transitions (Operation 14, Operation 15, Operation 16, Operation 25, Operation 26, Operation 30, Operation 31, Operation 32).
 Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3, Operation 7).
 Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
 Check 6.4: An auditor MUST find EVERY enrollment field unchanged across EVERY committed version of the party carrying the enrollment field (Non-goal 3; Execution Contract Generation acceptance 1).
@@ -837,6 +839,8 @@ Check 7.3: An auditor MUST find no state change id on two state change events (I
 ```
 
 NOTE: Invariant 1.1 owes no check here: Execution Contract Database 6 binds the atom's own actions, and a purge another specification declares, as a pattern that bounds retention does under Execution Contract Database 4, is answered by that specification's records (Capability requirement 10, Non-goal 13).
+
+Term permitted transition: unverified-to-verified | verified-to-suspended | suspended-to-verified | unverified-to-closed | verified-to-closed | suspended-to-closed — every transition a state change event may record.
 
 Term cited: party id, actor id, party events: Declarations.
 
@@ -932,7 +936,7 @@ Term cited: Execution Contract Database 1 through 7 — one transaction per acti
 
 ## Status
 
-`done — 2026-11-22` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -940,9 +944,9 @@ Term cited: Execution Contract Database 1 through 7 — one transaction per acti
 </summary>
 
 ```
-status: done — 2026-11-22
-formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 5, 7, 8 and 9 checked on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Capability requirement 12, 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11
-last gate: 2026-11-22 — Final Critique 13, a delta round, frozen at 5aa9eb62 — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text: Term invalid request and Operation 12 order not-known ahead of invalid-request for an over-bound party id, and Term query axes states the page's own answer for a filter value, which Query 5 keeps; the blind second triage placed none foundational); 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
+status: doing
+formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 7, 8 and 9 checked (Identity 5 left the page to Execution Contract Logic confinement 3 at Final Critique 14; the model still checks that every assigned id a record carries is the id material the seam supplied) on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Execution Contract Logic confinement 16, Capability requirement 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11
+last gate: 2026-11-26 — Final Critique 14, a delta round, frozen at 7058080c — foundational count 1, not clean, no sample (Linus reported 1 foundational, Check 1.1 and Check 3.4 selecting rather than demanding, cured; 12 refining and 3 rhetorical placed: 6 refining cured, 4 refuted on the page's text or the corpus's rules, 2 filed to Scott; the checker's one hit and one rhetorical cured); 2026-11-22 — Final Critique 13, a delta round, frozen at 5aa9eb62 — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text: Term invalid request and Operation 12 order not-known ahead of invalid-request for an over-bound party id, and Term query axes states the page's own answer for a filter value, which Query 5 keeps; the blind second triage placed none foundational); 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 
 open: none
 ```

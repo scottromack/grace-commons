@@ -1373,7 +1373,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -1397,7 +1397,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "done \u2014 2026-11-22",
+  "status": "doing",
   "title": "Party Identity"
  },
  "permissions": {
