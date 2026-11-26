@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 20 with bond lines; 2 app(s).
+53 atoms, 21 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -58,9 +58,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Consent](./atoms/consent.md)** (827 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
+**[Consent](./atoms/consent.md)** (872 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
-- No bond lines yet.
+- Mints consent id. Needs key actor id. Offers key consent id.
 
 **[Credential](./atoms/credential.md)** (974 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
 

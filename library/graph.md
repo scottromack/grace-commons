@@ -25,6 +25,7 @@ flowchart LR
   b_actor_identity["Actor Identity"]
   b_assignment["Assignment"]
   b_calendar_time["Calendar Time"]
+  b_consent["Consent"]
   b_credential["Credential"]
   b_durable_intent["Durable Intent"]
   b_escalation["Escalation"]
@@ -45,6 +46,7 @@ flowchart LR
   b_assignment -->|"task id"| b_task
   b_assignment -->|"actor id"| b_actor_identity
   b_assignment -->|"assignment events"| b_event_log
+  b_consent -->|"actor id"| b_actor_identity
   b_credential -->|"actor id"| b_actor_identity
   b_durable_intent -->|"critical section key"| b_lease
   b_durable_intent -->|"closing record, intent record"| b_event_log
@@ -60,6 +62,7 @@ flowchart LR
   b_message_preference -->|"actor id"| b_actor_identity
   b_ordering -.->|"opaque"| b_actor_identity
   b_ordering -.->|"opaque"| b_calendar_time
+  b_ordering -.->|"opaque"| b_consent
   b_ordering -.->|"opaque"| b_durable_intent
   b_ordering -.->|"opaque"| b_list
   b_ordering -.->|"opaque"| b_medication_order

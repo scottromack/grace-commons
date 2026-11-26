@@ -62,6 +62,8 @@ Term preference id: opaque — the one value naming one preference record, minte
 
 Term place id: opaque — the one value naming one place where dates are read, minted when the place is opened and never reused.
 
+Term consent id: opaque — the one value naming one consent record, minted when the consent is granted and never reused in one database instance.
+
 Term order id: opaque — the one value naming one medication order, minted when the order is placed or amended and never reused.
 
 Term task events: opaque — the record type of the journal records a to-do app appends for a task's actions; plain, carrying no seal.
