@@ -41,11 +41,13 @@ Identity 7: Two notifications carrying one recipient reference and one payload M
 
 NOTE: watch the allocation ban (Execution Contract Logic confinement 3 owns it).
 
-Term notification: one delivery record — one recipient, one payload, one outcome — a [Notification Record]; one for each notification id.
+Term notification: one delivery record — one recipient, one payload, one status — a [Notification Record]; one for each notification id.
 
 Term recipient reference: the opaque string naming who the notification is for — a [Recipient Reference]; compared by equality and never interpreted; malformed where it is no string.
 
-Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
+Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged. The atom sets no cap on its size: a payload the database refuses to write answers storage-failure (Operation 7).
+
+Term delivery outcome: what a delivery attempt — the composing pattern's own, as it owns the transport (Composition note 4) — ended in, as that pattern's records hold it for a pending notification, or none where its delivery window ended with none recorded (Operation 13, Operation 14b); the value the deployment's declared fail-versus-expire policy names for failing or for expiring (Non-goal 5, Capability requirement 8); the atom keeps none (State 2).
 
 NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
@@ -204,7 +206,7 @@ NOTE: watch the order an atom forbids (Execution Contract Read 5 owns the order)
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and either the notification carries no terminal stamp or the instant PRECEDES the terminal stamp the notification carries — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
+Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and either the notification carries no terminal stamp or the instant PRECEDES the terminal stamp the notification carries, each field read as the record stood at the commit the read answers from — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
@@ -365,7 +367,7 @@ Kind: Operation
 
 ```
 status_of(notification_id)
-  answers notification | not-known
+  answers notification_record | not-known
 ```
 
 ```
@@ -462,7 +464,7 @@ Immutability and durability give *auditability* — the delivery history is the 
 
 ```
 Bulk expiry 1: A composing pattern expiring in bulk MUST enumerate a recipient's pending notifications.
-Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns whose outcome the deployment's declared fail-versus-expire policy names for expiring (Composition note 8).
+Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns whose delivery outcome the deployment's declared fail-versus-expire policy names for expiring (Composition note 8, Capability requirement 8).
 Bulk expiry 3: A composing pattern MUST NOT read one [Expire] call as the expiry of any notification but the one the call names.
 ```
 
@@ -473,6 +475,8 @@ Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the 
 Deliver persistence 2: A caller MUST retry a terminal transition that answered storage-failure, and the caller owns the interval and every retry past the first.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
+Deliver persistence 5: A caller whose reply to a terminal transition was lost MUST read [Status Of] for the notification (Execution Contract Error model 1).
+Deliver persistence 6: A caller MUST NOT deliver the payload again on a [Status Of] answer whose status DOES NOT EQUAL pending (Deliver persistence 5).
 ```
 
 ### Payload retention
@@ -511,11 +515,11 @@ String 9: [Pending For] MUST read a blank recipient reference as matching nothin
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 5, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance, a restart included (Execution Contract Logic confinement 17); this rule stands in place of the change Execution Contract Input 2 lets a cap take at a later start.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the outcomes a composing pattern calls [Fail] for and the outcomes a composing pattern calls [Expire] for.
+Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the delivery outcomes a composing pattern calls [Fail] for and the delivery outcomes a composing pattern calls [Expire] for (Execution Contract Logic confinement 15, Execution Contract Logic confinement 17).
 Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 10: The deployment MAY declare the deployment high-assurance.
 Capability requirement 11: A high-assurance deployment MUST declare the receiver of the alert Deliver persistence 4 raises.
@@ -582,7 +586,7 @@ Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
 Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with an idempotency pattern.
 Composition note 6: A composing pattern MUST own a payload's retention.
-Composition note 8: A composing pattern MUST call [Fail] for each outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each outcome the declared policy names for expiring (Operation 14, Capability requirement 8).
+Composition note 8: A composing pattern MUST call [Fail] for each delivery outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each delivery outcome the declared policy names for expiring (Operation 14, Capability requirement 8).
 ```
 
 NOTE: composing patterns — a fanout pattern and a preference-aware fanout pattern.
@@ -690,7 +694,7 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version, notification set, notification ids, high-assurance deployment, offer key.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, delivery outcome, pending at an instant, committed version, notification set, notification ids, high-assurance deployment, offer key.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -736,7 +740,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 ```
 status: doing
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-27 — Final Critique 15, a full round, frozen at 79cac81e — foundational count 2, cured, not clean, no sample: Bulk expiry 2 now carries the fail-versus-expire policy's condition (Composition note 8), and Deliver persistence 2 obliges the retry of every terminal transition that answered storage-failure; the refining cures declared the record type, deleted Term ok, gave the rejection members Role Rejection, read Invariant 5.1 and 9.3 as states, scoped Identity 4 to [Create] and tied Deliver persistence 1 to the call's own reading (6f28782a)
+last gate: 2026-11-27 — Final Critique 16, a delta round, frozen at 9e5cfc06 — foundational count 1, cured, not clean, no sample: Term pending at an instant now reads each field as the record stood at the commit the read answers from (Invariant 2.4); the refining cures declared Term delivery outcome for Bulk expiry 2, Composition note 8 and Capability requirement 8, named [Status Of] as the read after a lost reply (Deliver persistence 5 and 6), cited Logic confinement 15 and 17 for the policy and Database 5 for the supply, stated that the atom sets no payload cap, and read the status answer as a record
 
 open: none
 ```
