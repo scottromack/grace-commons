@@ -314,7 +314,7 @@ The case space, and the rule that owns each case:
 
 #### Moderate
 
-Applies one [Move] to an item's [Standing], stamping the [Moderator Reference] and [Moderated Instant]; a hide also clears every pending report on the item. A move that changes nothing writes nothing. Answers ok.
+Applies one [Move] to an item's [Standing], stamping the [Moderator Reference] and [Moderated Instant]; a hide also clears every pending report on the item in the same commit. A move that changes nothing writes nothing. Answers ok.
 
 Kind: Operation
 
@@ -328,11 +328,11 @@ moderate(item_reference, moderator_reference, move)
 Operation 4: IF the move IS NOT IN hide, show, lock, unlock, pin, unpin THEN [Moderate] MUST answer invalid-move.
 Operation 8: IF the item is untouched AND the move IS IN hide, lock, pin THEN [Moderate] MUST record EXACTLY ONE standing for the item reference, shown, open AND unpinned, ahead of the move.
 Operation 9: IF the move EQUALS hide THEN [Moderate] MUST stand the visibility in hidden.
-Operation 10: IF the move EQUALS show THEN [Moderate] MUST stand the visibility in shown.
+Operation 10: IF a standing carries the item reference AND the move EQUALS show THEN [Moderate] MUST stand the visibility in shown.
 Operation 11: IF the move EQUALS lock THEN [Moderate] MUST stand the replies in locked.
-Operation 12: IF the move EQUALS unlock THEN [Moderate] MUST stand the replies in open.
+Operation 12: IF a standing carries the item reference AND the move EQUALS unlock THEN [Moderate] MUST stand the replies in open.
 Operation 13: IF the move EQUALS pin THEN [Moderate] MUST stand the placement in pinned.
-Operation 14: IF the move EQUALS unpin THEN [Moderate] MUST stand the placement in unpinned.
+Operation 14: IF a standing carries the item reference AND the move EQUALS unpin THEN [Moderate] MUST stand the placement in unpinned.
 Operation 15: IF the move changes the standing THEN [Moderate] MUST stamp the moderator reference of the call AND moderated instant from the injected now.
 Operation 16: IF the move leaves the standing as the standing was THEN [Moderate] MUST NOT write.
 Operation 17: IF the move EQUALS hide THEN [Moderate] MUST stand EVERY pending report carrying the item reference in cleared, in the same commit.
@@ -412,7 +412,7 @@ list_flagged()
 ```
 
 ```
-Operation 23: [List Flagged] MUST answer EVERY item reference a pending report carries, with the count of pending reports AND the earliest flagged instant among the pending reports, in earliest flagged instant order, then in codepoint order of item reference.
+Operation 23: [List Flagged] MUST answer EVERY item reference a pending report carries, with the count of pending reports AND the earliest flagged instant among the pending reports, in earliest flagged instant order, then in codepoint order of item reference (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -447,7 +447,7 @@ A [Flag] and a hide on one item are serialized (Execution Contract Database 2): 
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Flag], [Moderate] or [Dismiss] where the first landed writes nothing and answers ok.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). Where no other call changed the item in between, a repeated [Flag], [Moderate] or [Dismiss] where the first landed writes nothing and answers ok; where another call did change it, the repeat is decided afresh on what that call left (Execution Contract Database 2), so a flag repeated after a dismiss or a hide has cleared the report records a new report.
 
 ### What undoes a write
 
@@ -456,7 +456,7 @@ Each move has its opposite: show undoes hide, unlock undoes lock, unpin undoes p
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11 AND Execution Contract Logic confinement 7.
 Capability requirement 3: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MAY declare the reason cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
@@ -468,6 +468,8 @@ Capability requirement 7: The deployment MUST NOT supply one now to two calls of
 Term item: what a person flags and a moderator moves, such as a post, a comment or a review, named by an item reference.
 
 Term person reference: the string naming a person, in the deployment's own scheme; the atom reads no scheme in it.
+
+NOTE: Capability requirement 5 and Capability requirement 6 are the atom's own rule for the canonical form of the item reference and the person reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3, Identity 5).
 
 Term string cap: the bound on an item reference's length and on a person reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -502,7 +504,7 @@ NOTE: composing patterns — none yet. Forthcoming: Forum, asking a role pattern
 
 ## Example
 
-The same pattern in two domains, then the rejection paths.
+The same pattern in two domains.
 
 ### Forum
 
@@ -601,7 +603,7 @@ Term terms: standing, standings, report, reports, item reference, reporter refer
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -609,9 +611,9 @@ Term terms: standing, standings, report, reports, item reference, reporter refer
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 7912d4e3 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed none and held three questions (a pending report on a hidden item, two reports sharing a key, a standing without its stamp), which the blind triage traced through the frozen text and agreed hold; refining: show, unlock or unpin of an untouched item refuted (Term untouched stands shown, open and unpinned, so the move leaves the standing as it was and Operation 16 writes nothing, and a stamp would break Term moderated instant), [Dismiss] validating a moderator reference and keeping none placed Kind C and cured by naming the owner in the owners NOTE (an audit-recording composing pattern, such as Audit Trail; State 5 gives a report no clearing field), one string cap for both references declined as Kind D (Execution Contract Input 2 with Logic confinement 17 already holds an old cap until no held value exceeds the new one), Capability requirement 7 binding a no-write retry declined as Kind D (the deployment cannot know a call's outcome when it supplies now, Logic confinement 3 and 16); rhetorical accepted (the name Term person reference of the call); 2026-11-18 — Final Critique 1, frozen at b3395186 — foundational count 4, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 3, a full round, frozen at cf9777df — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
