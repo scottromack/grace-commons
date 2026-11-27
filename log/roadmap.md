@@ -15,6 +15,8 @@ toc: true
 
 What the library holds today and what it has not yet done. Each pattern's own Status line is the source of its state: the table under *State* is printed by the site from `_data/patterns.json`, which `tools/taxonomy/generate_graph.py` reads off those lines, so no status is typed by hand on this page. Below it stand the retired names, the patterns other patterns name as forthcoming, and the method work still open. The dated record this page carried until 2026-11-13 (the running record of landings, the planned sequences, the old catalogue, the closed methodology debts and the candidate backlogs) is in [the Roadmap's history](./roadmap.hist.md).
 
+Versions (Scott, 2026-11-27), numbered in the order they close: 0.1 bonds and every atom converted (tagged v0.1.0, 2026-11-27); 0.2 the grammar at 100%, every rule line one tree; 0.3 the Lean statements generated from the trees; 0.4 code and tests from the trees; 1.0 the shared to-do app shipped. Dissolving the compositions comes after 1.0. [Releases](https://github.com/scottromack/grace-commons/blob/main/RELEASES.md) holds each version's generated entry.
+
 ---
 
 ## State
