@@ -178,7 +178,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Retention Window](./atoms/retention-window.md)** (866 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
+**[Retention Window](./atoms/retention-window.md)** (867 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
 
 - Mints retention id. Offers key retention id.
 

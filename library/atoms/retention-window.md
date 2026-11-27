@@ -72,9 +72,9 @@ Term latest database instant: the last instant the deployment's database can hol
 
 Term zero duration: a duration of no length — the floor a policy's duration must exceed, and the floor a max purge delay must not fall below.
 
-Term degenerate duration: the value the host injects in place of a duration it resolved to no elapsed length (Operation 24a).
+Term degenerate duration: the value the host injects in place of a duration it resolved to no elapsed length (Operation 24a) — a value that does not exceed the zero duration.
 
-Term degenerate max purge delay: the value the host injects in place of a max purge delay it resolved to no elapsed length (Operation 24a).
+Term degenerate max purge delay: the value the host injects in place of a max purge delay it resolved to no elapsed length (Operation 24a) — a value the zero duration EXCEEDS.
 
 Term max purge delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
@@ -217,7 +217,7 @@ The case space, and the rule that owns each case:
 
 Where two cases of one action hold at once, the refusal listed first on the action's refuses line answers (Execution Contract Refusal 1).
 
-**Premature purge attempt.** A records-management system attempts to purge the retention over a transaction record four years into a seven-year SOX retention period:
+**Premature purge attempt.** A records-management system attempts to purge the retention over a transaction record four years into a seven-year SOX (Sarbanes-Oxley Act) retention period:
 
 ```
 purge(retention_id: "ret-0047")          # seam injects now = 2026-06-22T00:00:00Z
@@ -264,9 +264,9 @@ Operation 4: IF record reference EQUALS blank THEN [Place Under Retention] MUST 
 Operation 5: IF policy reference EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 6: IF the policy reference IS NOT IN the policy registry THEN [Place Under Retention] MUST answer policy-not-found.
 Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Place Under Retention] MUST answer invalid-policy.
-Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
+Deleted: Operation 7a. Operation 7 owns it: the degenerate duration does not exceed the zero duration.
 Operation 8: IF the zero duration EXCEEDS the policy's max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
-Operation 8b: IF the policy's max purge delay EQUALS degenerate max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
+Deleted: Operation 8b. Operation 8 owns it: the zero duration EXCEEDS the degenerate max purge delay.
 Operation 8c: IF the latest instant the database holds PRECEDES retention deadline OR the latest instant the database holds PRECEDES purge deadline THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the database refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Operation 11: [Place Under Retention] MUST NOT read the host's records.
@@ -282,14 +282,14 @@ The case space, and the rule that owns each case:
 | [Place Under Retention] | blank record reference or policy reference, or one that is not a string | [Invalid Request] | none (Operation 4, Operation 5, Execution Contract Input 3) |
 | [Place Under Retention] | policy reference resolves to nothing | [Policy Not Found] | none (Operation 6) |
 | [Place Under Retention] | the host cannot read the policy registry | [Registry Unavailable] | none — the well-formedness checks passed and no policy was read (Operation 24b, Execution Contract Refusal 1) |
-| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline later than the latest instant the database holds | [Invalid Policy] | none (Operation 7, Operation 7a, Operation 8, Operation 8b, Operation 8c) |
+| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline later than the latest instant the database holds | [Invalid Policy] | none (Operation 7, Operation 8, Operation 8c) |
 | [Place Under Retention] | database refuses the write | [Storage Failure] | none (Operation 9) |
 
 **Policy reference not resolvable.** A host system calls [Place Under Retention] with a policy reference that does not resolve to a known policy:
 
 #### Duration
 
-The retention period the policy exposes — the injected scalar from which [Retention Deadline] is computed. The atom requires it to be positive and resolved to an elapsed length (Operation 7, Operation 7a). It is resolved from the [Policy Reference] at the seam and consumed by [Place Under Retention]; it is never stored under this name (the stored result is [Retention Deadline]).
+The retention period the policy exposes — the injected scalar from which [Retention Deadline] is computed. The atom requires it to be positive and resolved to an elapsed length (Operation 7). It is resolved from the [Policy Reference] at the seam and consumed by [Place Under Retention]; it is never stored under this name (the stored result is [Retention Deadline]).
 
 Kind:         Parameter
 Parameter of: Place Under Retention
@@ -599,6 +599,7 @@ Capability requirement 14: The deployment MUST supply a database that holds EVER
 Capability requirement 15: The deployment MUST NOT supply a placement the record reference of a destroyed record.
 Capability requirement 16: The deployment MUST supply a record reference that names EVERY version of the record in the database.
 Capability requirement 17: The deployment MUST supply the policy registry the host resolves a policy reference against (Operation 24).
+Capability requirement 17a: The deployment MUST supply a policy registry that keeps the policy record EVERY placement resolved, for the life of the instance.
 Capability requirement 18: IF the instance holds a retention THEN the deployment MUST NOT change whether a composing pattern owns the destruction.
 Capability requirement 19: The deployment MUST declare the latest instant the database holds.
 ```
@@ -680,7 +681,7 @@ A bank places every settled transaction under retention with a 7-year policy (`p
 
 ### Healthcare — medical-record retention under HIPAA and state law
 
-A hospital places each patient encounter record under retention with the maximum of HIPAA's (US Health Insurance Portability and Accountability Act) federal 6-year baseline (45 CFR (Code of Federal Regulations) section 164.530(j)) and the state's longer requirement (often 10–25 years for adult records, longer for pediatric). The hospital's records system, which owns the policy each record is placed under (Composition note 4), picks the rule that applies to each patient before it calls [Place Under Retention]; the [Policy Reference] names that rule, and the retention's [Retention Deadline] is patient-specific because the policy is. Purges occur on a rolling schedule; the audit reads the retention records to demonstrate compliance with the longer of the applicable rules.
+A hospital places each patient encounter record under retention with the maximum of HIPAA (US Health Insurance Portability and Accountability Act)'s federal 6-year baseline (45 CFR (Code of Federal Regulations) section 164.530(j)) and the state's longer requirement (often 10–25 years for adult records, longer for pediatric). The hospital's records system, which owns the policy each record is placed under (Composition note 4), picks the rule that applies to each patient before it calls [Place Under Retention]; the [Policy Reference] names that rule, and the retention's [Retention Deadline] is patient-specific because the policy is. Purges occur on a rolling schedule; the audit reads the retention records to demonstrate compliance with the longer of the applicable rules.
 
 ### Payments — cardholder-data retention under PCI DSS
 
@@ -709,7 +710,7 @@ Four scenarios the atom must survive in regulated contexts:
 
 Retention Window's standards inheritance:
 
-- **ISO 15489-1 (Information and documentation — Records management)** — the International Organization for Standardization's standard for records-management practice. Defines retention as a managed lifecycle with policy-governed start, retention period, and disposition. The atom's two-state model is the operational core of ISO 15489's lifecycle framing.
+- **ISO (International Organization for Standardization) 15489-1 (Information and documentation — Records management)** — the International Organization for Standardization's standard for records-management practice. Defines retention as a managed lifecycle with policy-governed start, retention period, and disposition. The atom's two-state model is the operational core of ISO 15489's lifecycle framing.
 - **GDPR Article 5(1)(e) — Storage limitation principle** — personal data must be kept *no longer than necessary*. The atom's [Overshoot] metric is the operational form of GDPR's data-minimization audit; persisting personal data past [Purge Deadline] is a violation surfaced by the record itself.
 - **HIPAA section 164.530(j) — Documentation retention** — 6-year federal baseline for required HIPAA documentation; state law commonly extends this for clinical records. The atom's [Policy Reference] carries the applicable rule; the host system reconciles federal-state-policy overlap.
 - **Sarbanes-Oxley section 802 — Retention of records relevant to audits and reviews** — 7-year retention for audit workpapers, with criminal penalties for early destruction. The atom's no-early-purge invariant keeps each retention from ending before its period is up, and where several retentions name one record the pattern that owns joint enforcement keeps the record while any of them is short of its deadline (Simultaneous retention 4, Simultaneous retention 4a); together they are the structural fix for SOX section 802's ban on early destruction.
@@ -767,7 +768,7 @@ External check 4: An auditor MUST read EVERY standing record from the owning pat
 External check 5: An auditor MUST confirm from the deployment's own destruction records that no destruction instant PRECEDES the retention deadline of a retention in place at the destruction (Operation 13b, Capability requirement 6a, Capability requirement 7, Capability requirement 15, Simultaneous retention 4).
 External check 7: An auditor MUST confirm from the deployment's own records that EVERY record reference a retention names has named EXACTLY ONE record (Capability requirement 13).
 External check 8: An auditor MUST confirm from the deployment's own records that EVERY record a retention names has carried EXACTLY ONE record reference (Capability requirement 10).
-External check 9: An auditor needing the policy a policy reference named when a retention was placed MUST read the policy registry's own record of that policy at the retention instant (Non-goal 8).
+External check 9: An auditor needing the policy a policy reference named when a retention was placed MUST read the policy registry's record of that policy kept for that placement (Capability requirement 17a, Non-goal 8).
 ```
 
 Term retention in place at the destruction: a retention over a destroyed record where the destruction instant, rounded up to the time resolution as State 4a rounds a retention instant, DOES NOT PRECEDE the retention's retention instant; every retention placed before the destruction is one, and so is a retention placed after the destruction whose retention instant rounds up to the same multiple of the time resolution, since the records cannot order the two.
@@ -845,8 +846,8 @@ Term terms: latest database instant, high-assurance deployment, regulated event 
 
 ```
 status: doing
-formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with Identity 6 and Operation 8 checked through them); retention-window.tla + 23 twins (across steps, while the clock moves and [Read] carries a query: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 9.1, 10.2, 11.2 and 11.3, Identity 10, Capability requirement 8 and 9, Operation 1, 13b, 15, 20, 29, 32, 37, 38 and 39, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Operation 11, 21 and 26, Record divergence 3, Capability requirement 17 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 8b, 14, 24b and 30, Capability requirement 18, 2026-11-12, re-derived 2026-11-21
-last gate: 2026-11-21 — Final Critique 14, frozen at c523cd3c — foundational count 1 (a blank or malformed retention id had two owners, Execution Contract Input 3's invalid-request and Operation 14's not-known; cured: Operation 14 states not-known for any id the records do not hold), not clean, no sample; the round's refining findings cured with it, among them Operation 18, which named neither a refusal nor its ground and so barred none, now naming retention-period-not-elapsed; 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
+formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with Identity 6 and Operation 8 checked through them); retention-window.tla + 23 twins (across steps, while the clock moves and [Read] carries a query: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 9.1, 10.2, 11.2 and 11.3, Identity 10, Capability requirement 8 and 9, Operation 1, 13b, 15, 20, 29, 32, 37, 38 and 39, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Operation 11, 21 and 26, Record divergence 3, Capability requirement 17 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 14, 24b and 30, Capability requirement 18, 2026-11-12, re-derived 2026-11-21; model redraw deferred to Lean: the retention-window models, Operation 7a and Operation 8b (deleted), 2026-11-27
+last gate: 2026-11-27 — Final Critique 15, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/claude-haiku-5-5, Linus opencode-go/mimo-v2.6-pro), frozen at c3c7c1b0 — foundational count 1, not clean, one sample (the degenerate duration and max purge delay were plain values with no place outside the legal ranges, so a build whose sentinel was a legal value answered invalid-policy where another answered a retention id, and Operation 7a and 8b compared them with EQUALS against a value in no declared set: the sentinels are now values Operation 7 and Operation 8 already refuse, and 7a and 8b are deleted; the policy registry is told to keep every placement's policy record, Capability requirement 17a); 2026-11-21 — Final Critique 14, frozen at c523cd3c — foundational count 1 (a blank or malformed retention id had two owners, Execution Contract Input 3's invalid-request and Operation 14's not-known; cured: Operation 14 states not-known for any id the records do not hold), not clean, no sample; the round's refining findings cured with it, among them Operation 18, which named neither a refusal nor its ground and so barred none, now naming retention-period-not-elapsed; 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
 
 open: none
 ```
