@@ -2,8 +2,6 @@
 title: Preference-Aware Notification Fanout
 id: 11
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Preference-Aware Notification Fanout

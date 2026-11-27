@@ -2,8 +2,6 @@
 title: Erasure Tombstone
 id: 39
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Erasure Tombstone

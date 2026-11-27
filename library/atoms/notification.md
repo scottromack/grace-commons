@@ -2,8 +2,6 @@
 title: Notification
 id: 47
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Notification

@@ -3,8 +3,6 @@ title: Immutable Ledger with Selective Disclosure
 id: 6
 audience: common
 nav_order: 19
-has_toc: true
-toc: true
 ---
 
 # Immutable Ledger with Selective Disclosure

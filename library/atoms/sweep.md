@@ -2,8 +2,6 @@
 title: Sweep
 id: 77
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Sweep

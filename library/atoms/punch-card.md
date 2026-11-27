@@ -2,8 +2,6 @@
 title: Punch Card
 id: 62
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Punch Card

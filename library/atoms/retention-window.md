@@ -2,8 +2,6 @@
 title: Retention Window
 id: 56
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Retention Window

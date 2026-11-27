@@ -2,8 +2,6 @@
 title: Tenure
 id: 67
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Tenure

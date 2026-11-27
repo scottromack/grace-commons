@@ -3,8 +3,6 @@ title: Actor Suspension
 id: 18
 audience: common
 nav_order: 13
-has_toc: true
-toc: true
 ---
 
 # Actor Suspension

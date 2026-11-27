@@ -2,8 +2,6 @@
 title: Provisional Commitment
 id: 54
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Provisional Commitment

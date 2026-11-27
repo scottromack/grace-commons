@@ -2,8 +2,6 @@
 title: Lease
 id: 43
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Lease

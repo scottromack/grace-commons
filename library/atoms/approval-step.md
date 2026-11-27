@@ -2,8 +2,6 @@
 title: Approval Step
 id: 29
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Approval Step

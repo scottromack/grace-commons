@@ -2,8 +2,6 @@
 title: Capacity Constraint Enforcement
 id: 33
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Capacity Constraint Enforcement

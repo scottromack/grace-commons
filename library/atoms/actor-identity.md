@@ -2,8 +2,6 @@
 title: Actor Identity
 id: 28
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Actor Identity

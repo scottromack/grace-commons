@@ -2,8 +2,6 @@
 title: State Machine
 id: 59
 audience: common
-has_toc: true
-toc: true
 ---
 
 # State Machine

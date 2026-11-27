@@ -2,8 +2,6 @@
 title: Cart
 id: 34
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Cart

@@ -3,8 +3,6 @@ title: Audit Trail
 id: 21
 audience: common
 nav_order: 3
-has_toc: true
-toc: true
 ---
 
 # Audit Trail

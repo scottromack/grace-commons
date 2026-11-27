@@ -2,8 +2,6 @@
 title: Ordering
 id: 79
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Ordering

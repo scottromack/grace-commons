@@ -2,8 +2,6 @@
 title: Task
 id: 52
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Task

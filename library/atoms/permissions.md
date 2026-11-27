@@ -2,8 +2,6 @@
 title: Permissions
 id: 51
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Permissions

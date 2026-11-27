@@ -2,8 +2,6 @@
 title: Restorable Delete
 id: 72
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Restorable Delete

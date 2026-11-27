@@ -2,8 +2,6 @@
 title: Legal Hold
 id: 44
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Legal Hold

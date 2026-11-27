@@ -2,8 +2,6 @@
 title: Gift Card
 id: 41
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Gift Card

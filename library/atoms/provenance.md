@@ -2,8 +2,6 @@
 title: Provenance
 id: 53
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Provenance

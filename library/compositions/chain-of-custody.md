@@ -3,8 +3,6 @@ title: Chain of Custody
 id: 12
 audience: common
 nav_order: 17
-has_toc: true
-toc: true
 ---
 
 # Chain of Custody

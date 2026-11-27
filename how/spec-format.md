@@ -100,7 +100,7 @@ Reference examples: [`atoms/task.md`](../library/atoms/task.md) for the simplest
 
 The table titled *Heading tables* owns each heading's name, level, order and requirement, in the rows whose shape is atom; this list says what each holds.
 
-1. **Frontmatter** (Jekyll: `title`, `id`, `audience`, `parent`, `has_toc`, `toc`). Drives site rendering. No `nav_order` is required: the site lists patterns by its own index.
+1. **Frontmatter** (Jekyll: `title`, `id`, `audience`). Drives site rendering. No `nav_order` is required: the site lists patterns by its own index.
 
 2. **Title.** The atom's name as an H1. No summary blockquote follows it: the Summary (item 3) is the one-paragraph summary of what the atom is, what responsibility it isolates and what its load-bearing contribution to a composing system is, and a blockquote above it would say it twice.
 

@@ -3,8 +3,6 @@ title: External Onboarding
 id: 16
 audience: common
 nav_order: 15
-has_toc: true
-toc: true
 ---
 
 # External Onboarding

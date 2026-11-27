@@ -2,8 +2,6 @@
 title: Selective Disclosure
 id: 57
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Selective Disclosure

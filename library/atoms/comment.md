@@ -2,8 +2,6 @@
 title: Comment
 id: 70
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Comment

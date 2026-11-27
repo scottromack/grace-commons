@@ -3,8 +3,6 @@ title: Attributed Permissions Admin
 id: 20
 audience: common
 nav_order: 8
-has_toc: true
-toc: true
 ---
 
 # Attributed Permissions Admin

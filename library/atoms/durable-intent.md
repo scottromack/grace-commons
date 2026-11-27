@@ -2,8 +2,6 @@
 title: Durable Intent
 id: 76
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Durable Intent

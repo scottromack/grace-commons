@@ -2,8 +2,6 @@
 title: Reaction
 id: 65
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Reaction

@@ -2,8 +2,6 @@
 title: Owed Record
 id: 49
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Owed Record

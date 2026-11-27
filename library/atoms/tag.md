@@ -2,8 +2,6 @@
 title: Tag
 id: 73
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Tag

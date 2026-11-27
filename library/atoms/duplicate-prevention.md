@@ -2,8 +2,6 @@
 title: Duplicate Prevention
 id: 38
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Duplicate Prevention

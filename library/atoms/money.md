@@ -2,8 +2,6 @@
 title: Money
 id: 63
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Money

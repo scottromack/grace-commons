@@ -2,8 +2,6 @@
 title: Subscription
 id: 60
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Subscription

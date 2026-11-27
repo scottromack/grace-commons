@@ -3,8 +3,6 @@ title: Compensable Workflow
 id: 19
 audience: common
 nav_order: 12
-has_toc: true
-toc: true
 ---
 
 # Compensable Workflow

@@ -3,8 +3,6 @@ title: Medication Order
 id: 45
 audience: common
 domain: healthcare
-has_toc: true
-toc: true
 ---
 
 # Medication Order

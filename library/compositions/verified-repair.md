@@ -3,8 +3,6 @@ title: Verified Repair
 id: 27
 audience: internal
 nav_order: 24
-has_toc: true
-toc: true
 ---
 
 # Verified Repair

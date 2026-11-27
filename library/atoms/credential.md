@@ -2,8 +2,6 @@
 title: Credential
 id: 37
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Credential

@@ -2,8 +2,6 @@
 title: Tamper Evidence
 id: 61
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Tamper Evidence

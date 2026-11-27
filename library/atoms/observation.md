@@ -2,8 +2,6 @@
 title: Observation
 id: 48
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Observation

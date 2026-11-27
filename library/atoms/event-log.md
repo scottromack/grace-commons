@@ -2,8 +2,6 @@
 title: Event Log
 id: 40
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Event Log

@@ -3,8 +3,6 @@ title: Execute Gated Workflow
 id: 10
 audience: common
 nav_order: 10
-has_toc: true
-toc: true
 ---
 
 # Execute Gated Workflow

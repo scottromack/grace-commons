@@ -3,8 +3,6 @@ title: Login
 id: 13
 audience: common
 nav_order: 13
-has_toc: true
-toc: true
 ---
 
 # Login

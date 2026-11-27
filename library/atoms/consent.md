@@ -2,8 +2,6 @@
 title: Consent
 id: 36
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Consent

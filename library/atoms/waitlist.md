@@ -2,8 +2,6 @@
 title: Waitlist
 id: 68
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Waitlist

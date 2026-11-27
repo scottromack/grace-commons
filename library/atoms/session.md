@@ -2,8 +2,6 @@
 title: Session
 id: 58
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Session

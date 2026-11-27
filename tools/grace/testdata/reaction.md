@@ -2,8 +2,6 @@
 title: Reaction
 id: 65
 parent: Atomic Concepts
-has_toc: true
-toc: true
 ---
 
 # Reaction

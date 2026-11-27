@@ -3,8 +3,6 @@ title: Session-Gated Authorization
 id: 14
 audience: common
 nav_order: 14
-has_toc: true
-toc: true
 ---
 
 # Session-Gated Authorization

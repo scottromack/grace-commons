@@ -2,8 +2,6 @@
 title: List
 id: 80
 audience: common
-has_toc: true
-toc: true
 ---
 
 # List

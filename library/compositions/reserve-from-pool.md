@@ -3,8 +3,6 @@ title: Reserve from Pool
 id: 9
 audience: common
 nav_order: 18
-has_toc: true
-toc: true
 ---
 
 # Reserve from Pool

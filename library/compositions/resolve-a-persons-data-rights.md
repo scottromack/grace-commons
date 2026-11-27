@@ -3,8 +3,6 @@ title: Resolve a Person's Data Rights
 id: 7
 audience: common
 nav_order: 20
-has_toc: true
-toc: true
 ---
 
 # Resolve a Person's Data Rights

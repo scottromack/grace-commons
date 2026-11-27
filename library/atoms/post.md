@@ -2,8 +2,6 @@
 title: Post
 id: 69
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Post

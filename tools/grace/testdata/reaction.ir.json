@@ -10,7 +10,7 @@
     "Answer",
     "Effect on the reactions"
    ],
-   "line": 162,
+   "line": 160,
    "rows": [
     {
      "cells": [
@@ -19,7 +19,7 @@
       "ok",
       "one reaction lands, held, its first reacted instant now (Operation 5 through 7, Invariant 1.1)"
      ],
-     "line": 164,
+     "line": 162,
      "rules": [
       "Operation 5",
       "Operation 6",
@@ -34,7 +34,7 @@
       "ok",
       "the reaction stands held; its first reacted instant, person reference, item reference and reaction name stand (Operation 8, Invariant 2.1, Invariant 2.2, Invariant 2.3, Invariant 2.4)"
      ],
-     "line": 165,
+     "line": 163,
      "rules": [
       "Operation 8",
       "Invariant 2.1",
@@ -50,7 +50,7 @@
       "ok",
       "the reaction is left as it is (Operation 9); under one-per-item any rival still held stands withdrawn (Operation 10)"
      ],
-     "line": 166,
+     "line": 164,
      "rules": [
       "Operation 9",
       "Operation 10"
@@ -63,7 +63,7 @@
       "ok",
       "every rival stands withdrawn, in the same commit (Operation 10, Execution Contract Database 1)"
      ],
-     "line": 167,
+     "line": 165,
      "rules": [
       "Operation 10",
       "Execution Contract Database 1"
@@ -76,7 +76,7 @@
       "ok",
       "the rivals are left as they are (Operation 11)"
      ],
-     "line": 168,
+     "line": 166,
      "rules": [
       "Operation 11"
      ]
@@ -88,7 +88,7 @@
       "[Invalid Reaction Name]",
       "none (Operation 4)"
      ],
-     "line": 169,
+     "line": 167,
      "rules": [
       "Operation 4"
      ]
@@ -100,7 +100,7 @@
       "ok",
       "the reaction stands withdrawn; its person reference, item reference and reaction name stand; nothing is removed (Operation 13, State 3, Invariant 2.2, Invariant 2.3, Invariant 2.4)"
      ],
-     "line": 170,
+     "line": 168,
      "rules": [
       "State 3",
       "Operation 13",
@@ -116,7 +116,7 @@
       "ok",
       "none, no write (Operation 14, Operation 15)"
      ],
-     "line": 171,
+     "line": 169,
      "rules": [
       "Operation 14",
       "Operation 15"
@@ -129,7 +129,7 @@
       "[Invalid Person Reference]",
       "none (Operation 1, Operation 23)"
      ],
-     "line": 172,
+     "line": 170,
      "rules": [
       "Operation 1",
       "Operation 23"
@@ -142,7 +142,7 @@
       "[Invalid Item Reference]",
       "none (Operation 2, Operation 24)"
      ],
-     "line": 173,
+     "line": 171,
      "rules": [
       "Operation 2",
       "Operation 24"
@@ -155,7 +155,7 @@
       "[Invalid Reaction Name]",
       "none (Operation 3, Operation 25)"
      ],
-     "line": 174,
+     "line": 172,
      "rules": [
       "Operation 3",
       "Operation 25"
@@ -168,7 +168,7 @@
       "each one's reaction name, in codepoint order",
       "none (Operation 17, Operation 19, Operation 29)"
      ],
-     "line": 175,
+     "line": 173,
      "rules": [
       "Operation 17",
       "Operation 19",
@@ -182,7 +182,7 @@
       "an empty list",
       "none (Operation 18, Operation 26, Operation 27)"
      ],
-     "line": 176,
+     "line": 174,
      "rules": [
       "Operation 18",
       "Operation 26",
@@ -196,7 +196,7 @@
       "each reaction name held, with its tally, in codepoint order of reaction name",
       "none (Operation 20, Operation 22, Operation 30)"
      ],
-     "line": 177,
+     "line": 175,
      "rules": [
       "Operation 20",
       "Operation 22",
@@ -210,7 +210,7 @@
       "an empty list",
       "none (Operation 21, Operation 28)"
      ],
-     "line": 178,
+     "line": 176,
      "rules": [
       "Operation 21",
       "Operation 28"
@@ -223,7 +223,7 @@
       "[Storage Failure]",
       "none (Execution Contract Read 4)"
      ],
-     "line": 179,
+     "line": 177,
      "rules": [
       "Execution Contract Read 4"
      ]
@@ -235,7 +235,7 @@
       "`state-unavailable`",
       "none (Execution Contract Read 1, Execution Contract Read 3)"
      ],
-     "line": 180,
+     "line": 178,
      "rules": [
       "Execution Contract Read 1",
       "Execution Contract Read 3"
@@ -248,7 +248,7 @@
       "the refusal listed first on the action's refuses line",
       "none (Execution Contract Refusal 1)"
      ],
-     "line": 181,
+     "line": 179,
      "rules": [
       "Execution Contract Refusal 1"
      ]
@@ -263,56 +263,56 @@
  "checks": [
   {
    "label": "Check 1.1",
-   "line": 229,
+   "line": 227,
    "tests": [
     "State 1"
    ]
   },
   {
    "label": "Check 1.2",
-   "line": 230,
+   "line": 228,
    "tests": [
     "State 2"
    ]
   },
   {
    "label": "Check 2.1",
-   "line": 231,
+   "line": 229,
    "tests": [
     "Invariant 1.1"
    ]
   },
   {
    "label": "Check 3.1",
-   "line": 232,
+   "line": 230,
    "tests": [
     "Invariant 2.1"
    ]
   },
   {
    "label": "Check 3.2",
-   "line": 233,
+   "line": 231,
    "tests": [
     "Invariant 2.2"
    ]
   },
   {
    "label": "Check 3.3",
-   "line": 234,
+   "line": 232,
    "tests": [
     "Invariant 2.3"
    ]
   },
   {
    "label": "Check 3.4",
-   "line": 235,
+   "line": 233,
    "tests": [
     "Invariant 2.4"
    ]
   },
   {
    "label": "External check 1",
-   "line": 245,
+   "line": 243,
    "tests": [
     "Non-goal 3"
    ]
@@ -327,7 +327,7 @@
    ],
    "answer": "invalid-person-reference",
    "join": "OR",
-   "line": 120,
+   "line": 118,
    "refusal": true,
    "rule": "Operation 1",
    "tests": [
@@ -355,7 +355,7 @@
    ],
    "answer": "invalid-item-reference",
    "join": "OR",
-   "line": 121,
+   "line": 119,
    "refusal": true,
    "rule": "Operation 2",
    "tests": [
@@ -383,7 +383,7 @@
    ],
    "answer": "invalid-reaction-name",
    "join": "OR",
-   "line": 122,
+   "line": 120,
    "refusal": true,
    "rule": "Operation 3",
    "tests": [
@@ -410,7 +410,7 @@
    ],
    "answer": "invalid-reaction-name",
    "join": "AND",
-   "line": 123,
+   "line": 121,
    "refusal": true,
    "rule": "Operation 4",
    "tests": [
@@ -430,7 +430,7 @@
    ],
    "answer": "invalid-person-reference",
    "join": "AND",
-   "line": 142,
+   "line": 140,
    "refusal": true,
    "rule": "Operation 23",
    "tests": [
@@ -451,7 +451,7 @@
    ],
    "answer": "invalid-item-reference",
    "join": "AND",
-   "line": 143,
+   "line": 141,
    "refusal": true,
    "rule": "Operation 24",
    "tests": [
@@ -472,7 +472,7 @@
    ],
    "answer": "invalid-reaction-name",
    "join": "AND",
-   "line": 144,
+   "line": 142,
    "refusal": true,
    "rule": "Operation 25",
    "tests": [
@@ -495,7 +495,7 @@
     "item_reference",
     "reaction_name"
    ],
-   "line": 38,
+   "line": 36,
    "names": [
     "person reference",
     "item reference",
@@ -512,11 +512,11 @@
  "non_goals": [
   {
    "label": "Non-goal 1",
-   "line": 251,
+   "line": 249,
    "owners": [
     {
      "forthcoming": false,
-     "line": 263,
+     "line": 261,
      "links": [
       "library/atoms/session.md",
       "library/atoms/permissions.md"
@@ -527,11 +527,11 @@
   },
   {
    "label": "Non-goal 2",
-   "line": 252,
+   "line": 250,
    "owners": [
     {
      "forthcoming": false,
-     "line": 263,
+     "line": 261,
      "links": [
       "library/atoms/session.md",
       "library/atoms/permissions.md"
@@ -542,11 +542,11 @@
   },
   {
    "label": "Non-goal 3",
-   "line": 253,
+   "line": 251,
    "owners": [
     {
      "forthcoming": true,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "Catalog *(forthcoming)*"
     }
@@ -554,11 +554,11 @@
   },
   {
    "label": "Non-goal 4",
-   "line": 254,
+   "line": 252,
    "owners": [
     {
      "forthcoming": false,
-     "line": 263,
+     "line": 261,
      "links": [
       "library/atoms/notification.md"
      ],
@@ -568,11 +568,11 @@
   },
   {
    "label": "Non-goal 5",
-   "line": 255,
+   "line": 253,
    "owners": [
     {
      "forthcoming": true,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "Reputation *(forthcoming)*"
     }
@@ -580,11 +580,11 @@
   },
   {
    "label": "Non-goal 6",
-   "line": 256,
+   "line": 254,
    "owners": [
     {
      "forthcoming": true,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "Vote *(forthcoming)*"
     }
@@ -592,11 +592,11 @@
   },
   {
    "label": "Non-goal 7",
-   "line": 257,
+   "line": 255,
    "owners": [
     {
      "forthcoming": false,
-     "line": 263,
+     "line": 261,
      "links": [
       "library/atoms/favorite.md"
      ],
@@ -606,11 +606,11 @@
   },
   {
    "label": "Non-goal 8",
-   "line": 258,
+   "line": 256,
    "owners": [
     {
      "forthcoming": true,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "Save For Later *(forthcoming)*"
     }
@@ -618,11 +618,11 @@
   },
   {
    "label": "Non-goal 9",
-   "line": 259,
+   "line": 257,
    "owners": [
     {
      "forthcoming": false,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "the composing pattern that shows the item, which draws each reaction name as it likes"
     }
@@ -630,11 +630,11 @@
   },
   {
    "label": "Non-goal 10",
-   "line": 260,
+   "line": 258,
    "owners": [
     {
      "forthcoming": true,
-     "line": 263,
+     "line": 261,
      "links": [],
      "owner": "Reactor List *(forthcoming)*"
     }
@@ -644,114 +644,114 @@
  "projectable": [
   {
    "as": "key",
-   "line": 38,
+   "line": 36,
    "rule": "Identity 1"
   },
   {
    "as": "check-only",
-   "line": 39,
+   "line": 37,
    "rule": "Identity 2",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 40,
+   "line": 38,
    "rule": "Identity 3",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 41,
+   "line": 39,
    "rule": "Identity 4",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 42,
+   "line": 40,
    "rule": "Identity 5",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 43,
+   "line": 41,
    "rule": "Identity 6",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 44,
+   "line": 42,
    "rule": "Identity 7",
    "why": "rules of the Identity family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 72,
+   "line": 70,
    "rule": "State 1",
    "why": "what the second record MUST carry: the records' shape, not a step"
   },
   {
    "as": "check-only",
-   "line": 73,
+   "line": 71,
    "rule": "State 2",
    "why": "what the second record MUST carry: the records' shape, not a step"
   },
   {
    "as": "check-only",
-   "line": 74,
+   "line": 72,
    "rule": "State 3",
    "why": "what the second record MUST carry: the records' shape, not a step"
   },
   {
    "as": "check-only",
-   "line": 88,
+   "line": 86,
    "rule": "Capability requirement 1",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 89,
+   "line": 87,
    "rule": "Capability requirement 2",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 90,
+   "line": 88,
    "rule": "Capability requirement 3",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 91,
+   "line": 89,
    "rule": "Capability requirement 4",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 92,
+   "line": 90,
    "rule": "Capability requirement 5",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 93,
+   "line": 91,
    "rule": "Capability requirement 6",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 94,
+   "line": 92,
    "rule": "Capability requirement 7",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 95,
+   "line": 93,
    "rule": "Capability requirement 8",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 96,
+   "line": 94,
    "rule": "Capability requirement 9",
    "why": "rules of the Capability requirement family hold of the records and the answers, and name no step"
   },
@@ -761,7 +761,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 120,
+   "line": 118,
    "rule": "Operation 1",
    "tests": 2
   },
@@ -771,7 +771,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 121,
+   "line": 119,
    "rule": "Operation 2",
    "tests": 2
   },
@@ -781,7 +781,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 122,
+   "line": 120,
    "rule": "Operation 3",
    "tests": 2
   },
@@ -790,7 +790,7 @@
     "react"
    ],
    "as": "guard",
-   "line": 123,
+   "line": 121,
    "rule": "Operation 4",
    "tests": 1
   },
@@ -799,7 +799,7 @@
     "react"
    ],
    "as": "step",
-   "line": 124,
+   "line": 122,
    "rule": "Operation 5"
   },
   {
@@ -807,7 +807,7 @@
     "react"
    ],
    "as": "step",
-   "line": 125,
+   "line": 123,
    "rule": "Operation 6"
   },
   {
@@ -815,7 +815,7 @@
     "react"
    ],
    "as": "step",
-   "line": 126,
+   "line": 124,
    "rule": "Operation 7"
   },
   {
@@ -823,7 +823,7 @@
     "react"
    ],
    "as": "step",
-   "line": 127,
+   "line": 125,
    "rule": "Operation 8"
   },
   {
@@ -831,7 +831,7 @@
     "react"
    ],
    "as": "step",
-   "line": 128,
+   "line": 126,
    "rule": "Operation 9"
   },
   {
@@ -839,7 +839,7 @@
     "react"
    ],
    "as": "step",
-   "line": 129,
+   "line": 127,
    "rule": "Operation 10"
   },
   {
@@ -847,7 +847,7 @@
     "react"
    ],
    "as": "step",
-   "line": 130,
+   "line": 128,
    "rule": "Operation 11"
   },
   {
@@ -855,7 +855,7 @@
     "react"
    ],
    "as": "step",
-   "line": 131,
+   "line": 129,
    "rule": "Operation 12"
   },
   {
@@ -863,7 +863,7 @@
     "withdraw"
    ],
    "as": "step",
-   "line": 132,
+   "line": 130,
    "rule": "Operation 13"
   },
   {
@@ -871,7 +871,7 @@
     "withdraw"
    ],
    "as": "step",
-   "line": 133,
+   "line": 131,
    "rule": "Operation 14"
   },
   {
@@ -879,7 +879,7 @@
     "withdraw"
    ],
    "as": "step",
-   "line": 134,
+   "line": 132,
    "rule": "Operation 15"
   },
   {
@@ -887,7 +887,7 @@
     "withdraw"
    ],
    "as": "step",
-   "line": 135,
+   "line": 133,
    "rule": "Operation 16"
   },
   {
@@ -895,7 +895,7 @@
     "look_up"
    ],
    "as": "shape",
-   "line": 136,
+   "line": 134,
    "rule": "Operation 17"
   },
   {
@@ -903,7 +903,7 @@
     "look_up"
    ],
    "as": "shape",
-   "line": 137,
+   "line": 135,
    "rule": "Operation 18"
   },
   {
@@ -911,7 +911,7 @@
     "look_up"
    ],
    "as": "step",
-   "line": 138,
+   "line": 136,
    "rule": "Operation 19"
   },
   {
@@ -919,7 +919,7 @@
     "count"
    ],
    "as": "shape",
-   "line": 139,
+   "line": 137,
    "rule": "Operation 20"
   },
   {
@@ -927,7 +927,7 @@
     "count"
    ],
    "as": "shape",
-   "line": 140,
+   "line": 138,
    "rule": "Operation 21"
   },
   {
@@ -935,7 +935,7 @@
     "count"
    ],
    "as": "step",
-   "line": 141,
+   "line": 139,
    "rule": "Operation 22"
   },
   {
@@ -944,7 +944,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 142,
+   "line": 140,
    "rule": "Operation 23",
    "tests": 1
   },
@@ -954,7 +954,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 143,
+   "line": 141,
    "rule": "Operation 24",
    "tests": 1
   },
@@ -964,7 +964,7 @@
     "withdraw"
    ],
    "as": "guard",
-   "line": 144,
+   "line": 142,
    "rule": "Operation 25",
    "tests": 1
   },
@@ -973,7 +973,7 @@
     "look_up"
    ],
    "as": "shape",
-   "line": 145,
+   "line": 143,
    "rule": "Operation 26"
   },
   {
@@ -981,7 +981,7 @@
     "look_up"
    ],
    "as": "shape",
-   "line": 146,
+   "line": 144,
    "rule": "Operation 27"
   },
   {
@@ -989,7 +989,7 @@
     "count"
    ],
    "as": "shape",
-   "line": 147,
+   "line": 145,
    "rule": "Operation 28"
   },
   {
@@ -997,7 +997,7 @@
     "look_up"
    ],
    "as": "shape",
-   "line": 148,
+   "line": 146,
    "rule": "Operation 29"
   },
   {
@@ -1005,156 +1005,156 @@
     "count"
    ],
    "as": "shape",
-   "line": 149,
+   "line": 147,
    "rule": "Operation 30"
   },
   {
    "as": "check-only",
-   "line": 187,
+   "line": 185,
    "rule": "Invariant 1.1",
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 191,
+   "line": 189,
    "rule": "Invariant 2.1",
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 192,
+   "line": 190,
    "rule": "Invariant 2.2",
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 193,
+   "line": 191,
    "rule": "Invariant 2.3",
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 194,
+   "line": 192,
    "rule": "Invariant 2.4",
    "why": "rules of the Invariant family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 229,
+   "line": 227,
    "rule": "Check 1.1",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 230,
+   "line": 228,
    "rule": "Check 1.2",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 231,
+   "line": 229,
    "rule": "Check 2.1",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 232,
+   "line": 230,
    "rule": "Check 3.1",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 233,
+   "line": 231,
    "rule": "Check 3.2",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 234,
+   "line": 232,
    "rule": "Check 3.3",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 235,
+   "line": 233,
    "rule": "Check 3.4",
    "why": "rules of the Check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 245,
+   "line": 243,
    "rule": "External check 1",
    "why": "rules of the External check family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 251,
+   "line": 249,
    "rule": "Non-goal 1",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 252,
+   "line": 250,
    "rule": "Non-goal 2",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 253,
+   "line": 251,
    "rule": "Non-goal 3",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 254,
+   "line": 252,
    "rule": "Non-goal 4",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 255,
+   "line": 253,
    "rule": "Non-goal 5",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 256,
+   "line": 254,
    "rule": "Non-goal 6",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 257,
+   "line": 255,
    "rule": "Non-goal 7",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 258,
+   "line": 256,
    "rule": "Non-goal 8",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 259,
+   "line": 257,
    "rule": "Non-goal 9",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 260,
+   "line": 258,
    "rule": "Non-goal 10",
    "why": "rules of the Non-goal family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 288,
+   "line": 286,
    "rule": "Composition note 1",
    "why": "rules of the Composition note family hold of the records and the answers, and name no step"
   },
   {
    "as": "check-only",
-   "line": 289,
+   "line": 287,
    "rule": "Composition note 2",
    "why": "rules of the Composition note family hold of the records and the answers, and name no step"
   }
@@ -1178,7 +1178,7 @@
     "reaction_name"
    ],
    "key_rule": "Identity 1",
-   "line": 340,
+   "line": 338,
    "name": "reaction",
    "rule": null
   }
@@ -1187,7 +1187,7 @@
   {
    "family": "Identity",
    "label": "Identity 1",
-   "line": 38,
+   "line": 36,
    "number": "1",
    "parent": null,
    "section": [
@@ -1199,7 +1199,7 @@
   {
    "family": "Identity",
    "label": "Identity 2",
-   "line": 39,
+   "line": 37,
    "number": "2",
    "parent": null,
    "section": [
@@ -1211,7 +1211,7 @@
   {
    "family": "Identity",
    "label": "Identity 3",
-   "line": 40,
+   "line": 38,
    "number": "3",
    "parent": null,
    "section": [
@@ -1223,7 +1223,7 @@
   {
    "family": "Identity",
    "label": "Identity 4",
-   "line": 41,
+   "line": 39,
    "number": "4",
    "parent": null,
    "section": [
@@ -1235,7 +1235,7 @@
   {
    "family": "Identity",
    "label": "Identity 5",
-   "line": 42,
+   "line": 40,
    "number": "5",
    "parent": null,
    "section": [
@@ -1247,7 +1247,7 @@
   {
    "family": "Identity",
    "label": "Identity 6",
-   "line": 43,
+   "line": 41,
    "number": "6",
    "parent": null,
    "section": [
@@ -1259,7 +1259,7 @@
   {
    "family": "Identity",
    "label": "Identity 7",
-   "line": 44,
+   "line": 42,
    "number": "7",
    "parent": null,
    "section": [
@@ -1271,7 +1271,7 @@
   {
    "family": "State",
    "label": "State 1",
-   "line": 72,
+   "line": 70,
    "number": "1",
    "parent": null,
    "section": [
@@ -1283,7 +1283,7 @@
   {
    "family": "State",
    "label": "State 2",
-   "line": 73,
+   "line": 71,
    "number": "2",
    "parent": null,
    "section": [
@@ -1295,7 +1295,7 @@
   {
    "family": "State",
    "label": "State 3",
-   "line": 74,
+   "line": 72,
    "number": "3",
    "parent": null,
    "section": [
@@ -1307,7 +1307,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 1",
-   "line": 88,
+   "line": 86,
    "number": "1",
    "parent": null,
    "section": [
@@ -1319,7 +1319,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 2",
-   "line": 89,
+   "line": 87,
    "number": "2",
    "parent": null,
    "section": [
@@ -1331,7 +1331,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 3",
-   "line": 90,
+   "line": 88,
    "number": "3",
    "parent": null,
    "section": [
@@ -1343,7 +1343,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 4",
-   "line": 91,
+   "line": 89,
    "number": "4",
    "parent": null,
    "section": [
@@ -1355,7 +1355,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 5",
-   "line": 92,
+   "line": 90,
    "number": "5",
    "parent": null,
    "section": [
@@ -1367,7 +1367,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 6",
-   "line": 93,
+   "line": 91,
    "number": "6",
    "parent": null,
    "section": [
@@ -1379,7 +1379,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 7",
-   "line": 94,
+   "line": 92,
    "number": "7",
    "parent": null,
    "section": [
@@ -1391,7 +1391,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 8",
-   "line": 95,
+   "line": 93,
    "number": "8",
    "parent": null,
    "section": [
@@ -1403,7 +1403,7 @@
   {
    "family": "Capability requirement",
    "label": "Capability requirement 9",
-   "line": 96,
+   "line": 94,
    "number": "9",
    "parent": null,
    "section": [
@@ -1419,7 +1419,7 @@
    ],
    "family": "Operation",
    "label": "Operation 1",
-   "line": 120,
+   "line": 118,
    "number": "1",
    "parent": null,
    "section": [
@@ -1435,7 +1435,7 @@
    ],
    "family": "Operation",
    "label": "Operation 2",
-   "line": 121,
+   "line": 119,
    "number": "2",
    "parent": null,
    "section": [
@@ -1451,7 +1451,7 @@
    ],
    "family": "Operation",
    "label": "Operation 3",
-   "line": 122,
+   "line": 120,
    "number": "3",
    "parent": null,
    "section": [
@@ -1466,7 +1466,7 @@
    ],
    "family": "Operation",
    "label": "Operation 4",
-   "line": 123,
+   "line": 121,
    "number": "4",
    "parent": null,
    "section": [
@@ -1481,7 +1481,7 @@
    ],
    "family": "Operation",
    "label": "Operation 5",
-   "line": 124,
+   "line": 122,
    "number": "5",
    "parent": null,
    "section": [
@@ -1496,7 +1496,7 @@
    ],
    "family": "Operation",
    "label": "Operation 6",
-   "line": 125,
+   "line": 123,
    "number": "6",
    "parent": null,
    "section": [
@@ -1511,7 +1511,7 @@
    ],
    "family": "Operation",
    "label": "Operation 7",
-   "line": 126,
+   "line": 124,
    "number": "7",
    "parent": null,
    "section": [
@@ -1526,7 +1526,7 @@
    ],
    "family": "Operation",
    "label": "Operation 8",
-   "line": 127,
+   "line": 125,
    "number": "8",
    "parent": null,
    "section": [
@@ -1541,7 +1541,7 @@
    ],
    "family": "Operation",
    "label": "Operation 9",
-   "line": 128,
+   "line": 126,
    "number": "9",
    "parent": null,
    "section": [
@@ -1556,7 +1556,7 @@
    ],
    "family": "Operation",
    "label": "Operation 10",
-   "line": 129,
+   "line": 127,
    "number": "10",
    "parent": null,
    "section": [
@@ -1571,7 +1571,7 @@
    ],
    "family": "Operation",
    "label": "Operation 11",
-   "line": 130,
+   "line": 128,
    "number": "11",
    "parent": null,
    "section": [
@@ -1586,7 +1586,7 @@
    ],
    "family": "Operation",
    "label": "Operation 12",
-   "line": 131,
+   "line": 129,
    "number": "12",
    "parent": null,
    "section": [
@@ -1601,7 +1601,7 @@
    ],
    "family": "Operation",
    "label": "Operation 13",
-   "line": 132,
+   "line": 130,
    "number": "13",
    "parent": null,
    "section": [
@@ -1616,7 +1616,7 @@
    ],
    "family": "Operation",
    "label": "Operation 14",
-   "line": 133,
+   "line": 131,
    "number": "14",
    "parent": null,
    "section": [
@@ -1631,7 +1631,7 @@
    ],
    "family": "Operation",
    "label": "Operation 15",
-   "line": 134,
+   "line": 132,
    "number": "15",
    "parent": null,
    "section": [
@@ -1646,7 +1646,7 @@
    ],
    "family": "Operation",
    "label": "Operation 16",
-   "line": 135,
+   "line": 133,
    "number": "16",
    "parent": null,
    "section": [
@@ -1682,7 +1682,7 @@
    },
    "family": "Operation",
    "label": "Operation 17",
-   "line": 136,
+   "line": 134,
    "number": "17",
    "parent": null,
    "section": [
@@ -1715,7 +1715,7 @@
    },
    "family": "Operation",
    "label": "Operation 18",
-   "line": 137,
+   "line": 135,
    "number": "18",
    "parent": null,
    "section": [
@@ -1730,7 +1730,7 @@
    ],
    "family": "Operation",
    "label": "Operation 19",
-   "line": 138,
+   "line": 136,
    "number": "19",
    "parent": null,
    "section": [
@@ -1765,7 +1765,7 @@
    },
    "family": "Operation",
    "label": "Operation 20",
-   "line": 139,
+   "line": 137,
    "number": "20",
    "parent": null,
    "section": [
@@ -1798,7 +1798,7 @@
    },
    "family": "Operation",
    "label": "Operation 21",
-   "line": 140,
+   "line": 138,
    "number": "21",
    "parent": null,
    "section": [
@@ -1813,7 +1813,7 @@
    ],
    "family": "Operation",
    "label": "Operation 22",
-   "line": 141,
+   "line": 139,
    "number": "22",
    "parent": null,
    "section": [
@@ -1829,7 +1829,7 @@
    ],
    "family": "Operation",
    "label": "Operation 23",
-   "line": 142,
+   "line": 140,
    "number": "23",
    "parent": null,
    "section": [
@@ -1845,7 +1845,7 @@
    ],
    "family": "Operation",
    "label": "Operation 24",
-   "line": 143,
+   "line": 141,
    "number": "24",
    "parent": null,
    "section": [
@@ -1861,7 +1861,7 @@
    ],
    "family": "Operation",
    "label": "Operation 25",
-   "line": 144,
+   "line": 142,
    "number": "25",
    "parent": null,
    "section": [
@@ -1883,7 +1883,7 @@
    },
    "family": "Operation",
    "label": "Operation 26",
-   "line": 145,
+   "line": 143,
    "number": "26",
    "parent": null,
    "section": [
@@ -1905,7 +1905,7 @@
    },
    "family": "Operation",
    "label": "Operation 27",
-   "line": 146,
+   "line": 144,
    "number": "27",
    "parent": null,
    "section": [
@@ -1928,7 +1928,7 @@
    },
    "family": "Operation",
    "label": "Operation 28",
-   "line": 147,
+   "line": 145,
    "number": "28",
    "parent": null,
    "section": [
@@ -1956,7 +1956,7 @@
    },
    "family": "Operation",
    "label": "Operation 29",
-   "line": 148,
+   "line": 146,
    "number": "29",
    "parent": null,
    "section": [
@@ -1985,7 +1985,7 @@
    },
    "family": "Operation",
    "label": "Operation 30",
-   "line": 149,
+   "line": 147,
    "number": "30",
    "parent": null,
    "section": [
@@ -1997,7 +1997,7 @@
   {
    "family": "Invariant",
    "label": "Invariant 1.1",
-   "line": 187,
+   "line": 185,
    "number": "1.1",
    "parent": null,
    "section": [
@@ -2010,7 +2010,7 @@
   {
    "family": "Invariant",
    "label": "Invariant 2.1",
-   "line": 191,
+   "line": 189,
    "number": "2.1",
    "parent": null,
    "section": [
@@ -2023,7 +2023,7 @@
   {
    "family": "Invariant",
    "label": "Invariant 2.2",
-   "line": 192,
+   "line": 190,
    "number": "2.2",
    "parent": null,
    "section": [
@@ -2036,7 +2036,7 @@
   {
    "family": "Invariant",
    "label": "Invariant 2.3",
-   "line": 193,
+   "line": 191,
    "number": "2.3",
    "parent": null,
    "section": [
@@ -2049,7 +2049,7 @@
   {
    "family": "Invariant",
    "label": "Invariant 2.4",
-   "line": 194,
+   "line": 192,
    "number": "2.4",
    "parent": null,
    "section": [
@@ -2062,7 +2062,7 @@
   {
    "family": "Check",
    "label": "Check 1.1",
-   "line": 229,
+   "line": 227,
    "number": "1.1",
    "parent": null,
    "section": [
@@ -2074,7 +2074,7 @@
   {
    "family": "Check",
    "label": "Check 1.2",
-   "line": 230,
+   "line": 228,
    "number": "1.2",
    "parent": null,
    "section": [
@@ -2086,7 +2086,7 @@
   {
    "family": "Check",
    "label": "Check 2.1",
-   "line": 231,
+   "line": 229,
    "number": "2.1",
    "parent": null,
    "section": [
@@ -2098,7 +2098,7 @@
   {
    "family": "Check",
    "label": "Check 3.1",
-   "line": 232,
+   "line": 230,
    "number": "3.1",
    "parent": null,
    "section": [
@@ -2110,7 +2110,7 @@
   {
    "family": "Check",
    "label": "Check 3.2",
-   "line": 233,
+   "line": 231,
    "number": "3.2",
    "parent": null,
    "section": [
@@ -2122,7 +2122,7 @@
   {
    "family": "Check",
    "label": "Check 3.3",
-   "line": 234,
+   "line": 232,
    "number": "3.3",
    "parent": null,
    "section": [
@@ -2134,7 +2134,7 @@
   {
    "family": "Check",
    "label": "Check 3.4",
-   "line": 235,
+   "line": 233,
    "number": "3.4",
    "parent": null,
    "section": [
@@ -2146,7 +2146,7 @@
   {
    "family": "External check",
    "label": "External check 1",
-   "line": 245,
+   "line": 243,
    "number": "1",
    "parent": null,
    "section": [
@@ -2158,7 +2158,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 1",
-   "line": 251,
+   "line": 249,
    "number": "1",
    "parent": null,
    "section": [
@@ -2169,7 +2169,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 2",
-   "line": 252,
+   "line": 250,
    "number": "2",
    "parent": null,
    "section": [
@@ -2180,7 +2180,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 3",
-   "line": 253,
+   "line": 251,
    "number": "3",
    "parent": null,
    "section": [
@@ -2191,7 +2191,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 4",
-   "line": 254,
+   "line": 252,
    "number": "4",
    "parent": null,
    "section": [
@@ -2202,7 +2202,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 5",
-   "line": 255,
+   "line": 253,
    "number": "5",
    "parent": null,
    "section": [
@@ -2213,7 +2213,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 6",
-   "line": 256,
+   "line": 254,
    "number": "6",
    "parent": null,
    "section": [
@@ -2224,7 +2224,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 7",
-   "line": 257,
+   "line": 255,
    "number": "7",
    "parent": null,
    "section": [
@@ -2235,7 +2235,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 8",
-   "line": 258,
+   "line": 256,
    "number": "8",
    "parent": null,
    "section": [
@@ -2246,7 +2246,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 9",
-   "line": 259,
+   "line": 257,
    "number": "9",
    "parent": null,
    "section": [
@@ -2257,7 +2257,7 @@
   {
    "family": "Non-goal",
    "label": "Non-goal 10",
-   "line": 260,
+   "line": 258,
    "number": "10",
    "parent": null,
    "section": [
@@ -2268,7 +2268,7 @@
   {
    "family": "Composition note",
    "label": "Composition note 1",
-   "line": 288,
+   "line": 286,
    "number": "1",
    "parent": null,
    "section": [
@@ -2279,7 +2279,7 @@
   {
    "family": "Composition note",
    "label": "Composition note 2",
-   "line": 289,
+   "line": 287,
    "number": "2",
    "parent": null,
    "section": [
@@ -2294,7 +2294,7 @@
     "text": "1,024 code points",
     "value": 1024
    },
-   "line": 90,
+   "line": 88,
    "rule": "Capability requirement 3",
    "term": "string cap"
   },
@@ -2305,7 +2305,7 @@
      "like"
     ]
    },
-   "line": 94,
+   "line": 92,
    "of": "reaction_name",
    "rule": "Capability requirement 7",
    "term": "reaction set"
@@ -2315,7 +2315,7 @@
     "text": "one-per-item",
     "value": "one-per-item"
    },
-   "line": 95,
+   "line": 93,
    "rule": "Capability requirement 8",
    "term": "holding rule",
    "values": [
@@ -2356,7 +2356,7 @@
      }
     }
    ],
-   "line": 102,
+   "line": 100,
    "refuses": [
     "invalid-person-reference",
     "invalid-item-reference",
@@ -2395,7 +2395,7 @@
      }
     }
    ],
-   "line": 106,
+   "line": 104,
    "refuses": [
     "invalid-person-reference",
     "invalid-item-reference",
@@ -2426,7 +2426,7 @@
      }
     }
    ],
-   "line": 110,
+   "line": 108,
    "refuses": []
   },
   {
@@ -2444,7 +2444,7 @@
      }
     }
    ],
-   "line": 113,
+   "line": 111,
    "refuses": []
   }
  ],
@@ -2455,7 +2455,7 @@
    "kind": {
     "Kind": "Operation"
    },
-   "line": 316,
+   "line": 314,
    "name": "React",
    "text": "Holds a reaction for a person on an item: records the [Reaction] where the triple has none, stamping its [First Reacted Instant], or stands a [Withdrawn] reaction back in [Held]. A reaction already held is left as it is. Under the [Holding Rule] one-per-item it also stands the person's other held reactions on the item in withdrawn. Answers ok."
   },
@@ -2463,7 +2463,7 @@
    "kind": {
     "Kind": "Operation"
    },
-   "line": 322,
+   "line": 320,
    "name": "Withdraw",
    "text": "Takes a reaction back: stands a [Held] reaction in [Withdrawn] and removes nothing. A reaction already withdrawn, or a triple with no reaction, is left as it is. Answers ok."
   },
@@ -2471,7 +2471,7 @@
    "kind": {
     "Kind": "Operation"
    },
-   "line": 328,
+   "line": 326,
    "name": "Look Up",
    "text": "Answers the [Reaction Name] of every reaction one person holds on one item now, and changes nothing; an empty list where the person holds none."
   },
@@ -2479,7 +2479,7 @@
    "kind": {
     "Kind": "Operation"
    },
-   "line": 334,
+   "line": 332,
    "name": "Count",
    "text": "Answers, for one item, each [Reaction Name] held on it with its [Tally], and changes nothing; an empty list where the item has no held reaction."
   },
@@ -2487,7 +2487,7 @@
    "kind": {
     "Kind": "Type"
    },
-   "line": 340,
+   "line": 338,
    "name": "Reaction",
    "text": "One person's answer to one item in one reaction name: recorded by the first [React], stood in [Withdrawn] by [Withdraw] or by a replacing [React], and back in [Held] by [React]; never removed by the atom."
   },
@@ -2497,7 +2497,7 @@
     "Kind": "Field",
     "Projection": "person_reference"
    },
-   "line": 346,
+   "line": 344,
    "name": "Person Reference",
    "text": "Names the person a reaction belongs to, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether the caller is that person is the composing pattern's question."
   },
@@ -2507,7 +2507,7 @@
     "Kind": "Field",
     "Projection": "item_reference"
    },
-   "line": 354,
+   "line": 352,
    "name": "Item Reference",
    "text": "Names the item a reaction answers, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint; the atom reads no scheme in it, and whether it names a real item is a catalog's question."
   },
@@ -2517,7 +2517,7 @@
     "Kind": "Field",
     "Projection": "reaction_name"
    },
-   "line": 362,
+   "line": 360,
    "name": "Reaction Name",
    "text": "The string naming which reaction the person chose, one of the reaction set the deployment offered when the reaction was recorded, such as like. Stored as supplied and compared codepoint for codepoint; how it is drawn is the page's."
   },
@@ -2527,7 +2527,7 @@
     "Kind": "Field",
     "Projection": "first_reacted_instant"
    },
-   "line": 370,
+   "line": 368,
    "name": "First Reacted Instant",
    "text": "The instant of the [React] call that recorded the reaction, stamped from the injected now; never changed, so a reaction withdrawn and held again keeps it."
   },
@@ -2537,7 +2537,7 @@
     "Kind": "Field",
     "Projection": "status"
    },
-   "line": 378,
+   "line": 376,
    "name": "Status",
    "text": "Where a reaction stands: [Held] or [Withdrawn]."
   },
@@ -2547,7 +2547,7 @@
     "Member of": "the status",
     "Projection": "held"
    },
-   "line": 386,
+   "line": 384,
    "name": "Held",
    "text": "The status of a reaction the person keeps on the item; it is counted in the item's [Tally] for its reaction name."
   },
@@ -2557,7 +2557,7 @@
     "Member of": "the status",
     "Projection": "withdrawn"
    },
-   "line": 394,
+   "line": 392,
    "name": "Withdrawn",
    "text": "The status of a reaction the person took back or replaced; it is counted in no tally."
   },
@@ -2566,7 +2566,7 @@
     "Kind": "Type",
     "Projection": "holding_rule"
    },
-   "line": 402,
+   "line": 400,
    "name": "Holding Rule",
    "text": "The deployment's setting for how many reactions a person may hold on one item: one in all (one-per-item, the rule where none is declared) or one in each reaction name (one-of-each)."
   },
@@ -2575,7 +2575,7 @@
     "Kind": "Type",
     "Projection": "tally"
    },
-   "line": 409,
+   "line": 407,
    "name": "Tally",
    "text": "The number of held reactions carrying one item reference and one reaction name, as [Count] answers it."
   },
@@ -2586,7 +2586,7 @@
     "Projection": "invalid-person-reference",
     "Role": "Outcome"
    },
-   "line": 416,
+   "line": 414,
    "name": "Invalid Person Reference",
    "text": "The refusal of a blank [Person Reference], one over the string cap, or one that is not a string, on [React] or [Withdraw] (Operation 1, Operation 23)."
   },
@@ -2597,7 +2597,7 @@
     "Projection": "invalid-item-reference",
     "Role": "Outcome"
    },
-   "line": 425,
+   "line": 423,
    "name": "Invalid Item Reference",
    "text": "The refusal of a blank [Item Reference], one over the string cap, or one that is not a string, on [React] or [Withdraw] (Operation 2, Operation 24)."
   },
@@ -2608,7 +2608,7 @@
     "Projection": "invalid-reaction-name",
     "Role": "Outcome"
    },
-   "line": 434,
+   "line": 432,
    "name": "Invalid Reaction Name",
    "text": "The refusal of a blank [Reaction Name], one over the string cap, or one that is not a string, on [React] or [Withdraw], and of a name the reaction set does not offer on [React] (Operation 3, Operation 4, Operation 25)."
   },
@@ -2619,7 +2619,7 @@
     "Projection": "storage-failure",
     "Role": "Outcome"
    },
-   "line": 443,
+   "line": 441,
    "name": "Storage Failure",
    "text": "The refusal [React] or [Withdraw] answers when the database refuses its write after every precondition passes: the Execution Contract's Step 3 failure."
   }
@@ -2630,7 +2630,7 @@
     "person_reference",
     "item_reference"
    ],
-   "line": 156,
+   "line": 154,
    "other_than": "reaction_name",
    "term": "rival",
    "thing": "reaction",
@@ -2649,7 +2649,7 @@
    "kind": {
     "Kind": "Type"
    },
-   "line": 47,
+   "line": 45,
    "name": "reaction",
    "section": [
     "Structure",
@@ -2660,7 +2660,7 @@
    "definition": "the person reference, the item reference and the reaction name a reaction carries, or a call names.",
    "entry": null,
    "kind": null,
-   "line": 49,
+   "line": 47,
    "name": "triple",
    "section": [
     "Structure",
@@ -2671,7 +2671,7 @@
    "definition": "the person reference and the item reference a reaction carries, or a call names.",
    "entry": null,
    "kind": null,
-   "line": 51,
+   "line": 49,
    "name": "pair",
    "section": [
     "Structure",
@@ -2686,7 +2686,7 @@
     "Kind": "Field",
     "Projection": "person_reference"
    },
-   "line": 53,
+   "line": 51,
    "name": "person reference",
    "section": [
     "Structure",
@@ -2701,7 +2701,7 @@
     "Kind": "Field",
     "Projection": "item_reference"
    },
-   "line": 55,
+   "line": 53,
    "name": "item reference",
    "section": [
     "Structure",
@@ -2716,7 +2716,7 @@
     "Kind": "Field",
     "Projection": "reaction_name"
    },
-   "line": 57,
+   "line": 55,
    "name": "reaction name",
    "section": [
     "Structure",
@@ -2727,7 +2727,7 @@
    "definition": "the reaction names a deployment offers; the single name like where a deployment declares none.",
    "entry": null,
    "kind": null,
-   "line": 59,
+   "line": 57,
    "name": "reaction set",
    "section": [
     "Structure",
@@ -2738,7 +2738,7 @@
    "definition": "how many reactions a person may hold on one item, one-per-item or one-of-each — the [Holding Rule]; one-per-item where a deployment declares none.",
    "entry": null,
    "kind": null,
-   "line": 61,
+   "line": 59,
    "name": "holding rule",
    "section": [
     "Structure",
@@ -2749,7 +2749,7 @@
    "definition": "the bound on a person reference's length, on an item reference's length and on a reaction name's length in Unicode code points; 1,024 code points where a deployment declares none.",
    "entry": null,
    "kind": null,
-   "line": 63,
+   "line": 61,
    "name": "string cap",
    "section": [
     "Structure",
@@ -2760,7 +2760,7 @@
    "definition": "the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.",
    "entry": null,
    "kind": null,
-   "line": 65,
+   "line": 63,
    "name": "seam",
    "section": [
     "Structure",
@@ -2771,7 +2771,7 @@
    "definition": "the instant of the first [React] call that recorded a reaction — the [First Reacted Instant]; set once, never changed.",
    "entry": null,
    "kind": null,
-   "line": 77,
+   "line": 75,
    "name": "first reacted instant",
    "section": [
     "Structure",
@@ -2782,7 +2782,7 @@
    "definition": "where a reaction stands, held or withdrawn — the [Status].",
    "entry": null,
    "kind": null,
-   "line": 79,
+   "line": 77,
    "name": "status",
    "section": [
     "Structure",
@@ -2793,7 +2793,7 @@
    "definition": "the status of a reaction the person keeps on the item — [Held]; the reaction counts.",
    "entry": null,
    "kind": null,
-   "line": 81,
+   "line": 79,
    "name": "held",
    "section": [
     "Structure",
@@ -2804,7 +2804,7 @@
    "definition": "the status of a reaction the person took back or replaced — [Withdrawn]; the reaction counts for nothing.",
    "entry": null,
    "kind": null,
-   "line": 83,
+   "line": 81,
    "name": "withdrawn",
    "section": [
     "Structure",
@@ -2815,7 +2815,7 @@
    "definition": "[React] | [Withdraw] — the actions that change a reaction.",
    "entry": null,
    "kind": null,
-   "line": 154,
+   "line": 152,
    "name": "writing action",
    "section": [
     "Structure",
@@ -2826,7 +2826,7 @@
    "definition": "a held reaction carrying the pair of the call and a reaction name other than the reaction name of the call.",
    "entry": null,
    "kind": null,
-   "line": 156,
+   "line": 154,
    "name": "rival",
    "section": [
     "Structure",
@@ -2840,7 +2840,7 @@
     "Kind": "Type",
     "Projection": "tally"
    },
-   "line": 158,
+   "line": 156,
    "name": "tally",
    "section": [
     "Structure",
@@ -2851,7 +2851,7 @@
    "definition": "a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.",
    "entry": null,
    "kind": null,
-   "line": 238,
+   "line": 236,
    "name": "version",
    "section": [
     "Generation acceptance",

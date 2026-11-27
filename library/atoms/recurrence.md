@@ -2,8 +2,6 @@
 title: Recurrence
 id: 55
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Recurrence

@@ -3,8 +3,6 @@ title: Authenticated Actor
 id: 17
 audience: common
 nav_order: 21
-has_toc: true
-toc: true
 ---
 
 # Authenticated Actor

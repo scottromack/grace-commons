@@ -2,8 +2,6 @@
 title: Category
 id: 71
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Category

@@ -2,8 +2,6 @@
 title: Communication
 id: 66
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Communication

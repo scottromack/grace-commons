@@ -2,8 +2,6 @@
 title: Message Preference
 id: 46
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Message Preference

@@ -2,8 +2,6 @@
 title: Calendar Time
 id: 31
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Calendar Time

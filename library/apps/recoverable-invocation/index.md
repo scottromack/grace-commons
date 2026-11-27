@@ -2,8 +2,6 @@
 title: Recoverable Invocation as an app
 audience: common
 nav_exclude: true
-has_toc: true
-toc: true
 ---
 
 # Recoverable Invocation as an app

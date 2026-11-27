@@ -3,8 +3,6 @@ title: Notification Fanout
 id: 5
 audience: common
 nav_order: 5
-has_toc: true
-toc: true
 ---
 
 # Notification Fanout

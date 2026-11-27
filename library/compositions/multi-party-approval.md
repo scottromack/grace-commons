@@ -3,8 +3,6 @@ title: Multi-Party Approval
 id: 4
 audience: common
 nav_order: 6
-has_toc: true
-toc: true
 ---
 
 # Multi-Party Approval

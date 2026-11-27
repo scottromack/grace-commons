@@ -3,8 +3,6 @@ title: Propagate Consent Revocation Downstream
 id: 2
 audience: common
 nav_order: 17
-has_toc: true
-toc: true
 ---
 
 # Propagate Consent Revocation Downstream

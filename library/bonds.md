@@ -1,8 +1,6 @@
 ---
 title: Bonds
 nav_order: 4
-has_toc: true
-toc: true
 ---
 
 # Bonds

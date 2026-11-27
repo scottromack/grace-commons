@@ -2,8 +2,6 @@
 title: Condition Register
 id: 35
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Condition Register

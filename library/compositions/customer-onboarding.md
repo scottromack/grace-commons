@@ -3,8 +3,6 @@ title: Customer Onboarding
 id: 8
 audience: common
 nav_order: 16
-has_toc: true
-toc: true
 ---
 
 # Customer Onboarding

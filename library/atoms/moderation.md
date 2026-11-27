@@ -2,8 +2,6 @@
 title: Moderation
 id: 75
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Moderation

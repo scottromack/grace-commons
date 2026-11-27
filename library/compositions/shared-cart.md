@@ -2,8 +2,6 @@
 title: Shared Cart
 id: 25
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Shared Cart

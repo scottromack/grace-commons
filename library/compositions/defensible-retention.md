@@ -3,8 +3,6 @@ title: Defensible Retention
 id: 1
 audience: common
 nav_order: 7
-has_toc: true
-toc: true
 ---
 
 # Defensible Retention

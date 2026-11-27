@@ -3,8 +3,6 @@ title: Shared Todo
 id: 26
 audience: common
 nav_order: 4
-has_toc: true
-toc: true
 ---
 
 # Shared Todo

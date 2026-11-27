@@ -2,8 +2,6 @@
 title: Assignment
 id: 30
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Assignment

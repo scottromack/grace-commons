@@ -2,8 +2,6 @@
 title: Invitation
 id: 42
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Invitation

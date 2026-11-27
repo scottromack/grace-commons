@@ -3,8 +3,6 @@ title: Recoverable Invocation
 id: 24
 audience: common
 nav_order: 10
-has_toc: true
-toc: true
 ---
 
 # Recoverable Invocation

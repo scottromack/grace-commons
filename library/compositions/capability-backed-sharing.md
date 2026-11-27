@@ -3,8 +3,6 @@ title: Capability-Backed Sharing
 id: 15
 audience: common
 nav_order: 23
-has_toc: true
-toc: true
 ---
 
 # Capability-Backed Sharing

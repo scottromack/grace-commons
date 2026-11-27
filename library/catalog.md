@@ -14,171 +14,171 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 ## Atoms
 
-**[Actor Identity](./atoms/actor-identity.md)** (799 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
+**[Actor Identity](./atoms/actor-identity.md)** (797 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
 
 - Mints actor id. Offers key actor id.
 
-**[Approval Step](./atoms/approval-step.md)** (868 lines). Approval Step records a single authorization gate.
+**[Approval Step](./atoms/approval-step.md)** (866 lines). Approval Step records a single authorization gate.
 
 - Mints step id. Needs key actor id. Offers key step id.
 
-**[Assignment](./atoms/assignment.md)** (669 lines). Assignment records who is responsible for a piece of work, and keeps the history of everyone who has held that responsibility.
+**[Assignment](./atoms/assignment.md)** (667 lines). Assignment records who is responsible for a piece of work, and keeps the history of everyone who has held that responsibility.
 
 - Needs key task id; key actor id; journal assignment events.
 
-**[Calendar Time](./atoms/calendar-time.md)** (921 lines). Calendar Time says what a date and a time of day mean in a place.
+**[Calendar Time](./atoms/calendar-time.md)** (919 lines). Calendar Time says what a date and a time of day mean in a place.
 
 - Mints place id. Offers key place id.
 
-**[Capability](./atoms/capability.md)** (902 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
+**[Capability](./atoms/capability.md)** (900 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
-**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1257 lines). Capacity Constraint Enforcement holds one number against another.
+**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1255 lines). Capacity Constraint Enforcement holds one number against another.
 
 - Mints audit event id, pool id. Offers key pool id; key audit event id.
 
-**[Cart](./atoms/cart.md)** (730 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
+**[Cart](./atoms/cart.md)** (728 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
 
 - Mints cart id, line id. Offers key cart id; key line id.
 
-**[Category](./atoms/category.md)** (800 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
+**[Category](./atoms/category.md)** (798 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
 
 - Mints category id. Offers key category id.
 
-**[Comment](./atoms/comment.md)** (638 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
+**[Comment](./atoms/comment.md)** (636 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
 
 - Mints comment id. Offers key comment id.
 
-**[Communication](./atoms/communication.md)** (795 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
+**[Communication](./atoms/communication.md)** (793 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
 - Mints communication id. Offers key communication id.
 
-**[Condition Register](./atoms/condition-register.md)** (805 lines). Condition Register keeps the permanent record of what a background run observed.
+**[Condition Register](./atoms/condition-register.md)** (803 lines). Condition Register keeps the permanent record of what a background run observed.
 
 - Mints standing id. Offers key standing id.
 
-**[Consent](./atoms/consent.md)** (877 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
+**[Consent](./atoms/consent.md)** (875 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
-**[Credential](./atoms/credential.md)** (974 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
+**[Credential](./atoms/credential.md)** (972 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
 
 - Needs key actor id.
 
-**[Duplicate Prevention](./atoms/duplicate-prevention.md)** (396 lines). Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats.
+**[Duplicate Prevention](./atoms/duplicate-prevention.md)** (394 lines). Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats.
 
 - No bond lines yet.
 
-**[Durable Intent](./atoms/durable-intent.md)** (933 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
+**[Durable Intent](./atoms/durable-intent.md)** (931 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
 
 - Mints invocation id. Needs guard critical section key; journal closing record, intent record. Offers key invocation id.
 
-**[Erasure Tombstone](./atoms/erasure-tombstone.md)** (624 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
+**[Erasure Tombstone](./atoms/erasure-tombstone.md)** (622 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
 
 - No bond lines yet.
 
-**[Escalation](./atoms/escalation.md)** (312 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
+**[Escalation](./atoms/escalation.md)** (310 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
 
 - Needs guard critical section key; key invocation id; journal closing record.
 
-**[Event Log](./atoms/event-log.md)** (492 lines). Event Log is an append-only record: what is written to it stays in the order it arrived, and by design the log itself never changes or removes it.
+**[Event Log](./atoms/event-log.md)** (490 lines). Event Log is an append-only record: what is written to it stays in the order it arrived, and by design the log itself never changes or removes it.
 
 - Offers journal.
 
-**[Favorite](./atoms/favorite.md)** (474 lines). Favorite lets a person mark an item so they can find it again later: a product, a recipe, an article, anything the business shows them.
+**[Favorite](./atoms/favorite.md)** (472 lines). Favorite lets a person mark an item so they can find it again later: a product, a recipe, an article, anything the business shows them.
 
 - No bond lines yet.
 
-**[Gift Card](./atoms/gift-card.md)** (590 lines). Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left.
+**[Gift Card](./atoms/gift-card.md)** (588 lines). Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left.
 
 - No bond lines yet.
 
-**[Invitation](./atoms/invitation.md)** (878 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
+**[Invitation](./atoms/invitation.md)** (876 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
 
 - Needs key list id; key actor id; journal invitation events.
 
-**[Lease](./atoms/lease.md)** (564 lines). A **lease** lets one worker have a thing to itself until a set time.
+**[Lease](./atoms/lease.md)** (562 lines). A **lease** lets one worker have a thing to itself until a set time.
 
 - Offers guard opaque.
 
-**[Legal Hold](./atoms/legal-hold.md)** (774 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
+**[Legal Hold](./atoms/legal-hold.md)** (772 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
 
 - Mints hold id. Needs key actor id. Offers key hold id.
 
-**[List](./atoms/list.md)** (420 lines). List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it.
+**[List](./atoms/list.md)** (418 lines). List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it.
 
 - Mints list id. Needs key actor id. Offers key list id.
 
-**[Medication Order](./atoms/medication-order.md)** (1439 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
+**[Medication Order](./atoms/medication-order.md)** (1437 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
 
 - Mints order id. Needs key actor id; journal order events. Offers key order id.
 
-**[Message Preference](./atoms/message-preference.md)** (914 lines). Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format.
+**[Message Preference](./atoms/message-preference.md)** (912 lines). Message Preference is an atom — a small, self-contained building block of a larger system — that records how each principal (the person or account the messages are for) wants delivery shaped: which channels, how often at most, what quiet hours, what format.
 
 - Mints preference id. Needs key actor id. Offers key preference id.
 
-**[Moderation](./atoms/moderation.md)** (633 lines). Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags.
+**[Moderation](./atoms/moderation.md)** (631 lines). Moderation lets people flag an item that needs a moderator's eye — a post, a comment, a review — and lets a moderator act on it: hide it or show it again, lock its replies or open them, pin it to the top or unpin it, or dismiss the flags.
 
 - No bond lines yet.
 
-**[Money](./atoms/money.md)** (788 lines). Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency.
+**[Money](./atoms/money.md)** (786 lines). Money is an amount of money as a value: a whole number of a currency's smallest unit, together with the currency.
 
 - No bond lines yet.
 
-**[Notification](./atoms/notification.md)** (764 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
+**[Notification](./atoms/notification.md)** (762 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
 
 - Mints notification id. Offers key notification id.
 
-**[Observation](./atoms/observation.md)** (861 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
+**[Observation](./atoms/observation.md)** (859 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
 - Mints observation id. Needs key actor id. Offers key observation id.
 
-**[Ordering](./atoms/ordering.md)** (453 lines). Ordering keeps the sequence of one list's items: each new item enters at the bottom, one item moves to a new place at a time, and the order reads back, first place to last.
+**[Ordering](./atoms/ordering.md)** (451 lines). Ordering keeps the sequence of one list's items: each new item enters at the bottom, one item moves to a new place at a time, and the order reads back, first place to last.
 
 - Needs key opaque; key list id.
 
-**[Owed Record](./atoms/owed-record.md)** (763 lines). Owed Record keeps the durable record that something is owed.
+**[Owed Record](./atoms/owed-record.md)** (761 lines). Owed Record keeps the durable record that something is owed.
 
 - No bond lines yet.
 
-**[Party Identity](./atoms/party-identity.md)** (965 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
+**[Party Identity](./atoms/party-identity.md)** (963 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
 
 - Mints party id. Needs key actor id; journal party events. Offers key party id.
 
-**[Permissions](./atoms/permissions.md)** (664 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
+**[Permissions](./atoms/permissions.md)** (662 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 
 - Needs key actor id. Offers permission opaque.
 
-**[Post](./atoms/post.md)** (602 lines). Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down.
+**[Post](./atoms/post.md)** (600 lines). Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down.
 
 - No bond lines yet.
 
-**[Provenance](./atoms/provenance.md)** (984 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
+**[Provenance](./atoms/provenance.md)** (982 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
 
 - Mints chain id. Needs key actor id. Offers key chain id.
 
-**[Provisional Commitment](./atoms/provisional-commitment.md)** (816 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
+**[Provisional Commitment](./atoms/provisional-commitment.md)** (814 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
 
 - Mints commitment id. Needs key actor id; journal commitment events. Offers key commitment id.
 
-**[Punch Card](./atoms/punch-card.md)** (527 lines). Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item.
+**[Punch Card](./atoms/punch-card.md)** (525 lines). Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item.
 
 - No bond lines yet.
 
-**[Reaction](./atoms/reaction.md)** (549 lines). Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry.
+**[Reaction](./atoms/reaction.md)** (547 lines). Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry.
 
 - No bond lines yet.
 
-**[Recurrence](./atoms/recurrence.md)** (872 lines). Recurrence says which dates a repeating series falls on.
+**[Recurrence](./atoms/recurrence.md)** (870 lines). Recurrence says which dates a repeating series falls on.
 
 - Mints series id. Offers key series id.
 
-**[Restorable Delete](./atoms/restorable-delete.md)** (552 lines). Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item.
+**[Restorable Delete](./atoms/restorable-delete.md)** (550 lines). Restorable Delete makes deleting something a two-step act: delete marks an item deleted and opens a window to bring it back, 30 days unless the business sets another; restore brings it back inside that window; purge makes the delete final, and nothing brings back a purged item.
 
 - No bond lines yet.
 
-**[Retention Window](./atoms/retention-window.md)** (867 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
+**[Retention Window](./atoms/retention-window.md)** (865 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
 
 - Mints retention id. Offers key retention id.
 
@@ -186,43 +186,43 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints holding id. Offers key holding id.
 
-**[Selective Disclosure](./atoms/selective-disclosure.md)** (623 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
+**[Selective Disclosure](./atoms/selective-disclosure.md)** (621 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
 - Mints disclosure id. Offers key disclosure id.
 
-**[Session](./atoms/session.md)** (893 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
+**[Session](./atoms/session.md)** (891 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 
 - Mints session id. Needs key actor id. Offers key session id.
 
-**[State Machine](./atoms/state-machine.md)** (1030 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
+**[State Machine](./atoms/state-machine.md)** (1028 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
 - Mints history entry id, workflow id. Needs key actor id. Offers key workflow id; key history entry id.
 
-**[Subscription](./atoms/subscription.md)** (653 lines). Subscription records who wants to be told about what.
+**[Subscription](./atoms/subscription.md)** (651 lines). Subscription records who wants to be told about what.
 
 - Mints subscription id. Offers key subscription id.
 
-**[Sweep](./atoms/sweep.md)** (412 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
+**[Sweep](./atoms/sweep.md)** (410 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
 
 - Needs guard critical section key; key invocation id; journal closing record, recovery_intended.
 
-**[Tag](./atoms/tag.md)** (523 lines). Tag lets a business keep a flat list of named tags — clay, cover-crops, beginners — and put several on one item, so the item is found through any of them.
+**[Tag](./atoms/tag.md)** (521 lines). Tag lets a business keep a flat list of named tags — clay, cover-crops, beginners — and put several on one item, so the item is found through any of them.
 
 - No bond lines yet.
 
-**[Tamper Evidence](./atoms/tamper-evidence.md)** (752 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
+**[Tamper Evidence](./atoms/tamper-evidence.md)** (750 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
 
 - Mints evidence id. Offers key evidence id.
 
-**[Task](./atoms/task.md)** (750 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
+**[Task](./atoms/task.md)** (748 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 
-**[Tenure](./atoms/tenure.md)** (772 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
+**[Tenure](./atoms/tenure.md)** (770 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
 
 - Mints tenure id. Offers key tenure id.
 
-**[Waitlist](./atoms/waitlist.md)** (787 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
+**[Waitlist](./atoms/waitlist.md)** (785 lines). Waitlist keeps people in line, first come, first served, for something with no room left: a full class, an earlier appointment, a sold-out item waiting on returns.
 
 - Mints spot id, waitlist id. Offers key waitlist id; key spot id.
 

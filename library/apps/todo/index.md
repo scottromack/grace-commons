@@ -2,8 +2,6 @@
 title: Shared Todo as an app
 audience: common
 nav_exclude: true
-has_toc: true
-toc: true
 ---
 
 # Shared Todo as an app

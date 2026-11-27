@@ -2,8 +2,6 @@
 title: Party Identity
 id: 50
 audience: common
-has_toc: true
-toc: true
 ---
 
 # Party Identity
