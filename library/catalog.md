@@ -34,7 +34,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
-**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1256 lines). Capacity Constraint Enforcement holds one number against another.
+**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1257 lines). Capacity Constraint Enforcement holds one number against another.
 
 - Mints audit event id, pool id. Offers key pool id; key audit event id.
 
