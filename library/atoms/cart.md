@@ -75,7 +75,7 @@ Kind: Type
 
 #### Cart Id
 
-The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused, never normalized, compared codepoint for codepoint.
+The opaque string, immutable, that identifies a cart, allocated by the host at the seam on [Open], held to the string cap, never reused, never normalized, compared code point for code point (Execution Contract Logic confinement 22).
 
 Kind:       Field
 Field of:   Cart
@@ -83,7 +83,7 @@ Projection: cart_id
 
 #### Currency
 
-The unit of account a cart's prices and [Total] are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes); set by [Open] from the accepted currencies, never changed, stored as supplied and compared codepoint for codepoint.
+The unit of account a cart's prices and [Total] are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes); set by [Open] from the accepted currencies, never changed, stored as supplied and compared code point for code point.
 
 Kind:       Field
 Field of:   Cart
@@ -109,13 +109,13 @@ Term currency: the unit of account a cart's prices and total are counted in, suc
 
 #### Line
 
-One item on a cart, named by its [Line Id]: the [Cart Id] of the cart it is on, its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
+One item on a cart, named by its [Line Id] and carrying the [Cart Id] of the cart it is on, its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
 
 Kind: Type
 
 #### Line Id
 
-The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused, never normalized, compared codepoint for codepoint; an item removed and added again is a new line.
+The opaque string, immutable, that identifies a line, allocated by the host at the seam on [Add], held to the string cap, never reused, never normalized, compared code point for code point (Execution Contract Logic confinement 22); an item removed and added again is a new line.
 
 Kind:       Field
 Field of:   Line
@@ -123,7 +123,7 @@ Projection: line_id
 
 #### Item Reference
 
-Names the item a line is for, with the options chosen for it (a size, a color, oat milk, a gift wrap), in the deployment's own scheme, so a flat white and a flat white with oat milk are two lines. Stored as supplied and compared codepoint for codepoint; whether it names a real item, with which options, is a catalog's question.
+Names the item a line is for, with the options chosen for it (a size, a color, oat milk, a gift wrap), in the deployment's own scheme, so a flat white and a flat white with oat milk are two lines. Stored as supplied and compared code point for code point; whether it names a real item, with which options, is a catalog's question.
 
 Kind:       Field
 Field of:   Line
@@ -181,10 +181,10 @@ A deployment that accepts `"EUR"` and `"USD"`, exercising the rejection surface 
 - `add(c9, "pen", 1, -100)` — rejected as [Invalid Price].
 - `add(c9, "   ", 0, -100)` — rejected as [Invalid Item Reference]: three refusals apply, and the one listed first on [Add]'s refuses line answers (Execution Contract Refusal 1).
 - `add(c9, "pen", 1, 500)` — accepted, line `l7`. A second `add(c9, "pen", 1, 450)` is rejected as [Already In Cart]: the caller changes `l7`'s quantity, or takes `l7` out and adds the pen again to take the new price.
-- `add(c9, "Pen", 1, 500)` — accepted as a different item, line `l8`: two item references are compared codepoint for codepoint.
+- `add(c9, "Pen", 1, 500)` — accepted as a different item, line `l8`: two item references are compared code point for code point.
 - `change_quantity(l7, 0)` — rejected as [Invalid Quantity]; a line leaves a cart by [Remove].
 - `remove(l7)` — ok. Then `change_quantity(l7, 2)` — rejected as [Not Known]: the line id is retired.
-- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, `C9` or `c9 ` where only `c9` exists: two cart ids are compared codepoint for codepoint, and none is normalized.
+- `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, `C9` or `c9 ` where only `c9` exists: two cart ids are compared code point for code point, and none is normalized.
 - an [Add] to `c9` of an item reference 1,025 code points long, with quantity 1 and unit price 500 — rejected as [Invalid Item Reference]: the reference is over the string cap, 1,024 code points where the deployment declares none.
 
 This covers every refusal but [Cart Full], whose example stands under [Remove] (Operation 24), and [Storage Failure], which answers when the database refuses a write.
@@ -635,7 +635,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing a line's unit price confirmed as the item's price when the line was added MUST read the records of the pattern that priced the item (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 10).
-External check 3: An auditor needing an item reference, a currency, a cart id and a line id confirmed as the value the caller supplied MUST compare the records with the calls the deployment's seam received (Identity 6, Identity 8, Execution Contract Logic confinement 22; Capability requirement 8 through 11).
+External check 3: An auditor needing an item reference, a currency, a cart id and a line id confirmed as the value the seam carried MUST compare the records with the calls the deployment's seam received and the cart ids and line ids the deployment supplied at the seam (Identity 6, Identity 8, Execution Contract Logic confinement 22; Capability requirement 8 through 11).
 ```
 
 ### Vocabulary
@@ -693,7 +693,7 @@ Term terms: cart, line, cart id, line id, item reference, seam, quantity, new qu
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -701,9 +701,9 @@ Term terms: cart, line, cart id, line id, item reference, seam, quantity, new qu
 </summary>
 
 ```
-status: doing
-formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 through 13, Capability requirement 10 and 11, Check 2.2 and the cart id Operation 2 records, 2026-11-20
-last gate: 2026-11-27 — Final Critique 11, a full round, frozen at 79cac81e — foundational count 1, not clean, one sample
+status: done — 2026-11-27
+formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Capability requirement 10 and 11, Check 2.2 and the cart id Operation 2 records, 2026-11-20
+last gate: 2026-11-27 — Final Critique 12, a delta round, one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```

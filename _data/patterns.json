@@ -371,7 +371,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
@@ -384,7 +384,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-27",
   "title": "Cart"
  },
  "category": {
