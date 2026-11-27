@@ -78,7 +78,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Escalation](./atoms/escalation.md)** (309 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
+**[Escalation](./atoms/escalation.md)** (334 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
 
 - Needs guard critical section key; key invocation id; journal closing record.
 

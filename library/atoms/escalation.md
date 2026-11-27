@@ -142,6 +142,29 @@ resolve 34: An intent event id naming no `<kind>.intended` record of the act key
 resolve 35: [Resolve] MUST return closing event id for the closing the write lands.
 resolve 37: IF [Resolve] holds the critical section AND [Resolve] lands a refusal THEN [Resolve] MUST release.
 ```
+
+#### Section Unavailable
+
+[Resolve]'s refusal when the critical section cannot be had or has too little term left to write under: the take failed, a storage-failure and no answer included (resolve 6), or the remaining term the call queried does not exceed the write floor (resolve 7). Nothing is written, and a section the call held is released.
+
+Kind:       Member
+Member of:  the resolve rejections
+Role:       Rejection
+Projection: section-unavailable
+
+**[Resolve] → [Section Unavailable]:** An operator resolves an escalated act while the sweep's run holds the act's critical section. The operator's take fails (resolve 6), so [Resolve] refuses with [Section Unavailable], nothing written, and the operator calls again once the sweep has released.
+
+#### Invalid Credential
+
+[Resolve]'s refusal when the operator's credential does not validate at the closing record_action (resolve 2). The validation stands nowhere earlier, so the refusal lands after the take and the re-read; the critical section is released and nothing is appended (resolve 3).
+
+Kind:       Member
+Member of:  the resolve rejections
+Role:       Rejection
+Projection: invalid-credential
+
+**[Resolve] → [Invalid Credential]:** An operator resolves an escalated act with a credential rotated out that morning. The take and the re-read succeed and the closing record_action refuses the credential, so [Resolve] refuses with [Invalid Credential], the section released and nothing appended (resolve 3), and the operator calls again with the current credential.
+
 ## What is and what should never be (Invariants)
 
 - **Invariant 4 — Bounded closure (safety + liveness).**
@@ -274,6 +297,8 @@ Term qualifiers: migrated — rewritten in GRACE-lang, the corpus's rule grammar
 Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, at risk threshold, settling edge, intent age, settle bound, retention end, run interval, partition, examined, skipped, reported, surfaced, unreached, closed already, terminus, payload match, act quiescence, read-your-writes, journal join, `position's existing arm`, cross-seam comparison, critical section key, critical section duration, reply, release, unfenced write, commit floor, act finding, instance finding, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, condition read, span, resolving actor, readable intent.
 
 [Resolve]: #resolve
+[Section Unavailable]: #section-unavailable
+[Invalid Credential]: #invalid-credential
 [Finding]: #finding
 [Read Invocation]: ./durable-intent.md#read-invocation
 [Reconcile]: ./sweep.md#reconcile
@@ -290,7 +315,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 ```
 status: done — 2026-11-23
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 3, a delta round, one reader (Linus opencode/beam-free), frozen at 028724ad — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims refuted (Invariant 4.11 ranges over an aged intent, which is open, so no intent a closing record names stands under it and Check 3.6's exception is its own; a bare *Default:* none is no default, a required setting under Execution Contract Logic confinement 15, not no cap), one refining cured (the cap's Term cites Logic confinement 15 as Sweep's settings do)
+last gate: 2026-11-27 — Final Critique 4, a delta round (diff base 028724ad, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6d80e43b — foundational count 0 after the blind second triage, clean, one sample; Linus's four foundational claims refuted (resolve 6 writes the corpus's appositive `<set>, <members> included`, a failed take with its storage-failure and its no answer among its cases, as resolve 26 and Assignment Operation 26 write it; resolve 32's quiet duration is the operator's own attestation, which no build computes (Invariant 5.8, Invariant 4.9); Invariant 4.7's two degradations each stand on their own condition, and 4.6 binds no kind whose credential-refused stands; a read_record writes no journal record, so Capability requirement 9 and 18 land one recording-failure(resolution) for every failed read), two refining and one rhetorical placed with no edit; two refining cures from the checker's code-entry hits: a term entry for Section Unavailable and for Invalid Credential in Resolve's branch
 open: none
 ```
 
