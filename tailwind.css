@@ -16,10 +16,7 @@
 @source "./compositions/*.md";
 
 /* The table of contents' label: the summary of the <details> that holds kramdown's
-   <ol id="markdown-toc">, styled here once instead of by a line under every page's summary
-   (Scott, 2026-11-26 11:06 AM Central). It sits in the utilities layer at an element's weight,
-   as the line's classes did, so the theme's own summary rules on <main> (text-sm, opacity-60,
-   opacity-100 on hover) still win where they won over the line: the page renders as before. */
+   <ol id="markdown-toc"> */
 @layer utilities {
   :where(details:has(> #markdown-toc)) > summary {
     @apply text-xs font-medium uppercase tracking-wide opacity-50;
