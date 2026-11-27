@@ -50,7 +50,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints comment id. Offers key comment id.
 
-**[Communication](./atoms/communication.md)** (794 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
+**[Communication](./atoms/communication.md)** (795 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
 - Mints communication id. Offers key communication id.
 
@@ -110,7 +110,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints list id. Needs key actor id. Offers key list id.
 
-**[Medication Order](./atoms/medication-order.md)** (1422 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
+**[Medication Order](./atoms/medication-order.md)** (1423 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
 
 - Mints order id. Needs key actor id; journal order events. Offers key order id.
 
@@ -130,7 +130,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints notification id. Offers key notification id.
 
-**[Observation](./atoms/observation.md)** (860 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
+**[Observation](./atoms/observation.md)** (861 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
 - Mints observation id. Needs key actor id. Offers key observation id.
 
@@ -186,7 +186,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints holding id. Offers key holding id.
 
-**[Selective Disclosure](./atoms/selective-disclosure.md)** (609 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
+**[Selective Disclosure](./atoms/selective-disclosure.md)** (623 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
 - Mints disclosure id. Offers key disclosure id.
 

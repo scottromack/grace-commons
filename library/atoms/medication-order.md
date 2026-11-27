@@ -515,6 +515,7 @@ Term blank-input rejection: invalid-order for [Order], invalid-request for an or
 Term required string input: patient reference, prescriber reference, medication reference, the dose unit, route and frequency of an [Order], reason, an attribution reference OR order id — every string an action refuses when blank.
 
 Term future bound: (now + clock allowance).
+NOTE: watch the future bound — now plus the clock allowance, the ceiling a claimed or occurred instant is checked against, declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
 
 Term query axes: order id, patient reference, medication reference, prescriber reference, state and a range over order instant — every filter axis [Read] admits.
 

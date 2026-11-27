@@ -294,6 +294,7 @@ Term content-checking action: [Record] | [Amend] — the two actions that carry 
 Term writing action: [Record] | [Amend] | [Retract] — every action but [Read].
 
 Term future bound: (now + clock allowance) — the ceiling a resolved recording instant is checked against (Operation 7).
+NOTE: watch the future bound — now plus the clock allowance, the ceiling a claimed or occurred instant is checked against, declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
 
 Term resolved recording instant: the recording instant the observation carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 

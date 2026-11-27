@@ -90,7 +90,7 @@ Term receipt instant: the instant the deployment received a [Record] call, which
 
 #### Disclosure Id
 
-The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam, fresh per call and never reused (Identity 5). It is the record's identity; the other fields are properties.
+The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam, fresh per call and never reused (Identity 5; Capability requirement 9). It is the record's identity; the other fields are properties.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -146,7 +146,7 @@ Projection: authority.reference
 
 #### Disclosure Instant
 
-The timestamp of the disclosure event. Set on [Record] or defaulted to the injected clock now; immutable. Must not be in the future relative to the injected now (Invariant 4); may be backdated. Best-effort — the wall clock, not this atom, bounds its honesty.
+The timestamp of the disclosure event. Set on [Record] or defaulted to the injected clock now; immutable. Must not follow the future bound (Invariant 4); may be backdated. Best-effort — the wall clock, not this atom, bounds its honesty.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -172,7 +172,7 @@ NOTE: watch the cap's refusal (Operation 44, Operation 45).
 
 Term authority types: the three members of authority type, cited here from that declaration (GRACE-lang Closed vocabulary 15).
 
-Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
+Term resolved disclosure instant: the disclosure instant the record carries — the supplied value, or the injected now where none is supplied, as Execution Contract Logic confinement 12 resolves it.
 
 Term filter axes: disclosure id | subject reference | recipient | authority type | disclosure instant — the five axes [Read] accepts, and no others, a filter keyed by the projection of the field its axis names, and a filter on disclosure instant carrying a range whose after is its start and whose before is its end.
 
@@ -188,14 +188,14 @@ The case space, and the rule that owns each case:
 
 | # | Condition | [Record] answers |
 |---|---|---|
-| 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows now | invalid-request |
+| 1 | a field is blank, a string input exceeds the string cap, a non-blank supplied disclosure instant is no instant, or the resolved disclosure instant follows the future bound | invalid-request |
 | 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the database refuses the write | storage-failure |
 | 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)`, the stored record's fields standing from then on (Invariant 1.1) |
 
 #### Invalid Request
 
-The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a non-blank supplied [Disclosure Instant] is no instant, the resolved [Disclosure Instant] is in the future, or a string input exceeds the string cap (Execution Contract Input 2).
+The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a non-blank supplied [Disclosure Instant] is no instant, the resolved [Disclosure Instant] follows the future bound, or a string input exceeds the string cap (Execution Contract Input 2).
 
 Kind:       Member
 Member of:  the record rejection
@@ -233,7 +233,7 @@ Projection: invalid-query
 
 #### Record
 
-The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if no instant or in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
+The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if a supplied instant is no instant or the resolved instant follows the future bound), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
 
 Kind: Operation
 
@@ -250,7 +250,7 @@ Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 7: IF now PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
+Operation 7: IF the future bound PRECEDES the resolved disclosure instant THEN [Record] MUST answer invalid-request.
 Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
@@ -303,6 +303,14 @@ Operation 36: IF a filter is malformed THEN [Read] MUST answer invalid-query.
 Operation 45: IF a string input EXCEEDS the string cap THEN [Read] MUST answer invalid-query (Execution Contract Query 5).
 ```
 
+The case space, and the rule that owns each case:
+
+| # | Condition | [Read] answers |
+|---|---|---|
+| 1 | every filter is admitted and a disclosure record matches | the matching disclosure records, in disclosure instant then disclosure id ascending order (Operation 18, Operation 19, Operation 27, Operation 28) |
+| 2 | every filter is admitted and no disclosure record matches | an empty record sequence (Operation 20) |
+| 3 | a filter's axis is no filter axis, a value is blank, an authority type stands outside the authority types, a range is reversed, a value exceeds the string cap, or a filter is malformed | invalid-query (Operation 22 through 25, Operation 36, Operation 45) |
+
 `read({subject_ref: "patient-88213", "authority.reference": "consent-3301"})` → invalid-query. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
 
 `read({disclosed_at: {after: "2026-06-01T00:00:00Z", before: "2026-03-01T00:00:00Z"}})` → invalid-query (Operation 25).
@@ -326,7 +334,7 @@ Operation 45: IF a string input EXCEEDS the string cap THEN [Read] MUST answer i
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
-  Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the now the record's creation read.
+  Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the future bound the record's creation read.
   ```
 - **Invariant 5 — Unrecorded transmissions.**
   ```
@@ -357,7 +365,7 @@ Correction 3: A caller correcting a disclosure record MUST call [Record] again.
 Correction 4: A caller's correcting [Record] call MUST carry a correction narrative that carries the corrected disclosure record's disclosure id.
 ```
 
-Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects, by carrying the corrected disclosure record's disclosure id exactly as the corrected record carries it.
+Term correction narrative: the prose a correcting disclosure record's scope OR authority reference carries beside what the field names — the two fields that hold prose, since a record carries State 1's seven fields and no optional one (State 3); this prose, and no field, pairs a correction with the record it corrects, by carrying the corrected disclosure record's disclosure id as a whole word of the prose, set off by whitespace or an end of the prose, exactly as the corrected record carries it.
 
 ---
 
@@ -384,19 +392,25 @@ Term reference: subject reference — the one opaque reference this atom records
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3.
-Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 5 and Execution Contract Input 1.
+Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Database 8, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 and Execution Contract Input 4.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
+Capability requirement 10: The deployment MUST supply the clock allowance at the seam PER Execution Contract Logic confinement 18.
 ```
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 9).
 
 NOTE: watch the deployment's composition note (Execution Contract Conformance 9).
 
-Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the disclosure id here.
+Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading, the clock allowance and the disclosure id here.
 
-Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it; Operation 7 compares a disclosure instant the caller states with now as the call carries it, so the atom spends no clock allowance (Execution Contract Logic confinement 18).
+Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
+
+Term clock allowance: the non-negative duration the deployment declares as the most a caller's clock may run ahead of the seam's, as Execution Contract Logic confinement 18 names it; zero declares no tolerance.
+
+Term future bound: (now + the clock allowance) — the ceiling Operation 7 checks a disclosure instant against, an offline device's claimed instant among them (Execution Contract Offline 1).
+NOTE: watch the future bound — now plus the clock allowance, the ceiling a claimed or occurred instant is checked against, declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
 
 Term string cap: the bound on a string input's length and on a disclosure id's length (Execution Contract Input 2); 1,024 code points where a deployment declares none.
 
@@ -435,7 +449,7 @@ Non-goal 23: A deployment needing a verifiable time anchor MUST compose a truste
 Deleted: Non-goal 24. Non-goal 23 owns it: the atom records no receipt instant, and which pattern detects a backdated disclosure instant is the app's choice.
 ```
 
-NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); a consent pattern and a legal-hold pattern (Non-goal 7, Non-goal 8, Non-goal 9); the app's permission (Non-goal 10, Non-goal 11); an attestation pattern (Non-goal 12, Non-goal 13); an idempotency pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); the compliance team, and a data-rights pattern for an access request (Non-goal 20); an event log pattern (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
+NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); a consent pattern and a legal-hold pattern, and for a regulatory citation the calling system, since no pattern holds one (Non-goal 7, Non-goal 8, Non-goal 9); the app's permission (Non-goal 10, Non-goal 11); an attestation pattern (Non-goal 12, Non-goal 13); an idempotency pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); the compliance team, and a data-rights pattern for an access request (Non-goal 20); an event log pattern (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
 
 ---
 
@@ -501,7 +515,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 ### Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the disclosure records, with their committed versions (Execution Contract Generation acceptance 1).
+This atom's acceptance is provable: an external auditor clears it from the disclosure records, with their committed versions (Execution Contract Generation acceptance 1), and clears what the records cannot show by the external checks below.
 
 #### Conformance checks
 
@@ -526,7 +540,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing pattern's authority records (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Capability requirement 6 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected, and Invariant 4.1 cleared, MUST read the composing event log pattern's receipt instant beside the disclosure record's disclosure instant (State 10; Invariant 4.1).
-External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's correction narrative beside the corrected disclosure record (Correction 4; Identity 13).
+External check 6: A deployment needing a correction's narrative cleared MUST read the correcting disclosure record's scope and authority reference, the two fields a correction narrative stands in, beside the corrected disclosure record (Correction 4; Identity 13).
 ```
 
 Term authority records: the composing pattern's own records of the authorities a disclosure's authority reference names (Non-goal 7, Non-goal 8).
@@ -551,7 +565,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, receipt instant, now, clock allowance, future bound, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, filter axes, admitted record, admitted read, string input, reference, correction narrative, committed version, string cap, record sequence, authority records, egress record.
 
 Term cited: now, resolved disclosure instant, reference, string cap, committed version, admitted record — `execution-contract.md` Logic confinement 11, 12 and 13, Input 2, Generation acceptance 1 and Read 4.
 
@@ -588,8 +602,8 @@ Term cited: now, resolved disclosure instant, reference, string cap, committed v
 
 ```
 status: doing
-formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12
-last gate: 2026-11-25 — Final Critique 22, a delta round, frozen at 2a39051 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (claude-sonnet-5-5) on the three rules the diff since Final Critique 21 reaches, Identity 9, Capability requirement 9 and Operation 19, counted no foundational finding; its one refining report, that Capability requirement 9 restates Execution Contract Logic confinement 3, was refuted by both triages, since the rule carries the deployment's id source PER the contract rules that set it, as spec-format asks of a Capability requirement and as Capability requirement 1 does for now); 2026-11-20 — Final Critique 21, a delta round, frozen at 67a1099 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (claude-haiku-5-5) claimed one foundational, that External check 3's comparison of the receipt instant with the disclosure instant spends no clock allowance where the Record call and its Event Log append are separate actions: refuted by both triages, since the receipt instant is the Record call's own now, which a composing Event Log holds in one composition action (Execution Contract Logic confinement 19), an append in a separate action holds no receipt instant under Term receipt instant, and no invariant breaks; its one refining report, Operation 45 against Input 2 and Query 5, was refuted too, Query 5 giving the answer Operation 45 states); 2026-11-20 — Final Critique 20, a delta round, frozen at 5017a1f — foundational count 1, cured, not clean, no sample; 2026-11-06 — Final Critique 19, a delta round, frozen at 368ce1f — foundational count 0, clean, one sample; 2026-11-06 — Final Critique 18, a full round, frozen at 20c8fb1 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 17, a delta round, frozen at 8adbf07 — foundational count 2, both cured, not clean, no sample; 2026-11-05 — Final Critique 16, a delta round, frozen at 2db59c0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 15, a delta round, frozen at 100a240 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 14, a delta round, frozen at 5961920 — foundational count 2, both cured, not clean, no sample; 2026-11-02 — Final Critique 13, a delta round, frozen at bba8734 — foundational count 2, both cured, not clean, no sample; 2026-10-31 — Final Critique 12 — foundational count 0, clean, one sample
+formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12; model redraw deferred to Lean: selective-disclosure.als and its twins, Operation 7 and Invariant 4.1 (now checked against the future bound, now and the clock allowance), 2026-11-27
+last gate: 2026-11-27 — Final Critique 23, a full round, frozen at 09de2f3a — foundational count 1, cured, not clean, one sample
 
 open: none
 ```

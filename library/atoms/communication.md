@@ -615,6 +615,7 @@ Term string cap: the bound on the length of a communication id, a person referen
 Term clock allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance (Execution Contract Logic confinement 18).
 
 Term future bound: (now + the clock allowance) — the ceiling an occurred instant is checked against (Operation 3).
+NOTE: watch the future bound — now plus the clock allowance, the ceiling a claimed or occurred instant is checked against, declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, and the clock allowance at the seam.
 
