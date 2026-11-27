@@ -258,6 +258,162 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
     return L
 
 
+# Unit `site: an app's connector diagram, generated — the to-do app first` (Scott 2026-11-27 10:56 AM Central,
+# "Yes,"): an app page's connector diagram is generated from the same bond lines, never drawn by hand. Every render
+# change is pretested on one page, so the generator writes it for the apps named here.
+CONNECTOR_APPS = ("todo",)
+GLUE_LINE = re.compile(r"^([a-z][\w ]*?): (.+?)\s*\{birth: [^}]+\}\s*$")
+
+
+def app_connections(text: str, mine: list[Path], lines: dict, meets: dict, titles: dict, hubs: set) -> dict:
+    """What an app's connector diagram draws, from the app page's text and its atoms' bond lines.
+
+    A need of an app atom met by exactly one offer of the app's atoms is a bond that wires itself (Bonds Bond 8):
+    a tag in the needing atom's box where the offer is a hub (`hubs`, the (path, line) of each hub offer, as
+    bond_layers finds them: Actor Identity's actor id, Event Log's journal), and an arrow from the needing atom to
+    the offering atom otherwise. A need met by several offers is served by the app's `Bond instance N:` line, an
+    arrow of its own. A glue line naming two or more of the app's atoms (`<Atom>'s` or `<Atoms>'`) is a dashed
+    arrow from the first named to each other; one naming a single atom is a tag on it. The app page's own needs are
+    listed apart (connections_page adds them as `own`): they are no atom's bond."""
+    by_title = {titles[p]: p for p in mine}
+    edges, tags, instances, glue, unmet, own = [], {p: [] for p in mine}, [], [], [], []
+    for p in mine:
+        for need in (b for b in lines[p] if b["side"] == "need"):
+            met = [o for o in meets[(p, need["line"])] if o["path"] in mine]
+            if len(met) == 1:
+                o = met[0]
+                hub = (o["path"], o["line"]) in hubs
+                w = word(need) if need["kind"] == "key" else (word(o) if o["kind"] == "key" else need["kind"])
+                if hub:
+                    tag = word(o) if o["kind"] == "key" else o["kind"]
+                    if tag not in tags[p]:
+                        tags[p].append(tag)
+                edges.append({"from": p, "to": o["path"], "kind": need["kind"], "word": word(need) or need["kind"],
+                              "as": "tag" if hub else "arrow", "tag": tag if hub else None, "label": w})
+            elif not met:
+                unmet.append((p, need))
+    for line in text.splitlines():
+        m = check.BOND_INSTANCE.match(line)
+        if m and m.group(2) in by_title and m.group(5) in by_title:
+            label, n_atom, n_kind, pairs, o_atom, o_kind, key = m.groups()
+            instances.append({"label": label, "from": by_title[n_atom], "to": by_title[o_atom], "kind": n_kind,
+                              "word": key or pairs or n_kind})
+    glue_block = re.search(r"^## Glue\s*\n(.*?)(?=^## )", text, re.S | re.M)
+    for line in (glue_block.group(1).splitlines() if glue_block else []):
+        m = GLUE_LINE.match(line.strip())
+        if not m:
+            continue
+        name, body = m.groups()
+        named = sorted(((body.find(t + s), p) for t, p in by_title.items() for s in ("'s ", "' ")
+                        if body.find(t + s) >= 0), key=lambda x: x[0])
+        atoms = list(dict.fromkeys(p for _, p in named))
+        glue.append({"name": name, "atoms": atoms})
+    return {"atoms": mine, "edges": edges, "tags": tags, "instances": instances, "glue": glue, "unmet": unmet,
+            "own": own, "titles": titles}
+
+
+def connections_page(app: Path, data: dict, hubs: set | None = None) -> str:
+    """The connector diagram page of one app (library/apps/<app>/connections.md): the Mermaid diagram, its
+    legend, the tally and the edge list, all from app_connections."""
+    text = app.read_text(encoding="utf-8")
+    titles = data["titles"]
+    names = set(check.APP_ATOM.findall(text))
+    mine = [p for p in data["atoms"] if p.stem in names]
+    if hubs is None:
+        v = bond_layers(data)
+        hub_paths = {o for o, _ in v["hubs"]}
+        hubs = {(p, b["line"]) for p in data["atoms"] for b in data["lines"][p]
+                if b["side"] == "offer" and p in hub_paths}
+    c = app_connections(text, mine, data["lines"], data["meets"], titles, hubs)
+    c["own"] = [(need, [titles[o["path"]] for o in data["meets"][(app, need["line"])] if o["path"] in mine])
+                for need in data["lines"].get(app, []) if need["side"] == "need"]
+    return render_connections(c, titles[app])
+
+
+def render_connections(c: dict, app_title: str) -> str:
+    def t(p):
+        return c["titles"][p]
+    nid = {p: "c_" + re.sub(r"\W", "_", p.stem) for p in c["atoms"]}
+    init = '%%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%'
+    glue_tags = {p: [] for p in c["atoms"]}
+    for g in c["glue"]:
+        if len(g["atoms"]) == 1:
+            glue_tags[g["atoms"][0]].append("glue: " + g["name"])
+    hub_atoms = {e["to"] for e in c["edges"] if e["as"] == "tag"}
+    L = ["---", f"title: {app_title} — connections", "audience: common", "nav_exclude: true", "---", "",
+         "<!-- GENERATED by tools/grace/catalog.py (tools/taxonomy/generate_graph.py runs it) — do not hand-edit;",
+         "     regenerate with `python3 tools/taxonomy/generate_graph.py .`. Every node, arrow and count below is",
+         "     read from the app page and its atoms' need and offer lines. -->", "",
+         f"# {app_title}: connections", "",
+         f"How the atoms of [{app_title}](./index.md) connect, drawn from their own need and offer lines and the app "
+         "page's bond instance and glue lines ([Bonds](../../bonds.md)). A need met by an offer so many atoms need "
+         "that it is drawn as no arrow (an actor id, a journal) is a tag in the needing atom's box.", "",
+         "```mermaid", init, "flowchart LR"]
+    for p in c["atoms"]:
+        extra = list(c["tags"][p]) + glue_tags[p]
+        if p in hub_atoms:
+            served = sorted({e["tag"] for e in c["edges"] if e["as"] == "tag" and e["to"] == p})
+            extra.append("serves the " + " and ".join(served) + " tags")
+        label = t(p) + (f"<br/><small>{' · '.join(extra)}</small>" if extra else "")
+        L.append(f'  {nid[p]}["{label}"]')
+    n = 0
+    styles = []
+    for e in (e for e in c["edges"] if e["as"] == "arrow"):
+        L.append(f'  {nid[e["from"]]} -->|"{e["label"]}"| {nid[e["to"]]}')
+        n += 1
+    for i in c["instances"]:
+        L.append(f'  {nid[i["from"]]} -->|"instance {i["label"]}: {i["word"]}"| {nid[i["to"]]}')
+        styles.append(f"  linkStyle {n} stroke:#e8a33d,stroke-width:2px,color:#e8a33d")
+        n += 1
+    for g in c["glue"]:
+        for q in g["atoms"][1:]:
+            L.append(f'  {nid[g["atoms"][0]]} -.->|"glue: {g["name"]}"| {nid[q]}')
+            n += 1
+    L += styles + ["```", "",
+                   "- **Solid arrow:** a key bond that wires itself; the needing atom points at the atom whose offer "
+                   "meets it.",
+                   "- **Orange arrow:** a bond instance the app writes, for a need several offers meet.",
+                   "- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one); "
+                   "glue is counted apart and is no bond.", ""]
+    arrows = [e for e in c["edges"] if e["as"] == "arrow"]
+    tags = [e for e in c["edges"] if e["as"] == "tag"]
+    by_kind: dict = {}
+    for e in arrows:
+        by_kind[e["kind"]] = by_kind.get(e["kind"], 0) + 1
+    tag_words: dict = {}
+    for e in tags:
+        tag_words[e["tag"]] = tag_words.get(e["tag"], 0) + 1
+    total = len(arrows) + len(tags) + len(c["instances"])
+    parts = [f"{by_kind[k]} {k} arrow{'s' if by_kind[k] != 1 else ''}" for k in sorted(by_kind)]
+    tag_part = f"{len(tags)} tag{'s' if len(tags) != 1 else ''} (" + ", ".join(
+        f"{w} {tag_words[w]}" for w in sorted(tag_words)) + ")" if tags else "0 tags"
+    L += ["## Tally", "",
+          f"**{total} bond{'s' if total != 1 else ''}**: " + ", ".join(parts + [tag_part])
+          + f", and {len(c['instances'])} bond instance{'s' if len(c['instances']) != 1 else ''}. "
+          + f"**{len(c['glue'])} glue line{'s' if len(c['glue']) != 1 else ''}**, which are not bonds: "
+          + ", ".join(g["name"] for g in c["glue"]) + ".", ""]
+    if c["own"]:
+        L += ["The app page's own need" + ("s" if len(c["own"]) > 1 else "") + ", no atom's bond and not counted "
+              "above: " + "; ".join(f"{shown(b)}, met by {', '.join(met) or 'no offer of the app atoms'}"
+                                    for b, met in c["own"]) + ".", ""]
+    if c["unmet"]:
+        L += ["Needs no offer of the app's atoms meets: " + "; ".join(f"{t(p)} ({shown(b)})" for p, b in c["unmet"])
+              + ".", ""]
+    L += ["## Edges", "", "| From | To | Kind | Word | Drawn as |", "|---|---|---|---|---|"]
+    for e in arrows:
+        L.append(f"| {t(e['from'])} | {t(e['to'])} | {e['kind']} | {e['word']} | arrow |")
+    for e in tags:
+        L.append(f"| {t(e['from'])} | {t(e['to'])} | {e['kind']} | {e['word']} | tag |")
+    for i in c["instances"]:
+        L.append(f"| {t(i['from'])} | {t(i['to'])} | {i['kind']} | {i['word']} | bond instance {i['label']} |")
+    for g in c["glue"]:
+        if len(g["atoms"]) == 1:
+            L.append(f"| {t(g['atoms'][0])} | — | glue | {g['name']} | tag |")
+        for q in g["atoms"][1:]:
+            L.append(f"| {t(g['atoms'][0])} | {t(q)} | glue | {g['name']} | dashed arrow |")
+    return "\n".join(L).rstrip("\n") + "\n"
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     text = catalog(root)

@@ -393,6 +393,12 @@ def main():
     (root / "library" / "graph.md").write_text("\n".join(L), encoding="utf-8")
     # the catalog is regenerated with the views, from the same bond lines (tools/grace/catalog.py)
     (root / "library" / "catalog.md").write_text(catalog.catalog(root.resolve(), bonds), encoding="utf-8")
+    # each app's connector diagram, from the same bond lines (unit `site: an app's connector diagram, generated`)
+    for app in catalog.CONNECTOR_APPS:
+        page = root / "library" / "apps" / app / "index.md"
+        if page.exists():
+            (page.parent / "connections.md").write_text(
+                catalog.connections_page(page.resolve(), bonds), encoding="utf-8")
     sys.stderr.write(
         f"wrote graph.md ({len(atoms)} atoms, {len(comps)} compositions, "
         f"{len(substrate_edges)} substrate edges) and _data/patterns.json and stats.json "

@@ -89,5 +89,47 @@ class Catalog(unittest.TestCase):
         self.assertEqual((ROOT / "library" / "catalog.md").read_text(encoding="utf-8"), self.text)
 
 
+class Connections(unittest.TestCase):
+    """An app's connector diagram (unit `site: an app's connector diagram, generated — the to-do app first`,
+    Scott 2026-11-27): drawn from the bond lines, never by hand."""
+
+    def test_fixture_with_an_instance_and_a_glue_tag(self):
+        aye, bee, cee, hub = (Path(f"/x/library/atoms/{n}.md") for n in ("aye", "bee", "cee", "hub"))
+
+        def b(path, side, kind, line, **fields):
+            return {"path": path, "side": side, "kind": kind, "line": line, "fields": fields}
+        aye_task, cee_list, hub_actor = b(aye, "offer", "key", 9, key="task id"), b(cee, "offer", "key", 9, key="list id"), \
+            b(hub, "offer", "key", 9, key="actor id")
+        aye_needs_actor = b(aye, "need", "key", 5, key="actor id")
+        bee_opaque, bee_list = b(bee, "need", "key", 5, key="opaque"), b(bee, "need", "key", 6, key="list id")
+        lines = {aye: [aye_needs_actor, aye_task], bee: [bee_opaque, bee_list], cee: [cee_list], hub: [hub_actor]}
+        meets = {(aye, 5): [hub_actor], (bee, 5): [aye_task, cee_list, hub_actor], (bee, 6): [cee_list]}
+        titles = {aye: "Aye", bee: "Bee", cee: "Cee", hub: "Hub"}
+        text = ("## Bonds\n\n```\nBond instance 1: Bee's key need that pairs entries MUST be served by Aye's key offer "
+                "of task id (Bonds Bond 7).\n```\n\n## Glue\n\n```\nclaim: claim MUST be Bee's Assign whose assignee "
+                "is the caller. {birth: bond candidate}\nlink: Aye's Add MUST be followed by Cee's Grant. "
+                "{birth: bond candidate}\n```\n\n## Actions\n")
+        c = catalog.app_connections(text, [aye, bee, cee, hub], lines, meets, titles, {(hub, 9)})
+        c["own"] = []
+        page = catalog.render_connections(c, "Fixture")
+        # the one key need met by one plain offer is an arrow; the hub's is a tag; the ambiguous need is the instance's
+        self.assertIn('  c_bee -->|"list id"| c_cee', page)
+        self.assertIn('  c_aye["Aye<br/><small>actor id</small>"]', page)
+        self.assertIn('  c_bee -->|"instance 1: task id"| c_aye', page)
+        self.assertIn("  linkStyle 1 stroke:#e8a33d", page)
+        # a glue line naming one atom is a tag on it; one naming two is a dashed arrow from the first
+        self.assertIn('  c_bee["Bee<br/><small>glue: claim</small>"]', page)
+        self.assertIn('  c_aye -.->|"glue: link"| c_cee', page)
+        self.assertIn("**3 bonds**: 1 key arrow, 1 tag (actor id 1), and 1 bond instance. **2 glue lines**, which are "
+                      "not bonds: claim, link.", page)
+        self.assertIn("| Bee | — | glue | claim | tag |", page)
+
+    def test_the_todo_app_reproduces_its_hand_tally(self):
+        page = catalog.connections_page(ROOT / "library" / "apps" / "todo" / "index.md", catalog.corpus(ROOT))
+        self.assertIn("**15 bonds**: 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. "
+                      "**3 glue lines**, which are not bonds: sign in, accept grants, claim.", page)
+        self.assertIn('  c_ordering -->|"instance 1: task id"| c_task', page)
+
+
 if __name__ == "__main__":
     unittest.main()

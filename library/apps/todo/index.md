@@ -58,6 +58,8 @@ Not in the app (the design of 2026-11-24): Capability (Permissions covers sharin
 
 Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names the one instance it writes and defines no kind.
 
+The [connector diagram](./connections.md) draws these bonds and the glue below, generated from the atoms' need and offer lines and never drawn by hand.
+
 Every need of the ten atoms but one meets exactly one offer of the ten, and that offer serves it with nothing written (Bond 8): the list id needs by List's offer, the actor id needs by Actor Identity's, and Assignment's task id need by Task's. The three journal needs, Task's, Assignment's and Invitation's, each meet the one journal offer, Event Log's, so the one Event Log serves all three with nothing written, each need's records in a stream of its own (Bond 8, Bond 9 and journal 8). Ordering's item need is keyed on `opaque`, so it meets every key offer of the app's atoms (list id, task id, actor id, session id): an ambiguous need, served by the one instance below.
 
 ```
