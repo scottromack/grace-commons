@@ -198,7 +198,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints history entry id, workflow id. Needs key actor id. Offers key workflow id; key history entry id.
 
-**[Subscription](./atoms/subscription.md)** (651 lines). Subscription records who wants to be told about what.
+**[Subscription](./atoms/subscription.md)** (653 lines). Subscription records who wants to be told about what.
 
 - Mints subscription id. Offers key subscription id.
 
