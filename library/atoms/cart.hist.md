@@ -40,3 +40,12 @@ Deleted: Capability requirement 4. Execution Contract Logic confinement 9 owns i
 ```
 Deleted: Operation 20. Execution Contract Read 4 owns it.
 ```
+
+### What it keeps › The carts
+
+```
+Deleted: Identity 10. Execution Contract Logic confinement 22 owns it.
+Deleted: Identity 11. Execution Contract Logic confinement 22 owns it.
+Deleted: Identity 12. Execution Contract Logic confinement 22 owns it.
+Deleted: Identity 13. Execution Contract Logic confinement 22 owns it.
+```

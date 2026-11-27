@@ -34,19 +34,19 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
-**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1254 lines). Capacity Constraint Enforcement holds one number against another.
+**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1253 lines). Capacity Constraint Enforcement holds one number against another.
 
 - Mints audit event id, pool id. Offers key pool id; key audit event id.
 
-**[Cart](./atoms/cart.md)** (727 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
+**[Cart](./atoms/cart.md)** (723 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
 
 - Mints cart id, line id. Offers key cart id; key line id.
 
-**[Category](./atoms/category.md)** (797 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
+**[Category](./atoms/category.md)** (795 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
 
 - Mints category id. Offers key category id.
 
-**[Comment](./atoms/comment.md)** (635 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
+**[Comment](./atoms/comment.md)** (633 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
 
 - Mints comment id. Offers key comment id.
 
@@ -90,7 +90,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Gift Card](./atoms/gift-card.md)** (587 lines). Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left.
+**[Gift Card](./atoms/gift-card.md)** (586 lines). Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left.
 
 - No bond lines yet.
 
@@ -162,7 +162,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints commitment id. Needs key actor id; journal commitment events. Offers key commitment id.
 
-**[Punch Card](./atoms/punch-card.md)** (524 lines). Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item.
+**[Punch Card](./atoms/punch-card.md)** (523 lines). Punch Card is a shop's punch card: a punch card collects one stamp per purchase, and a punch card that has reached its goal, five stamps where the shop sets no other number, is traded for one free item.
 
 - No bond lines yet.
 
@@ -218,7 +218,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 
-**[Tenure](./atoms/tenure.md)** (769 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
+**[Tenure](./atoms/tenure.md)** (768 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
 
 - Mints tenure id. Offers key tenure id.
 

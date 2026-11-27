@@ -46,7 +46,6 @@ Identity 7: The atom MUST NOT change a pool id.
 Identity 8: The atom MUST NOT change an audit event id.
 Identity 9: The atom MUST NOT identify a pool by a pool's name.
 Identity 10: The atom MUST match a pool id byte for byte.
-Identity 11: The atom MUST NOT normalize a pool id.
 Identity 12: The atom MUST NOT order a pool id.
 Identity 13: [Declare Pool] MUST NOT write over a pool the database already holds.
 Identity 14: IF a colliding write EXISTS THEN the database MUST refuse the colliding write.

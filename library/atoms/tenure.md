@@ -39,7 +39,6 @@ Identity 8: The atom MUST NOT normalize an item reference.
 Identity 9: The atom MUST compare two item references code point for code point.
 Identity 10: The atom MUST NOT normalize a role.
 Identity 11: The atom MUST compare two roles code point for code point.
-Identity 12: The atom MUST compare two tenure ids code point for code point.
 ```
 
 Term tenure: one person's time in one role in one thing, kept from the [Begin] call that recorded the tenure — a [Tenure].

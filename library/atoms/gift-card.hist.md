@@ -23,3 +23,9 @@ The spec's tombstones, moved here from the page: each `Deleted:` line byte for b
 ```
 Deleted: Composition note 2. Term amount owns it: a [Spend] takes no currency, and an amount is in the gift card's currency.
 ```
+
+### What it keeps › Card Id
+
+```
+Deleted: Identity 11. Execution Contract Logic confinement 22 owns it.
+```

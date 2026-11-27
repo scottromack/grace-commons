@@ -8,6 +8,16 @@ search_exclude: true
 
 The dated record of how [Tenure](./tenure.md) got here, moved out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/tenure.md`.
 
+## Deleted rules
+
+The spec's tombstones: each `Deleted:` line under the heading its rule stood under on the page. A tombstone carries no obligation, and its label stays reserved (GRACE-lang Hard invariant 25 and Hard invariant 27).
+
+### What it keeps › The tenures
+
+```
+Deleted: Identity 12. Execution Contract Logic confinement 22 owns it.
+```
+
 ## Decisions
 
 - **2026-11-16 — Drafted through the Grace connector mirroring Reaction.** *Chose:* one tenure for one person in one role in one thing, dated, with upcoming, held and ended worked out from the dates and withdrawn set by hand *Over:* a role kept on the person, or Assignment's one holder with no dates of the business's own *Because:* several people share a role, one person holds several, and a departure learned late must land on the day it happened.

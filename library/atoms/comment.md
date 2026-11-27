@@ -34,8 +34,6 @@ Identity 3: The atom MUST NOT normalize an author reference.
 Identity 4: The atom MUST compare two author references code point for code point.
 Identity 5: The atom MUST NOT normalize a target reference.
 Identity 6: The atom MUST compare two target references code point for code point.
-Identity 7: The atom MUST NOT normalize a comment id.
-Identity 8: The atom MUST compare two comment ids code point for code point.
 ```
 
 Term comment: one person's words on one item, answering the item or another comment on the item — a [Comment].

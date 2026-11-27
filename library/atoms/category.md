@@ -35,8 +35,6 @@ Identity 4: The atom MUST NOT normalize an item reference.
 Identity 5: The atom MUST compare two item references code point for code point.
 Identity 6: The atom MUST NOT normalize a category name.
 Identity 7: The atom MUST compare two category names code point for code point.
-Identity 8: The atom MUST NOT normalize a category id.
-Identity 9: The atom MUST compare two category ids code point for code point.
 ```
 
 Term category: one named place in the tree, top level or under another category — a [Category].
@@ -53,7 +51,7 @@ Term position: a whole number of one or more giving a category's place among the
 
 Term home: the record filing one item in one category — a [Home].
 
-NOTE: Capability requirement 3, Capability requirement 4 and Capability requirement 6 are the atom's own rule for the canonical form of the item reference, the category name and the category id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 4, Identity 6, Identity 8).
+NOTE: Capability requirement 3, Capability requirement 4 and Capability requirement 6 are the atom's own rule for the canonical form of the item reference, the category name and the category id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 4, Identity 6, Execution Contract Logic confinement 22).
 
 ```
 State 1: EVERY category MUST carry category id, category name, position and status.

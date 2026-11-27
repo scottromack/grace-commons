@@ -37,10 +37,6 @@ Identity 6: The atom MUST NOT normalize an item reference.
 Identity 7: The atom MUST compare two item references code point for code point.
 Identity 8: The atom MUST NOT normalize a currency.
 Identity 9: The atom MUST compare two currencies code point for code point.
-Identity 10: The atom MUST compare two cart ids code point for code point.
-Identity 11: The atom MUST compare two line ids code point for code point.
-Identity 12: The atom MUST NOT normalize a cart id.
-Identity 13: The atom MUST NOT normalize a line id.
 ```
 
 Term cart: a set of lines gathered toward one purchase, named by its cart id, with the currency their prices are counted in — a [Cart].
@@ -49,7 +45,7 @@ NOTE: watch the order an atom forbids — [Read]'s answer comes in the order Ope
 
 Term line: one item on a cart, named by its line id, with how many of the item it holds and the unit price taken when the line was added — a [Line].
 
-NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9); Capability requirement 10 and Capability requirement 11 give the cart id and the line id the same rule, neither being a reference this atom declares, so Execution Contract Logic confinement 13 reaches neither and the seam leaves each as the call carries it (Identity 12, Identity 13).
+NOTE: Capability requirement 8 and Capability requirement 9 are the atom's own rule for the canonical form of the item reference and of the currency, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 6 through 9); Capability requirement 10 and Capability requirement 11 give the cart id and the line id the same rule, neither being a reference this atom declares, so Execution Contract Logic confinement 13 reaches neither and the seam leaves each as the call carries it (Execution Contract Logic confinement 22).
 
 ```
 State 1: EVERY cart MUST carry cart id and currency.
@@ -639,7 +635,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing a line's unit price confirmed as the item's price when the line was added MUST read the records of the pattern that priced the item (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 10).
-External check 3: An auditor needing an item reference, a currency, a cart id and a line id confirmed as the value the caller supplied MUST compare the records with the calls the deployment's seam received (Identity 6, Identity 8, Identity 12, Identity 13; Capability requirement 8 through 11).
+External check 3: An auditor needing an item reference, a currency, a cart id and a line id confirmed as the value the caller supplied MUST compare the records with the calls the deployment's seam received (Identity 6, Identity 8, Execution Contract Logic confinement 22; Capability requirement 8 through 11).
 ```
 
 ### Vocabulary

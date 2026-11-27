@@ -160,3 +160,9 @@ Deleted: Crash atomicity 4. Execution Contract Database 3 owns it.
 Deleted: Composition note 1. Execution Contract Conformance 9 owns it.
 Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
+
+### What it keeps › The pools
+
+```
+Deleted: Identity 11. Execution Contract Logic confinement 22 owns it.
+```
