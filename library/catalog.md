@@ -34,9 +34,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
-**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1254 lines). Capacity Constraint Enforcement holds one number against another.
+**[Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.md)** (1173 lines). Capacity Constraint Enforcement holds one number against another.
 
-- Mints audit event id, pool id. Offers key pool id; key audit event id.
+- Mints pool id. Needs journal pool events. Offers key pool id.
 
 **[Cart](./atoms/cart.md)** (723 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
 

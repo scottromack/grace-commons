@@ -66,8 +66,6 @@ Term comment id: opaque — the one value naming one comment, minted when the co
 
 Term pool id: opaque — the one value naming one bounded pool, minted when the pool is declared and never reused.
 
-Term audit event id: opaque — the one value naming one audit event on a pool's audit log, minted when the event is appended and never reused across the event classes.
-
 Term retention id: opaque — the one value naming one retention of one record under one policy, minted when the record is placed under retention and never reused.
 
 Term subscription id: opaque — the one value naming one standing interest, minted when the subscription is made and never reused.
@@ -121,6 +119,8 @@ Term party events: opaque — the record type of the journal records Party Ident
 Term commitment events: opaque — the record type of the journal records Provisional Commitment's admitted actions append; plain, carrying no seal.
 
 Term order events: opaque — the record type of the journal records Medication Order's admitted actions append; plain, carrying no seal.
+
+Term pool events: opaque — the record type of the journal records Capacity Constraint Enforcement's admitted actions append; plain, carrying no seal.
 
 Term idempotency key: opaque — the value a caller sends with a request so that a repeat of the request carrying the same value is answered as the first was and never acted on twice.
 

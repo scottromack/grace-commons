@@ -166,3 +166,45 @@ Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
 Deleted: Identity 11. Execution Contract Logic confinement 22 owns it.
 ```
+
+### What it keeps › The pools
+
+```
+Deleted: Identity 2. The journal need owns it: the journal names each audit event by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 4. The journal need owns it: the journal names each audit event by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 8. The journal need owns it: the journal names each audit event by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 16. The journal need owns it: the journal names each audit event by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 17. The journal need owns it: the journal names each audit event by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: State 3. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 8. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 9. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 10. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 11. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 12. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 13. The journal need owns it: the audit events stand in the journal, which keeps their order and removes none, not on the pool.
+Deleted: State 20. The journal need owns it: an audit event stands in the journal as appended, and the atom has no action over it.
+```
+
+### What people do › Read Audit Event
+
+```
+Deleted: Operation 65. The journal need owns it: an auditor or an app reads an audit event from the journal by the event id, and the atom offers no read of it.
+Deleted: Operation 66. The journal need owns it: an auditor or an app reads an audit event from the journal by the event id, and the atom offers no read of it.
+Deleted: Operation 67. The journal need owns it: an auditor or an app reads an audit event from the journal by the event id, and the atom offers no read of it.
+Deleted: Operation 68. The journal need owns it: an auditor or an app reads an audit event from the journal by the event id, and the atom offers no read of it.
+```
+
+### What is and what should never be (Invariants)
+
+```
+Deleted: Invariant 8.1. The journal need owns it: an audit event stands in the journal as appended, and the atom has no action over it.
+Deleted: Invariant 8.3. The journal need owns it: an audit event stands in the journal as appended, and the atom has no action over it.
+Deleted: Invariant 9.1. The journal need owns it: the journal keeps the audit events, removes and re-orders none under this atom, and owns how long each is kept.
+Deleted: Invariant 9.2. The journal need owns it: the journal keeps the audit events, removes and re-orders none under this atom, and owns how long each is kept.
+Deleted: Invariant 9.3. The journal need owns it: the journal keeps the audit events, removes and re-orders none under this atom, and owns how long each is kept.
+Deleted: Invariant 9.4. The journal need owns it: the journal keeps the audit events, removes and re-orders none under this atom, and owns how long each is kept.
+Deleted: Invariant 9.5. The journal need owns it: the journal keeps the audit events, removes and re-orders none under this atom, and owns how long each is kept.
+Deleted: Invariant 12.2. The journal need owns it: the journal names each audit event by its event id and changes none.
+Deleted: Invariant 13.2. The journal need owns it: the journal names each audit event by an event id no other audit event carries.
+Deleted: Invariant 13.3. The journal need owns it: the journal names each audit event by an event id no other audit event carries.
+```
