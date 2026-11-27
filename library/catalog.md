@@ -46,7 +46,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints category id. Offers key category id.
 
-**[Comment](./atoms/comment.md)** (634 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
+**[Comment](./atoms/comment.md)** (638 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
 
 - Mints comment id. Offers key comment id.
 

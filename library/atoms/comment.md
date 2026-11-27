@@ -32,11 +32,13 @@ Wherever people are shown something, they want to say something about it, and th
 
 ```
 Identity 1: The atom MUST identify a comment by the comment's comment id.
-Identity 2: The atom MUST assign EVERY comment a comment id no other comment carries.
+Identity 2: The atom MUST assign EVERY comment a comment id no other comment carries, from the comment id the deployment supplies (Capability requirement 7).
 Identity 3: The atom MUST NOT normalize an author reference.
 Identity 4: The atom MUST compare two author references codepoint for codepoint.
 Identity 5: The atom MUST NOT normalize a target reference.
 Identity 6: The atom MUST compare two target references codepoint for codepoint.
+Identity 7: The atom MUST NOT normalize a comment id.
+Identity 8: The atom MUST compare two comment ids codepoint for codepoint.
 ```
 
 Term comment: one person's words on one item, answering the item or another comment on the item — a [Comment].
@@ -57,7 +59,7 @@ Term added instant: the instant of the call that recorded the comment — the [A
 
 Term status: where a comment stands, shown or retracted — the [Status].
 
-Term shown: the status of a comment whose words are read — [Shown].
+Term shown: the status of a comment whose words [List] and [Read Comment] answer — [Shown].
 
 Term retracted: the status of a comment the author took back — [Retracted]; the comment keeps a place in the tree and shows no words.
 
@@ -101,7 +103,7 @@ Projection: author_reference
 
 #### Text
 
-The comment's words as the author wrote them; replaced by [Edit]. How they are drawn is the page's.
+The comment's words as the author wrote them; replaced by [Edit]. How they are drawn is the composing pattern's.
 
 Kind:       Field
 Field of:   Comment
@@ -133,7 +135,7 @@ Projection: shown
 
 #### Retracted
 
-The status of a comment the author took back; [List] answers it with blank text, in its place in the tree.
+The status of a comment the author took back; [List] and [Read Comment] answer it with blank text, in its place in the tree.
 
 Kind:       Member
 Member of:  the status
@@ -398,7 +400,7 @@ The case space, and the rule that owns each case:
 
 #### Read Comment
 
-Answers one comment by its [Comment Id] and changes nothing: its comment id, target reference, author reference, text, added instant, status and, for a reply, the parent's comment id. It is the read an app's key check makes on a comment id (Bonds Key 26).
+Answers one comment by its [Comment Id] and changes nothing: its comment id, target reference, author reference, text, added instant, status and, for a reply, the parent's comment id; the text is blank for a retracted comment. It is the read an app's key check makes on a comment id (Bonds Key 26).
 
 Kind: Operation
 
@@ -411,13 +413,14 @@ read_comment(comment_id)
 ```
 Operation 29: [Read Comment] MUST answer the comment's comment id, target reference, author reference, text, added instant, status AND, for a reply, the parent's comment id.
 Operation 30: [Read Comment] MUST NOT write.
+Operation 31: IF the comment's status EQUALS retracted THEN [Read Comment] MUST answer blank text.
 ```
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect |
 |---|---|---|---|
-| [Read Comment] | a comment carries the comment id | the comment, every field | none (Operation 29, Operation 30) |
+| [Read Comment] | a comment carries the comment id | the comment, every field, its text blank where the comment stands retracted | none (Operation 29, Operation 30, Operation 31) |
 | [Read Comment] | the comment id is malformed or names no comment | [Unknown Comment] | none (Operation 4) |
 
 ## What is and what should never be (Invariants)
@@ -439,7 +442,7 @@ The case space, and the rule that owns each case:
 
 ### Concurrency
 
-Two [Reply] calls on one parent are serialized (Execution Contract Database 2), and each records its own reply. An [Edit] and a [Retract] on one comment are serialized the same way: an [Edit] that meets a retracted comment answers [Comment Retracted], and a [Retract] that meets an edited comment retracts the edited wording, which stays in the comment's history.
+Two [Reply] calls on one parent each record their own reply, and neither answer rests on the other. An [Edit] and a [Retract] on one comment are serialized (Execution Contract Database 2): an [Edit] that meets a retracted comment answers [Comment Retracted], and a [Retract] that meets an edited comment retracts the edited wording, which stays in the comment's history.
 
 ### Indeterminate outcome
 
@@ -447,7 +450,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-An [Edit] is undone by an [Edit] carrying the earlier wording, which the comment's history holds. A [Retract] is not undone by this atom: a comment taken back stays taken back, and the author adds a new one (Execution Contract Undo 4).
+An [Edit] is undone by an [Edit] carrying the earlier wording, which the comment's history holds. A [Retract] is not undone by this atom: a comment taken back stays taken back, and the author adds a new one (Execution Contract Undo 4). An [Add] or a [Reply] is undone by a [Retract] of the comment it recorded, since State 5 keeps every comment (Execution Contract Undo 4).
 
 ## Optional
 
@@ -459,9 +462,10 @@ Capability requirement 4: The deployment MAY declare the text cap PER Execution 
 Capability requirement 5: The deployment MUST NOT normalize an author reference at the seam.
 Capability requirement 6: The deployment MUST NOT normalize a target reference at the seam.
 Capability requirement 7: The deployment MUST supply EVERY comment id PER Execution Contract Logic confinement 16.
+Capability requirement 8: The deployment MUST NOT normalize a comment id at the seam.
 ```
 
-NOTE: Capability requirement 5 and 6 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3 through 6).
+NOTE: Capability requirement 5, 6 and 8 are the atom's own rule for the canonical form of each reference and of the comment id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3 through 8).
 
 Term string cap: the bound on a target reference's length and on an author reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -488,7 +492,7 @@ Non-goal 7: The atom MUST NOT draw a text.
 Non-goal 8: The atom MUST NOT remove a comment's text from any version of the comment.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on a session or the app's permission (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); a moderation pattern (Non-goal 4); a reaction pattern (Non-goal 5); the composing pattern that tells the author, such as one built on a notification pattern (Non-goal 6); the composing pattern that shows the comments, which draws each text as it likes (Non-goal 7); an erasure-record pattern (Non-goal 8).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on a session or the app's permission (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Moderation](./moderation.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); the composing pattern that tells the author, such as one built on a notification pattern (Non-goal 6); the composing pattern that shows the comments, which draws each text as it likes (Non-goal 7); [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 8).
 
 Where the atom breaks down: a one-word answer from a short list, which is a reaction; a titled piece that stands on its own, which is a post pattern's.
 
@@ -524,7 +528,7 @@ Comment is a primitive with no regulatory anchor. It inherits from:
 
 ### Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the comments the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the comments the database holds, with their earlier versions (Execution Contract Database 5, Execution Contract Database 8, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 #### Conformance checks
 
@@ -614,7 +618,7 @@ Term terms: comment, comments, reply, replies, parent, comment id, target refere
 ```
 status: doing
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 3, a delta round, one counted reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; the report claimed no foundational and the blind second triage placed none (refuted: Execution Contract Read 6's "Read 5's order" is the specification's own order where one is named, and an added instant is the creation instant on this page, Operation 8; Term comment id is a string); the settle's own refining cures: Operation 19 cites Execution Contract Logic confinement 10 for its tiebreak, Operation 20, Operation 27 and Operation 28 each range over the comments carrying the target reference, as Operation 19 does, and the case-table row and the Term list point at Operation 19's order instead of restating it short; the round read the reach of Final Critique 2's cures (3 labels and the Parent term) by their diff; 2026-11-19 — Final Critique 2, a delta round, frozen at e3af1687 — foundational count 0, clean, one sample; Operation 27 split in two; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 4, a full round, frozen at 62e7e4d4 — foundational count 2, not clean, one sample ([Read Comment] answered a retracted comment's words where the page says a retracted comment shows none, so one call had two answers, and it now answers blank text, Operation 31; a comment id had no canonical form beside the references', so a seam that case-folds one read a different comment, and Identity 7 and 8 with Capability requirement 8 give it the same rule as the references' (as Cart's Final Critique 9 did)); 2026-11-19 — Final Critique 3, a delta round, one counted reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; the report claimed no foundational and the blind second triage placed none (refuted: Execution Contract Read 6's "Read 5's order" is the specification's own order where one is named, and an added instant is the creation instant on this page, Operation 8; Term comment id is a string); the settle's own refining cures: Operation 19 cites Execution Contract Logic confinement 10 for its tiebreak, Operation 20, Operation 27 and Operation 28 each range over the comments carrying the target reference, as Operation 19 does, and the case-table row and the Term list point at Operation 19's order instead of restating it short; the round read the reach of Final Critique 2's cures (3 labels and the Parent term) by their diff; 2026-11-19 — Final Critique 2, a delta round, frozen at e3af1687 — foundational count 0, clean, one sample; Operation 27 split in two; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
 open: none
 ```
