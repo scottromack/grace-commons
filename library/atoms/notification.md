@@ -420,7 +420,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 2.2: A status MUST NOT move to pending from a terminal status.
   Invariant 2.3: A status MUST NOT move between two terminal statuses.
-  Invariant 2.4: A read of the notification records at an instant MUST answer pending ONLY IF the notification is pending at that instant (Term pending at an instant).
+  Invariant 2.4: A read of the notification records MUST answer pending ONLY IF the notification carries no terminal stamp as the record stood at the commit the read answers from.
   ```
 - **Invariant 3 — Terminal states are exclusive.**
   ```
@@ -470,7 +470,7 @@ Bulk expiry 3: A composing pattern MUST NOT read one [Expire] call as the expiry
 ```
 Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending as the call found the notification.
 Deliver persistence 2: A caller MUST retry a terminal transition that answered storage-failure, and the caller owns the interval and every retry past the first.
-Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
+Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry, nor on a repeat of a terminal transition whose reply was lost (Deliver persistence 5).
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
 Deliver persistence 5: A caller whose reply to a terminal transition was lost MUST read [Status Of] for the notification (Execution Contract Error model 1).
 Deliver persistence 6: A caller MUST NOT deliver the payload again on a [Status Of] answer whose status DOES NOT EQUAL pending (Deliver persistence 5).
@@ -516,7 +516,7 @@ Capability requirement 4: The deployment MUST supply the notification records PE
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
 Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance, a restart included (Execution Contract Logic confinement 17); this rule stands in place of the change Execution Contract Input 2 lets a cap take at a later start.
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
-Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the delivery outcomes a composing pattern calls [Fail] for and the delivery outcomes a composing pattern calls [Expire] for (Execution Contract Logic confinement 15, Execution Contract Logic confinement 17).
+Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the delivery outcomes a composing pattern calls [Fail] for and the delivery outcomes a composing pattern calls [Expire] for, and naming no delivery outcome for both (Execution Contract Logic confinement 15, Execution Contract Logic confinement 17).
 Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 10: The deployment MAY declare the deployment high-assurance.
 Capability requirement 11: A high-assurance deployment MUST declare the receiver of the alert Deliver persistence 4 raises.
@@ -648,7 +648,7 @@ This atom's acceptance is provable: an external auditor clears it from the notif
 
 ```
 Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the database (State 2).
-Check 2.1: An auditor MUST reconstruct whether a notification is pending at an instant from creation instant and the terminal stamp (Invariant 2.4).
+Check 2.1: An auditor MUST reconstruct whether a notification is pending at an instant from creation instant and the terminal stamp (Invariant 2.2, Invariant 2.3).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.1, Invariant 1.2).
 Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1 through 8.3, Execution Contract Logic confinement 7).
 Check 3.1: An auditor MUST find EVERY notification whose status DOES NOT EQUAL pending carrying EXACTLY ONE terminal stamp (Invariant 3.1).
@@ -736,8 +736,8 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 
 ```
 status: doing
-formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-27 — Final Critique 16, a delta round, frozen at 9e5cfc06 — foundational count 1, cured, not clean, no sample: Term pending at an instant now reads each field as the record stood at the commit the read answers from (Invariant 2.4); the refining cures declared Term delivery outcome for Bulk expiry 2, Composition note 8 and Capability requirement 8, named [Status Of] as the read after a lost reply (Deliver persistence 5 and 6), cited Logic confinement 15 and 17 for the policy and Database 5 for the supply, stated that the atom sets no payload cap, and read the status answer as a record
+formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20; model redraw deferred to Lean: notification.tla, Invariant 2.4 (the model checks the read at the call's instant, which the rule no longer names; its check is the stronger one and still holds), 2026-11-27
+last gate: 2026-11-27 — Final Critique 17, a delta round (diff base 9e5cfc06, 115 labels), one reader (Linus, on opencode/beam-free, then anthropic/claude-sonnet-5-5 once the free allowance ran out; GRID and EOS not run), frozen at 7bee90c7 — foundational count 2, cured, not clean, no sample: Invariant 2.4 no longer reads a read at an instant (the read's clock reading precedes its database read, Execution Contract Logic confinement 20, so a [Create] committed between the two could break it) and promises what the commit it answers from holds, no terminal stamp, with Check 2.1 citing Invariant 2.2 and Invariant 2.3 and Term pending at an instant left to the auditor's reconstruction; Capability requirement 8 keeps the failing and the expiring outcomes disjoint; the refining cure widened Deliver persistence 3 to a repeat after a lost reply
 
 open: none
 ```
