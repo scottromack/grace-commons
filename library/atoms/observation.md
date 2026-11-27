@@ -450,7 +450,7 @@ Operation 57: An admitted amend MUST record value and unit on the successor.
 
 #### Already Amended
 
-The refusal [Amend] returns when the target is already [Amended] — it has a successor, and amending it again would branch the chain, which Invariant 3 prohibits. A caller whose [Amend] answer was lost and who retries receives this refusal; the successor id stands on the original, which `read({observation_id: …})` answers carrying it (State 9, Operation 44).
+The refusal [Amend] returns when the target is already [Amended] — it has a successor, and amending it again would branch the chain, which Invariant 3 prohibits. A caller whose [Amend] answer was lost and who retries, where no other call changed the observation in between, receives this refusal; the successor id stands on the original, which `read({observation_id: …})` answers carrying it (State 9, Operation 44).
 
 Kind:       Member
 Member of:  the Amend rejection
@@ -607,7 +607,7 @@ Term string input: a reference, observation type, unit, reason OR a filter's val
 
 ```
 Capability requirement 5: The deployment MUST declare the clock allowance (Execution Contract Logic confinement 18).
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 4.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 5.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
@@ -831,7 +831,7 @@ Term terms: observation, observation id, subject reference, recording actor, obs
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -839,9 +839,9 @@ Term terms: observation, observation id, subject reference, recording actor, obs
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — observation.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2 through 6 in one state, 2026-06-03; coverage 2026-11-10, unit formal: more coverage for the yes votes); observation.tla + 14 twins (across steps, 2026-11-11, the retraction instant 2026-11-20: one observation's amendment chain under [Record], [Amend] and [Retract], refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 5.1, 6.1, 7.1, 8.1, 8.2, 9.1 and 10.1, Invariant 3.1, 3.2, 4.1 and 5.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 7, 8, 9 and 10: each compares an observation with a later version of it, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/observation.md formal layer`): no owed rows, 2026-11-11
-last gate: 2026-11-26 — Final Critique 10, frozen at da9bc143 — foundational count 2, cured, not clean, no sample (Capability requirement 6 omitted Execution Contract Database 5, the rule that keeps every committed version readable, which Check 1.1, 1.2 and 3.1 read; Term reference omitted the observation id, so no rule pinned how a call's id is compared with the stored one; the other reports were placed refining or refuted and their wording cures are in the same commit; Linus's pass lapsed for want of a `Files read:` line, and its findings stand); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 1e8567a9 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were refuted by both triages, since Operation 7's future bound refuses the future recording instant it named and no two conforming deployments differ on Identity 9, whose meaning across instances a deployment that gives one reference two meanings breaks; the blind second triage placed the second finding refining, Kind C: Identity 9 named no owner for the meaning of a subject reference across instances, cured by Composition note 11); 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
+last gate: 2026-11-27 — Final Critique 11, a delta round, one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 00ef299b — foundational count 0 after the blind second triage, clean, one sample; Linus's report counted foundational 0 with three refining items and one rhetorical, and the blind second triage (one cold Opus 5.5 subagent, run on the frozen page before any cure, which also pressed the delta set for itself) found none of its own; placed refining and cured: Capability requirement 6 cites Execution Contract Query 5 (the page's own invalid-query answers stand in place of its default), and the Already Amended retry sentence says where no other call changed the observation in between; the Example's happy path (no defect: the refusal paths stand in the action examples), the amending actor's attribution (a design the page states) and State 13's reference to Logic confinement 12 (the contract asks it be cited) stand; 2026-11-26 — Final Critique 10, frozen at da9bc143 — foundational count 2, cured, not clean, no sample (Capability requirement 6 omitted Execution Contract Database 5, the rule that keeps every committed version readable, which Check 1.1, 1.2 and 3.1 read; Term reference omitted the observation id, so no rule pinned how a call's id is compared with the stored one; the other reports were placed refining or refuted and their wording cures are in the same commit; Linus's pass lapsed for want of a `Files read:` line, and its findings stand); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 1e8567a9 — foundational count 0 after the blind second triage, clean, one sample (Linus's two foundational reports were refuted by both triages, since Operation 7's future bound refuses the future recording instant it named and no two conforming deployments differ on Identity 9, whose meaning across instances a deployment that gives one reference two meanings breaks; the blind second triage placed the second finding refining, Kind C: Identity 9 named no owner for the meaning of a subject reference across instances, cured by Composition note 11); 2026-11-05 — Final Critique 8, a delta round, frozen at 917cc95 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 7, a delta round, frozen at 83cd9e0 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 6 — foundational count 7, not clean, one sample
 
 open: none
 ```
