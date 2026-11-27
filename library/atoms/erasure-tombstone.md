@@ -158,6 +158,7 @@ The authority kind for a record destroyed because its retention ended. Every dep
 Kind:      Member
 Member of: the authority kind
 Role:      Outcome
+Projection: retention-purge
 
 #### Erasure Request
 
@@ -166,6 +167,7 @@ The authority kind for a record destroyed on a person's request to erase it. Eve
 Kind:      Member
 Member of: the authority kind
 Role:      Outcome
+Projection: erasure-request
 
 #### Duplicate
 
@@ -198,7 +200,7 @@ Projection: storage-failure
 
 #### Record Destruction
 
-The behavior a destroying pattern invokes, in the transaction that removes a record, to record that the record was destroyed. It takes the [Destroyed Pattern], [Destroyed Id], [Authority Kind], [Authority Reference] and [Actor Reference], stamps [Destruction Instant] from the injected [Now], and answers recorded. It refuses [Duplicate] where an erasure tombstone already names the pair, [Invalid Request] for a blank, over-long, non-string or unrecognized input, and [Storage Failure] where the database refuses the write. It reads nothing of the destroyed pattern.
+The behavior a destroying pattern invokes, in the transaction that removes a record, to record that the record was destroyed. It takes the [Destroyed Pattern], [Destroyed Id], [Authority Kind], [Authority Reference] and [Actor Reference], stamps [Destruction Instant] from the injected [Now], and answers [Recorded]. It refuses [Duplicate] where an erasure tombstone already names the pair, [Invalid Request] for a blank, over-long, non-string or unrecognized input, and [Storage Failure] where the database refuses the write. It reads nothing of the destroyed pattern.
 
 Kind: Operation
 
@@ -238,6 +240,13 @@ The case space, and the rule that owns each case:
 
 `record_destruction(...)` whose write the database refuses → storage-failure, and the delete it rode with rolls back: the record is still there, and still under retention (Operation 10, Execution Contract Constituent failure 1).
 
+#### Recorded
+
+The answer [Record Destruction] gives where the erasure tombstone landed: the call's acknowledgement, never stored.
+
+Kind:       Type
+Projection: recorded
+
 #### Now
 
 The current clock reading [Record Destruction] consumes, injected at the seam, never a signature parameter. It stamps [Destruction Instant] and nothing else.
@@ -250,7 +259,7 @@ Projection:   now
 
 #### Read Tombstone
 
-The behavior a reader invokes with a [Destroyed Pattern] and a [Destroyed Id] to learn whether the record was destroyed through this atom. It answers the erasure tombstone, or none. It only reads.
+The behavior a reader invokes with a [Destroyed Pattern] and a [Destroyed Id] to learn whether the record was destroyed through this atom. It answers the erasure tombstone, or [None]. It only reads.
 
 Kind: Operation
 
@@ -275,6 +284,15 @@ The case space, and the rule that owns each case:
 | [Read Tombstone] | no erasure tombstone names the pair | none | none (Operation 13) |
 | [Read Tombstone] | a blank pattern or id, a pattern or id over its cap, or a pattern or id that is not a string | [Invalid Request] | none (Operation 14) |
 
+#### None
+
+The answer [Read Tombstone] gives where no erasure tombstone names the destroyed pattern and the destroyed id. Not an error; nothing is written.
+
+Kind:       Member
+Member of:  the Read Tombstone answer
+Role:       Outcome
+Projection: none
+
 ### List Destroyed
 
 #### List Destroyed
@@ -291,7 +309,7 @@ list_destroyed(destroyed_pattern, window_start, window_end, optional continuatio
 
 ```
 Operation 15: [List Destroyed] MUST answer the matching erasure tombstones with the earliest listing keys, up to the page size.
-Operation 16: [List Destroyed] MUST order the answer by destruction instant, then by destroyed id.
+Operation 16: [List Destroyed] MUST order the answer by destruction instant, then by destroyed id (Execution Contract Read 5).
 Operation 18: IF window end PRECEDES window start THEN [List Destroyed] MUST answer invalid-request.
 Operation 19: IF destroyed pattern EQUALS blank OR destroyed pattern EXCEEDS the pattern name cap OR a string input of the call is malformed THEN [List Destroyed] MUST answer invalid-request (Execution Contract Query 1, Execution Contract Query 5).
 Operation 21: [List Destroyed] MUST NOT write.
@@ -305,7 +323,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [List Destroyed] | a pattern, a window, an optional continuation key | the matching erasure tombstones with the earliest listing keys, up to the page size, in listing-key order; none where none match | none (Operation 15, Operation 16, Operation 24) |
+| [List Destroyed] | a pattern, a window, an optional continuation key | the matching erasure tombstones with the earliest listing keys, up to the page size, in listing-key order; an empty answer where none match | none (Operation 15, Operation 16, Operation 24) |
 | [List Destroyed] | a window that ends before the window starts, a blank or malformed window start or window end, a malformed continuation key, or a blank, over-long or non-string pattern | [Invalid Request] | none (Operation 18, Operation 19, Operation 25, Operation 26, Operation 27) |
 
 `list_destroyed(destroyed_pattern: "event-log", window_start: 2033-04-01T00:00:00Z, window_end: 2033-03-01T00:00:00Z)` → invalid-request: the window ends before it starts (Operation 18).
@@ -341,7 +359,7 @@ Projection:   continuation_key
   Invariant 1.1: A recorded erasure tombstone's fields MUST NOT change.
   Invariant 1.2: The atom MUST NOT remove a recorded erasure tombstone.
   ```
-- **Invariant 2 — One erasure tombstone per destroyed record.**
+- **Invariant 2 — At most one erasure tombstone per destroyed record.**
   ```
   Invariant 2.1: Two erasure tombstones MUST NOT share a destroyed pattern and a destroyed id.
   Invariant 2.2: The database MUST NOT commit a write recording a second erasure tombstone for one destroyed pattern and one destroyed id.
@@ -349,9 +367,9 @@ Projection:   continuation_key
 - **Invariant 3 — No content of the destroyed record.**
   ```
   Invariant 3.1: An erasure tombstone MUST NOT carry a payload of the destroyed record.
-  Invariant 3.2: The atom MUST NOT accept an input naming a field of the destroyed record beside destroyed pattern and destroyed id.
+  Invariant 3.2: The atom MUST NOT accept an input whose name EQUALS a field name of the destroyed record other than destroyed pattern and destroyed id.
   ```
-- **Invariant 4 — Every destruction carries its authority and its actor.**
+- **Invariant 4 — Every erasure tombstone carries its authority and its actor.**
   ```
   Invariant 4.1: The atom MUST NOT record an erasure tombstone whose authority kind IS NOT IN the recognized kinds.
   Invariant 4.2: EVERY erasure tombstone's authority reference MUST stand non-blank.
@@ -362,7 +380,7 @@ Projection:   continuation_key
   Invariant 5.1: Two [List Destroyed] calls with one destroyed pattern, one window and one continuation key MUST answer one sequence of erasure tombstones over one database state.
   ```
 
-Invariants 1 and 2 give *permanence*: an erasure tombstone, once recorded, reads the same forever, and a destroyed record has at most one. Invariant 3 gives *lawful permanence*: the erasure tombstone holds nothing of what was destroyed, which is why the erasure tombstone may outlive the retention of the record the erasure tombstone names. Invariant 4 gives *authority*: every destruction answers under what and by whom. Invariant 5 gives *rebuildability*: a seal or an index that lists the destroyed members of a range gets, over one database state, the same members in the same order every time.
+Invariants 1 and 2 give *permanence*: an erasure tombstone, once recorded, reads the same forever, and a destroyed record has at most one. No writing action of this atom is undone, and none needs an undo: a [Record Destruction] leaves an erasure tombstone that no action changes or removes (Invariant 1.1, Invariant 1.2), so no undo is owed (Execution Contract Undo 4). Invariant 3 gives *lawful permanence*: the erasure tombstone holds nothing of what was destroyed, which is why the erasure tombstone may outlive the retention of the record the erasure tombstone names. Invariant 4 gives *authority*: every erasure tombstone answers under what and by whom. Invariant 5 gives *rebuildability*: a seal or an index that lists the destroyed members of a range gets, over one database state, the same members in the same order every time.
 
 ---
 
@@ -373,6 +391,7 @@ Invariants 1 and 2 give *permanence*: an erasure tombstone, once recorded, reads
 ```
 Concurrency 1: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id AND one call answers recorded THEN the other call MUST NOT answer recorded.
 Concurrency 2: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id AND one call answers recorded AND the other call reads after that call's write commits THEN the other call MUST answer duplicate.
+Concurrency 3: IF two [Record Destruction] calls name one destroyed pattern and one destroyed id AND both read before either write commits AND one call answers recorded THEN the other call, decided again on what the earlier call committed, MUST answer duplicate (Execution Contract Order 2, Execution Contract Database 2).
 ```
 
 ## While something is so
@@ -398,15 +417,15 @@ String 5: The atom MUST read a whitespace-only string input as blank (the gramma
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the erasure tombstone records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1, Execution Contract Query 3, Execution Contract Query 4, Execution Contract Query 5, Execution Contract Input 1 and Execution Contract Input 2.
+Capability requirement 2: The deployment MUST supply the erasure tombstone records PER Execution Contract Database 1 through 7, Execution Contract Order 2, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1, Execution Contract Query 3, Execution Contract Query 4, Execution Contract Query 5, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MAY declare a deployment kind.
-Capability requirement 4: The deployment MUST NOT remove retention-purge from the authority kinds.
-Capability requirement 5: The deployment MUST NOT remove erasure-request from the authority kinds.
+Capability requirement 4: The deployment MUST NOT remove retention-purge from the recognized kinds.
+Capability requirement 5: The deployment MUST NOT remove erasure-request from the recognized kinds.
 Capability requirement 6: The deployment MAY override the reference cap.
 Capability requirement 7: The deployment MAY override the pattern name cap.
 Capability requirement 8: The deployment MAY override the page size.
 Capability requirement 9: The deployment MAY override a bound ONLY IF the override EXCEEDS zero.
-Capability requirement 10: The deployment MUST NOT remove a deployment kind from the authority kinds.
+Capability requirement 10: The deployment MUST NOT remove a deployment kind from the recognized kinds.
 ```
 
 Term reference cap: 256 Unicode code points (Execution Contract Input 2) — the longest authority reference, destroyed id or actor reference an action accepts, unless the deployment overrides it.
@@ -441,16 +460,17 @@ Deleted: Non-goal 12. Non-goal 11 owns it: the atom seals no erasure tombstone, 
 Non-goal 13: The atom MUST NOT purge an erasure tombstone.
 Non-goal 14: The atom MUST NOT gate a read of an erasure tombstone.
 Deleted: Non-goal 15. Non-goal 14 owns it: the atom gates no read; the app's permission does.
+Non-goal 16: The atom MUST NOT hold the pages of one [List Destroyed] listing to one database state.
 ```
 
-NOTE: the owners — a lawful-disposal pattern (Non-goal 1 through 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); Shred *(forthcoming)* (Non-goal 7, Non-goal 8); an attestation pattern (Non-goal 9, Non-goal 10); a tamper-evidence pattern (Non-goal 11, Non-goal 12); the atom's own permanence, Invariant 1.2 (Non-goal 13); the app's permission (Non-goal 14, Non-goal 15).
+NOTE: the owners — a lawful-disposal pattern (Non-goal 1 through 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); Shred *(forthcoming)* (Non-goal 7, Non-goal 8); an attestation pattern (Non-goal 9, Non-goal 10); Tamper Evidence (Non-goal 11, Non-goal 12); the atom's own permanence, Invariant 1.2 (Non-goal 13); the app's permission (Non-goal 14, Non-goal 15); the rebuilding auditor's second listing from the window start, which finds an erasure tombstone that committed under an earlier listing key after a page was read (Non-goal 16, External check 3).
 
 ```
 Composition note 1: A composing pattern MUST call [Record Destruction] in the transaction that removes the destroyed record (Execution Contract Database 1).
 Composition note 2: A composing pattern MUST supply an opaque destroyed id that names one record of the destroyed pattern.
 Composition note 3: A composing pattern MUST NOT supply a destroyed id derived from a person's data.
 Composition note 4: A composing pattern MUST own the authority reference's meaning.
-Composition note 5: A composing pattern MUST call [Read Tombstone] for a destroyed id the destroyed pattern's database holds no record for.
+Composition note 5: A composing pattern MUST call [Read Tombstone] for an id the destroyed pattern's database holds no record for.
 Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable (Execution Contract Read 1) THEN a composing pattern MUST NOT remove the destroyed record.
 Composition note 7: A composing pattern MUST own whether a duplicate answer permits removing the destroyed record.
 Composition note 8: A composing pattern MUST NOT supply an authority reference derived from a person's data.
@@ -480,9 +500,9 @@ A deployment overrides the page size to 2 (Capability requirement 8), and three 
 ### Regulated adversarial scenarios
 
 - **Regulator audit — was this record destroyed or lost?** A regulator finds an index entry naming a transaction the database no longer holds. [Read Tombstone] answers the destruction instant, the retention that authorized it and the service that carried it out. An answer of none means the record left by no destruction this atom recorded, and that is itself the finding to investigate (Operation 13).
-- **Rebuilding a seal's coverage.** An auditor rebuilding the coverage of a day's seal lists the destroyed members of that day with [List Destroyed], page by page, and two auditors running over one database state get the same members in the same order, so two auditors reach one coverage (Invariant 5.1).
+- **Rebuilding a seal's coverage.** An auditor rebuilding the coverage of a day's seal lists the destroyed members of that day with [List Destroyed], page by page, and two auditors running over one database state get the same members in the same order, so two auditors reach one coverage (Invariant 5.1); an auditor lists again from the window start after the last page, to meet an erasure tombstone that committed under an earlier listing key meanwhile (Non-goal 16, External check 3).
 - **A person asks whether their record was erased.** A data subject disputes that their preference record went. [Read Tombstone] for the pair answers the destruction instant, the authority kind (an erasure-request) and the request that authorized it; an answer of none is no proof the record was never erased by another route (Operation 12, Operation 13, Non-goal 1).
-- **A breach investigation.** After a breach, investigators ask which records left lawfully before it. [List Destroyed] over the breach window lists the matching erasure tombstones, earliest first, page by page, each page one database state's answer, so a record gone with no erasure tombstone stands out from one destroyed with its authority recorded; a tombstone stamped after a page was read stands on a later listing, the clock's order being the deployment's (Execution Contract Logic confinement 7; Operation 15, Invariant 5.1).
+- **A breach investigation.** After a breach, investigators ask which records left lawfully before it. [List Destroyed] over the breach window lists the matching erasure tombstones, earliest first, page by page, each page one database state's answer, so a record gone with no erasure tombstone stands out from one destroyed with its authority recorded; a tombstone that commits after a page was read stands on a later page of that listing only where its listing key follows the continuation key, and on a fresh listing from the window start always, since the clock's order and the commit order are not one (Execution Contract Order 2, Execution Contract Logic confinement 7; Operation 15, Invariant 5.1, Non-goal 16).
 - **An erasure that came back.** A backup is restored and a deleted record reappears. Its erasure tombstone still stands, naming when and why it was destroyed, so the restore's reconciliation finds the record that should not be there (Invariant 1.1). A second destruction of the restored record answers duplicate and the erasure tombstone keeps the first destruction's instant and authority (Operation 4).
 
 ---
@@ -525,6 +545,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 ```
 External check 1: An auditor MUST read whether a destruction was lawful from the destroying pattern's records (Non-goal 3).
 External check 2: An auditor MUST read whether the destroyed record left the database from the destroyed pattern's database (Non-goal 1).
+External check 3: An auditor MUST list again from the window start, once the last page is read, to find an erasure tombstone that committed under an earlier listing key meanwhile (Non-goal 16).
 ```
 
 ### Vocabulary
@@ -535,7 +556,7 @@ Term actors: the atom; the host; the deployment; a composing pattern; a caller; 
 
 Term records: erasure tombstone — the record that one record was destroyed, carrying destroyed pattern, destroyed id, destruction instant, authority kind, authority reference and actor reference.
 
-Term record verbs: name, commit, gate, identify, share, interpret, carry, offer, remove, supply, declare, override, record, stamp, answer, read, write, order, fall, change, refuse, accept, stand, call, own, confirm, judge, compose, weigh, delete, attest, seal, purge, compare, trim, normalize, case-fold, find.
+Term record verbs: name, commit, gate, identify, share, interpret, carry, offer, remove, supply, declare, override, record, stamp, answer, read, write, order, fall, change, refuse, accept, stand, call, own, confirm, judge, compose, weigh, delete, attest, seal, purge, compare, trim, normalize, case-fold, find, hold, list.
 
 Term value sets: authority kind = retention-purge | erasure-request | a deployment kind.
 
@@ -560,6 +581,8 @@ Term terms: erasure tombstone, destroyed id, destroyed pattern, authority refere
 [Authority Reference]: #authority-reference
 [Actor Reference]: #actor-reference
 [Now]: #now
+[Recorded]: #recorded
+[None]: #none
 [Window Start]: #window-start
 [Window End]: #window-end
 [Continuation Key]: #continuation-key
@@ -581,7 +604,7 @@ Term terms: erasure tombstone, destroyed id, destroyed pattern, authority refere
 ```
 status: doing
 formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
-last gate: 2026-11-20 — Final Critique 5, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 94946e30 — foundational count 0 after the blind second triage, clean, one sample (Linus's one report claimed one foundational, that no Operation obliges [List Destroyed] to return a continuation key and none says how a caller obtains one; both triages refuted it, since Term continuation key is the listing key of the last erasure tombstone a previous call answered, Term listing key is a tombstone's destruction instant paired with its destroyed id, and State 1 makes every tombstone carry both, so the caller reads the key off the answer it holds, as the Example does, and a build that adds a separate key to the answer changes no sequence an Operation 15 answer holds; the blind second triage placed it refuted, Kind A, where the first triage wrote Kind D; no refining or rhetorical finding); 2026-11-20 — Final Critique 4, a delta round, frozen at 03f5c83 — foundational count 1 after the blind second triage (the first triage placed it refining), cured in the round, not clean, one sample (Linus's one report claimed two foundational, both refuted by both triages: Term destruction instant's appositive against Operation 2 and Clock dependence 2, since a build taking the destroying pattern's instant breaks them, its wording and the Destruction Instant entry's cured with it; a removal with no tombstone after a lost answer, since Composition note 1 and Database 1 commit the removal and the tombstone together; the blind second triage placed one refining report foundational, Kind A, the continuation key's blank or over-cap destroyed id, cured by Term continuation key naming it malformed; refining: the listing key's comparison cured in Term matching erasure tombstone, the page size floor and the pair's serialization refuted by Capability requirement 9 and by Database 2 with Concurrency 1, and the missing more-pages signal left, since the answer's shape and Operation 15 fix it; rhetorical NOTE wordings left); 2026-11-20 — Final Critique 3, a full round, frozen at 9db4fbc — foundational count 3, all cured, not clean, no sample; 2026-11-03 — Final Critique 2, delta, frozen at aeea14e — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 6, a full round, frozen at cf9777df — foundational count 2, both cured, not clean, no sample
 
 open: none
 ```
