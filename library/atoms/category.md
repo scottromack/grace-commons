@@ -190,6 +190,8 @@ Term highest position: the highest position among the named category's siblings,
 
 Term next position: `(highest_position + 1)` — what a creating action stamps as the category's position.
 
+Term items: the item references [List Items] answers, one for each item whose home carries the category id — an empty list where none does.
+
 Term menu: the row of categories a composing pattern shows, drawn from the categories the atom holds; the atom keeps each category's status and position, which say what the menu shows and in what order, and draws nothing (Non-goal 7).
 
 The case space, and the rule that owns each case:
@@ -725,7 +727,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from Scott's forum sketch and the Massachusetts Institute of Technology's sync-engine Labeling concept.
 
-Term terms: category, categories, category id, category name, parent category, siblings, sibling, ancestor, ancestors, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, highest position, next position, menu, version.
+Term terms: category, categories, category id, category name, parent category, siblings, sibling, ancestor, ancestors, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, highest position, next position, items, menu, version.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->
@@ -763,7 +765,7 @@ Term terms: category, categories, category id, category name, parent category, s
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -771,9 +773,9 @@ Term terms: category, categories, category id, category name, parent category, s
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-27 — Final Critique 5, a full round, frozen at 3e5074a7 — foundational count 4, cured, not clean, one sample
+last gate: 2026-11-27 — Final Critique 6, a delta round (diff base 3e5074a7, 52 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Term highest position has no named category on a creating action, was refuted by Term named category, which the delta set did not hold: for [Create] and [Create Under] it is the category the call would record, whose siblings are the parent's children or the top-level categories; the one refining finding, that the `items` arm of [List Items] was no declared name, is cured by Term items)
 
 open: none
 ```

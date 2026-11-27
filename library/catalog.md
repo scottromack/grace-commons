@@ -42,7 +42,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints cart id, line id. Offers key cart id; key line id.
 
-**[Category](./atoms/category.md)** (795 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
+**[Category](./atoms/category.md)** (797 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
 
 - Mints category id. Offers key category id.
 
