@@ -30,7 +30,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints place id. Offers key place id.
 
-**[Capability](./atoms/capability.md)** (900 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
+**[Capability](./atoms/capability.md)** (902 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
