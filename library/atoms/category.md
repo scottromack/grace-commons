@@ -38,6 +38,8 @@ Identity 4: The atom MUST NOT normalize an item reference.
 Identity 5: The atom MUST compare two item references codepoint for codepoint.
 Identity 6: The atom MUST NOT normalize a category name.
 Identity 7: The atom MUST compare two category names codepoint for codepoint.
+Identity 8: The atom MUST NOT normalize a category id.
+Identity 9: The atom MUST compare two category ids codepoint for codepoint.
 ```
 
 Term category: one named place in the tree, top level or under another category — a [Category].
@@ -48,9 +50,13 @@ Term parent category: the category a category sits under; a top-level category h
 
 Term siblings: categories sharing one parent category, or all top-level categories; no category is a sibling of itself.
 
-Term position: a whole number giving a category's place among the category's siblings, lowest first — a [Position].
+Term ancestor: a category's parent category, or an ancestor of the category's parent category.
+
+Term position: a whole number of one or more giving a category's place among the category's siblings, lowest first — a [Position].
 
 Term home: the record filing one item in one category — a [Home].
+
+NOTE: Capability requirement 3, Capability requirement 4 and Capability requirement 6 are the atom's own rule for the canonical form of the item reference, the category name and the category id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 4, Identity 6, Identity 8).
 
 ```
 State 1: EVERY category MUST carry category id, category name, position and status.
@@ -59,6 +65,7 @@ State 3: EVERY home MUST carry item reference and category id.
 State 4: EVERY home MUST carry the category id of a category the database holds.
 State 5: The atom MUST NOT remove a category.
 State 6: EVERY category carrying a parent category MUST carry the category id of a category the database holds.
+State 7: EVERY category MUST carry a position that EXCEEDS zero.
 ```
 
 Term status: where a category stands in the menu, listed or hidden — the [Status].
@@ -66,6 +73,8 @@ Term status: where a category stands in the menu, listed or hidden — the [Stat
 Term listed: the status of a category the menu shows — [Listed].
 
 Term hidden: the status of a category the menu leaves out — [Hidden]; homes in a hidden category stand.
+
+NOTE: [Hide] stands the one category in hidden (Operation 13); a category under it keeps its own status, and whether a menu shows it is the composing pattern's (Non-goal 7).
 
 #### Category
 
@@ -91,7 +100,7 @@ Projection: category_name
 
 #### Parent Category
 
-The category id of the category a category sits under; a top-level category has none. Set once, never changed.
+The category id of the category a category sits under; a top-level category has none. Set once, never changed by the atom.
 
 Kind:       Field
 Field of:   Category
@@ -99,7 +108,7 @@ Projection: parent_category_id
 
 #### Position
 
-A whole number above zero giving a category's place among the category's siblings, lowest first; ties fall to codepoint order of name.
+A whole number above zero giving a category's place among the category's siblings, lowest first; Operation 24 orders two siblings carrying one position.
 
 Kind:       Field
 Field of:   Category
@@ -165,14 +174,14 @@ Operation 20: A changing action MUST answer ok.
 Operation 25: A reading action MUST NOT write.
 Operation 26: IF the category name of the call is malformed THEN a naming action MUST answer invalid-category-name (Execution Contract Input 1).
 Operation 27: IF the item reference of the call is malformed THEN a filing action MUST answer invalid-item-reference (Execution Contract Input 1).
-NOTE: Operation 11, 12, 16 and 17 take the changed-value condition, so each is disjoint from the no-write rule of its action, Operation 34, 33 and 35, as Operation 13 and 15, and Operation 14 and 31, are.
+NOTE: Operation 11 and 12 take the changed-value condition, and Operation 16 and 17 the no-home and other-home conditions, so each is disjoint from the no-write rule of its action, Operation 34, 33 and 35, as Operation 13 and 15, and Operation 14 and 31, are.
 ```
 
 Term naming action: [Create] | [Create Under] | [Rename] — the actions that set a category name.
 
 Term creating action: [Create] | [Create Under] — the actions that record a new category.
 
-Term category action: [Create Under] | [Rename] | [Reorder] | [Hide] | [Show] | [Place] | [Read Category] — the actions that name a category by category id and refuse one no category carries; [List Items] names one too and answers an empty list instead (Operation 29).
+Term category action: [Create Under] | [Rename] | [Reorder] | [Hide] | [Show] | [Place] | [Read Category] — the actions that name a category by category id and refuse one no category carries; [List Items] names one too and answers an empty list instead (Operation 29, Operation 32).
 
 Term filing action: [Place] | [Unplace] — the actions that set an item's home.
 
@@ -238,7 +247,7 @@ Projection: unknown-category
 
 #### Invalid Position
 
-The refusal of a [Position] that is blank, zero, below zero, or not a whole number, on [Reorder] (Operation 5).
+The refusal of a [Position] that is blank, zero, below zero, or not a whole number, on [Reorder] (Operation 5, Operation 30).
 
 Kind:       Member
 Member of:  the action rejection
@@ -278,7 +287,7 @@ create(category_name)
 ```
 
 ```
-Operation 6: [Create] MUST record EXACTLY ONE top-level category carrying the category name of the call.
+Operation 6: [Create] MUST record EXACTLY ONE top-level category carrying the category id the seam supplies AND the category name of the call.
 ```
 
 The case space, and the rule that owns each case:
@@ -302,7 +311,7 @@ create_under(category_id, category_name)
 ```
 
 ```
-Operation 7: [Create Under] MUST record EXACTLY ONE category carrying the category name of the call AND the category id of the call as parent category.
+Operation 7: [Create Under] MUST record EXACTLY ONE category carrying the category id the seam supplies, the category name of the call AND the category id of the call as parent category.
 ```
 
 The case space, and the rule that owns each case:
@@ -356,13 +365,14 @@ Operation 5: IF the position EQUALS blank OR the position DOES NOT EXCEED zero T
 Operation 12: IF the call changes the category's position THEN [Reorder] MUST replace the category's position with the position of the call.
 Operation 30: IF the position is malformed THEN [Reorder] MUST answer invalid-position (Execution Contract Input 1).
 Operation 33: IF the category carries the position of the call THEN [Reorder] MUST NOT write.
+Operation 38: [Reorder] MUST NOT change the position of a category the call does not name.
 ```
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect |
 |---|---|---|---|
-| [Reorder] | the category exists, position a whole number above zero, and the call changes the category's position | ok | the position replaced (Operation 12) |
+| [Reorder] | the category exists, position a whole number above zero, and the call changes the category's position | ok | the position replaced; no other category's position changes (Operation 12, Operation 38) |
 | [Reorder] | position blank, zero, below zero, or not a whole number | [Invalid Position] | none (Operation 5, Operation 30) |
 
 ### Hide
@@ -431,8 +441,8 @@ place(item_reference, category_id)
 ```
 
 ```
-Operation 16: IF the call changes the item reference's home THEN [Place] MUST record EXACTLY ONE home for the item reference, carrying the category id of the call.
-Operation 17: IF the call changes the item reference's home THEN [Place] MUST replace any earlier home of the item reference.
+Operation 16: IF no home carries the item reference THEN [Place] MUST record EXACTLY ONE home for the item reference, carrying the category id of the call.
+Operation 17: IF a home carries the item reference AND the home's category id DOES NOT EQUAL the category id of the call THEN [Place] MUST replace the home's category id with the category id of the call.
 Operation 35: IF the item reference's home carries the category id of the call THEN [Place] MUST NOT write.
 ```
 
@@ -440,7 +450,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect |
 |---|---|---|---|
-| [Place] | item reference valid, the category exists, and the call changes the item's home | ok | the item's home is the category; any earlier home is replaced (Operation 16, Operation 17) |
+| [Place] | item reference valid, the category exists, and the item has no home | ok | one home lands carrying the category (Operation 16) |
+| [Place] | item reference valid, the category exists, and the item's home is another category | ok | the home's category is replaced by the category (Operation 17) |
 
 ### Unplace
 
@@ -508,7 +519,7 @@ list_items(category_id)
 ```
 
 ```
-Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in codepoint order.
+Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in codepoint order (Execution Contract Logic confinement 10).
 Operation 29: IF no category carries the category id THEN [List Items] MUST answer an empty list.
 Operation 32: IF the category id EQUALS blank OR the category id is malformed THEN [List Items] MUST answer an empty list (Execution Contract Query 5).
 ```
@@ -534,7 +545,7 @@ tree()
 ```
 
 ```
-Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in codepoint order of category name.
+Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in codepoint order of category name (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -571,44 +582,50 @@ The case space, and the rule that owns each case:
 
 ## What is and what should never be (Invariants)
 
-- **Invariant 1 — A category never moves in the tree.**
-  ```
-  Invariant 1.1: The atom MUST NOT change a category's category id.
-  Invariant 1.2: The atom MUST NOT change a category's parent category.
-  ```
 - **Invariant 2 — Names and homes stay one each.**
   ```
   Invariant 2.1: Two siblings MUST NOT share a category name.
   Invariant 2.2: Two homes MUST NOT share an item reference.
   Invariant 2.3: Two categories MUST NOT share a category id.
   ```
+- **Invariant 3 — The tree has no loop.**
+  ```
+  Invariant 3.1: A category MUST NOT stand among the category's ancestors.
+  ```
+- **Invariant 1 — A category never moves in the tree.**
+  ```
+  Invariant 1.1: The atom MUST NOT change a category's category id.
+  Invariant 1.2: The atom MUST NOT change a category's parent category.
+  ```
 
 ## When something happens
 
 ### Concurrency
 
-Two [Create Under] calls with one parent and one name are serialized (Execution Contract Database 2): the later meets the earlier's category and answers [Name Taken], so siblings never share a name. Two [Place] calls for one item are serialized the same way, and the item's home is the later's.
+Two [Create] calls with one name, or two [Create Under] calls with one parent and one name, are serialized (Execution Contract Database 2): the later meets the earlier's category and answers [Name Taken], so siblings never share a name. Two [Place] calls for one item are serialized the same way, and the item's home is the later's (Execution Contract Order 2).
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Place], [Unplace], [Hide], [Show], [Rename] or [Reorder] where the first landed changes nothing and answers ok. A repeated [Create] or [Create Under] where the first landed answers [Name Taken], which tells the caller the category exists; [Tree] answers its category id.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). Where no other call changed the category or the home in between, a repeated [Place], [Unplace], [Hide], [Show], [Rename] or [Reorder] where the first landed changes nothing and answers ok, and a repeated [Create] or [Create Under] where the first landed answers [Name Taken], which tells the caller the category exists; [Tree] answers its category id. Where another call did change it, the repeat is decided afresh on what that call left (Execution Contract Database 2).
 
 ### What undoes a write
 
-[Show] undoes [Hide] and [Hide] undoes [Show]; a [Rename] or a [Reorder] is undone by another carrying the earlier value, which the category's earlier versions hold; a [Place] is undone by a [Place] to the earlier home or by [Unplace]; an [Unplace] is undone by a [Place] to the home the home's earlier versions hold. A [Create] is undone by hiding the category, since the atom removes no category (Execution Contract Undo 4).
+[Show] undoes [Hide] and [Hide] undoes [Show]; a [Rename] or a [Reorder] is undone by another carrying the earlier value, which the category's earlier versions hold; a [Place] is undone by a [Place] to the earlier home or by [Unplace]; an [Unplace] is undone by a [Place] to the home the home's earlier versions hold. A [Create] or a [Create Under] is undone by hiding the category, since the atom removes no category (State 5; Execution Contract Undo 4).
 
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MAY declare the string cap PER Execution Contract Input 2 and Execution Contract Logic confinement 17.
 Capability requirement 3: The deployment MUST NOT normalize an item reference at the seam.
 Capability requirement 4: The deployment MUST NOT normalize a category name at the seam.
+Capability requirement 5: The deployment MUST supply at the seam, for each creating action call, a category id no category has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
+Capability requirement 6: The deployment MUST NOT normalize a category id at the seam.
 ```
 
 Term string cap: the one bound on an item reference's length and on a category name's length in Unicode code points; 1,024 code points where a deployment declares none, and a deployment declares one value for both.
 
-Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
+Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the category id a creating action records here (Capability requirement 5).
 
 ## Offers
 
@@ -629,7 +646,7 @@ Non-goal 7: The atom MUST NOT draw the menu.
 Non-goal 8: The atom MUST NOT count the items in a category.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on a session or the app's permission (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); a tag pattern (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or the app's [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Tag](./tag.md) (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
 
 Where the atom breaks down: several names on one item, found through any of the names, which is a tag pattern's; a folder a person keeps for their own items, which is a collection *(forthcoming)*.
 
@@ -674,8 +691,11 @@ Check 1.2: An auditor MUST find EVERY category standing in EXACTLY ONE OF listed
 Check 1.3: An auditor MUST find EVERY home carrying the category id of a category the database holds (State 4).
 Check 1.4: An auditor MUST find an unfiltered read answering EVERY category with a committed version (State 5; Execution Contract Generation acceptance 1).
 Check 1.5: An auditor MUST find EVERY parent category naming a category the database holds (State 6).
-Check 2.1: An auditor MUST find EVERY version of a category carrying the parent category of the category's first version (Invariant 1.2).
+Check 1.6: An auditor MUST find EVERY home carrying item reference AND category id (State 3).
+Check 1.7: An auditor MUST find EVERY category carrying a position that EXCEEDS zero (State 7).
+Check 2.1: An auditor MUST find EVERY version of a category that an action of the atom wrote, the first version excepted, carrying the parent category of the category's preceding version (Invariant 1.2; Execution Contract Database 6, Execution Contract Generation acceptance 1).
 Check 2.2: An auditor MUST find EVERY version of a category carrying the category id of the category's first version (Invariant 1.1).
+Check 2.3: An auditor MUST find no category standing among the category's ancestors (Invariant 3.1; Execution Contract Database 8).
 Check 3.1: An auditor MUST find no two siblings sharing a category name (Invariant 2.1).
 Check 3.2: An auditor MUST find no two homes sharing an item reference (Invariant 2.2).
 Check 3.3: An auditor MUST find no two categories sharing a category id (Invariant 2.3).
@@ -689,6 +709,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 3).
+External check 2: An auditor needing a version of a category told apart as written by an action another specification declares, such as a move, MUST read that specification's records (Non-goal 5; Execution Contract Database 4, Execution Contract Database 6).
 ```
 
 ### Vocabulary
@@ -709,7 +730,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from Scott's forum sketch and the Massachusetts Institute of Technology's sync-engine Labeling concept.
 
-Term terms: category, categories, category id, category name, parent category, siblings, sibling, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, highest position, next position, menu, version.
+Term terms: category, categories, category id, category name, parent category, siblings, sibling, ancestor, ancestors, position, home, homes, item reference, string cap, seam, status, listed, hidden, naming action, creating action, category action, filing action, changing action, reading action, named category, highest position, next position, menu, version.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->
@@ -757,7 +778,7 @@ Term terms: category, categories, category id, category name, parent category, s
 ```
 status: doing
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 4, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 0 foundational, 7 refining and 3 rhetorical, placed by both triages: R2 (no row for a call that changes nothing, row 211 is it), R3 (a rename to the own name, Term siblings), H1 and H2 (the declared value sets and the defined term) refuted; the two refining items cured, Operation 1, 2, 4, 26, 27 and 28 name the call's own input as 'of the call' (R1) and Term bounds cites Term string cap and no longer restates it (R5); the Invalid Category Name entry names its actions and the NOTE beneath Operation 35 says 'the no-write rule of its action' (R4, R6, declined as rhetorical by the blind second triage and cured for one form); Operation 28's overlapping arms (R7) and 'declares none' (H3, the siblings' one form) left as they stand; 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 53102bba — foundational count 0 after the blind second triage, clean, one sample; Linus's one report claimed 1 foundational, 4 refining and 1 rhetorical: the foundational is the open line 2026-11-19-a re-found (Operation 11, 12, 16 and 17 bind unconditionally beside Operation 33 through 35), placed refining Kind B by both triages, since a build that writes a new identical version breaks Operation 33 through 35 and an implementation that writes nothing obeys every rule, so two conforming builds do not differ; the line's premise that the grammar has no form for a value the record does not already carry was false (Moderation's Operation 15 and 16 say the move changes the standing and leaves it as it was, and Operation 33 through 35 use the predicate carries, not EQUALS, which Hard invariant 14 governs), so the line is closed: cured, Operation 11, 12, 16 and 17 take the condition that the call changes the category's name, position or the item's home, and the three case-table rows of the replacing rules say so; the four refining items refuted (the answer ok has its owner in Operation 20, Identity 6 and 7 and Capability requirement 4 bar normalizing a name, no rule clamps a position, Invariant 2.2 and Database 2 settle two concurrent places), the rhetorical declined; 2026-11-19 — Final Critique 2, a delta round, one reader (Linus beam-free), frozen at 990cf087 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's report claimed 1 foundational, 2 refining, and the first triage placed none held (the foundational refuted: Term named category defines the named category of [Create] and [Create Under] as the category the call would record, so Term highest position reads the new category's siblings and Operation 8's next position is one reading; the delta set omitted that term, which Term highest position cites, so the reader could not see it; refining: Operation 24's name tiebreak decides duplicate positions, and Non-goal 7 with Composition note 1 give the menu of a hidden parent's children to the composing pattern); the blind second triage's press found one foundational beside them, the settle's own, cured: [Rename], [Reorder] and [Place] repeated with the value already standing wrote a new identical version in one build and nothing in another (the page's Indeterminate outcome says such a repeat changes nothing, and Operation 15, 19 and 31 carry the no-write rule for [Hide], [Show] and [Unplace] alone), so Operation 33 through 35 forbid the write and the case table carries the row, opening 2026-11-19-a for the unstated exception the checker names beside the replacing rules; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 5, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 5, a full round, frozen at 3e5074a7 — foundational count 4, cured, not clean, one sample
 
 open: none
 ```

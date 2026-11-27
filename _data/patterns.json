@@ -392,7 +392,7 @@
   "composed_by": [],
   "domain": null,
   "done": false,
-  "invariants": 2,
+  "invariants": 3,
   "kind": "atom",
   "models": {
    "als": false,
