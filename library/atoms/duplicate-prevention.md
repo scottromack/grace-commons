@@ -139,13 +139,17 @@ Operation 14: IF the database refuses the write THEN [Record] MUST answer storag
 
 Term landed record: a [Record] call the action admits (Execution Contract Read 4).
 
+Term opening record: the landed record that placed an identity under guard, whose injected now the guard is anchored to (Clock semantics 1).
+
+Term guard miss: an identity that is not under guard which a [Record] whose write the database refused leaves not under guard (Record failure 2).
+
 The case space, and the rule that owns each case:
 
 | Call | Identity under guard? | Answer | Effect on the recorded set |
 |---|---|---|---|
 | [Record] | no | ok | enters under guard, recording instant from the injected now (Operation 1, Clock semantics 1) |
 | [Record] | yes | ok | unchanged — the original recording instant stands (Invariant 2.1, Invariant 2.2) |
-| [Record] | either, and the database refuses the write | [Storage Failure] | unchanged — for an identity that was not under guard, the guard is missed (Operation 14, Record failure 2) |
+| [Record] | either, and the database refuses the write | [Storage Failure] | unchanged — for an identity that was not under guard, the guard is missed; for one under guard, the guard stands (Operation 14, Record failure 2, Execution Contract Read 4, Execution Contract Database 3) |
 
 #### Storage Failure
 
@@ -209,8 +213,6 @@ A payment processor calls [Check] while the database cannot be read: [Check] ans
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recording instant of an identity under guard.
   ```
-- **Invariant 4 — Eventual expiry.**
-
 - **Invariant 3 — Idempotency of check.**
   ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
@@ -224,7 +226,7 @@ A payment processor calls [Check] while the database cannot be read: [Check] ans
 
 ```
 Record failure 2: The atom MUST treat a failed write as a guard miss for an identity that is not under guard.
-Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
+Record failure 3: The atom MUST NOT treat a failed write as a breach of an invariant.
 ```
 
 ## While something is so
@@ -247,7 +249,7 @@ The atom claims behaviour and not storage: Operation 7 answers not-seen for an i
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
 Capability requirement 2: The deployment MUST supply the database PER Execution Contract Database 1 through 4, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 ```
 
@@ -267,7 +269,7 @@ Non-goal 13: A pattern needing a guard whose order never repeats or goes backwar
 Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Defensible Retention.
 ```
 
-NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); [Audit Trail](../compositions/audit-trail.md) (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 14).
+NOTE: the owners — the containing pattern (Non-goal 1; Non-goal 8, Identity 5); the deployment, for each instance's own guard in the database it supplies (Non-goal 4, Non-goal 5, Non-goal 12); a Coordination pattern *(forthcoming)*, for one guard across every instance (Non-goal 4, Non-goal 5); [Audit Trail](../compositions/audit-trail.md) (Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); [Calendar Time](./calendar-time.md) (Non-goal 10, Non-goal 11); a Logical Clock pattern *(forthcoming)* (Non-goal 13); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 14).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -321,7 +323,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
-External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own database (Record failure 2).
+External check 3: An auditor needing a guard miss confirmed MUST read the containing pattern's own record of the [Record] call that answered storage-failure, since the deployment's own database holds no entry for the identity (Record failure 2).
 ```
 
 ### Vocabulary
@@ -342,7 +344,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); under guard — recorded, and the guard's term not yet elapsed.
 
-Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller, landed record.
+Term terms: identity, matching rule, recorded set, recording instant, window duration, elapsed term, under guard, now, transition, seam, business caller, landed record, opening record, guard miss.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -373,7 +375,7 @@ Term terms: identity, matching rule, recorded set, recording instant, window dur
 ```
 status: done — 2026-11-20
 formal: verified — duplicate-prevention.tla + 1 twin (2026-06-03); duplicate-prevention.als + 8 twins (the static data model, 2026-11-11: State 1, Operation 5, 6 and 7 and Invariant 2.1, 2.2 and 3.1 and Operation 1 checked on every recorded set and every answer the [Record] and [Check] calls leave, Invariant 2.1 and 2.2 a cross-check with the TLA+ model; the rules that own the deleted Invariant 1, 3.2 and 4 are among them); coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11
-last gate: 2026-11-21 — Final Critique 10, a delta round, one reader (Linus beam-free), frozen at 03db0d73 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Operation 5 obliges [Check] to answer exactly one of seen, not-seen while Execution Contract Read 1 answers state-unavailable on a failed read, was refuted by both triages: Read 2 limits every rule that says what an action answers to a call whose read answered, so Operation 5 never reaches a failed read, Read 1 answers it, and the page cites Read 1 through Capability requirement 2 and does not restate it; the finder's cure would also have Check 3.1 count a state-unavailable answer, which Read 3 says says nothing about the records); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 894be4e7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that the owners NOTE names four forthcoming patterns that do not exist, was refuted by both triages: spec-format.md's Non-goals section prescribes the forthcoming marker, the NOTE changes no rule, and Non-goal 5 binds a deployment needing one guard across every instance to compose a coordination pattern whether or not it has landed; its refining and rhetorical reports were refuted too; the blind second triage placed one unreported defect refining, Kind C: the owners NOTE named an audit pattern without its link though Audit Trail has landed, cured); 2026-11-20 — Final Critique 8, a delta round, frozen at 6f568bb1 — foundational count 0, clean, no sample; 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 11, a delta round (diff base 03db0d73, 7 labels, the reach of the tree layout, the standard sentences and the grammar batch since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at e3b058fe — foundational count 0 after the blind second triage, clean, one sample (Linus reported three foundational claims; both triages placed none foundational: External check 3 named the deployment's database as the evidence of a guard miss that a refused write leaves no trace in, refining, cured to name the containing pattern's record of the storage-failure answer; a claim that Capability requirement 2 should cite Execution Contract Read 5 and 6 was refuted, since State 1 holds one recording instant per identity and no read answers many records; a claim that the atom needs a monotonic clock while Non-goal 13 disclaims one was placed refining, since every rule is a function of the injected now and Execution Contract Logic confinement 7 gives the clock's guarantees to the deployment, cured by citing it in Capability requirement 1; six further refining findings cured, and two further claims refuted (no retry bound is the atom's to state, Non-goal 1; expiry is stated by Term under guard): the [Record] storage-failure row cites Execution Contract Read 4 and Database 3 for the guard that stands, Record failure 3 says a breach of an invariant for a safety violation, the terms opening record and guard miss are declared, and the owners note names Calendar Time; the empty heading of the deleted Invariant 4 dropped; no cure to a rule's obligation); 2026-11-21 — Final Critique 10, a delta round, one reader (Linus beam-free), frozen at 03db0d73 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Operation 5 obliges [Check] to answer exactly one of seen, not-seen while Execution Contract Read 1 answers state-unavailable on a failed read, was refuted by both triages: Read 2 limits every rule that says what an action answers to a call whose read answered, so Operation 5 never reaches a failed read, Read 1 answers it, and the page cites Read 1 through Capability requirement 2 and does not restate it; the finder's cure would also have Check 3.1 count a state-unavailable answer, which Read 3 says says nothing about the records); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus nemotron-3.5-super-vl-free), frozen at 894be4e7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that the owners NOTE names four forthcoming patterns that do not exist, was refuted by both triages: spec-format.md's Non-goals section prescribes the forthcoming marker, the NOTE changes no rule, and Non-goal 5 binds a deployment needing one guard across every instance to compose a coordination pattern whether or not it has landed; its refining and rhetorical reports were refuted too; the blind second triage placed one unreported defect refining, Kind C: the owners NOTE named an audit pattern without its link though Audit Trail has landed, cured); 2026-11-20 — Final Critique 8, a delta round, frozen at 6f568bb1 — foundational count 0, clean, no sample; 2026-10-28 — Final Critique 7, frozen at 7c6ea61 — foundational count 0, clean, one sample
 
 open: none
 ```

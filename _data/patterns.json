@@ -665,7 +665,7 @@
   ],
   "domain": null,
   "done": true,
-  "invariants": 3,
+  "invariants": 2,
   "kind": "atom",
   "models": {
    "als": true,

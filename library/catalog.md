@@ -66,7 +66,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key actor id.
 
-**[Duplicate Prevention](./atoms/duplicate-prevention.md)** (393 lines). Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats.
+**[Duplicate Prevention](./atoms/duplicate-prevention.md)** (395 lines). Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats.
 
 - No bond lines yet.
 
