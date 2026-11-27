@@ -1601,7 +1601,7 @@ def scan(path: Path) -> list[Finding]:
 
 # the permanent id of each pattern (governance.md, *Permanent ids*): `id: N` in the
 # front matter, listed once in _data/pattern-ids.yml with the file that holds it
-INDEX_PAGES = {"library/atoms/index.md", "library/atoms/TAXONOMY.md", "library/compositions/README.md"}
+INDEX_PAGES = {"library/atoms/index.md", "library/atoms/_TAXONOMY.md", "library/compositions/README.md"}
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 _ID_LINE = re.compile(r"^id:[ \t]*(\S*)[ \t]*$", re.M)
 

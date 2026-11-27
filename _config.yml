@@ -133,3 +133,7 @@ exclude:
   - tools/
   - vendor/
   - working-ideas/
+
+# a file whose name starts with `_` is a helper, which Jekyll skips unless included here
+include:
+  - library/atoms/_TAXONOMY.md

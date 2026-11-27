@@ -383,7 +383,7 @@ def main():
     P("")
     P("Catalogs: [Atomic Concepts](./atoms/) · [Conceptual Compositions](./compositions/). The")
     P("classification lenses behind the coloring are documented in the")
-    P("[taxonomy note](./atoms/TAXONOMY.html).")
+    P("[taxonomy note](./atoms/_TAXONOMY.html).")
     P("")
 
     (root / "library" / "graph.md").write_text("\n".join(L), encoding="utf-8")

@@ -360,10 +360,10 @@ def load_patterns(root: Path) -> dict[Path, Pattern]:
     for d in PATTERN_DIRS:
         for md in sorted((root / d).rglob("*.md")):
             name = md.name.lower()
-            # readme/index are catalogs; TAXONOMY.md is a proposal doc
-            # (nav_exclude, "Status: proposal"); a history file is a spec's
-            # past — none are patterns.
-            if name in ("readme.md", "index.md", "taxonomy.md") or md.match(HISTORY_FILE):
+            # readme/index are catalogs; a file whose name starts with `_` is a
+            # helper, such as _TAXONOMY.md, the proposal doc (spec-format.md, Atom
+            # shape); a history file is a spec's past — none are patterns.
+            if name in ("readme.md", "index.md", "taxonomy.md") or name.startswith("_") or md.match(HISTORY_FILE):
                 continue
             text = md.read_text(encoding="utf-8")
             out[md] = Pattern(

@@ -10,7 +10,7 @@ intrinsic axis, read from each atom's own frontmatter (`domain:`), default absen
 and EOS-gated by a human. Structural shape (sequence / state-machine / registry)
 is left to the atom's own State/Behavior — no metadata.
 
-This is the tool the flat-storage taxonomy depends on (atoms/TAXONOMY.md): once the
+This is the tool the flat-storage taxonomy depends on (atoms/_TAXONOMY.md): once the
 category folders dissolve, the per-category README catalogs and the docs nav become
 generated browse-by-overlay views of this index. Read-only over the repo; stdlib
 only (mirrors tools/recipe/generate_recipe.py and the dependency-light house style).

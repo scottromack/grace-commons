@@ -44,7 +44,7 @@ If you are not sure which side your contribution falls on, open an issue. The ov
 
 ## What an atom looks like
 
-A pattern spec lives flat in `atoms/` as `atoms/<name>.md` — classification is derived from the composition graph, not a folder (see [`atoms/TAXONOMY.md`](../library/atoms/TAXONOMY.md)). It is a structured natural language document, not code — because plain English is the form that includes every reader at once: business stakeholders, auditors, engineers, AI systems, future contributors. Inherit anything good from any source (formal-methods notation, ISO/IEEE standards, BDD, decision tables, design-by-contract, ADR templates, requirements-engineering identifiers); the output form is consistent. At minimum the spec should define:
+A pattern spec lives flat in `atoms/` as `atoms/<name>.md` — classification is derived from the composition graph, not a folder (see [`atoms/_TAXONOMY.md`](../library/atoms/_TAXONOMY.md)). It is a structured natural language document, not code — because plain English is the form that includes every reader at once: business stakeholders, auditors, engineers, AI systems, future contributors. Inherit anything good from any source (formal-methods notation, ISO/IEEE standards, BDD, decision tables, design-by-contract, ADR templates, requirements-engineering identifiers); the output form is consistent. At minimum the spec should define:
 
 - **Name** — clear, domain-neutral where possible
 - **Intent** — what business need does this pattern address

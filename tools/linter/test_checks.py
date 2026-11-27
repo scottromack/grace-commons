@@ -722,7 +722,7 @@ def check_pattern_ids_synthetic(problems: list[str]) -> int:
     cases = [
         ("a clean root", clean, ID_LIST, set()),
         ("an index page and a history file carry no id", {**clean, "library/atoms/index.md": "# Index\n",
-         "library/atoms/TAXONOMY.md": "# T\n", "library/compositions/README.md": "# R\n", "library/atoms/a.hist.md": "# H\n"}, ID_LIST, set()),
+         "library/atoms/_TAXONOMY.md": "# T\n", "library/compositions/README.md": "# R\n", "library/atoms/a.hist.md": "# H\n"}, ID_LIST, set()),
         ("a pattern with no id", {**clean, "library/atoms/b.md": page(None)}, ID_LIST, {"G-id-missing"}),
         ("a pattern with no front matter", {**clean, "library/atoms/b.md": "# B\n"}, ID_LIST, {"G-id-missing"}),
         ("two files share an id", {**clean, "library/atoms/b.md": page(1)}, ID_LIST, {"G-id-shared", "G-id-moved"}),

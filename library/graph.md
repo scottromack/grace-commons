@@ -441,4 +441,4 @@ edges. `· N` on a node is its fan-in.
 
 Catalogs: [Atomic Concepts](./atoms/) · [Conceptual Compositions](./compositions/). The
 classification lenses behind the coloring are documented in the
-[taxonomy note](./atoms/TAXONOMY.html).
+[taxonomy note](./atoms/_TAXONOMY.html).

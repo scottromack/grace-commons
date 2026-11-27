@@ -3,7 +3,7 @@
 `reverse_index.py` derives each atom's classification from the **Intent Graph**
 (the atoms + the `## Composes` edges every composition declares) instead of asserting
 it with a folder. It is the tool the flat-storage taxonomy depends on
-([`library/atoms/TAXONOMY.md`](../../library/atoms/TAXONOMY.md)): once the category subfolders dissolve,
+([`library/atoms/_TAXONOMY.md`](../../library/atoms/_TAXONOMY.md)): once the category subfolders dissolve,
 the per-category README catalogs and the docs nav become generated browse-by-overlay
 views of this index.
 
