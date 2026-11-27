@@ -19,7 +19,7 @@ Calendar Time says what a date and a time of day mean in a place. A place is a t
 <details markdown="block">
 <summary>WHY</summary>
 
-Software gets dates wrong in a few recurring ways, and each is a question of what a date means in a place: a deadline of November 7 that ends at midnight in the wrong city; an alarm for 2:30 AM on the night the clocks go forward; a monthly charge on January 31 that lands on March 3; a comment from 11:50 last night labeled "12 hours ago" when the reader thinks of it as yesterday. JavaScript's Temporal settled most of these after years of public design, and this atom takes Temporal's decisions as its answer key, not its API: a local time the clocks skip moves forward by the skipped length, and a local time they show twice takes the first of its two moments, unless the caller chooses the earlier moment, the later one, or a refusal; moving a date by months clamps the day to the month's end or refuses, as the caller chooses; the months move first and the days after. What Temporal leaves to each pattern that shows a time, how a time reads to a person, the maintainer ruled on: by calendar boundaries in the reader's place, never by a count of hours or days, so "last month" means the previous calendar month, with the exact date and time always one tap away, and every pattern that shows a time reads it here rather than inventing its own. The atom keeps places, a time zone and the day the weeks start, because a reading needs the reader's place and a date means a stretch of time only in some place; everything else it answers is computed at the call from the place, the deployment's time zone rules and, for a reading, now.
+Software gets dates wrong in a few recurring ways, and each is a question of what a date means in a place: a deadline of November 7 that ends at midnight in the wrong city; an alarm for 2:30 AM on the night the clocks go forward; a monthly charge on January 31 that lands on March 3; a comment from 11:50 last night labeled "12 hours ago" when the reader thinks of it as yesterday. JavaScript's Temporal settled most of these after years of public design, and this atom takes Temporal's decisions as its answer key, not its API (the set of calls a program makes to the library): a local time the clocks skip moves forward by the skipped length, and a local time they show twice takes the first of its two moments, unless the caller chooses the earlier moment, the later one, or a refusal; moving a date by months clamps the day to the month's end or refuses, as the caller chooses; the months move first and the days after. What Temporal leaves to each pattern that shows a time, how a time reads to a person, the maintainer ruled on: by calendar boundaries in the reader's place, never by a count of hours or days, so "last month" means the previous calendar month, with the exact date and time always one tap away, and every pattern that shows a time reads it here rather than inventing its own. The atom keeps places, a time zone and the day the weeks start, because a reading needs the reader's place and a date means a stretch of time only in some place; everything else it answers is computed at the call from the place, the deployment's time zone rules and, for a reading, now.
 
 </details>
 
@@ -43,7 +43,7 @@ State 1: EVERY place MUST carry place id, time zone and week start.
 State 2: The atom MUST NOT remove a place.
 ```
 
-Term week start: the day of the week a place's weeks start on — a [Week Start]; Sunday in the United States, Monday in most of Europe and in ISO 8601.
+Term week start: the day of the week a place's weeks start on — a [Week Start]; Sunday in the United States, Monday in most of Europe and in ISO (International Organization for Standardization) 8601.
 
 Term day of the week: monday | tuesday | wednesday | thursday | friday | saturday | sunday.
 
@@ -61,7 +61,7 @@ Term local time: a time of day on a 24-hour clock, in hours, minutes and whole s
 
 Term times of day: the local times from 00:00:00 through 23:59:59; the calendar has no leap second.
 
-Term offset: how far a place's clock stands from UTC at an instant — an [Offset].
+Term offset: how far a place's clock stands from UTC (Coordinated Universal Time) at an instant — an [Offset].
 
 NOTE: an instant is the grammar's rule noun, a point in time that belongs to no place; how finely the deployment's clock reads one, and what the clock guarantees, are the deployment's (Execution Contract Logic confinement 7).
 
@@ -73,7 +73,7 @@ Kind: Type
 
 #### Local Date
 
-A year, a month and a day of the Gregorian calendar of ISO 8601, with no place of its own; taken by [Day], [Resolve] and [Shift], answered by [Shift] and in a [Reading].
+A year, a month and a day of the Gregorian calendar of ISO (International Organization for Standardization) 8601, with no place of its own; taken by [Day], [Resolve] and [Shift], answered by [Shift] and in a [Reading].
 
 Kind: Type
 
@@ -85,7 +85,7 @@ Kind: Type
 
 #### Offset
 
-How far a place's clock stands from UTC at an instant, such as −06:00 for Chicago in winter; answered in a [Reading].
+How far a place's clock stands from UTC (Coordinated Universal Time) at an instant, such as −06:00 for Chicago in winter; answered in a [Reading].
 
 Kind: Type
 
@@ -127,7 +127,7 @@ Projection: week_start
 
 #### Day Start
 
-The earliest instant at which the place's clock shows the date or a later one: midnight on most days, 01:00 where the clock skips midnight, and the day end itself on a date the clock skips whole.
+The earliest instant at which the place's clock shows the date or a later one: midnight on most days, the first time the clock shows on a day whose midnight the clock skips, and the day end itself on a date the clock skips whole.
 
 Kind:       Field
 Field of:   Day Span
@@ -182,7 +182,7 @@ Term date action: [Day] | [Resolve] | [Shift] — the actions that take a local 
 
 Term query action: [Read] | [Day] | [Resolve] | [Shift] | [Show] — the actions that write nothing.
 
-Term choice: compatible | earlier | later | reject — what [Resolve] answers for a wall time the place's clock skips or shows twice — a [Choice]; compatible is Temporal's default and RFC 5545's: forward for a skipped time, the earlier match for a repeated time.
+Term choice: compatible | earlier | later | reject — what [Resolve] answers for a wall time the place's clock skips or shows twice — a [Choice]; compatible is Temporal's default and the default of RFC (Request for Comments) 5545: forward for a skipped time, the earlier match for a repeated time.
 
 Term forward choice: compatible | later — the choices that move a skipped time forward.
 
@@ -200,9 +200,9 @@ Term repeated time: a wall time that two instants match: the place's clock shows
 
 Term gap: the local times a place's clock jumps over at one change of the place's offset; the gap's length is how much the offset grows at the change, an hour in most places.
 
-Term forward resolution: the matching instant of the wall time moved forward by the length of the gap the wall time falls in — the instant the clock shows as 03:30 for a wall time of 02:30 in a one-hour gap opening at 02:00.
+Term forward resolution: the instant the place's clock shows as the wall time plus the length of the gap the wall time falls in — the instant the clock shows as 03:30 for a wall time of 02:30 in a one-hour gap opening at 02:00.
 
-Term back resolution: the matching instant of the wall time moved back by the length of the gap the wall time falls in — the instant the clock shows as 01:30 for the same wall time.
+Term back resolution: the instant the place's clock shows as the wall time minus the length of the gap the wall time falls in — the instant the clock shows as 01:30 for the same wall time.
 
 Term earlier match: the first of a repeated time's two matching instants.
 
@@ -210,6 +210,7 @@ Term later match: the second of a repeated time's two matching instants.
 
 Term amount: the years, the months and the days a [Shift] call moves a local date by, each a number as the call carries it, a whole number or not.
 
+Term whole amount: an amount whose years, months and days are each a whole number; for an amount that is not whole no date lies the amount's days from the landing day, so there is no shifted date to bring into the date range.
 Term signed amount: an amount whose years, months and days are each a whole number, and are all zero or more, or all zero or less.
 
 Term overflow: clamp | reject — what [Shift] does where the landing month holds no day of the local date's number — an [Overflow].
@@ -544,7 +545,7 @@ shift(local_date, years, months, days, overflow)
 Operation 22: IF the amount IS NOT IN the signed amounts THEN [Shift] MUST answer invalid-amount.
 Operation 23: IF the overflow IS NOT IN the overflows THEN [Shift] MUST answer invalid-overflow.
 Operation 24: IF the local date's day EXCEEDS the landing month's length AND the overflow EQUALS reject THEN [Shift] MUST answer no-such-day.
-Operation 25: IF the shifted date IS NOT IN the date range THEN [Shift] MUST answer out-of-range.
+Operation 25: IF the amount IS IN the whole amounts AND the shifted date IS NOT IN the date range THEN [Shift] MUST answer out-of-range.
 Operation 26: [Shift] MUST answer the shifted date.
 ```
 
@@ -665,7 +666,7 @@ Capability requirement 3: The deployment MUST supply now at the seam PER Executi
 Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 ```
 
-Term time zone rules: the deployment's record of every zone's offsets from UTC and of when each offset took effect, such as the IANA Time Zone Database.
+Term time zone rules: the deployment's record of every zone's offsets from UTC and of when each offset took effect, such as the IANA (Internet Assigned Numbers Authority) Time Zone Database.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects each place id and the clock reading, now, here.
 
@@ -701,7 +702,7 @@ Composition note 2: A pattern that shows a person an instant MUST show the readi
 
 NOTE: every pattern that shows a time, such as a comment's, a Ledger entry's or a notification's, reads the time through [Show] (Composition note 2).
 
-NOTE: to keep a time of day at a place, a composing pattern keeps the local date, the local time and the place id and resolves them through [Resolve] at use; to move such a time by months or days and keep its time of day, it shifts the local date through [Shift] and resolves the time again, which is how Temporal and RFC 5545 add days across a clock change.
+NOTE: to keep a time of day at a place, a composing pattern keeps the local date, the local time and the place id and resolves them through [Resolve] at use; to move such a time by months or days and keep its time of day, it shifts the local date through [Shift] and resolves the time again, which is how Temporal and RFC (Request for Comments) 5545 add days across a clock change.
 
 ## Example
 
@@ -753,10 +754,10 @@ A colleague in Berlin, whose weeks start on Monday, has a place of her own: `ope
 Calendar Time is a primitive with no regulatory anchor of its own. It inherits from:
 
 - **ISO 8601** — the Gregorian calendar run back as if always in force, calendar dates, the 24-hour time of day, and the week; ISO's own weeks start on Monday, and a place may start them on another day.
-- **IANA Time Zone Database** — the zone names and each zone's history of offsets, which the deployment supplies as the time zone rules.
+- **IANA (Internet Assigned Numbers Authority) Time Zone Database** — the zone names and each zone's history of offsets, which the deployment supplies as the time zone rules.
 - **ECMAScript Temporal (TC39)** — the answer key: its decisions, not its API, for a local time the clocks skip or repeat (compatible, earlier, later, reject), for a date moved by months (constrain, here clamp, or reject; the months first, the days after), for amounts of one sign, and for a day's start where midnight is skipped.
 - **RFC 5545 (iCalendar)** — the handling of skipped and repeated local times that Temporal's compatible choice matches, and that adding days keeps the time of day.
-- **Unicode CLDR** — the first day of the week by region, from which a deployment may set a place's week start.
+- **Unicode CLDR (Common Locale Data Repository)** — the first day of the week by region, from which a deployment may set a place's week start.
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design, leaving repetition, working days and wording to concepts of their own.
 
 ---
@@ -791,6 +792,7 @@ The conformance table, each row a call and the answer the atom owes:
 | `shift(2026-01-31, 0, 1, 0, reject)` | any | no-such-day | Operation 24 |
 | `shift(2026-01-31, 0, 1, 31, clamp)` | any | 2026-03-31 | Operation 26 |
 | `shift(2026-01-31, 0, 1, -1, clamp)` | any | invalid-amount | Operation 22 |
+| `shift(9999-12-31, 0, 0, 1.5, clamp)` | any | invalid-amount | Operation 22, Operation 25 |
 | `show(Chicago, 2026-11-07T05:50Z)` | 2026-11-07T18:00Z | yesterday, 2026-11-06, 23:50:00, −06:00, friday | Operation 29, Operation 37 |
 | `show(Chicago, 2026-11-03T15:00Z)` | 2026-11-07T18:00Z | current-week, 2026-11-03, 09:00:00, −06:00, tuesday | Operation 31, Operation 37 |
 | `show(Chicago, 2026-10-28T15:00Z)` | 2026-11-07T18:00Z | last-week, 2026-10-28, 10:00:00, −05:00, wednesday | Operation 32, Operation 37 |
@@ -888,7 +890,7 @@ Term terms: place, time zone, time zone rules, zone names, seam, week start, day
 
 ## Status
 
-`done — 2026-11-08` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -896,9 +898,9 @@ Term terms: place, time zone, time zone rules, zone names, seam, week start, day
 </summary>
 
 ```
-status: done — 2026-11-08
+status: doing
 formal: verified — calendar-time.als + 6 twins (the static data model: State 1, Invariant 1.1, 1.2, Identity 2 and 3 checked on every place an admitted [Open] or [Change] leaves, Identity 4 through Invariant 1.1); calendar-time.tla + 6 twins (across steps: Invariant 2.1 and State 2 over [Open] and [Change]; Invariant 3.1 and Operation 28 through 36 as now moves an hour a step over a window crossing midnight in every zone; Invariant 4.1 and Operation 24 over one [Shift] call on a date range scaled to 2027 and 2028); the vote no of 2026-11-08 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 7; Operation 12 through 21, 2026-11-11
-last gate: 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 2, a delta round (diff base 4b0bd47, 117 labels, the reach of the conversion to the bond shape, the reorganisation and the sweeps since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 668e1fe8 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing; the second triage's one foundational: Operation 25 answered out-of-range for a shifted date outside the date range, and the Execution Contract Refusal 1 order puts out-of-range ahead of invalid-amount, but an amount that is not whole has no shifted date, so a build that read Operation 25 over one, as shift(9999-12-31, 0, 0, 1.5, clamp) could, answered out-of-range where another answered invalid-amount; Operation 25 now applies to a whole amount, Term whole amount; the settle's refining cures: forward resolution and back resolution are the instant the clock shows as the wall time plus or minus the gap's length, since a skipped wall time has no matching instant to move; the Day Start entry says the first time the clock shows, as its Term does; the acronyms API, ISO, UTC, RFC, IANA and CLDR are spelled out at their first use; no model redraw: the model's amounts are whole numbers and its answers for them are unchanged); 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none
 ```
