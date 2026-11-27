@@ -1560,7 +1560,7 @@
    "chain-of-custody"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1581,7 +1581,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-19",
+  "status": "doing",
   "title": "Provenance"
  },
  "provisional-commitment": {

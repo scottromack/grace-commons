@@ -56,7 +56,7 @@ Identity 15: Two chains in one database instance MUST NOT share a chain id.
 Identity 16: Two entries in one chain MUST NOT share an entry id.
 ```
 
-NOTE: watch the allocation ban (Identity 5, Identity 6).
+NOTE: watch the allocation ban (Execution Contract Logic confinement 3).
 
 Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
 
@@ -275,7 +275,7 @@ Operation 42: A refused action MUST leave the chain as the call found the chain.
 Operation 43: A refused action MUST NOT append an entry.
 Operation 44: A refused action MUST NOT take a sequence number.
 Operation 58: An ordering rule MUST NOT rest on recording instant.
-Operation 61: An admitted originate MUST set the genesis entry's metadata to the call's metadata.
+Operation 61: An admitted originate MUST set the genesis entry's metadata to the call's metadata PER Execution Contract Input 4.
 Operation 62: An admitted originate MUST set the chain's artifact reference to the call's artifact reference.
 Operation 63: An admitted originate MUST set the genesis entry's custodian reference to the call's custodian reference.
 Operation 64: An admitted transform MUST set the transformed entry's transformation descriptor to the call's transformation descriptor.
@@ -836,7 +836,7 @@ Provenance is an infrastructure primitive with regulatory anchoring across pharm
 
 - **DEA 21 CFR Part 1304 (Controlled Substance Inventory Records)** — US Drug Enforcement Administration (DEA) regulations requiring complete, accurate records of the disposition of controlled substances, including every change of custody. Invariant 4 (custody continuity) is the structural form of this requirement — necessary, not by itself sufficient: the atom contributes the record structure, never the inventory itself.
 
-- **SEC Rule 17a-4 (Records to be preserved by certain exchange members, brokers, and dealers)** — US Securities and Exchange Commission rule requiring records to be preserved as originally created, in a non-rewriteable, non-erasable format. The atom's append-only, entry-immutable chain (Invariants 1 and 2) is the structural form of the preservation-as-originally-created requirement — **necessary, not by itself sufficient**: the rule's format requirement is met by the deployment's storage medium and the audit proof by a composed tamper-evidence seal (WORM — write-once, read-many — storage being one realization). The atom contributes the record structure the rule preserves, never the whole compliance claim.
+- **SEC Rule 17a-4 (Records to be preserved by certain exchange members, brokers, and dealers)** — US Securities and Exchange Commission (SEC) rule requiring records to be preserved as originally created, in a non-rewriteable, non-erasable format. The atom's append-only, entry-immutable chain (Invariants 1 and 2) is the structural form of the preservation-as-originally-created requirement — **necessary, not by itself sufficient**: the rule's format requirement is met by the deployment's storage medium and the audit proof by a composed tamper-evidence seal (WORM — write-once, read-many — storage being one realization). The atom contributes the record structure the rule preserves, never the whole compliance claim.
 
 - **Federal Rules of Evidence 901(b)(9) (Authenticating or Identifying Evidence — Process or System)** — the US evidentiary rule for authenticating physical or electronic evidence via chain-of-custody records. The atom's custody-continuity invariant is the structural basis for authenticating evidence under 901(b)(9): a chain whose [From Custodian Reference] values match the prior [Current Custodian] at every transfer step produces the unbroken sequence courts require for authentication.
 
@@ -951,7 +951,7 @@ Term terms: chain, entry, artifact reference, entry id, custodian reference, dat
 
 ## Status
 
-`done — 2026-11-19` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -959,9 +959,9 @@ Term terms: chain, entry, artifact reference, entry id, custodian reference, dat
 </summary>
 
 ```
-status: done — 2026-11-19
+status: doing
 formal: verified — provenance.als + 6 twins (the static data model, re-derived 2026-11-12 as the entries and chain record versions an ordered sequence of admitted calls leaves, custody replayed by sequence number as Check 3.1 reads it; the 2026-06-04 fact CustodyContinuity, which its checks restated, and its 2 twins gone: Invariant 4.2, 4.3, 4.4, 5.1, 7.1 and 7.2); provenance.tla + 13 twins (the operation sequences, 2026-11-12, while the clock reads any instant, backwards included: Invariant 1.1, 2.1, 2.2, 3.1, 3.2, 3.3, 4.1, 5.2, 5.3, 6.1, 6.2, 8.2, 8.3, 8.4 and 10.1, Operation 42 through 44, with State 11 and 18 checked through them); Invariant 8.1 holds by both models' typing; coverage 2026-11-12 (unit `atoms/provenance.md formal layer`): owed rows: none, 2026-11-12
-last gate: 2026-11-19 — Final Critique 14, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (the example leaves [Read]'s order to the Execution Contract) refuted by both triages, since Operation 46 names the order outside the delta set; its seven refining and three rhetorical findings placed two refining cured (the Defense counsel example's reasoning narrowed to what the records show, and the owners NOTE naming Permissions for Composition note 2 and the host for Non-goal 18), the rest refuted (Operation 22, the Terms maximum length, Non-goal 11) or left as wording, and the blind triage's own two refining finds cured (the older "writer" wording of the archived rows against Term writer action, the example's genesis exception); 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 15, a delta round (diff base 36366af9, 205 labels, the reach of the tree layout, the bond-shape conversion and the grammar batch), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 23b75b78 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's two foundational-rated findings were refuted by both triages (Concurrency 2 holds only for a call the action admits, Execution Contract Read 4; a metadata of 1025 spaces is over the cap counted on the value as the call carries it, Execution Contract Input 2, so String 9 refuses it, and Linus's cure would have admitted it), and the blind second triage placed Operation 61 foundational, Kind A: it set the genesis entry's metadata to the call's metadata without saying what a blank metadata writes, so a build storing a whitespace-only value and one setting none both conformed (Linus placed it refining), cured by citing Execution Contract Input 4 as Actor Identity's Operation 38 and 39 do; refining cured: the allocation-ban NOTE names Execution Contract Logic confinement 3 (Identity 5 and 6 are deleted) and the SEC acronym is glossed; Concurrency 4's scope, Clock semantics 4 against Operation 60 (Term recording instant decides it), the checker's invalid-ref case-row hits (the rows name the member Invalid Reference) and the DEA gloss stand; 2026-11-19 — Final Critique 14, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at 36366af9 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (the example leaves [Read]'s order to the Execution Contract) refuted by both triages, since Operation 46 names the order outside the delta set; its seven refining and three rhetorical findings placed two refining cured (the Defense counsel example's reasoning narrowed to what the records show, and the owners NOTE naming Permissions for Composition note 2 and the host for Non-goal 18), the rest refuted (Operation 22, the Terms maximum length, Non-goal 11) or left as wording, and the blind triage's own two refining finds cured (the older "writer" wording of the archived rows against Term writer action, the example's genesis exception); 2026-11-03 — Final Critique 13, frozen at e0a85af — foundational count 0, clean, one sample
 
 open: none
 ```
