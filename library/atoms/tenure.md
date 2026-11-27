@@ -42,6 +42,7 @@ Identity 8: The atom MUST NOT normalize an item reference.
 Identity 9: The atom MUST compare two item references codepoint for codepoint.
 Identity 10: The atom MUST NOT normalize a role.
 Identity 11: The atom MUST compare two roles codepoint for codepoint.
+Identity 12: The atom MUST compare two tenure ids codepoint for codepoint.
 ```
 
 Term tenure: one person's time in one role in one thing, kept from the [Begin] call that recorded the tenure — a [Tenure].
@@ -76,13 +77,13 @@ Term ended: a tenure is ended on the end date of the tenure and on every later d
 
 #### Tenure
 
-One person's time in one role in one thing: recorded by [Begin], ended by [End], corrected by [Change], withdrawn by [Withdraw]; never removed by the atom.
+One person's time in one role in one thing: recorded by [Begin], ended by [End], corrected by [Change], withdrawn by [Withdraw].
 
 Kind: Type
 
 #### Tenure Id
 
-Names one tenure; allocated by the host at the seam, never taken from the business caller, never reused and never changed.
+Names one tenure; allocated by the host at the seam.
 
 Kind:       Field
 Field of:   Tenure
@@ -90,7 +91,7 @@ Projection: tenure_id
 
 #### Person Reference
 
-Names the person who holds the role, in the deployment's own scheme. Stored as supplied and compared codepoint for codepoint, and never changed; whether the reference names a real person is a directory's question.
+Names the person who holds the role, in the deployment's own scheme; whether the reference names a real person is a directory's question.
 
 Kind:       Field
 Field of:   Tenure
@@ -98,7 +99,7 @@ Projection: person_reference
 
 #### Role
 
-The part the person plays in the thing, one of the role set the deployment offered when the role was set, such as buyer. Stored as supplied and compared codepoint for codepoint.
+The part the person plays in the thing, one of the role set the deployment offered at the call that set the role, such as buyer.
 
 Kind:       Field
 Field of:   Tenure
@@ -106,7 +107,7 @@ Projection: role
 
 #### Item Reference
 
-Names the thing the role is held in, in the deployment's own scheme, such as a customer or a club. Stored as supplied and compared codepoint for codepoint, and never changed; whether the reference names a real item is a catalog's question.
+Names the thing the role is held in, in the deployment's own scheme, such as a customer or a club; whether the reference names a real item is a catalog's question.
 
 Kind:       Field
 Field of:   Tenure
@@ -122,7 +123,7 @@ Projection: start_date
 
 #### End Date
 
-The first day the person no longer holds the role, always later than the start date; absent while the tenure is open.
+The first day the person no longer holds the role; absent while the tenure is open.
 
 Kind:       Field
 Field of:   Tenure
@@ -130,7 +131,7 @@ Projection: end_date
 
 #### Withdrawn Instant
 
-The instant of the [Withdraw] call that withdrew the tenure, stamped from the injected now; absent on a tenure never withdrawn, and never changed once set.
+The instant of the [Withdraw] call that withdrew the tenure, stamped from the injected now; absent on a tenure never withdrawn.
 
 Kind:       Field
 Field of:   Tenure
@@ -138,7 +139,7 @@ Projection: withdrawn_instant
 
 Term person reference: the string naming the person who holds the role, in the deployment's own scheme — the [Person Reference]; the atom reads no scheme in it.
 
-Term role: the part a person plays in the thing, such as buyer, billing contact or account manager, one of the role set — the [Role].
+Term role: the part a person plays in the thing, such as buyer, billing-contact or account-manager, one of the role set — the [Role].
 
 Term item reference: the string naming the thing the role is held in, such as a customer, a deal or a club, in the deployment's own scheme — the [Item Reference]; the atom reads no scheme in it.
 
@@ -202,7 +203,7 @@ The sales team's calls, made on Monday 2026-11-16:
 
 - `begin("sam", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Role Taken]: account-manager has one holder at a time, Dana's `t-3` runs through November 30, and Lee's `t-19` runs from December 1 (Operation 13).
 - `begin("jane-ruiz", "buyer", "acme-supply", "2026-05-01")` — rejected as [Already Held]: Jane's `t-12` covers May (Operation 12).
-- `begin("jane-ruiz", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Already Held]: Jane's own `t-31` and Dana's `t-3` both cover November 20, so Operation 12 and Operation 13 both apply, and the refusal listed first on [Begin]'s refuses line answers (Execution Contract Refusal 1).
+- `begin("dana", "account-manager", "acme-supply", "2026-11-20")` — rejected as [Already Held]: the proposed tenure is open from November 20, so it overlaps Dana's own `t-3`, which runs through November 30, and Lee's `t-19`, which runs from December 1; Operation 12 and Operation 13 both apply, and the refusal listed first on [Begin]'s refuses line answers (Execution Contract Refusal 1).
 - `begin("jane-ruiz", "cfo", "acme-supply", "2026-03-02")` — rejected as [Invalid Role]: the team's role set has no cfo (Operation 6).
 - `begin("", "buyer", "acme-supply", "2026-03-02")` — rejected as [Invalid Person Reference]: the reference is blank (Operation 1).
 - `begin("jane-ruiz", "buyer", "", "2026-03-02")` — rejected as [Invalid Item Reference]: the reference is blank (Operation 3).
@@ -421,7 +422,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the tenures |
 |---|---|---|---|
 | [Change] | the tenure carries no withdrawn instant, every carried detail valid, no overlapping twin, no overlapping rival where the role is in the one-holder set, database accepts | ok | each carried detail is set and every other detail stands; the earlier version stays readable (Operation 23, Operation 24, Operation 26) |
-| [Change] | the call carries no detail | ok | none, no write (Operation 25) |
+| [Change] | the call carries no detail, the tenure is known and carries no withdrawn instant, and no overlapping rival stands | ok | none, no write (Operation 25) |
 
 ### Withdraw
 
@@ -479,7 +480,7 @@ The case space, and the rule that owns each case:
 
 #### History For
 
-Answers every tenure not withdrawn naming the reference as the person or the thing, held on the date where the call carries one, in order of [Start Date], and changes nothing; an empty list where none matches.
+Answers the [Tenures] not withdrawn naming the reference as the person or the thing, held on the date where the call carries one, in order of [Start Date], and changes nothing; an empty list where none matches.
 
 Kind: Operation
 
@@ -506,13 +507,22 @@ The case space, and the rule that owns each case:
 | [History For] | tenures match the reference, held on the date where the call names one | each match, in order of start date, ties in codepoint order of tenure id | none (Operation 32, Operation 33, Operation 35, Operation 36, Operation 39) |
 | [History For] | no match, the reference blank, over the string cap or not a string, or the date carried and not a date | an empty list | none (Operation 34, Operation 37, Operation 38) |
 
+#### Tenures
+
+The outcome [History For] returns: the list of tenures the reference matches, in order, empty where none matches.
+
+Kind:       Member
+Member of:  the History For outcome
+Role:       Outcome
+Projection: tenures
+
 ## What is and what should never be (Invariants)
 
 - **Invariant 1 — A tenure ends after it starts.**
   ```
   Invariant 1.1: The start date of EVERY tenure carrying an end date MUST PRECEDE the end date of the tenure.
   ```
-- **Invariant 2 — One person holds one role in one thing once on any day.**
+- **Invariant 2 — One person holds one role in one thing once on any day, a withdrawn tenure excepted.**
   ```
   Invariant 2.1: Two tenures sharing a person reference, a role AND an item reference MUST NOT overlap, a withdrawn tenure excepted.
   ```
@@ -531,11 +541,11 @@ The case space, and the rule that owns each case:
 
 ### Concurrency
 
-Two [Begin] calls for one role of the one-holder set in one thing, on days that overlap, are serialized (Execution Contract Database 2): the later reads the tenure the earlier recorded and answers [Role Taken] (Operation 13), so the two calls never leave two people holding a one-holder role on one day. Two [Change] calls on one tenure are serialized the same way: each sets only the details its call carries, and on a detail both carry, the later call's value stands; the database keeps every version (Execution Contract Database 5).
+Any two writing calls whose overlap checks (Operation 12, Operation 13) decide on the same tenures are serialized (Execution Contract Database 2, whose first sentence lets no write commit against a state its guards did not see), whichever tenure each call writes: the later reads what the earlier committed and decides again. Two [Begin] calls for one role of the one-holder set in one thing, on days that overlap, are such a pair: the later reads the tenure the earlier recorded and answers [Role Taken] (Operation 13), so the two calls never leave two people holding a one-holder role on one day. So are two [Begin] calls for one person, role and thing, where the later answers [Already Held] (Operation 12), and two [Change] or [End] calls on two tenures of one person, role and thing, which never leave the two overlapping (Invariant 2.1). Two [Change] calls on one tenure are serialized the same way: each sets only the details its call carries, and on a detail both carry, the later call's value stands; the database keeps every version (Execution Contract Database 5).
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Begin] meets the tenure the first recorded and answers [Already Held] (Operation 12), which tells the caller the first landed; a caller needing the tenure id asks [History For]. A repeated [End] answers [Already Ended] and a repeated [Withdraw] answers [Already Withdrawn], each telling the caller the first landed. A repeated [Change] carrying the same details sets the same values again.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Begin] meets the tenure the first recorded and answers [Already Held] (Operation 12), but the answer alone does not tell the caller the first landed, since a tenure of the same person, role and thing that covers a day the call covers answers it too, whoever recorded it: the caller asks [History For], finds the first landed where a tenure carries the call's person reference, role, item reference and start date, and reads the tenure id there. A repeated [End] answers [Already Ended] where an end date stands, the first call's or another caller's, so the caller asks [Look Up] and finds the first landed where the end date is the one the call carried. A repeated [Withdraw] answers [Already Withdrawn], and the tenure is withdrawn, as the first call asked. A repeated [Change] carrying the same details sets the same values again.
 
 ### A detail once given
 
@@ -551,7 +561,7 @@ A deployment that drops a role from the role set or adds a role to the one-holde
 
 ### Dates entered late
 
-A tenure begins and ends on the days the role was held, whenever the call is made: a departure at the end of September learned in November is entered with the end date October 1, and every read for a date from October 1 on answers the tenure as ended. A read made in October answered the tenure as held, and the database's versions keep what each read could see (Execution Contract Database 5).
+A tenure begins and ends on the days the role was held, whenever the call is made: a departure at the end of September learned in November is entered with the end date October 1, and every read for a date from October 1 on answers the tenure as ended. A read made in October answered the tenure as held, and the database's versions keep what each read could see (Execution Contract Database 5). [Begin] records an open tenure, so a tenure that was over before a later tenure of the same person, role and thing began, or before a later holder of a role of the one-holder set began, is entered in the order of its days: begun while the later tenure stands, it overlaps the later tenure and answers [Already Held] or [Role Taken] (Operation 12, Operation 13), and the later tenures are withdrawn and begun again after it, with new tenure ids.
 
 ### What undoes a write
 
@@ -581,7 +591,7 @@ Capability requirement 11: IF the deployment declares the string cap AND a membe
 
 Term role set: the roles a deployment offers; the one role `contact` where a deployment declares none.
 
-Term one-holder set: the roles a deployment lets one person at a time hold in one thing, such as account manager; none where a deployment declares none.
+Term one-holder set: the roles a deployment lets one person at a time hold in one thing, such as account-manager; none where a deployment declares none.
 
 Term string cap: the bound on the length of a person reference, an item reference and a role in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -612,7 +622,7 @@ Non-goal 11: The atom MUST NOT destroy a tenure.
 Non-goal 12: The atom MUST NOT make a tenure tamper-evident; a withdrawn tenure stands unchanged by Invariant 4.1, which is no seal.
 ```
 
-NOTE: the owners — a party pattern and an attestation pattern (Non-goal 1; External check 1); Catalog *(forthcoming)* (Non-goal 2; External check 2); the app's permission, which a deployment needing roles calls once the deployment resolves the role to grants (Non-goal 3); an assignment pattern (Non-goal 4); Scheduler *(forthcoming)* (Non-goal 5); the composing pattern that knows the caller, such as one built on a session or the app's permission (Non-goal 6); an event log pattern (Non-goal 7); a time-zone pattern (Non-goal 8); Reverse Index *(forthcoming)* (Non-goal 9); a retention pattern (Non-goal 10); a lawful-disposal pattern and an erasure-record pattern (Non-goal 11); a tamper-evidence pattern (Non-goal 12).
+NOTE: the owners — [Party Identity](./party-identity.md) and [Actor Identity](./actor-identity.md), which attests (Non-goal 1; External check 1); Catalog *(forthcoming)* (Non-goal 2; External check 2); the app's permission, which a deployment needing roles calls once the deployment resolves the role to grants (Non-goal 3); [Assignment](./assignment.md) (Non-goal 4); Scheduler *(forthcoming)* (Non-goal 5); the composing pattern that knows the caller, such as one built on a session or the app's permission (Non-goal 6); [Event Log](./event-log.md) (Non-goal 7); [Calendar Time](./calendar-time.md) (Non-goal 8); Reverse Index *(forthcoming)* (Non-goal 9); [Retention Window](./retention-window.md) (Non-goal 10); [Defensible Retention](../compositions/defensible-retention.md) and [Erasure Tombstone](./erasure-tombstone.md) (Non-goal 11); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12).
 
 Where the atom breaks down: what a role lets a person do, which is a grant in the app's permission; one person responsible for one piece of work, which is an assignment; a company's tie to another company, which is no one person's role.
 
@@ -674,6 +684,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing a person reference confirmed as naming a real person MUST read the deployment's directory (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 2).
 External check 3: An auditor needing the roles that have one holder at a time MUST read the deployment's one-holder set (Operation 13).
+External check 4: An auditor needing to know that no two people held a role of the one-holder set in one thing on one day MUST find no two overlapping tenures that carry one item reference, two person references and one role of the deployment's one-holder set, except an overlap standing when the role joined the set (Operation 13).
 ```
 
 ### Vocabulary
@@ -707,6 +718,7 @@ Term terms: tenure, tenures, tenure id, person reference, person references, rol
 [History For]: #history-for
 [Tenure]: #tenure
 [Tenure Id]: #tenure-id
+[Tenures]: #tenures
 [Person Reference]: #person-reference
 [Role]: #role
 [Item Reference]: #item-reference
@@ -740,7 +752,7 @@ Term terms: tenure, tenures, tenure id, person reference, person references, rol
 ```
 status: doing
 formal: pending — no model yet
-last gate: 2026-11-17 — Final Critique 4, a delta round, frozen at f8dce3b8 — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-27 — Final Critique 5, a full round, frozen at 79cac81e — foundational count 1, not clean, three passes and the Claude reader
 
 open: none
 ```

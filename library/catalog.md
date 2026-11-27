@@ -218,7 +218,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 
-**[Tenure](./atoms/tenure.md)** (760 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
+**[Tenure](./atoms/tenure.md)** (772 lines). Tenure records who holds which role in what, and since when: a person, a role such as buyer, billing contact or account manager, the thing the role is held in — a customer, a deal, a club — a start date, and an end date once the tenure ends.
 
 - Mints tenure id. Offers key tenure id.
 
