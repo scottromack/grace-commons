@@ -26,7 +26,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key task id; key actor id; journal assignment events.
 
-**[Calendar Time](./atoms/calendar-time.md)** (920 lines). Calendar Time says what a date and a time of day mean in a place.
+**[Calendar Time](./atoms/calendar-time.md)** (922 lines). Calendar Time says what a date and a time of day mean in a place.
 
 - Mints place id. Offers key place id.
 

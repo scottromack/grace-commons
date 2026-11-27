@@ -111,7 +111,7 @@ Projection: place_id
 
 #### Time Zone
 
-The name of a zone in the deployment's time zone rules, such as America/Chicago or the link US/Central, recorded as the call carries it and compared codepoint for codepoint.
+A name among the deployment's zone names, such as America/Chicago or the link US/Central, recorded as the call carries it and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Place
@@ -159,7 +159,7 @@ Term relative day: today | yesterday | tomorrow | current-week | last-week | cur
 
 Term reading: the relative day, the read date, the read time, the offset and the read date's day of the week — a [Reading]; computed at each [Show], never stored.
 
-Term time zone: the name of a zone in the time zone rules, such as America/Chicago — a [Time Zone]; recorded as the call carries it.
+Term time zone: a name among the zone names, such as America/Chicago — a [Time Zone]; recorded as the call carries it.
 
 ## What people do
 
@@ -210,7 +210,7 @@ Term later match: the second of a repeated time's two matching instants.
 
 Term amount: the years, the months and the days a [Shift] call moves a local date by, each a number as the call carries it, a whole number or not.
 
-Term whole amount: an amount whose years, months and days are each a whole number; for an amount that is not whole no date lies the amount's days from the landing day, so there is no shifted date to bring into the date range.
+Term whole amount: an amount whose years, months and days are each a whole number; an amount that is not whole is refused as an invalid amount (Operation 22), so no landing month, shifted date or date range is read for it, and Operation 24 and Operation 25 reach a whole amount only.
 Term signed amount: an amount whose years, months and days are each a whole number, and are all zero or more, or all zero or less.
 
 Term overflow: clamp | reject — what [Shift] does where the landing month holds no day of the local date's number — an [Overflow].
@@ -544,7 +544,7 @@ shift(local_date, years, months, days, overflow)
 ```
 Operation 22: IF the amount IS NOT IN the signed amounts THEN [Shift] MUST answer invalid-amount.
 Operation 23: IF the overflow IS NOT IN the overflows THEN [Shift] MUST answer invalid-overflow.
-Operation 24: IF the local date's day EXCEEDS the landing month's length AND the overflow EQUALS reject THEN [Shift] MUST answer no-such-day.
+Operation 24: IF the amount IS IN the whole amounts AND the local date's day EXCEEDS the landing month's length AND the overflow EQUALS reject THEN [Shift] MUST answer no-such-day.
 Operation 25: IF the amount IS IN the whole amounts AND the shifted date IS NOT IN the date range THEN [Shift] MUST answer out-of-range.
 Operation 26: [Shift] MUST answer the shifted date.
 ```
@@ -613,7 +613,7 @@ The case space, and the rule that owns each case:
 
 - **Invariant 1 — A place reads in a real zone and a real week.**
   ```
-  Invariant 1.1: EVERY place's time zone MUST name a zone of the time zone rules.
+  Invariant 1.1: EVERY place's time zone MUST name one of the zone names.
   Invariant 1.2: EVERY place MUST carry a day of the week as the place's week start.
   ```
 - **Invariant 2 — A place keeps its id.**
@@ -664,6 +664,7 @@ Capability requirement 1: The deployment MUST supply at the seam, for each [Open
 Capability requirement 2: The deployment MUST supply the time zone rules.
 Capability requirement 3: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
 Capability requirement 4: The deployment MUST supply the database PER Execution Contract Database 1 through 6, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
+Capability requirement 5: The deployment MUST keep EVERY zone name a place has carried among the zone names (Invariant 1.1).
 ```
 
 Term time zone rules: the deployment's record of every zone's offsets from UTC and of when each offset took effect, such as the IANA (Internet Assigned Numbers Authority) Time Zone Database.
@@ -792,7 +793,8 @@ The conformance table, each row a call and the answer the atom owes:
 | `shift(2026-01-31, 0, 1, 0, reject)` | any | no-such-day | Operation 24 |
 | `shift(2026-01-31, 0, 1, 31, clamp)` | any | 2026-03-31 | Operation 26 |
 | `shift(2026-01-31, 0, 1, -1, clamp)` | any | invalid-amount | Operation 22 |
-| `shift(9999-12-31, 0, 0, 1.5, clamp)` | any | invalid-amount | Operation 22, Operation 25 |
+| `shift(9999-12-31, 0, 0, 1.5, clamp)` | any | invalid-amount | Operation 22 |
+| `shift(9999-12-31, 0, 0, 1, clamp)` | any | out-of-range | Operation 25 |
 | `show(Chicago, 2026-11-07T05:50Z)` | 2026-11-07T18:00Z | yesterday, 2026-11-06, 23:50:00, −06:00, friday | Operation 29, Operation 37 |
 | `show(Chicago, 2026-11-03T15:00Z)` | 2026-11-07T18:00Z | current-week, 2026-11-03, 09:00:00, −06:00, tuesday | Operation 31, Operation 37 |
 | `show(Chicago, 2026-10-28T15:00Z)` | 2026-11-07T18:00Z | last-week, 2026-10-28, 10:00:00, −05:00, wednesday | Operation 32, Operation 37 |
@@ -900,7 +902,7 @@ Term terms: place, time zone, time zone rules, zone names, seam, week start, day
 ```
 status: doing
 formal: verified — calendar-time.als + 6 twins (the static data model: State 1, Invariant 1.1, 1.2, Identity 2 and 3 checked on every place an admitted [Open] or [Change] leaves, Identity 4 through Invariant 1.1); calendar-time.tla + 6 twins (across steps: Invariant 2.1 and State 2 over [Open] and [Change]; Invariant 3.1 and Operation 28 through 36 as now moves an hour a step over a window crossing midnight in every zone; Invariant 4.1 and Operation 24 over one [Shift] call on a date range scaled to 2027 and 2028); the vote no of 2026-11-08 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 7; Operation 12 through 21, 2026-11-11
-last gate: 2026-11-27 — Final Critique 2, a delta round (diff base 4b0bd47, 117 labels, the reach of the conversion to the bond shape, the reorganisation and the sweeps since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 668e1fe8 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing; the second triage's one foundational: Operation 25 answered out-of-range for a shifted date outside the date range, and the Execution Contract Refusal 1 order puts out-of-range ahead of invalid-amount, but an amount that is not whole has no shifted date, so a build that read Operation 25 over one, as shift(9999-12-31, 0, 0, 1.5, clamp) could, answered out-of-range where another answered invalid-amount; Operation 25 now applies to a whole amount, Term whole amount; the settle's refining cures: forward resolution and back resolution are the instant the clock shows as the wall time plus or minus the gap's length, since a skipped wall time has no matching instant to move; the Day Start entry says the first time the clock shows, as its Term does; the acronyms API, ISO, UTC, RFC, IANA and CLDR are spelled out at their first use; no model redraw: the model's amounts are whole numbers and its answers for them are unchanged); 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 3, a delta round (diff base 668e1fe8, 108 labels, the reach of Final Critique 2's cures), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6266d296 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing foundational; the second triage's one foundational: Invariant 1.1 holds only while the time zone rules keep every name a place carries, and no rule asked the deployment to keep one, so a rules release that drops a name a place carries, such as a legacy link like US/Central, leaves a place that Day, Resolve and Show have no rule to answer, and two builds answer it differently; Capability requirement 5 now asks the deployment to keep every zone name a place has carried among the zone names; the settle's refining cures: the Conformance row for a shift by 1.5 days cites Operation 22 alone and a new row for a shift by 1 day from 9999-12-31 carries Operation 25, Operation 24 applies to a whole amount as Operation 25 does, Term whole amount no longer says no date lies from the landing day for an amount that is not whole, and Invariant 1.1 and Term time zone read the zone names; no model redraw: the models' amounts and zone names are unchanged); 2026-11-27 — Final Critique 2, a delta round (diff base 4b0bd47, 117 labels, the reach of the conversion to the bond shape, the reorganisation and the sweeps since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 668e1fe8 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing; the second triage's one foundational: Operation 25 answered out-of-range for a shifted date outside the date range, and the Execution Contract Refusal 1 order puts out-of-range ahead of invalid-amount, but an amount that is not whole has no shifted date, so a build that read Operation 25 over one, as shift(9999-12-31, 0, 0, 1.5, clamp) could, answered out-of-range where another answered invalid-amount; Operation 25 now applies to a whole amount, Term whole amount; the settle's refining cures: forward resolution and back resolution are the instant the clock shows as the wall time plus or minus the gap's length, since a skipped wall time has no matching instant to move; the Day Start entry says the first time the clock shows, as its Term does; the acronyms API, ISO, UTC, RFC, IANA and CLDR are spelled out at their first use; no model redraw: the model's amounts are whole numbers and its answers for them are unchanged); 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none
 ```
