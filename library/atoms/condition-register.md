@@ -24,7 +24,7 @@ Condition Register keeps the permanent record of what a background run observed.
 
 Background runs notice things. A sweep finds an act it cannot close; a reconciliation finds the database it reads unreachable for an hour; a scan finds two writers claiming one record. What a run notices has to outlive the run: an auditor asks months later which acts were escalated and when the outage began and ended, and the answer cannot be in a log that rotates.
 
-Three compositions found this first, and each built its own register: a recoverable-invocation pattern's findings, an audit pattern's outage record and a ledger pattern's write-ownership findings. Each classifies its register as *extraction-pending against Condition Register* (Execution Contract, the section titled Composition state in `execution-contract.md`). This atom is that extraction, written once from what the three agree on.
+Three compositions found this first, and each built its own register: a recoverable-invocation pattern's findings, an audit pattern's outage record and a ledger pattern's write-ownership findings. Each classifies its register as *extraction-pending against Condition Register* (Execution Contract, the section titled App state in `execution-contract.md`). This atom is that extraction, written once from what the three agree on.
 
 They agree on two shapes. A sighting is about one subject and happens once: the act was found escalated, and finding it again adds nothing. A standing condition is about the instance and lasts: the database was down from first seen to last seen, and the span is the fact an auditor reads. The atom keeps both, keyed so that a sighting is never recorded twice and a standing condition never stands open twice for one scope, and it keeps them forever unless the composer's retention ends them. It decides nothing about them.
 
@@ -39,8 +39,8 @@ Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the standing id.
 Identity 3: The host MUST allocate a standing id at the seam that no standing record carries PER Execution Contract Logic confinement 16.
 Identity 4: The atom MUST NOT reuse a standing id.
-Identity 5: The atom MUST NOT interpret a subject.
-Identity 6: The atom MUST NOT interpret a scope.
+Identity 5: The atom MUST NOT interpret a subject beyond reading a whitespace-only subject as blank (String 5).
+Identity 6: The atom MUST NOT interpret a scope beyond reading a whitespace-only scope as blank and every blank scope as one scope (String 5, String 6).
 Identity 7: The atom MUST NOT interpret a run id.
 ```
 
@@ -123,7 +123,7 @@ Term first seen: the instant a standing record opened — a [First Seen]; with f
 
 Term last seen: the instant of the last call that still saw the condition — a [Last Seen]; with last run id, that run.
 
-Term closing instant: the instant the first run that no longer saw the condition closed the standing record — a [Closing Instant].
+Term closing instant: the instant the first run that no longer saw the condition closed the standing record — a [Closing Instant]; with closing run id, that run.
 
 Term condition: a name a composing pattern declares for one thing its runs look for, with its shape — a [Condition].
 
@@ -155,7 +155,7 @@ Projection: first_seen
 
 #### Last Seen
 
-The instant of the last call that still saw the condition, stamped from the injected [Now]; it only moves forward, and closing leaves it as it was.
+The instant of the last call that still saw the condition, stamped from the injected [Now]; it never moves back, and closing leaves it as it was.
 
 Kind:       Field
 Field of:   Standing Record
@@ -189,6 +189,7 @@ Operation 27: IF the database refuses the write THEN EVERY writing action MUST a
 Operation 36: The atom MUST NOT offer a removal action.
 Operation 37: The atom MUST NOT offer a reopen action.
 Operation 45: IF condition EQUALS blank THEN [Record Sighting], [Report Standing], [Report Clear] AND [List Conditions] MUST answer invalid-request.
+Operation 50: IF a write leaves a standing record whose last seen PRECEDES the standing record's first seen OR whose closing instant PRECEDES the standing record's last seen OR whose last seen PRECEDES the standing record's last seen in an earlier committed version THEN the database MUST refuse the write.
 ```
 
 NOTE: watch the required input no rule records (Operation 38, Operation 39, Operation 40, Operation 41).
@@ -203,7 +204,7 @@ Term writing action: [Record Sighting], [Report Standing] or [Report Clear].
 
 Term span: a standing record's first seen to the standing record's last seen — the condition's start and end as the register records them.
 
-Term window: the half-open span from window start to window end, window start included and window end excluded, in place of Execution Contract Query 2's closed range.
+Term window: the half-open interval from window start to window end, window start included and window end excluded, in place of Execution Contract Query 2's closed range.
 
 Term window start: the earliest instant a [List Conditions] call asks for — a [Window Start].
 
@@ -215,7 +216,7 @@ Term listing key: a sighting's seen instant paired with its subject, or a standi
 
 Term continuation key: the listing key of the last record a previous [List Conditions] call answered — a [Continuation Key], malformed where it is not an instant paired with an id.
 
-Term matching record: a sighting of the condition whose seen instant falls in the window, or a standing record of the condition whose first seen falls in the window and whose status EQUALS the listed status where listed status DOES NOT EQUAL blank — in either case only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. A condition has one shape, so its records are of that shape alone, a sighting carries no status so a listed status does not select it, a standing record is listed in the window its first seen falls in and in no other, and where none match the answer is empty.
+Term matching record: a sighting of the condition whose seen instant falls in the window where listed status EQUALS blank, or a standing record of the condition whose first seen falls in the window and whose status EQUALS the listed status where listed status DOES NOT EQUAL blank — in either case only where the listing key EXCEEDS the continuation key where continuation key DOES NOT EQUAL blank. A condition has one shape, so its records are of that shape alone, a sighting carries no status so a listed status does not select it, a standing record is listed in the window its first seen falls in and in no other, and where none match the answer is empty.
 
 The case space, and the rule that owns each case:
 
@@ -258,6 +259,33 @@ Member of:  the action rejection
 Role:       Outcome
 Projection: invalid-request
 
+#### Recorded
+
+The answer [Record Sighting] gives where it recorded the sighting.
+
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: recorded
+
+#### Opened
+
+The answer [Report Standing] gives where it opened a new standing record.
+
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: opened
+
+#### Advanced
+
+The answer [Report Standing] gives where it advanced the open standing record.
+
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: advanced
+
 #### Storage Failure
 
 The refusal a writing action answers where the database refuses its write. Nothing is written.
@@ -295,7 +323,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Record Sighting] | a declared sighting condition, subject and run present, no sighting for the pair | recorded | one sighting lands, seen instant stamped (Operation 5, Operation 6, Operation 7, Operation 38) |
+| [Record Sighting] | a declared sighting condition, subject and run present, no sighting for the pair | [Recorded] | one sighting lands, seen instant stamped (Operation 5, Operation 6, Operation 7, Operation 38) |
 | [Record Sighting] | the pair already sighted | [Duplicate] | none; the sighting stands as recorded (Operation 4, Invariant 1.1) |
 
 `record_sighting(condition: "store-unavailable", ...)` → invalid-request: store-unavailable is declared standing (Operation 2).
@@ -333,8 +361,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Report Standing] | a declared standing condition, no open record for condition and scope | opened | one standing record lands in [Open], first and last seen stamped; a closed record for the pair stands as it was (Operation 15 through 18, Operation 39 through 41, Invariant 1.3) |
-| [Report Standing] | an open record for condition and scope | advanced | last run id and last seen move; the standing id, condition, scope, first run id and first seen stand (Operation 12, Operation 13, Operation 14, Invariant 1.2) |
+| [Report Standing] | a declared standing condition, no open record for condition and scope | [Opened] | one standing record lands in [Open], first and last seen stamped; a closed record for the pair stands as it was (Operation 15 through 18, Operation 39 through 41, Invariant 1.3) |
+| [Report Standing] | an open record for condition and scope | [Advanced] | last run id and last seen move; the standing id, condition, scope, first run id and first seen stand (Operation 12, Operation 13, Operation 14, Invariant 1.2) |
 | [Report Standing], [Report Clear] | an open record whose last seen follows now | [Storage Failure] | none (Invariant 4.2, Invariant 4.3, Operation 27) |
 
 `report_standing(condition: "disk-full", ...)` where no composing pattern declared disk-full → invalid-request (Operation 1).
@@ -359,7 +387,7 @@ Operation 11: IF run id EQUALS blank THEN [Report Clear] MUST answer invalid-req
 Operation 19: IF an open standing record EXISTS for the condition and the scope THEN [Report Clear] MUST stand the standing record in closed.
 Operation 20: IF an open standing record EXISTS for the condition and the scope THEN [Report Clear] MUST record the run id as the closing run id.
 Operation 21: IF an open standing record EXISTS for the condition and the scope THEN [Report Clear] MUST stamp closing instant from the injected now.
-Operation 22: [Report Clear] MUST NOT change last seen.
+Operation 22: [Report Clear] MUST NOT change last seen and last run id.
 Operation 23: IF an open standing record EXISTS for the condition and the scope THEN [Report Clear] MUST answer closed.
 Operation 24: IF no open standing record EXISTS for the condition and the scope THEN [Report Clear] MUST answer none-open.
 ```
@@ -368,7 +396,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Report Clear] | an open record for condition and scope | closed | the record moves to [Closed], closing run and instant written, last seen unchanged; the standing id, condition, scope, first run id and first seen stand (Operation 19 through 23, Invariant 1.2) |
+| [Report Clear] | an open record for condition and scope | closed | the record moves to [Closed], closing run and instant written, last seen and last run id unchanged; the standing id, condition, scope, first run id and first seen stand (Operation 19 through 23, Invariant 1.2) |
 | [Report Clear] | no open record for condition and scope | [None Open] | none; a closed record stands as it was (Operation 24, Invariant 1.3) |
 
 `report_clear(condition: "store-unavailable", scope: "ledger", run_id: "run_7105")` with nothing open for ledger → none-open, not an error, so a run reports every condition it checked (Operation 24).
@@ -403,7 +431,7 @@ Operation 31: [List Conditions] MUST order the answer by the listing key.
 Operation 33: IF window end PRECEDES window start THEN [List Conditions] MUST answer invalid-request.
 Operation 34: IF condition IS NOT IN the declared conditions THEN [List Conditions] MUST answer invalid-request.
 Operation 35: [List Conditions] MUST NOT write.
-Operation 49: [List Conditions] MUST carry the standing id on EVERY answered standing record.
+Operation 49: [List Conditions] MUST answer EVERY field EVERY answered record carries, the standing id on a standing record included.
 Operation 42: IF window start EQUALS blank OR window end EQUALS blank THEN [List Conditions] MUST answer invalid-request.
 Operation 43: IF listed status DOES NOT EQUAL blank AND listed status DOES NOT EQUAL open AND listed status DOES NOT EQUAL closed THEN [List Conditions] MUST answer invalid-request.
 Operation 44: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Conditions] MUST answer invalid-request.
@@ -458,7 +486,7 @@ Kind: Operation
 
 ```
 read_standing(standing_id)
-  answers standing record
+  answers standing_record
   refuses not-known
 ```
 
@@ -503,9 +531,9 @@ Projection: not-known
   ```
 - **Invariant 4 — A span runs forward.**
   ```
-  Invariant 4.1: IF a write's last seen PRECEDES the standing record's first seen THEN the database MUST refuse the write.
-  Invariant 4.2: IF a write's closing instant PRECEDES the standing record's last seen THEN the database MUST refuse the write.
-  Invariant 4.3: IF a write's last seen PRECEDES the standing record's stored last seen THEN the database MUST refuse the write.
+  Invariant 4.1: A standing record's last seen MUST NOT PRECEDE the standing record's first seen.
+  Invariant 4.2: A closed standing record's closing instant MUST NOT PRECEDE the standing record's last seen.
+  Invariant 4.3: A standing record's last seen MUST NOT PRECEDE the standing record's last seen in an earlier committed version.
   ```
 - **Invariant 5 — Every record names its run.**
   ```
@@ -523,9 +551,17 @@ Invariants 1 and 4 give *a faithful history*: what a run saw reads the same fore
 
 ```
 Concurrency 1: IF two [Report Standing] calls name one condition and one scope and no open standing record EXISTS THEN EXACTLY ONE call MUST answer opened.
-Concurrency 2: IF two [Record Sighting] calls name one condition and one subject THEN EXACTLY ONE call MUST answer recorded.
+Concurrency 2: IF two [Record Sighting] calls name one condition and one subject AND no sighting EXISTS for the condition and the subject THEN EXACTLY ONE call MUST answer recorded.
 Concurrency 3: IF two [Report Clear] calls name one condition and one scope and an open standing record EXISTS THEN EXACTLY ONE call MUST answer closed.
 ```
+
+### Indeterminate outcome
+
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Record Sighting] where the first landed answers [Duplicate] (Operation 4). A repeated [Report Standing] meets the open record the first left and advances it (Operation 12 through 14). A repeated [Report Clear] where the first landed answers [None Open] while no record has opened since (Operation 24), and closes the record a later run opened where one has (Operation 19 through 21), since the atom cannot tell a repeat from a later run's call; a run whose [Report Clear] answer is lost therefore does not repeat the call, and the next run's own call reports the clear again (Composition note 2).
+
+### What undoes a write
+
+No writing action of this atom is undone: Invariant 1.1 keeps what [Record Sighting] writes, Invariant 1.2, Invariant 1.3 and Invariant 4.3 keep what [Report Standing] and [Report Clear] write, and Operation 36 and Operation 37 bar the removal and the reopening that would reverse them, so a recurrence is a fresh [Report Standing] that opens a new record and no undo is owed (Execution Contract Undo 4).
 
 ## While something is so
 
@@ -551,7 +587,7 @@ String 6: The atom MUST read EVERY blank scope as one scope.
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 11 and Execution Contract Logic confinement 20.
-Capability requirement 2: The deployment MUST supply the condition records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
+Capability requirement 2: The deployment MUST supply the atom's records PER Execution Contract Database 1 through 7, Execution Contract Order 1, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Input 2.
 Capability requirement 3: The deployment MUST declare EVERY condition a composing pattern declares, with the condition's shape.
 Capability requirement 4: The deployment MAY override the name cap.
 Capability requirement 5: The deployment MAY override the id cap.
@@ -565,7 +601,7 @@ Term declared conditions: EVERY condition the deployment declared, each with its
 
 Term name cap: 128 Unicode code points — the longest condition the atom accepts, unless the deployment overrides it.
 
-Term id cap: 256 Unicode code points — the longest subject, scope or run id the atom accepts, unless the deployment overrides it.
+Term id cap: 256 Unicode code points — the longest subject, scope or run id the atom accepts, unless the deployment overrides it; the standing id is the host's and carries no cap, since [Read Standing] answers not-known for any id no standing record carries (Identity 3, Operation 47).
 
 Term page size: 1,000 records — the most [List Conditions] answers in one call, unless the deployment overrides it.
 
@@ -600,7 +636,7 @@ Non-goal 3: The atom MUST NOT alert a person.
 Deleted: Non-goal 4. Non-goal 3 owns it: the atom alerts on no condition, and which pattern does is the app's choice.
 Non-goal 5: The atom MUST NOT bound a record's lifetime.
 Deleted: Non-goal 6. Non-goal 5 owns it: the atom bounds no lifetime, and which pattern does is the app's choice.
-Non-goal 7: The atom MUST NOT run a run.
+Non-goal 7: The atom MUST NOT run a sweep.
 Deleted: Non-goal 8. Non-goal 7 owns it: the atom runs no sweep, and which pattern recovers a condition is the app's choice.
 Non-goal 9: The atom MUST NOT seal a record against modification.
 Deleted: Non-goal 10. Non-goal 9 owns it: the atom seals no condition record, and which pattern makes the records tamper-evident is the app's choice.
@@ -634,9 +670,9 @@ The same sweep finds act `act_88e1` past its window and closes it as escalated. 
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — when did the outage begin and end?** The auditor lists the standing records of store-unavailable that opened in the quarter. Each outage is one record whose span is the first and last run that saw it, with both runs named; none can have been shortened, because first seen never changes and last seen only advances (Invariant 1.2, Invariant 4.3).
+- **Regulator audit — when did the outage begin and end?** The auditor lists the standing records of store-unavailable that opened in the quarter. Each outage is one record whose span is the first and last run that saw it, with both runs named; none can have been shortened, because first seen never changes and last seen never moves back (Invariant 1.2, Invariant 4.3).
 - **A run that crashes mid-outage.** The sweep dies with an outage open. The next run still sees it and advances the same record; there is no second open record (Invariant 3.1).
-- **Two sweeps on one instance.** Two runs report the same outage at once. One opens the record and the other advances it, because the database serializes the two calls and the later reads the record the earlier opened (Execution Contract Database 2), with Invariant 3.1 behind it.
+- **Two sweeps on one instance.** Two runs report the same outage at once. One opens the record and the other advances it, because the database serializes the two calls and decides the later again on the record the earlier opened (Execution Contract Database 2), with Invariant 3.1 behind it.
 
 ---
 
@@ -652,7 +688,7 @@ Inherited from:
 
 ### Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the condition records, with their committed versions (Execution Contract Generation acceptance 1).
+This atom's acceptance is provable: an external auditor clears it from the atom's records, with their committed versions (Execution Contract Generation acceptance 1).
 
 #### Conformance checks
 
@@ -661,6 +697,8 @@ Check 1.1: An auditor MUST find condition, subject, run id and seen instant on E
 Check 1.2: An auditor MUST find standing id, condition, scope, first run id, first seen, last run id, last seen and status on EVERY standing record (State 2).
 Check 1.3: An auditor MUST find EVERY sighting's fields unchanged across EVERY committed version of the sighting (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 1.4: An auditor MUST find EVERY closed standing record's fields unchanged across EVERY committed version of the standing record from the commit that closed the standing record (Invariant 1.3; Execution Contract Generation acceptance 1).
+Check 1.5: An auditor MUST find EVERY standing record in EXACTLY ONE of open and closed, a closing run id and a closing instant on EVERY closed standing record, and neither on an open standing record (State 3, State 4, State 5, State 8).
+Check 1.6: An auditor MUST find EVERY record of EVERY committed version present in EVERY later committed version (Invariant 1.4; Execution Contract Database 5).
 Check 2.1: An auditor MUST find no two sightings sharing a condition and a subject (Invariant 2.1).
 Check 3.1: An auditor MUST find no commit leaving two standing records open sharing a condition and a scope (Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 4.1: IF a standing record's last seen PRECEDES the standing record's first seen THEN an auditor MUST report the standing record (Invariant 4.1).
@@ -684,13 +722,13 @@ External check 1: An auditor MUST read what a condition means from the composing
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
-Term actors: the atom; the host; the deployment; a composing pattern; a run; a caller; a guard; an auditor; the database; a sighting; a standing record; a record; a write; an action; a writing action; a call; a string input; an opaque reference; an override; a bound; a report.
+Term actors: the atom; the host; the deployment; a composing pattern; a run; a caller; a guard; an auditor; the database; a sighting; a standing record; a record; a write; an action; a writing action; a call; a string input; an override; a bound; a report.
 
 Term records: sighting — a condition seen about one subject, carrying condition, subject, run id and seen instant. standing record — one span of a standing condition, carrying standing id, condition, scope, first run id, first seen, last run id, last seen and status and, once closed, closing run id and closing instant.
 
 Term record verbs: identify, allocate, reuse, interpret, carry, stand, offer, remove, supply, declare, override, exceed, answer, record, stamp, set, change, order, write, share, refuse, report, move, give, act, alert, bound, compose, run, seal, accept, compare, trim, normalize, case-fold, read, find, call, fail, own.
 
-Term value sets: shape = sighting | standing. status = open | closed.
+Term value sets: shape = sighting | standing. status = open | closed. the action outcome = recorded | opened | advanced. the Report Clear outcome = closed | none-open. the action rejection = invalid-request | duplicate | storage-failure | not-known.
 
 Term bounds: name cap (the longest condition the atom accepts); id cap (the longest subject, scope or run id the atom accepts); page size (the most records [List Conditions] answers in one call); zero (the floor an overriding bound must exceed).
 
@@ -731,6 +769,9 @@ Term terms: condition, shape, sighting, standing record, subject, scope, run id,
 [Duplicate]: #duplicate
 [Invalid Request]: #invalid-request
 [Storage Failure]: #storage-failure
+[Recorded]: #recorded
+[Opened]: #opened
+[Advanced]: #advanced
 
 ## Status
 
@@ -744,7 +785,7 @@ Term terms: condition, shape, sighting, standing record, subject, scope, run id,
 ```
 status: doing
 formal: verified — condition-register.als + 14 twins (the static data model: State 1 through 5 and 8, Invariant 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, Identity 4 and a condition's one shape checked on every database a run of admitted calls leaves); condition-register.tla + 10 twins (across steps: Invariant 1.1 through 1.4, 2.1, 3.1, 4.1 through 4.3 and Operation 22 over every sequence of calls, each call carrying any clock reading); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28, 29 and 31; Concurrency 1 through 3, 2026-11-11
-last gate: 2026-11-20 — Final Critique 5, a delta round, frozen at 9db4fbc8 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 4, a delta round, frozen at 7f522a9 — foundational count 0, clean, no sample; 2026-11-03 — Final Critique 3, frozen at aeea14e — foundational count 2, all cured, not clean, no sample; Final Critique 2, a delta round, frozen at dd11876 — foundational count 0, clean, no sample; Final Critique 1, frozen at ebdfc8e — foundational count 7, all cured, not clean, no sample
+last gate: 2026-11-27 — Final Critique 6, a full round, frozen at 79cac81e — foundational count 3, all cured, not clean, no sample
 
 open: none
 ```

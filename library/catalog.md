@@ -54,7 +54,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints communication id. Offers key communication id.
 
-**[Condition Register](./atoms/condition-register.md)** (764 lines). Condition Register keeps the permanent record of what a background run observed.
+**[Condition Register](./atoms/condition-register.md)** (805 lines). Condition Register keeps the permanent record of what a background run observed.
 
 - Mints standing id. Offers key standing id.
 
