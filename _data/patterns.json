@@ -1779,7 +1779,7 @@
    "propagate-consent-revocation-downstream"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1816,7 +1816,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-27",
   "title": "Retention Window"
  },
  "role": {

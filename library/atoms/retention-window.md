@@ -192,7 +192,7 @@ Term purge instant: the instant the purge was recorded, stamped from the injecte
 ### Every action
 
 ```
-Operation 24a: The host MUST resolve the policy's duration and the policy's max purge delay to elapsed lengths at the atom's seam.
+Operation 24a: The host MUST resolve the policy's duration and the policy's max purge delay to elapsed lengths at the atom's seam, the degenerate duration standing in place of a duration resolved to no elapsed length and the degenerate max purge delay in place of a max purge delay resolved to no elapsed length.
 Operation 26: The transition MUST NOT read the policy registry.
 ```
 
@@ -264,7 +264,7 @@ Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Pl
 Deleted: Operation 7a. Operation 7 owns it: the degenerate duration does not exceed the zero duration.
 Operation 8: IF the zero duration EXCEEDS the policy's max purge delay THEN [Place Under Retention] MUST answer invalid-policy.
 Deleted: Operation 8b. Operation 8 owns it: the zero duration EXCEEDS the degenerate max purge delay.
-Operation 8c: IF the latest instant the database holds PRECEDES retention deadline OR the latest instant the database holds PRECEDES purge deadline THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 8c: IF the latest database instant PRECEDES retention deadline OR the latest database instant PRECEDES purge deadline THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the database refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Operation 11: [Place Under Retention] MUST NOT read the host's records.
 Operation 24: The host MUST resolve the policy at the seam of [Place Under Retention] alone.
@@ -279,7 +279,7 @@ The case space, and the rule that owns each case:
 | [Place Under Retention] | blank record reference or policy reference, or one that is not a string | [Invalid Request] | none (Operation 4, Operation 5, Execution Contract Input 3) |
 | [Place Under Retention] | policy reference resolves to nothing | [Policy Not Found] | none (Operation 6) |
 | [Place Under Retention] | the host cannot read the policy registry | [Registry Unavailable] | none — the well-formedness checks passed and no policy was read (Operation 24b, Execution Contract Refusal 1) |
-| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline later than the latest instant the database holds | [Invalid Policy] | none (Operation 7, Operation 8, Operation 8c) |
+| [Place Under Retention] | the registry was read, then duration not positive or unresolved, delay negative or unresolved, or a deadline later than the latest database instant | [Invalid Policy] | none (Operation 7, Operation 8, Operation 8c) |
 | [Place Under Retention] | database refuses the write | [Storage Failure] | none (Operation 9) |
 
 **Policy reference not resolvable.** A host system calls [Place Under Retention] with a policy reference that does not resolve to a known policy:
@@ -598,7 +598,7 @@ Capability requirement 16: The deployment MUST supply a record reference that na
 Capability requirement 17: The deployment MUST supply the policy registry the host resolves a policy reference against (Operation 24).
 Capability requirement 17a: The deployment MUST supply a policy registry that keeps the policy record EVERY placement resolved, for the life of the instance.
 Capability requirement 18: IF the instance holds a retention THEN the deployment MUST NOT change whether a composing pattern owns the destruction.
-Capability requirement 19: The deployment MUST declare the latest instant the database holds.
+Capability requirement 19: The deployment MUST declare the latest database instant.
 ```
 
 NOTE: a retention id the retention records already hold, supplied at a placement, breaks Capability requirement 8; the atom has no refusal for it.
@@ -613,7 +613,7 @@ Kind:         Parameter
 Parameter of: Place Under Retention, Purge and Read
 Projection:   now
 
-Term seam: the atom's I/O boundary as Execution Contract Logic confinement 14 declares it; the host injects here the clock reading and, at a placement, the retention id, the policy registry's answer for the policy reference — that the host could not read the registry, that the registry holds no policy under the reference, or the policy's duration and max purge delay as the host resolved them (Operation 24a) — and the latest instant the database holds (Capability requirement 19).
+Term seam: the atom's I/O boundary as Execution Contract Logic confinement 14 declares it; the host injects here the clock reading and, at a placement, the retention id, the policy registry's answer for the policy reference — that the host could not read the registry, that the registry holds no policy under the reference, or the policy's duration and max purge delay as the host resolved them (Operation 24a) — and the latest database instant (Capability requirement 19).
 
 Term transition: the atom's evaluation of one call against the retention records, as Execution Contract Logic confinement 14 declares it.
 
@@ -647,7 +647,7 @@ Non-goal 9: The atom MUST NOT place the atom's own records under retention.
 Non-goal 10: The atom MUST NOT record who authorized a purge.
 Deleted: Non-goal 11. Non-goal 10 owns it: the atom binds no purging actor, and which pattern attests one is the app's choice.
 Non-goal 12: The atom MUST NOT purge two retentions as one write.
-Non-goal 13: A deployment whose deadlines carry legal force MUST compose a trusted time-stamping pattern.
+Non-goal 13: A deployment that declares the deployment's deadlines carry legal force, in the declaration of the composing patterns the deployment wired in (Composition note 1), MUST compose a trusted time-stamping pattern.
 Non-goal 14: The atom MUST NOT hold an idempotency key for a placement.
 Deleted: Non-goal 15. Non-goal 14 owns it: the atom records two placements as two retentions, and which pattern answers a retried placement once is the app's choice.
 Non-goal 16: The atom MUST NOT bound the age of a standing record.
@@ -836,7 +836,7 @@ Term cited: idempotency key: Declarations.
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -844,9 +844,9 @@ Term cited: idempotency key: Declarations.
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — retention-window.als + 18 twins (the static data model: Invariant 1.1, 4.1, 6.1, 6.2, 8.1, 9.1 and 11.1, State 2 through 6 with 4a and 6a, State 10, Identity 1, Operation 4, 5, 7, 8c and 13 checked on every version an ordered sequence of admitted calls leaves, with Identity 6 and Operation 8 checked through them); retention-window.tla + 23 twins (across steps, while the clock moves and [Read] carries a query: Invariant 2.1, 2.2, 3.1, 4.2, 5.1 through 5.3, 7.1, 8.3, 9.1, 10.2, 11.2 and 11.3, Identity 10, Capability requirement 8 and 9, Operation 1, 13b, 15, 20, 29, 32, 37, 38 and 39, Simultaneous retention 2, with Invariant 3.2 and 10.1, State 9 and Simultaneous retention 3 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Operation 11, 21 and 26, Record divergence 3, Capability requirement 17 and Simultaneous retention 4 through 8 (joint enforcement, the composing pattern's) cannot be stated; owed rows: Operation 6, 14, 24b and 30, Capability requirement 18, 2026-11-12, re-derived 2026-11-21; model redraw deferred to Lean: the retention-window models, Operation 7a and Operation 8b (deleted), 2026-11-27
-last gate: 2026-11-27 — Final Critique 15, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/claude-haiku-5-5, Linus opencode-go/mimo-v2.6-pro), frozen at c3c7c1b0 — foundational count 1, not clean, one sample (the degenerate duration and max purge delay were plain values with no place outside the legal ranges, so a build whose sentinel was a legal value answered invalid-policy where another answered a retention id, and Operation 7a and 8b compared them with EQUALS against a value in no declared set: the sentinels are now values Operation 7 and Operation 8 already refuse, and 7a and 8b are deleted; the policy registry is told to keep every placement's policy record, Capability requirement 17a); 2026-11-21 — Final Critique 14, frozen at c523cd3c — foundational count 1 (a blank or malformed retention id had two owners, Execution Contract Input 3's invalid-request and Operation 14's not-known; cured: Operation 14 states not-known for any id the records do not hold), not clean, no sample; the round's refining findings cured with it, among them Operation 18, which named neither a refusal nor its ground and so barred none, now naming retention-period-not-elapsed; 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 16, a delta round, one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 809bd644 — foundational count 0 after the blind second triage, clean, one sample (three refining cures of the settle's own, none moving a verdict: Operation 8c, Capability requirement 19, the seam Term and the Place Under Retention row name the latest database instant by its Term; Operation 24a states the injection of the degenerate duration and max purge delay the two Terms cite it for; Non-goal 13 takes its trigger from the deployment's declaration, as Term high-assurance deployment does); 2026-11-27 — Final Critique 15, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/claude-haiku-5-5, Linus opencode-go/mimo-v2.6-pro), frozen at c3c7c1b0 — foundational count 1, not clean, one sample (the degenerate duration and max purge delay were plain values with no place outside the legal ranges, so a build whose sentinel was a legal value answered invalid-policy where another answered a retention id, and Operation 7a and 8b compared them with EQUALS against a value in no declared set: the sentinels are now values Operation 7 and Operation 8 already refuse, and 7a and 8b are deleted; the policy registry is told to keep every placement's policy record, Capability requirement 17a); 2026-11-21 — Final Critique 14, frozen at c523cd3c — foundational count 1 (a blank or malformed retention id had two owners, Execution Contract Input 3's invalid-request and Operation 14's not-known; cured: Operation 14 states not-known for any id the records do not hold), not clean, no sample; the round's refining findings cured with it, among them Operation 18, which named neither a refusal nor its ground and so barred none, now naming retention-period-not-elapsed; 2026-10-24 — Final Critique 13, frozen at 142a72a — foundational count 0, clean, one sample
 
 open: none
 ```
