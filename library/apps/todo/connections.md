@@ -13,10 +13,13 @@ nav_exclude: true
 How the atoms of [Shared Todo as an app](./index.md) connect, drawn from their own need and offer lines and the app page's bond instance and glue lines ([Bonds](../../bonds.md)). A need met by an offer so many atoms need that it is drawn as no arrow (an actor id, a journal) is a tag in the needing atom's box.
 
 ```mermaid
+---
+title: atomic weight 10 · lines written 4
+---
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
   c_actor_identity["Actor Identity<br/><small>serves the actor id tags</small>"]
-  c_assignment["Assignment<br/><small>actor id · journal · glue: claim</small>"]
+  c_assignment["Assignment<br/><small>actor id · journal · glue: claim (bond candidate)</small>"]
   c_credential["Credential<br/><small>actor id</small>"]
   c_event_log["Event Log<br/><small>serves the journal tags</small>"]
   c_invitation["Invitation<br/><small>actor id · journal</small>"]
@@ -30,14 +33,14 @@ flowchart LR
   c_ordering -->|"list id"| c_list
   c_task -->|"list id"| c_list
   c_ordering -->|"instance 1: task id"| c_task
-  c_credential -.->|"glue: sign in"| c_session
-  c_invitation -.->|"glue: accept grants"| c_permissions
+  c_credential -.->|"glue: sign in<br/>atom candidate"| c_session
+  c_invitation -.->|"glue: accept grants<br/>bond candidate"| c_permissions
   linkStyle 4 stroke:#e8a33d,stroke-width:2px,color:#e8a33d
 ```
 
 - **Solid arrow:** a key bond that wires itself; the needing atom points at the atom whose offer meets it.
 - **Orange arrow:** a bond instance the app writes, for a need several offers meet.
-- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one); glue is counted apart and is no bond.
+- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one), with its birth tag, where it is headed: an atom candidate or a bond candidate; glue is counted apart and is no bond.
 
 ## Tally
 
@@ -64,6 +67,6 @@ The app page's own need, no atom's bond and not counted above: permission actor 
 | Task | Actor Identity | key | actor id | tag |
 | Task | Event Log | journal | task events | tag |
 | Ordering | Task | key | task id | bond instance 1 |
-| Credential | Session | glue | sign in | dashed arrow |
-| Invitation | Permissions | glue | accept grants | dashed arrow |
-| Assignment | — | glue | claim | tag |
+| Credential | Session | glue | sign in (atom candidate) | dashed arrow |
+| Invitation | Permissions | glue | accept grants (bond candidate) | dashed arrow |
+| Assignment | — | glue | claim (bond candidate) | tag |

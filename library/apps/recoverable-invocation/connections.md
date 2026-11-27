@@ -13,6 +13,9 @@ nav_exclude: true
 How the atoms of [Recoverable Invocation as an app](./index.md) connect, drawn from their own need and offer lines and the app page's bond instance and glue lines ([Bonds](../../bonds.md)). A need met by an offer so many atoms need that it is drawn as no arrow (an actor id, a journal) is a tag in the needing atom's box.
 
 ```mermaid
+---
+title: atomic weight 5 · lines written 38
+---
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
   c_durable_intent["Durable Intent<br/><small>journal</small>"]
@@ -29,7 +32,7 @@ flowchart LR
 
 - **Solid arrow:** a key bond that wires itself; the needing atom points at the atom whose offer meets it.
 - **Orange arrow:** a bond instance the app writes, for a need several offers meet.
-- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one); glue is counted apart and is no bond.
+- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one), with its birth tag, where it is headed: an atom candidate or a bond candidate; glue is counted apart and is no bond.
 
 ## Tally
 
@@ -49,41 +52,41 @@ flowchart LR
 | Durable Intent | Event Log | journal | closing record, intent record | tag |
 | Escalation | Event Log | journal | closing record | tag |
 | Sweep | Event Log | journal | closing record, recovery_intended | tag |
-| — | — | glue | attested append 1 | not drawn: names no atom |
-| — | — | glue | attested append 2 | not drawn: names no atom |
-| — | — | glue | attested append 3 | not drawn: names no atom |
-| — | — | glue | act section 16 | not drawn: names no atom |
-| — | — | glue | commit 1 | not drawn: names no atom |
-| — | — | glue | commit 2 | not drawn: names no atom |
-| — | — | glue | commit 3 | not drawn: names no atom |
-| — | — | glue | commit 4 | not drawn: names no atom |
-| — | — | glue | commit 5 | not drawn: names no atom |
-| — | — | glue | commit 6 | not drawn: names no atom |
-| — | — | glue | commit 7 | not drawn: names no atom |
-| — | — | glue | commit 8 | not drawn: names no atom |
-| — | — | glue | commit 8a | not drawn: names no atom |
-| — | — | glue | commit 8b | not drawn: names no atom |
-| — | — | glue | commit 8c | not drawn: names no atom |
-| — | — | glue | commit 8d | not drawn: names no atom |
-| — | — | glue | commit 9 | not drawn: names no atom |
-| — | — | glue | commit 15 | not drawn: names no atom |
-| — | — | glue | repeatable 1 | not drawn: names no atom |
-| — | — | glue | repeatable 2 | not drawn: names no atom |
-| — | — | glue | act probe 1 | not drawn: names no atom |
-| — | — | glue | act probe 2 | not drawn: names no atom |
-| — | — | glue | act probe 3 | not drawn: names no atom |
-| — | — | glue | act probe 3a | not drawn: names no atom |
-| — | — | glue | act probe 4 | not drawn: names no atom |
-| — | — | glue | act probe 5 | not drawn: names no atom |
-| — | — | glue | act probe 6 | not drawn: names no atom |
-| — | — | glue | act probe 7 | not drawn: names no atom |
-| — | — | glue | act probe 7a | not drawn: names no atom |
-| — | — | glue | act probe 8 | not drawn: names no atom |
-| — | — | glue | act probe 9 | not drawn: names no atom |
-| — | — | glue | journal 6 | not drawn: names no atom |
-| — | — | glue | journal 7 | not drawn: names no atom |
-| — | — | glue | service identity 1 | not drawn: names no atom |
-| — | — | glue | service identity 1a | not drawn: names no atom |
-| — | — | glue | service identity 1b | not drawn: names no atom |
-| — | — | glue | service identity 2 | not drawn: names no atom |
-| — | — | glue | service identity 3 | not drawn: names no atom |
+| — | — | glue | attested append 1 (bond candidate) | not drawn: names no atom |
+| — | — | glue | attested append 2 (bond candidate) | not drawn: names no atom |
+| — | — | glue | attested append 3 (bond candidate) | not drawn: names no atom |
+| — | — | glue | act section 16 (bond candidate) | not drawn: names no atom |
+| — | — | glue | commit 1 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 2 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 3 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 4 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 5 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 6 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 7 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 8 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 8a (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 8b (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 8c (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 8d (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 9 (atom candidate) | not drawn: names no atom |
+| — | — | glue | commit 15 (atom candidate) | not drawn: names no atom |
+| — | — | glue | repeatable 1 (data) | not drawn: names no atom |
+| — | — | glue | repeatable 2 (data) | not drawn: names no atom |
+| — | — | glue | act probe 1 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 2 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 3 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 3a (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 4 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 5 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 6 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 7 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 7a (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 8 (atom candidate) | not drawn: names no atom |
+| — | — | glue | act probe 9 (atom candidate) | not drawn: names no atom |
+| — | — | glue | journal 6 (data) | not drawn: names no atom |
+| — | — | glue | journal 7 (data) | not drawn: names no atom |
+| — | — | glue | service identity 1 (data) | not drawn: names no atom |
+| — | — | glue | service identity 1a (data) | not drawn: names no atom |
+| — | — | glue | service identity 1b (data) | not drawn: names no atom |
+| — | — | glue | service identity 2 (data) | not drawn: names no atom |
+| — | — | glue | service identity 3 (data) | not drawn: names no atom |
