@@ -31,14 +31,14 @@ The app is the 1.0 target (Scott, 2026-11-21 to 2026-11-25): one whole app built
 Each job has one acceptance check, the test that says the app does it.
 
 1. **Hand out work in priority order.** Check: the team reads the list in the author's order.
-2. **Know who is on what.** Check: a claimed task shows its assignee; a reassign keeps the history.
+2. **Know who is on what.** Check: a claimed task shows its assignee; a reassign keeps the history; a reassign to someone the list is not shared with is refused.
 3. **Know what is done and by whom.** Check: a completed task shows its completer and stays crossed out a week; a second check-off is refused.
 4. **Keep it the author's list.** Check: a non-author's rename, delete list, add, edit, reorder, delete, recall, reassign or invite is refused.
 
 Two answers settle what the jobs leave open (Scott, 2026-11-25 7:15 PM Central):
 
 - **No reopen.** A done task is a recorded fact with a week's display life (the window of one week that read list passes to [Task](../../atoms/task.md)'s Read): a second check-off is refused, and the journal keeps who completed it. The app offers no reopen.
-- **The author alone recalls or reassigns a claim.** The author may take a claim back ([Assignment](../../atoms/assignment.md)'s Recall For Task) or give it to someone else (its Reassign, through its Active For), and the history is kept; a non-author may do neither. Reassign is an author action, not a glue line.
+- **The author alone recalls or reassigns a claim.** The author may take a claim back ([Assignment](../../atoms/assignment.md)'s Recall For Task) or give it to someone the list is shared with (its Reassign, through its Active For; App check 2), and the history is kept; a non-author may do neither, and a reassign to someone the list is not shared with is refused. Reassign is an author action, not a glue line.
 
 ## Atoms
 
@@ -89,15 +89,16 @@ The subject of every check is the caller (Bonds permission 3), the actor id that
 
 ### The app's checks and answers
 
-An action that acts on a task names its task id and the list id of its gate, and the gate is asked of that list. Edit task, delete task, claim, complete, recall and reassign each run App check 1 right after the gate and before any call to an atom's action; Task's Read of the list is the existence read of the task id (Bonds Key 21 to Key 26). Move task needs none: Ordering's Move Item refuses unknown-item for a task its list's sequence does not hold.
+An action that acts on a task names its task id and the list id of its gate, and the gate is asked of that list. Edit task, delete task, claim, complete, recall and reassign each run App check 1 right after the gate and before any call to an atom's action; Task's Read of the list is the existence read of the task id (Bonds Key 21 to Key 26). Reassign runs App check 2 right after App check 1: the new assignee must be someone the list is shared with. Move task needs none: Ordering's Move Item refuses unknown-item for a task its list's sequence does not hold.
 
 ```
 App check 1: an action that names a task id MUST confirm, in its own transaction, that Task's Read of the list id the call carries, with a window of one week, answers the task id, and MUST answer `not-known` and commit nothing where it does not.
+App check 2: reassign MUST confirm, in its own transaction, that Permissions' Check of the new assignee's actor id on the scope `member` of the list the call carries answers permitted, and MUST answer `denied` and commit nothing where it does not.
 App answer 1: an action called with a session whose Validate answers invalid MUST answer invalid with Validate's failure as it stands, MUST call no atom's action and MUST commit nothing.
 App answer 2: sign in, where Credential's Verify answers failed-verification, MUST answer failed-verification with Verify's failure as it stands and MUST call no Session action.
 ```
 
-A done task past its week stands on no list the app reads, so every action that runs App check 1 answers `not-known` on it, a second check-off included (refused either way). Every other answer of an action is the answer of the atom's call that gave it, each rejection passed through unchanged (Execution Contract Constituent failure 1 to Constituent failure 3), with `denied` for a failed gate.
+A done task past its week stands on no list the app reads, so every action that runs App check 1 answers `not-known` on it, a second check-off included (refused either way). Every other answer of an action is the answer of the atom's call that gave it, each rejection passed through unchanged (Execution Contract Constituent failure 1 to Constituent failure 3), with `denied` for a failed gate and for a reassign App check 2 refuses, Check's own answer.
 
 ## Glue
 
@@ -126,7 +127,7 @@ The app's API (application programming interface), generated, never written by h
 | delete task | App check 1, then Task's Delete (the on end calls follow) |
 | claim | App check 1, then Assignment's Assign, the caller as assignee (Glue, claim) |
 | recall | App check 1, then Assignment's Recall For Task |
-| reassign | App check 1, then Assignment's Active For of the task id, then Assignment's Reassign of the assignment it answers (`not-known` where it answers none); the new assignee is any actor id the author names, whose standing the app does not check, so a reassign to a person the list is not shared with leaves the task unread by them until it is |
+| reassign | App check 1, then App check 2, then Assignment's Active For of the task id, then Assignment's Reassign of the assignment it answers (`not-known` where it answers none) |
 | complete | App check 1, then Task's Complete, the caller as completer |
 | invite | Invitation's Initiate, the caller as inviter, the list id as its context |
 | accept, decline | Invitation's Accept, the caller as accepting identity (Glue, accept grants), or Decline |
