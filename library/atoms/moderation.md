@@ -610,7 +610,7 @@ Term terms: standing, standings, report, reports, item reference, reporter refer
 ```
 status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-27 — Final Critique 3, a full round, frozen at cf9777df — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-27 — Final Critique 4, a delta round (diff base cf9777df, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 7dd2f3aa — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational claim, that `a standing carries the item reference` in Operation 10, 12 and 14 could mean any item's standing, was placed rhetorical by both triages: `the item reference` is the call's input, one standing is one item's (Identity 1, State 1), and the page writes the same idiom in Operation 17, 19 and 22; no cure)
 
 open: none
 ```
