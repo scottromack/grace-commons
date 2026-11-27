@@ -17,7 +17,7 @@ the grammar's sections 5, 8, 9 and 12:
     `no thing EXISTS` (Hard invariant 33), or a predicate the spec's own verbs
     carry;
   * the timing tails (section 8): `ONLY AFTER`, `BEFORE`, `WITHIN`, `PER`; and
-    the gates `ONLY IF` and `ONLY UNDER`;
+    the gates `ONLY IF` and `ONLY UNDER`, each in the order the rule writes it;
   * the WHEN block (section 9): each child an independent rule that carries
     the block's condition;
   * the sugar (section 12): `AFTER` under `MUST` or `MAY` is `ONLY AFTER`
@@ -25,8 +25,11 @@ the grammar's sections 5, 8, 9 and 12:
     v0.70): a parenthesized group carrying an arithmetic operator leaves the
     rule unlowered, since the value belongs in a declared term.
 
-The form is the same whatever the order of the rules or the order of a rule's
-tails (Hard invariant 15), exclusive only where `EXACTLY ONE OF` states it
+The form is the same whatever the order of the rules (Hard invariant 15), and
+keeps the order of a rule's tails as written: Hard invariant 15 speaks of the
+order of rules, and no clause makes two orders of one rule's tails one form, so
+none is assumed (Reverse diff 4; the grammar tree's S1, 2026-11-26). It is
+exclusive only where `EXACTLY ONE OF` states it
 (Hard invariant 17), and written back with `render()` lowers to itself, so the
 sugar adds no meaning and each sugar form has one canonical form (Hard
 invariant 18 and 19). WHY:, UX:, NOTE: and PROVISIONAL: lines are never rules
@@ -66,6 +69,7 @@ MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 COMPOUND = re.compile(r",? AND (?=(?:MUST NOT|MUST|MAY) )")
 TAIL = re.compile(r" (ONLY AFTER|ONLY IF|ONLY UNDER|AFTER|BEFORE|WITHIN|PER) ")
 TIMING_ORDER = ("ONLY AFTER", "BEFORE", "WITHIN", "PER")
+GATES = ("ONLY IF", "ONLY UNDER")
 EXCLUSIVE = re.compile(r"(?:^| )EXACTLY ONE OF ")
 QUANTIFIER = re.compile(r"^(EVERY|EXACTLY ONE) (.+)$")
 AUTHORITY = " IS AUTHORITATIVE FOR "
@@ -216,7 +220,7 @@ def lower_obligation(chunk: str, problems: list[str]) -> dict | None:
     if not act:
         problems.append(f"the obligation names no act: {chunk}")
     obligation["act"], obligation["object"] = act, obj.strip()
-    timing, only_if, only_under = [], [], []
+    timing, only_if, only_under, order = [], [], [], []
     for kind, term in pieces:
         if not term:
             problems.append(f"{kind} names no term: {chunk}")
@@ -229,17 +233,21 @@ def lower_obligation(chunk: str, problems: list[str]) -> dict | None:
         elif kind == "BEFORE" and modal != "MUST NOT":
             problems.append(f"a positive {modal} ... BEFORE ordering: {chunk}")
             continue
+        order.append(kind if kind in GATES else "timing")
         if kind == "ONLY IF":
             only_if.append(lower_condition(term, problems))
         elif kind == "ONLY UNDER":
             only_under.append(lower_condition(term, problems))
         else:
             timing.append({"kind": kind, "term": term})
-    obligation["timing"] = sorted(timing, key=lambda t: TIMING_ORDER.index(t["kind"]))
+    obligation["timing"] = timing
     if only_if:
         obligation["only_if"] = only_if
     if only_under:
         obligation["only_under"] = only_under
+    # where a gate stands before a timing tail, or ONLY UNDER before ONLY IF, the form says the order
+    if order != sorted(order, key=("timing", *GATES).index):
+        obligation["tail_order"] = order
     if cited:
         obligation["cited"] = cited
     return obligation
@@ -303,6 +311,16 @@ def render_group(group: dict) -> str:
     return f" {group['join']} ".join(c["text"] for c in group["clauses"])
 
 
+def tails(o: dict) -> list[tuple[str, dict]]:
+    """An obligation's tails in the order the rule writes them: each timing tail with its term, and each
+    gate (ONLY IF, ONLY UNDER) with its condition."""
+    queues = {"timing": [(t["kind"], t) for t in o.get("timing", [])],
+              "ONLY IF": [("ONLY IF", g) for g in o.get("only_if", [])],
+              "ONLY UNDER": [("ONLY UNDER", g) for g in o.get("only_under", [])]}
+    order = o.get("tail_order") or [k for k in ("timing",) + GATES for _ in queues[k]]
+    return [queues[k].pop(0) for k in order]
+
+
 def render(form: dict) -> str:
     """The canonical text a form lowers to: lowering it again gives the form,
     so the sugar adds nothing and each sugar form has one spelling."""
@@ -325,11 +343,8 @@ def render(form: dict) -> str:
             s += " " + o["object"]
         if "exclusive" in o:
             s += " EXACTLY ONE OF " + ", ".join(o["exclusive"])
-        for t in o["timing"]:
-            s += f" {t['kind']} {t['term']}"
-        for k, groups in (("ONLY IF", o.get("only_if", [])), ("ONLY UNDER", o.get("only_under", []))):
-            for g in groups:
-                s += f" {k} {render_group(g)}"
+        for k, item in tails(o):
+            s += f" {k} {render_group(item)}" if k in GATES else f" {k} {item['term']}"
         if "cited" in o:
             s += f" ({o['cited']})"
         obligations.append(s)

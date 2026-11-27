@@ -1,13 +1,15 @@
 -- The tree written back in the fields normalize.py lowers a rule to, for the cross-check.
 concrete GraceCoreNorm of GraceCore = {
   lincat
-    Rule, Subj, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail = Str ;
+    Rule, Subj, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail, CW, Num, Rest = Str ;
     [Clause] = {and : Str ; or : Str} ;
     [Atom] = {and : Str ; or : Str} ;
-    [W] = Str ; [Tail] = Str ;
+    [W] = Str ; [Tail] = Str ; [CW] = Str ;
   lin
     RPlain s o = "subject=" ++ s ++ o ;
     RIf c s o = "if=" ++ c ++ "|subject=" ++ s ++ o ;
+    RWhen c = "when=" ++ c ;
+    RAuth s p = "subject=" ++ s ++ "|authority=" ++ p ;
     MkObl m v o t = "|modal=" ++ m ++ "|act=" ++ v ++ "|object=" ++ o ++ t ;
     COne c = c ;
     CAnd cs = cs.and ;
@@ -16,6 +18,7 @@ concrete GraceCoreNorm of GraceCore = {
     ConsClause x xs = {and = x ++ "AND" ++ xs.and ; or = x ++ "OR" ++ xs.or} ;
     CCmp a op b = a ++ op ++ b ;
     CExists a = a ++ "EXISTS" ;
+    CExistsFor a b = a ++ "EXISTS" ++ "for" ++ b ;
     CPred a = a ;
     SAtom a = a ;
     SCmp a op b = a ++ op ++ b ;
@@ -29,7 +32,17 @@ concrete GraceCoreNorm of GraceCore = {
     OGap a op = a ++ op ;
     TPer a = "|timing=PER" ++ a ;
     TOnlyIf c = "|only_if=" ++ c ;
-    TCite a = "|cited=" ++ a ;
+    TOnlyAfter a = "|timing=ONLY AFTER" ++ a ;
+    TAfter a = "|timing=ONLY AFTER" ++ a ;      -- the sugar's canonical form (Timing 2, Timing 3)
+    TWithin a = "|timing=WITHIN" ++ a ;
+    TBefore a = "|timing=BEFORE" ++ a ;
+    TOnlyUnder c = "|only_under=" ++ c ;
+    TCite p n r = "|cited=" ++ p ++ n ++ r ;
+    NInt i = i.s ;
+    RNone = [] ;
+    RWords ws = ws ;
+    BaseCW = [] ;
+    ConsCW w ws = w ++ ws ;
     BaseTail = [] ;
     ConsTail t ts = t ++ ts ;
     AWords ws = ws ;

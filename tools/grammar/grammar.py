@@ -47,20 +47,26 @@ import ir  # noqa: E402
 import normalize  # noqa: E402
 
 KEYWORDS = {"IF", "THEN", "MUST", "NOT", "MAY", "EQUALS", "EQUAL", "DOES", "EXCEEDS", "EXCEED", "PRECEDES",
-            "PRECEDE", "IS", "IN", "EXISTS", "AND", "OR", "PER", "ONLY", "(", ")"}
+            "PRECEDE", "IS", "IN", "EXISTS", "AND", "OR", "PER", "ONLY", "(", ")",
+            # the WHEN block, the tails and the authority shape (sections 5, 7, 9 and 10)
+            "WHEN", "AFTER", "BEFORE", "WITHIN", "UNDER", "AUTHORITATIVE", "FOR"}
 # English closed-class words and the punctuation a phrase carries; GRACE's own quantifiers in capitals.
 FUNCTION_WORDS = """the a an of to for in on at by with as from under over between against without within
 into onto across through throughout before after below above beside than then so whose that which who whom
 where when what while this these those its it their them they no not any each both either neither or and
 nor other another every all some one two three only also own same such per via including whether if
 outside inside beyond until upon past near along around behind except among toward towards despite unless once
+zero four five six seven eight nine ten first second third fourth fifth sixth seventh eighth ninth tenth
 EVERY EXACTLY ONE OF NO , . ; : 's '""".split()
+# the cardinals beside one, two and three are the numbers normalize.py reads as words (NUMBER_WORDS, zero to
+# ten), and the ordinals are their kin: English closed-class words, as the determiners above are
 # the External check form's own word (spec-format.md, the External check row: "a check needing evidence
 # the records do not carry"; every External check reads "An auditor needing ... MUST read ...")
 FORM_WORDS = ["needing"]
 # the comparison verbs a modal takes in place of a record verb (normalize.py: act EXCEED)
 OP_VERBS = ["EXCEED", "PRECEDE", "EQUAL"]
-SOURCES = ["page", "declarations.md", "GRACE-lang sections 13-14", "DictEng", "compound", "function words"]
+SOURCES = ["page", "declarations.md", "GRACE-lang sections 13-14", "DictEng", "compound", "function words",
+           "code span"]
 # the closed vocabulary a meaning swap exchanges, each class's members as token runs
 SWAP_CLASSES = {
     "modal": [["MUST", "NOT"], ["MUST"], ["MAY"]],
@@ -68,6 +74,11 @@ SWAP_CLASSES = {
                    ["IS", "NOT", "IN"], ["EQUALS"], ["EXCEEDS"], ["PRECEDES"], ["IS", "IN"]],
     "join": [["AND"], ["OR"]],
 }
+
+
+# a parenthesis written against the word before it, "invalid-request(step-4)": an arm's payload or a call,
+# never a citation, which normalize.py takes only after a space (CITED); no rule of the grammar takes it
+ATTACHED = "(attached"
 
 
 def tokenize(text: str) -> list[str]:
@@ -81,6 +92,9 @@ def tokenize(text: str) -> list[str]:
     for m in re.finditer(r"\[[^\]\n]+\]|`[^`\n]+`|[A-Za-z][A-Za-z_-]*(?:'s|')?|'s\b|\d+[a-z]\b|\d+|-|[(),.;:]|\S",
                          text):
         t = m.group(0)
+        if t == "(" and m.start() > 0 and (text[m.start() - 1].isalnum() or text[m.start() - 1] in "_-"):
+            out.append(ATTACHED)
+            continue
         if t.startswith("`"):                          # a code span is one token; gf splits at spaces
             out.append(t.replace(" ", "_"))
             continue
@@ -101,6 +115,25 @@ def tokenize(text: str) -> list[str]:
 
 
 MODAL_HEADS = {"MUST", "MAY"}
+
+
+def paren_tokens(toks: list[str]) -> set[str]:
+    """The tokens a rule writes inside parentheses: the words a closing citation may carry before its
+    number (the grammar's CW, one entry for each such word of the page's rules)."""
+    out, depth = set(), 0
+    for t in toks:
+        if t == "(":
+            depth += 1
+        elif t == ")":
+            depth = max(0, depth - 1)
+        elif depth:
+            out.add(t)
+    return out
+
+
+def numberish(t: str) -> bool:
+    """A number, or a label's number with its letter ("4a"): what a closing citation must carry."""
+    return bool(re.fullmatch(r"\d+[a-z]?", t))
 
 
 def edge_comma(toks: list[str], i: int) -> bool:
@@ -216,6 +249,11 @@ def lexicon(page: Path, root: Path, need: set[str] | None = None) -> tuple[dict[
         for w in sorted(need):
             if w not in lex and w not in KEYWORDS and not reserved(w) and (w in d or w.lower() in d) and not w.isdigit():
                 lex[w] = "DictEng"
+        # a code span, a code spelling such as a template (Term rule symbol: "a code spelling such as a
+        # template sits in a code span"; Earned vocabulary 16), is a phrase's word as the rule writes it
+        for w in need:
+            if len(w) > 2 and w.startswith("`") and w.endswith("`"):
+                lex.setdefault(w, "code span")
         # a hyphenated word every part of which a source supplies ("non-blank", "byte-exactly")
         for w in sorted(need):
             parts = [x for x in w.split("-") if x]       # a bare "-" has no parts: it is a sign, never a compound
@@ -223,7 +261,9 @@ def lexicon(page: Path, root: Path, need: set[str] | None = None) -> tuple[dict[
                 lex[w] = "compound"
     text = page.read_text(encoding="utf-8")
     m = re.search(r"^Term record verbs: (.*)\.$", text, re.M)
-    verbs = ([v.strip() for v in m.group(1).split(",")] if m else []) + OP_VERBS
+    # a record verb is one word, as normalize.py's act is (the first word after the modal): a verb the page
+    # writes in two words ("read back") gives the grammar its first word, and the rest stands in the object
+    verbs = ([v.strip().split()[0] for v in m.group(1).split(",") if v.strip()] if m else []) + OP_VERBS
     return lex, verbs
 
 
@@ -248,20 +288,27 @@ def fun_name(prefix: str, word: str) -> str:
     return prefix + "".join(c if c.isascii() and c.isalnum() else f"_{ord(c):x}_" for c in word)
 
 
-def build(page: Path, root: Path, out: Path, need: set[str] | None = None) -> Path:
-    """Write the page's lexicon modules beside the core and compile one PGF."""
+def build(page: Path, root: Path, out: Path, need: set[str] | None = None,
+          cite: set[str] | None = None) -> Path:
+    """Write the page's lexicon modules beside the core and compile one PGF. `cite`, the tokens the
+    rules write inside parentheses, gives the words a citation carries before its number (CW)."""
     lex, verbs = lexicon(page, root, need)
     for f in ("GraceCore.gf", "GraceCoreEng.gf", "GraceCoreNorm.gf"):
         shutil.copy(HERE / f, out / f)
     ws = sorted(lex)
     vs = sorted(set(verbs))
+    cws = sorted(w for w in (cite or set()) if w in lex and not numberish(w))
+    ns = sorted(w for w in lex if re.fullmatch(r"\d+[a-z]", w))
     absl = ["abstract GraceLex = GraceCore ** {", "  flags startcat = Rule ;", "  fun"]
-    absl += [f"    {fun_name('w_', w)} : W ;" for w in ws] + [f"    {fun_name('v_', v)} : V ;" for v in vs] + ["}"]
+    absl += [f"    {fun_name('w_', w)} : W ;" for w in ws] + [f"    {fun_name('v_', v)} : V ;" for v in vs]
+    absl += [f"    {fun_name('c_', w)} : CW ;" for w in cws] + [f"    {fun_name('n_', w)} : Num ;" for w in ns] + ["}"]
     (out / "GraceLex.gf").write_text("\n".join(absl) + "\n", encoding="utf-8")
     for lang in ("Eng", "Norm"):
         c = [f"concrete GraceLex{lang} of GraceLex = GraceCore{lang} ** {{", "  lin"]
         c += [f"    {fun_name('w_', w)} = {gf_str(w)} ;" for w in ws]
-        c += [f"    {fun_name('v_', v)} = {gf_str(v)} ;" for v in vs] + ["}"]
+        c += [f"    {fun_name('v_', v)} = {gf_str(v)} ;" for v in vs]
+        c += [f"    {fun_name('c_', w)} = {gf_str(w)} ;" for w in cws]
+        c += [f"    {fun_name('n_', w)} = {gf_str(w)} ;" for w in ns] + ["}"]
         (out / f"GraceLex{lang}.gf").write_text("\n".join(c) + "\n", encoding="utf-8")
     gf, env = gf_bin()
     r = subprocess.run([gf, "-make", "--output-dir", str(out), str(out / "GraceLexEng.gf"),
@@ -334,9 +381,9 @@ def clause_text(c: dict) -> str:
 def canon(fields: list[str]) -> str:
     """The fields in the order they stand. Tail order stays in the tree: GRACE-lang Hard invariant 15
     reads "The parser MUST NOT infer from rule order", which speaks of the order of rules, not of a
-    rule's tails (GLM's S1, settled in the corpus run). normalize.py sorts a rule's timing tails and
-    writes ONLY IF after them; a rule whose tails stand in another order opens loop 1, and
-    `tail_order_only` names that cause."""
+    rule's tails (GLM's S1, settled in the corpus run), and normalize.py keeps a rule's tails in the
+    order they stand too (Reverse diff 4, `normalize.tails`). A loop 1 that opens on tail order alone is
+    a harness fault, and `tail_order_only` names that cause."""
     return "|".join(fields)
 
 
@@ -351,6 +398,11 @@ def norm_fields(form: dict) -> str:
     parts = []
     if form.get("if"):
         parts.append("if=" + f" {form['if']['join']} ".join(clause_text(c) for c in form["if"]["clauses"]))
+    if form.get("kind") == "when":
+        cond = form["condition"]
+        return canon([tidy("when=" + f" {cond['join']} ".join(clause_text(c) for c in cond["clauses"]))])
+    if form.get("kind") == "authority":
+        return canon([tidy("subject=" + form.get("subject", "")), tidy("authority=" + form.get("proposition", ""))])
     parts.append("subject=" + ((form["quantifier"] + " ") if form.get("quantifier") else "") + form.get("subject", ""))
     for ob in form.get("obligations", []):
         parts.append("modal=" + ob.get("modal", ""))
@@ -359,10 +411,12 @@ def norm_fields(form: dict) -> str:
         if "exclusive" in ob:      # normalize.py keeps EXACTLY ONE OF's members apart from the object
             obj = (obj + " EXACTLY ONE OF " + ", ".join(ob["exclusive"])).strip()
         parts.append("object=" + obj)
-        for t in ob.get("timing", []):
-            parts.append(f"timing={t['kind']} {t.get('term', '')}")
-        for g in ob.get("only_if", []):
-            parts.append("only_if=" + f" {g['join']} ".join(clause_text(c) for c in g["clauses"]))
+        for kind, item in normalize.tails(ob):
+            if kind in ("ONLY IF", "ONLY UNDER"):
+                key = "only_if=" if kind == "ONLY IF" else "only_under="
+                parts.append(key + f" {item['join']} ".join(clause_text(c) for c in item["clauses"]))
+            else:
+                parts.append(f"timing={kind} {item.get('term', '')}")
         if ob.get("cited"):
             parts.append("cited=" + ob["cited"])
     return canon([tidy(p) for p in parts])
@@ -396,12 +450,13 @@ def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str)
     the cure proposed, by the token the parser stopped at and what stands before it. The rules, each read
     on the corpus run's clusters (assets/design/grammar-tree-corpus.md in the council):
 
-      grammar     GRACE-lang admits the form and the Rule lacks it: the absence form's `EXISTS for`, a WHEN
-                  block, the tails ONLY AFTER, WITHIN, BEFORE and ONLY UNDER, IS AUTHORITATIVE FOR, a code
-                  span; or two trees.
+      grammar     GRACE-lang admits the form and the Rule lacks it; or two trees. The absence form's
+                  `EXISTS for`, the WHEN block, the tails ONLY AFTER, AFTER, WITHIN, BEFORE and ONLY UNDER,
+                  IS AUTHORITATIVE FOR and a code span are the Rule's since the grammar's own cures
+                  (2026-11-27): a rule that fails at one of them is read for what else stands there.
       GRACE-lang  no clause admits it and normalize.py takes it as text: a parenthetical before the rule's
-                  end (a mid-rule citation, an arm's payload, a tuple), AND joining subjects, a comparison
-                  inside a phrase (held with SCmp).
+                  end (a mid-rule citation, an arm's payload, a tuple), a closing parenthetical with no
+                  number, AND joining subjects, a comparison inside a phrase (held with SCmp).
       page        the page writes outside GRACE-lang: a word no source supplies, a modal outside the three,
                   EXISTS qualified otherwise than by `for`,
                   a lower-case reserved word, IS or ONLY outside its form, a second obligation, OR outside
@@ -414,22 +469,29 @@ def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str)
     prev = before[-1] if before else ""
     if row["verdict"] == "ambiguous":
         return "grammar", "two trees", "one reading: the grammar takes a record verb as one word, as normalize.py's act is"
-    if text.lstrip().startswith("WHEN") or at == "WHEN":
-        return "grammar", "a WHEN block (GRACE-lang section 9)", "admit WHEN in the grammar"
     if at is None:
         return "grammar", "the rule ends where the Rule wants more", "read the rule; admit the shape or file it"
-    if at == "for" and prev == "EXISTS":
-        return "grammar", "EXISTS for an identifier (the absence form)", "admit `EXISTS for` in the grammar (Term absence form)"
+    if at == "WHEN":
+        return "page", "WHEN after a rule's start (Term rule form)", "open the block with WHEN, its statements as children"
     if prev == "EXISTS":
         return "page", f"EXISTS qualified otherwise than by for ({at})", "rephrase with for (Term absence form), or amend the form"
-    if at in ("BEFORE", "WITHIN", "AFTER", "UNDER") or (at == "ONLY" and prev not in KEYWORDS):
-        return "grammar", f"the {at} tail (GRACE-lang section 7)", "admit the tail in the grammar"
-    if at in ("AUTHORITATIVE", "FOR"):
-        return "grammar", "IS AUTHORITATIVE FOR (GRACE-lang section 10)", "admit the authority shape in the grammar"
-    if at.startswith("`"):
-        return "grammar", "a code span", "admit a code span as a phrase's word (Term rule symbol)"
+    if at in ("BEFORE", "WITHIN", "AFTER", "UNDER", "AUTHORITATIVE", "FOR") or (at == "ONLY" and prev not in KEYWORDS) \
+            or at.startswith("`"):
+        return "grammar", f"{at} where the Rule takes none", "read the rule"
+    if at == ATTACHED:
+        return "GRACE-lang", "a parenthesis against its word (an arm's payload or a call)", \
+            "say where a citation, an arm's payload or a tuple stands, or rephrase"
+    if at == ")" and "(" in before:
+        inner = before[len(before) - before[::-1].index("("):]
+        if i == len(toks) - 1 and not any(numberish(t) for t in inner):
+            return "GRACE-lang", "a closing parenthetical with no number", \
+                "say where a citation, an arm's payload or a tuple stands, or rephrase"
+        return "GRACE-lang", "a parenthetical before the rule's end", \
+            "say where a citation, an arm's payload or a tuple stands, or rephrase"
     if at in NOT_MODALS:
         return "page", f"'{at}', no modal of GRACE-lang's three", "rephrase in closed vocabulary"
+    if at in ("EXCEED", "EQUAL", "PRECEDE") and prev == "not":
+        return "page", f"a reserved word in lower case (does not {at})", f"write DOES NOT {at} (Casing 2, Earned vocabulary 17)"
     if at in ("after", "within", "before", "exactly") and prev in ("ONLY", "MUST", "NOT") or at == "exactly":
         return "page", f"a reserved word in lower case ({at})", "write it in upper case or rephrase (Casing 2)"
     if at == "(" or (")" in before and "(" in before and at not in lex):
@@ -495,7 +557,8 @@ def pretest(page: Path, root: Path = ROOT, keep: Path | None = None) -> dict:
     need = {t for ts in toks.values() for t in ts}
     out = keep or Path(tempfile.mkdtemp(prefix="grammar-"))
     out.mkdir(parents=True, exist_ok=True)
-    pgf = build(page, root, out, need)
+    cite = {t for ts in toks.values() for t in paren_tokens(ts)}
+    pgf = build(page, root, out, need, cite)
     lex = json.loads((out / "lexicon.json").read_text(encoding="utf-8"))["words"]
     res = parse_many(pgf, list(toks.items()))
     one = {k: v["trees"][0] for k, v in res.items() if len(v["trees"]) == 1}
@@ -612,7 +675,7 @@ def main(argv: list[str]) -> int:
         r = next(x for x in doc["rules"] if x["label"] == argv[3])
         toks = tokenize(r["text"])
         out = Path(tempfile.mkdtemp(prefix="grammar-"))
-        print(json.dumps(parse_many(build(page, ROOT, out, set(toks)), [(r["label"], toks)]), indent=1,
+        print(json.dumps(parse_many(build(page, ROOT, out, set(toks), paren_tokens(toks)), [(r["label"], toks)]), indent=1,
                          ensure_ascii=False))
         return 0
     print(__doc__)

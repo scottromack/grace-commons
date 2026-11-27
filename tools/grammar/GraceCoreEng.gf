@@ -1,12 +1,14 @@
 concrete GraceCoreEng of GraceCore = {
   lincat
-    Rule, Subj, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail = Str ;
+    Rule, Subj, Cond, Clause, Obl, Modal, V, Op, Obj, Atom, W, Tail, CW, Num, Rest = Str ;
     [Clause] = {and : Str ; or : Str} ;
     [Atom] = {and : Str ; or : Str} ;
-    [W] = Str ; [Tail] = Str ;
+    [W] = Str ; [Tail] = Str ; [CW] = Str ;
   lin
     RPlain s o = s ++ o ;
     RIf c s o = "IF" ++ c ++ "THEN" ++ s ++ o ;
+    RWhen c = "WHEN" ++ c ;
+    RAuth s p = s ++ "IS" ++ "AUTHORITATIVE" ++ "FOR" ++ p ;
     MkObl m v o t = m ++ v ++ o ++ t ;
     COne c = c ;
     CAnd cs = cs.and ;
@@ -15,6 +17,7 @@ concrete GraceCoreEng of GraceCore = {
     ConsClause x xs = {and = x ++ "AND" ++ xs.and ; or = x ++ "OR" ++ xs.or} ;
     CCmp a op b = a ++ op ++ b ;
     CExists a = a ++ "EXISTS" ;
+    CExistsFor a b = a ++ "EXISTS" ++ "for" ++ b ;
     CPred a = a ;
     SAtom a = a ;
     SCmp a op b = a ++ op ++ b ;
@@ -28,7 +31,17 @@ concrete GraceCoreEng of GraceCore = {
     OGap a op = a ++ op ;
     TPer a = "PER" ++ a ;
     TOnlyIf c = "ONLY" ++ "IF" ++ c ;
-    TCite a = "(" ++ a ++ ")" ;
+    TOnlyAfter a = "ONLY" ++ "AFTER" ++ a ;
+    TAfter a = "AFTER" ++ a ;
+    TWithin a = "WITHIN" ++ a ;
+    TBefore a = "BEFORE" ++ a ;
+    TOnlyUnder c = "ONLY" ++ "UNDER" ++ c ;
+    TCite p n r = "(" ++ p ++ n ++ r ++ ")" ;
+    NInt i = i.s ;
+    RNone = [] ;
+    RWords ws = ws ;
+    BaseCW = [] ;
+    ConsCW w ws = w ++ ws ;
     BaseTail = [] ;
     ConsTail t ts = t ++ ts ;
     AWords ws = ws ;

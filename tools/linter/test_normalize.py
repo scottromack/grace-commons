@@ -153,10 +153,16 @@ class Hard18And19Sugar(unittest.TestCase):
         self.assertEqual(b["kind"], "rule")
         self.assertNotIn("terms", b)
 
-    def test_the_tails_read_in_one_order(self):
+    def test_the_tails_keep_their_order(self):
+        # Hard invariant 15 speaks of rule order, not of a rule's tails, and no clause makes two orders
+        # one form, so none is assumed (Reverse diff 4; the grammar tree's S1, 2026-11-26)
         a = one("[Sweep] MUST run WITHIN the bound ONLY AFTER the edge.")
         b = one("[Sweep] MUST run ONLY AFTER the edge WITHIN the bound.")
-        self.assertEqual(a, b)
+        self.assertNotEqual(a, b)
+        c = one("The deployment MAY declare the cap ONLY IF the cap EXCEEDS 0 PER Execution Contract Input 2.")
+        self.assertEqual(c["obligations"][0]["tail_order"], ["ONLY IF", "timing"])
+        for f in (a, b, c):
+            self.assertEqual(n.lower_statement(n.render(f)), (f, []))
 
     def test_normalizing_twice_gives_the_same_form(self):
         for rule in (
