@@ -54,7 +54,7 @@ Term tag name: the string the business wrote as the tag's name, such as clay —
 
 #### Tag Name
 
-No other tag carries the same name; compared codepoint for codepoint.
+No other tag carries the same name; compared code point for code point.
 
 Kind:       Field
 Field of:   Tag
@@ -81,7 +81,7 @@ Term item reference: the string naming an item, such as a post or a product, in 
 
 #### Item Reference
 
-Stored as supplied and compared codepoint for codepoint.
+Stored as supplied and compared code point for code point.
 
 Kind:       Field
 Field of:   Tagging
@@ -427,7 +427,7 @@ A photo library tags one photo `beach`, `sunset` and `family`; taking `family` o
 Tag is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design, and its Label concept.
-- **MIT's sync-engine, Labeling concept** (github.com/mit-sdg/sync-engine) — the taken-in source: several stable names on one item, a rename that keeps assignments. This atom keeps one list per deployment and makes putting a tag on and taking it off safe to repeat.
+- **The Massachusetts Institute of Technology's (MIT) sync-engine, Labeling concept** (github.com/mit-sdg/sync-engine) — the taken-in source: several stable names on one item, a rename that keeps assignments. This atom keeps one list per deployment and makes putting a tag on and taking it off safe to repeat.
 
 ## Proof
 
@@ -498,7 +498,7 @@ Term terms: tag, tags, tag id, tag name, tagging, taggings, item reference, stri
 
 ## Status
 
-`done — 2026-11-19` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -506,9 +506,9 @@ Term terms: tag, tags, tag id, tag name, tagging, taggings, item reference, stri
 </summary>
 
 ```
-status: done — 2026-11-19
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-21 — Final Critique 4, a delta round, one reader (Linus opencode/nemotron-3.5-super-vl-free), frozen at b8c40cd2 — foundational count 0 after the blind second triage, clean, no sample; Linus's one foundational finding (Operation 19 cited Execution Contract Query 5 while answering a blank reference an empty list) was placed refining by the first triage and refuted by the blind second, every build answering an empty list, and its one refining finding (the blank and over-cap cases restate Query 5's classification) was cured with the first: Operation 19 reads the blank and over-cap cases as the malformed Query 5 classifies, and Operation 19 and Operation 20 state their empty list in place of Execution Contract Query 5's refusal; 2026-11-19 — Final Critique 3, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at a69c19d0 — foundational count 0 after the blind second triage, clean, one sample; Linus's four refining and two rhetorical findings placed one refining (Generation acceptance restated Execution Contract Database 8's bound, now only the checks' range and the label), one rhetorical (the Rename row's "another name", now "a name other than the name of the call") and the rest refuted or left as wording (Generation acceptance 1 binds no check on this page, Identity 6 and 7 settle how a tag name compares, "tag name" is the declared term); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 5, a delta round (diff base b8c40cd2, 10 labels), one reader (Linus anthropic/claude-sonnet-5-5; GRID and EOS not run), frozen at 5a40d0f3 — foundational count 0 after the blind second triage, clean, no sample; Linus pressed three questions (a read answering unavailable ahead of Operation 19 and Operation 20's empty lists, a blank or over-cap tag id at Items With, a crash or lost reply across the three reads) and each held; rhetorical cured: the Tag Name and Item Reference entries spell code point as the rules do; the checker's MIT is glossed at its first use; refuted: a wrong-typed item reference at Tags On is malformed under Query 1 through Query 5's classification and answers the empty list, Tags On's answer carries each tag's id (its signature), and Item Reference is stored as supplied since Capability requirement 3 and Identity 4 bar normalizing it; the checker's four code lines placed no defect, as Category's and Comment's list answers are placed; 2026-11-21 — Final Critique 4, a delta round, one reader (Linus opencode/nemotron-3.5-super-vl-free), frozen at b8c40cd2 — foundational count 0 after the blind second triage, clean, no sample; Linus's one foundational finding (Operation 19 cited Execution Contract Query 5 while answering a blank reference an empty list) was placed refining by the first triage and refuted by the blind second, every build answering an empty list, and its one refining finding (the blank and over-cap cases restate Query 5's classification) was cured with the first: Operation 19 reads the blank and over-cap cases as the malformed Query 5 classifies, and Operation 19 and Operation 20 state their empty list in place of Execution Contract Query 5's refusal; 2026-11-19 — Final Critique 3, a delta round, one reader (Linus opencode-go/minimax-m3), frozen at a69c19d0 — foundational count 0 after the blind second triage, clean, one sample; Linus's four refining and two rhetorical findings placed one refining (Generation acceptance restated Execution Contract Database 8's bound, now only the checks' range and the label), one rhetorical (the Rename row's "another name", now "a name other than the name of the call") and the rest refuted or left as wording (Generation acceptance 1 binds no check on this page, Identity 6 and 7 settle how a tag name compares, "tag name" is the declared term); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 36794699 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim (Check 2.1 names no commit) placed refining by both triages, since the state it needs is a build that broke Database 2, and opened as a Ledger line because the cure is the Execution Contract's, a refining Rename row that said unused where Operation 2 says no other tag and a Rename to the tag's own name that wrote an identical version, both cured (Operation 7, Operation 21 and the row), its other refining item on Check 1.1 refuted; 2026-11-18 — Final Critique 1, frozen at 0c559850 — foundational count 1, cured by the settle, not clean, no sample
 
 open: none
 ```
