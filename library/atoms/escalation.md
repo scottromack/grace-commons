@@ -305,7 +305,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`done — 2026-11-23` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -313,9 +313,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: done — 2026-11-23
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-27 — Final Critique 4, a delta round (diff base 028724ad, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6d80e43b — foundational count 0 after the blind second triage, clean, one sample; Linus's four foundational claims refuted (resolve 6 writes the corpus's appositive `<set>, <members> included`, a failed take with its storage-failure and its no answer among its cases, as resolve 26 and Assignment Operation 26 write it; resolve 32's quiet duration is the operator's own attestation, which no build computes (Invariant 5.8, Invariant 4.9); Invariant 4.7's two degradations each stand on their own condition, and 4.6 binds no kind whose credential-refused stands; a read_record writes no journal record, so Capability requirement 9 and 18 land one recording-failure(resolution) for every failed read), two refining and one rhetorical placed with no edit; two refining cures from the checker's code-entry hits: a term entry for Section Unavailable and for Invalid Credential in Resolve's branch
+last gate: 2026-11-27 — Final Critique 4, a delta round (diff base 028724ad, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6d80e43b — foundational count 0 after the blind second triage, clean, one sample; Linus's four foundational claims refuted (resolve 6 writes the corpus's appositive `<set>, <members> included`, a failed take with its storage-failure and its no answer among its cases, as resolve 26 and Assignment Operation 26 write it; resolve 32's quiet duration is the operator's own attestation, which no build computes (Invariant 5.8, Invariant 4.9); Invariant 4.7's two degradations each stand on their own condition, and 4.6 binds no kind whose credential-refused stands; a read_record writes no journal record, so Capability requirement 9 and 18 land one recording-failure(resolution) for every failed read), two refining and one rhetorical placed with no edit; two refining cures from the checker's code-entry hits: a term entry for Section Unavailable and for Invalid Credential in Resolve's branch; re-placed 2026-11-27 18:40Z, foundational count 1, not clean, no sample: the officer's blind second triage had been shown the threshold, and its blind rerun places the intent candidates cap foundational, Kind A (Execution Contract Input 2 states a call-carried bound as a cap with a default a deployment never has to supply, while Term intent candidates cap reads `*Default:* none, required at start`, so conforming builds choose different defaults and one admits a candidate list another refuses); the cure waits on Scott's ruling (a default, or an Input 2 exception), the same Term as Durable Intent's
 open: none
 ```
 
