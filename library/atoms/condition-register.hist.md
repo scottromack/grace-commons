@@ -38,3 +38,9 @@ Deleted: Invariant 3.2. Invariant 3.1 and Operation 15 own it.
 ```
 Deleted: Check 5.1. Execution Contract Database 6 owns it.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```

@@ -138,3 +138,10 @@ Deleted: Indeterminate outcome 2. Execution Contract Error model 1 owns it.
 ```
 Deleted: String 8. String 7 and GRACE-lang Closed vocabulary 29 own it.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
+```

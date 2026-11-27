@@ -198,3 +198,16 @@ Deleted: String 10. Term empty material owns it: material is missing only where 
 ```
 Deleted: Composition note 2. Non-goal 8 owns it.
 ```
+
+### What it keeps › The credentials › Credential
+
+```
+Deleted: Identity 7. String 1 owns it: a reference is a string input, compared byte for byte.
+```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
+```

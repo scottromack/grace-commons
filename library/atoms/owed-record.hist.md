@@ -26,3 +26,9 @@ The spec's tombstones, moved here from the page on 2026-11-13 because the spec i
 ```
 Deleted: Operation 33. Term matching owed record owns it.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```

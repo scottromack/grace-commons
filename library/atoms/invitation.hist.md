@@ -134,3 +134,16 @@ Deleted: Concurrency 1. Execution Contract Database 1 and Execution Contract Dat
 Deleted: Concurrency 2. Execution Contract Database 2 owns it.
 Deleted: Concurrency 3. Execution Contract Database 2 owns it.
 ```
+
+### What it keeps › The invitations › Invitation
+
+```
+Deleted: Identity 8. String 1 owns it: a reference is a string input, compared byte for byte.
+```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
+```

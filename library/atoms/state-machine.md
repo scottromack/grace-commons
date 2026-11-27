@@ -757,8 +757,6 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
-Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 ```
 
 Term string input: workflow id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.

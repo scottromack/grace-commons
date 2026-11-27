@@ -714,7 +714,6 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 String 7: IF a reference EXCEEDS the maximum length THEN the action MUST answer invalid-ref.
 String 8: IF transformation descriptor EXCEEDS the maximum length THEN [Transform] MUST answer invalid-descriptor.
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.

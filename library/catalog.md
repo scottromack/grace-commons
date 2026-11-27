@@ -18,7 +18,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints actor id. Offers key actor id.
 
-**[Approval Step](./atoms/approval-step.md)** (865 lines). Approval Step records a single authorization gate.
+**[Approval Step](./atoms/approval-step.md)** (863 lines). Approval Step records a single authorization gate.
 
 - Mints step id. Needs key actor id. Offers key step id.
 
@@ -30,7 +30,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints place id. Offers key place id.
 
-**[Capability](./atoms/capability.md)** (902 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
+**[Capability](./atoms/capability.md)** (901 lines). Capability is bearer-token authorization: holding a capability's token grants a right, no matter who holds it, and nothing else is asked for to use it.
 
 - Mints capability id. Needs key actor id. Offers key capability id.
 
@@ -54,7 +54,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints communication id. Offers key communication id.
 
-**[Condition Register](./atoms/condition-register.md)** (802 lines). Condition Register keeps the permanent record of what a background run observed.
+**[Condition Register](./atoms/condition-register.md)** (801 lines). Condition Register keeps the permanent record of what a background run observed.
 
 - Mints standing id. Offers key standing id.
 
@@ -62,7 +62,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
-**[Credential](./atoms/credential.md)** (972 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
+**[Credential](./atoms/credential.md)** (969 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
 
 - Needs key actor id.
 
@@ -74,7 +74,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints invocation id. Needs guard critical section key; journal closing record, intent record. Offers key invocation id.
 
-**[Erasure Tombstone](./atoms/erasure-tombstone.md)** (621 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
+**[Erasure Tombstone](./atoms/erasure-tombstone.md)** (620 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
 
 - No bond lines yet.
 
@@ -94,7 +94,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Invitation](./atoms/invitation.md)** (894 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
+**[Invitation](./atoms/invitation.md)** (891 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
 
 - Needs key list id; key actor id; journal invitation events. Offers follow-up Accept.
 
@@ -110,7 +110,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints list id. Needs key actor id. Offers key list id.
 
-**[Medication Order](./atoms/medication-order.md)** (1440 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
+**[Medication Order](./atoms/medication-order.md)** (1438 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
 
 - Mints order id. Needs key actor id; journal order events. Offers key order id.
 
@@ -130,7 +130,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints notification id. Offers key notification id.
 
-**[Observation](./atoms/observation.md)** (858 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
+**[Observation](./atoms/observation.md)** (855 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
 - Mints observation id. Needs key actor id. Offers key observation id.
 
@@ -138,11 +138,11 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key opaque; key list id.
 
-**[Owed Record](./atoms/owed-record.md)** (760 lines). Owed Record keeps the durable record that something is owed.
+**[Owed Record](./atoms/owed-record.md)** (759 lines). Owed Record keeps the durable record that something is owed.
 
 - No bond lines yet.
 
-**[Party Identity](./atoms/party-identity.md)** (962 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
+**[Party Identity](./atoms/party-identity.md)** (960 lines). Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company).
 
 - Mints party id. Needs key actor id; journal party events. Offers key party id.
 
@@ -154,11 +154,11 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Provenance](./atoms/provenance.md)** (981 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
+**[Provenance](./atoms/provenance.md)** (980 lines). Provenance answers one question: who has held this artifact, in what order, from intake to disposition.
 
 - Mints chain id. Needs key actor id. Offers key chain id.
 
-**[Provisional Commitment](./atoms/provisional-commitment.md)** (813 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
+**[Provisional Commitment](./atoms/provisional-commitment.md)** (811 lines). Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat.
 
 - Mints commitment id. Needs key actor id; journal commitment events. Offers key commitment id.
 
@@ -186,15 +186,15 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints holding id. Offers key holding id.
 
-**[Selective Disclosure](./atoms/selective-disclosure.md)** (630 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
+**[Selective Disclosure](./atoms/selective-disclosure.md)** (628 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
 - Mints disclosure id. Offers key disclosure id.
 
-**[Session](./atoms/session.md)** (890 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
+**[Session](./atoms/session.md)** (889 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 
 - Mints session id. Needs key actor id. Offers key session id.
 
-**[State Machine](./atoms/state-machine.md)** (1027 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
+**[State Machine](./atoms/state-machine.md)** (1025 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
 - Mints history entry id, workflow id. Needs key actor id. Offers key workflow id; key history entry id.
 

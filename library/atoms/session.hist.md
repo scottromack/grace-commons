@@ -179,3 +179,9 @@ Deleted: String 8. Execution Contract Logic confinement 13 owns it.
 Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 Deleted: Composition note 11. Non-goal 27 owns it.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```

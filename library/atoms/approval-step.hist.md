@@ -135,3 +135,15 @@ Deleted: String 7. Execution Contract Logic confinement 13 owns it.
 ```
 Deleted: Composition note 11. Execution Contract Atom interface 1 owns it.
 ```
+
+### What it keeps › The steps
+
+```
+Deleted: Identity 10. String 1 owns it: a reference is a string input, compared byte for byte.
+```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```

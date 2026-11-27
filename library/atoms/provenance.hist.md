@@ -133,3 +133,9 @@ Deleted: String 6. Capability requirement 6 owns it.
 Deleted: Composition note 1. Capability requirement 7 owns it.
 Deleted: Composition note 8. Execution Contract Atom interface 1 owns it.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```

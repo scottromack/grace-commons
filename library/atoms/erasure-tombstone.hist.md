@@ -30,3 +30,9 @@ Deleted: Operation 17. Term matching erasure tombstone owns it.
 ```
 Deleted: Check 5.1. Execution Contract Database 6 owns it: a purge another specification declares is answered by that specification's records.
 ```
+
+### While something is so › String policy
+
+```
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+```
