@@ -8,7 +8,6 @@ audience: common
 
 <details markdown="block">
 <summary>Table of contents</summary>
-{: .text-xs .font-medium .uppercase .tracking-wide .opacity-50 }
 1. TOC
 {:toc}
 </details>
