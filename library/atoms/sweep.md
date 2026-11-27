@@ -112,7 +112,7 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 2.10c: The run MUST count the act in skipped.
        reconcile step 2.10d: The run MUST open or advance the instance finding journal-unavailable on compliance surface.
    reconcile step 2.11: The run MUST NOT call act probe BEFORE querying remaining((kind, act key), critical section holder).
-   reconcile step 2.12: The run MUST examine the kept intents one at a time, steps 2 to 4 for one act before the next, oldest recording instant first (the window of Invariant 4.2 runs from the recording instant).
+   reconcile step 2.12: The run MUST examine the kept intents one at a time, steps 2 to 4 for one act before the next, oldest recording instant first and, between two intents of one recording instant, the lower sequence number first (the window of Invariant 4.2 runs from the recording instant).
    ```
 3. **Probe the database.**
 
@@ -380,7 +380,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`done — 2026-11-25` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -388,9 +388,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: done — 2026-11-25
+status: doing
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 5, a delta round (diff base f404c94b, 11 labels), one reader (Linus claude-sonnet-5-5; GRID and EOS not run), frozen at fe3c8388 — foundational count 0 after the blind second triage, clean, one sample; Linus's six refining findings each decided by a rule of the corpus and cured by none (a bound of reconcile step 3.10's range is a database record, never an invocation id; act probe's order is the probe's answer, in Execution Contract Read 5's order where it names none; the keep of a closing is Bonds journal 1's, so no destruction short of the retention period is reached; reconcile 7a serializes under each act's critical section, as reconcile 7 and reconcile step 2.1 fix; the library check names Recoverable Invocation's own split debt; reconcile 7a is a top-level label of the reconcile family like 9a), and its two rhetorical ones declined as Final Critique 4 declined them
+last gate: 2026-11-27 — Final Critique 6, a delta round (diff base fe3c8388, 8 labels, the reach of the grammar batch's rewording of Invariant 4.2, 4.3 and 5.10), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 8621e296 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's two foundational-rated findings were refuted by both triages (reconcile step 2.12 against Invariant 4.2: Term run bound claims no bound past the backlog the deployment sizes for, and the proposed stop would leave intents in no count; reconcile 9 and 9a cite Execution Contract Constituent failure 1 as Durable Intent open step 2.3 and Bonds' guard need do for a failed take or release, and state their own effects), and the blind second triage placed one defect Linus missed, cured: reconcile step 2.12 ordered the kept intents by recording instant alone, so two builds took intents of one recording instant in different orders and differed in tally and findings once a write answered invalid-credential (reconcile step 2.1, 2.9), and it now takes the lower sequence number first; Linus's four refining findings were each refuted or declined by a rule of the corpus (the bare Check 3 is Sweep's own and Durable Intent has no Check 3; the absolute excepted is the corpus's form; Durable Intent Check 1.1 is scoped to the horizon; Term skipped counts the act in place of any count it held)
 open: none
 ```
 
