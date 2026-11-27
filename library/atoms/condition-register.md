@@ -772,7 +772,7 @@ Term terms: condition, shape, sighting, standing record, subject, scope, run id,
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -780,9 +780,9 @@ Term terms: condition, shape, sighting, standing record, subject, scope, run id,
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — condition-register.als + 14 twins (the static data model: State 1 through 5 and 8, Invariant 2.1, 3.1, 4.1, 4.2, 5.1, 5.2, Identity 4 and a condition's one shape checked on every database a run of admitted calls leaves); condition-register.tla + 10 twins (across steps: Invariant 1.1 through 1.4, 2.1, 3.1, 4.1 through 4.3 and Operation 22 over every sequence of calls, each call carrying any clock reading); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 28, 29 and 31; Concurrency 1 through 3, 2026-11-11
-last gate: 2026-11-27 — Final Critique 6, a full round, frozen at 79cac81e — foundational count 3, all cured, not clean, no sample
+last gate: 2026-11-27 — Final Critique 7, a delta round (diff base 79cac81e, 121 labels, the reach of Final Critique 6's settle and the sweeps since), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational-rated finding (a blank run id reaching Operation 16) was refuted: Operation 10 and Operation 11 refuse a blank run id before any write, and no cure was owed
 
 open: none
 ```
