@@ -85,18 +85,20 @@ App permission 3: make list, accept, decline, sign in and sign out MUST NOT be g
 
 Make list's grant is an effect of the generated action, not a gate: once List's Make List answers, make list calls Permissions' Grant of `author` and `member` on the new list to the caller, and no check is asked before it (App permission 3).
 
-The subject of every check is the caller (Bonds permission 3), the actor id that [Session](../../atoms/session.md)'s Validate answers for the call's session. Every input that names a party (the author, the inviter, the assignee, the completer, the accepting identity, the revoker) is that same actor id, never a value the call carries (Bonds Key 19).
+The subject of every check is the caller (Bonds permission 3), the actor id that [Session](../../atoms/session.md)'s Validate answers for the call's session. Every input that names the acting party (the author, the inviter, the completer, the accepting identity, the revoker, and the assignee a claim binds) is that same actor id, never a value the call carries (Bonds Key 19). One value the call carries is no acting party: a reassign's new assignee, which App check 2 admits only where it answers permitted.
 
 ### The app's checks and answers
 
 An action that acts on a task names its task id and the list id of its gate, and the gate is asked of that list. Edit task, delete task, claim, complete, recall and reassign each run App check 1 right after the gate and before any call to an atom's action; Task's Read of the list is the existence read of the task id (Bonds Key 21 to Key 26). Reassign runs App check 2 right after App check 1: the new assignee must be someone the list is shared with. Move task needs none: Ordering's Move Item refuses unknown-item for a task its list's sequence does not hold.
 
 ```
-App check 1: an action that names a task id MUST confirm, in its own transaction, that Task's Read of the list id the call carries, with a window of one week, answers the task id, and MUST answer `not-known` and commit nothing where it does not.
+App check 1: edit task, delete task, claim, complete, recall and reassign MUST confirm, in its own transaction, that Task's Read of the list id the call carries, with a window of one week (Term one week), answers the task id, and MUST answer `not-known` and commit nothing where it does not.
 App check 2: reassign MUST confirm, in its own transaction, that Permissions' Check of the new assignee's actor id on the scope `member` of the list the call carries answers permitted, and MUST answer `denied` and commit nothing where it does not.
 App answer 1: an action called with a session whose Validate answers invalid MUST answer invalid with Validate's failure as it stands, MUST call no atom's action and MUST commit nothing.
 App answer 2: sign in, where Credential's Verify answers failed-verification, MUST answer failed-verification with Verify's failure as it stands and MUST call no Session action.
 ```
+
+Term one week: the window the app passes to Task's Read, 604800 seconds (seven days of 86400 seconds each, no calendar and no timezone); a done task lies inside it where its completion instant does not precede now by more than that, the instant exactly one week back included (Task's Read; Execution Contract Query 2).
 
 A done task past its week stands on no list the app reads, so every action that runs App check 1 answers `not-known` on it, a second check-off included (refused either way). Every other answer of an action is the answer of the atom's call that gave it, each rejection passed through unchanged (Execution Contract Constituent failure 1 to Constituent failure 3), with `denied` for a failed gate and for a reassign App check 2 refuses, Check's own answer.
 
@@ -133,7 +135,9 @@ The app's API (application programming interface), generated, never written by h
 | accept, decline | Invitation's Accept, the caller as accepting identity (Glue, accept grants), or Decline |
 | sign in | Credential's Verify, then Session's Issue (Glue, sign in; App answer 2) |
 | sign out | Session's Revoke of the call's session, the caller as revoked_by_ref, the reason `signed out` |
-| read list | List's Read List, Ordering's Read Order, Task's Read with a window of one week, Assignment's Active For and History For of each task answered; the answer carries the tasks Task's Read answered, each with its active assignment and its history, in the order Ordering's Read Order gives, and no entry Task's Read did not answer |
+| read list | List's Read List, Ordering's Read Order, Task's Read with a window of one week (Term one week), Assignment's Active For and History For of each task answered; the answer carries the tasks Task's Read answered, each with its active assignment and its history, in the order Ordering's Read Order gives, and no entry Task's Read did not answer |
+
+Invite passes Invitation's Initiate no invitee and no ttl, so the ttl is Invitation's default, which the deployment declares (the capability Invitation states for it); a deployment that declares none answers every invite `invalid-request`, Initiate's own refusal.
 
 Task, Assignment and Invitation each append their events to the one Event Log, each in a stream of its own, as their journal needs say; the app writes nothing for it.
 
@@ -141,6 +145,6 @@ Task, Assignment and Invitation each append their events to the one Event Log, e
 
 `todo` — written by the unit `app: to-do` (2026-11-25, ruled by Scott 7:11 to 7:15 PM Central from the draft of his session); it pauses for his design review of the app page form before another app page is written. No render here: TARGET.md and CORNERS.md come with the render unit.
 
-last gate: 2026-11-26 — Final Critique 1, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro), frozen at da9bc143 — foundational count 7 after the triage, not clean; the cures are in this text and the page's next round is a delta round. The tools read atoms and compositions only, so no tool has read this page.
+last gate: 2026-11-27 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at 00ef299b — foundational count 2, both cured, not clean, no sample (the party-input sentence forbade every carried id while a reassign's new assignee is one, so the sentence names the acting party and says the one carried value; the week of Task's Read window was stated in no unit, so Term one week gives it as 604800 seconds with both ends in; one finding placed refining: claim, recall, reassign and move task on a done task within its week all admit, which no rule decides, filed under Needs Scott; refining cured: App check 1 names the six actions that run it, and invite's default ttl is the deployment's; two refuted: recall with no active assignment answers ok as Assignment's Recall For Task does, and read list's omission of an entry Task's Read did not answer is stated in its row; rhetorical wordings left); 2026-11-26 — Final Critique 1, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro), frozen at da9bc143 — foundational count 7 after the triage, not clean; the cures are in this text and the page's next round is a delta round. The tools read atoms and compositions only, so no tool has read this page.
 
 NOTE: End of Shared Todo as an app.
