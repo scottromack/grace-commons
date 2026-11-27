@@ -542,7 +542,7 @@ Any two writing calls whose overlap checks (Operation 12, Operation 13) decide o
 
 ### Indeterminate outcome
 
-A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Begin] meets the tenure the first recorded and answers [Already Held] (Operation 12), but the answer alone does not tell the caller the first landed, since a tenure of the same person, role and thing that covers a day the call covers answers it too, whoever recorded it: the caller asks [History For], finds the first landed where a tenure carries the call's person reference, role, item reference and start date, and reads the tenure id there. A repeated [End] answers [Already Ended] where an end date stands, the first call's or another caller's, so the caller asks [Look Up] and finds the first landed where the end date is the one the call carried. A repeated [Withdraw] answers [Already Withdrawn], and the tenure is withdrawn, as the first call asked. A repeated [Change] carrying the same details sets the same values again.
+A caller whose answer is lost may call again, and the repeat is a second call (Execution Contract Error model 1). A repeated [Begin] meets the tenure the first recorded and answers [Already Held] (Operation 12) while it stands (a first withdrawn before the repeat is no twin, Term twin, so the repeat lands a tenure of its own and answers its id), but the answer alone does not tell the caller the first landed, since a tenure of the same person, role and thing that covers a day the call covers answers it too, whoever recorded it: the caller asks [History For], finds the first landed where a tenure carries the call's person reference, role, item reference and start date, and reads the tenure id there. A repeated [End] answers [Already Ended] where an end date stands, the first call's or another caller's, so the caller asks [Look Up] and finds the first landed where the end date is the one the call carried. A repeated [Withdraw] answers [Already Withdrawn], and the tenure is withdrawn, as the first call asked. A repeated [Change] carrying the same details sets the same values again.
 
 ### A detail once given
 
@@ -739,7 +739,7 @@ Term terms: tenure, tenures, tenure id, person reference, person references, rol
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -747,9 +747,9 @@ Term terms: tenure, tenures, tenure id, person reference, person references, rol
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-27 — Final Critique 5, a full round, frozen at 79cac81e — foundational count 1, not clean, three passes and the Claude reader
+last gate: 2026-11-27 — Final Critique 6, a delta round (diff base 79cac81e, 116 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at fb874224 — foundational count 0 after the blind second triage, clean, one sample (Linus's three foundational reports were refuted by rules on the page: Operation 41 already reads [End] alone, so a blank end date on [Change] is an omitted detail; [End] sets the end date of an open tenure only, Operation 20 answering already-ended otherwise, and setting one only removes days, so it cannot create an overlap; Operation 25 states a write and no answer, and the case table gives the withdrawn and the rival cases their refusals. Its four refining and two rhetorical reports were refuted or placed rhetorical by both triages, except that the recovery paragraph's first sentence about a repeated [Begin] now says it holds while the first tenure stands, a first withdrawn being no twin (Term twin), so no two conforming builds differ)
 
 open: none
 ```
