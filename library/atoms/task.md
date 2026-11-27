@@ -492,18 +492,18 @@ Re-adding 2: [Add] MUST answer a fresh task id for such a task.
 ### Description policy
 
 ```
-Description 1: The atom MUST trim a description's leading and trailing whitespace.
+Description 1: The atom MUST trim a description's leading and trailing white space.
 Description 2: The atom MUST normalize a description to Unicode normal form C.
-Description 3: The atom MUST preserve a description's internal whitespace.
+Description 3: The atom MUST preserve a description's internal white space.
 Description 4: IF the normalized description EQUALS blank THEN [Add] MUST answer invalid-description.
 Description 5: IF the description the call carries EXCEEDS the description cap THEN [Add] MUST answer invalid-description (Execution Contract Input 2).
-Description 6: The atom MUST compare two descriptions case-sensitively.
+Description 6: The atom MUST compare two descriptions with letter case kept.
 Description 7: The atom MUST compare two descriptions on the normalized form.
 Description 8: The atom MUST show the normalized form.
 Description 9: IF the description is malformed THEN [Add] MUST answer invalid-description (Execution Contract Input 1).
 ```
 
-NOTE: the whitespace Description 1 trims is the code points with the Unicode White_Space property, as GRACE-lang Term blank gives it.
+NOTE: the white space Description 1 trims is the code points with the Unicode White_Space property, as GRACE-lang Term blank gives it.
 
 ## Optional
 
@@ -558,7 +558,7 @@ Non-goal 1: The atom MUST NOT judge who acts: the atom carries the completer the
 Non-goal 2: The atom MUST NOT tell a second actor's standing in a list.
 Non-goal 3: The atom MUST NOT assign a task to an actor.
 Non-goal 4: The atom MUST NOT remember a deleted description.
-Non-goal 5: The atom MUST NOT keep a guard against a description seen lately.
+Non-goal 5: The atom MUST NOT keep a guard against a description seen a short time before.
 Non-goal 6: The atom MUST NOT restore a deleted task.
 Non-goal 8: The atom MUST NOT reopen a done task.
 Non-goal 9: The atom MUST NOT regenerate a task on a schedule.
@@ -567,7 +567,7 @@ Non-goal 11: The atom MUST NOT hold a due date.
 Non-goal 12: The atom MUST NOT hold a dependency between tasks.
 Non-goal 13: The atom MUST NOT keep a description's history.
 Non-goal 14: The atom MUST NOT resolve two concurrent calls on one task.
-Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
+Non-goal 15: The atom MUST NOT match descriptions with letter case ignored.
 Non-goal 16: The atom MUST NOT keep a defensible timeline of a task's instants.
 ```
 
@@ -658,7 +658,7 @@ NOTE: EVERY check names the rule the check tests.
 #### External checks
 
 ```
-External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3; Execution Contract Logic confinement 7).
+External check 1: An auditor needing the guarantee that the clock never goes backward confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3; Execution Contract Logic confinement 7).
 ```
 
 ### Vocabulary

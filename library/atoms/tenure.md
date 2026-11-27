@@ -34,12 +34,12 @@ Identity 3: [Begin] MUST NOT take a tenure id from the business caller.
 Identity 4: The atom MUST NOT reuse a tenure id.
 Identity 5: The implementation MUST own the tenure id's scheme.
 Identity 6: The atom MUST NOT normalize a person reference.
-Identity 7: The atom MUST compare two person references codepoint for codepoint.
+Identity 7: The atom MUST compare two person references code point for code point.
 Identity 8: The atom MUST NOT normalize an item reference.
-Identity 9: The atom MUST compare two item references codepoint for codepoint.
+Identity 9: The atom MUST compare two item references code point for code point.
 Identity 10: The atom MUST NOT normalize a role.
-Identity 11: The atom MUST compare two roles codepoint for codepoint.
-Identity 12: The atom MUST compare two tenure ids codepoint for codepoint.
+Identity 11: The atom MUST compare two roles code point for code point.
+Identity 12: The atom MUST compare two tenure ids code point for code point.
 ```
 
 Term tenure: one person's time in one role in one thing, kept from the [Begin] call that recorded the tenure — a [Tenure].
@@ -491,7 +491,7 @@ Operation 32: [History For] MUST answer EVERY match.
 Operation 33: [History For] MUST NOT answer a withdrawn tenure.
 Operation 34: [History For] MUST answer an empty list for a reference no match carries.
 Operation 35: [History For] MUST answer matches in order of start date (Execution Contract Read 5, Execution Contract Logic confinement 10).
-Operation 36: [History For] MUST answer two matches sharing a start date in codepoint order of tenure id (Execution Contract Read 5, Execution Contract Logic confinement 10).
+Operation 36: [History For] MUST answer two matches sharing a start date in code point order of tenure id (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 37: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
 Operation 38: IF the date of the call is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 1).
 Operation 39: [History For] MUST NOT write.
@@ -680,7 +680,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing a person reference confirmed as naming a real person MUST read the deployment's directory (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 2).
-External check 3: An auditor needing the roles that have one holder at a time MUST read the deployment's one-holder set (Operation 13).
+External check 3: An auditor needing the roles with one holder at a time MUST read the deployment's one-holder set (Operation 13).
 External check 4: An auditor needing to know that no two people held a role of the one-holder set in one thing on one day MUST find no two overlapping tenures that carry one item reference, two person references and one role of the deployment's one-holder set, except an overlap standing when the role joined the set (Operation 13).
 ```
 

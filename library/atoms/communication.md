@@ -34,13 +34,13 @@ Identity 3: [Record] MUST NOT take a communication id from the business caller.
 Identity 4: The atom MUST NOT reuse a communication id.
 Identity 5: The implementation MUST own the communication id's scheme.
 Identity 6: The atom MUST NOT normalize a person reference.
-Identity 7: The atom MUST compare two person references codepoint for codepoint.
+Identity 7: The atom MUST compare two person references code point for code point.
 Identity 8: The atom MUST NOT normalize an item reference.
-Identity 9: The atom MUST compare two item references codepoint for codepoint.
+Identity 9: The atom MUST compare two item references code point for code point.
 Identity 10: The atom MUST NOT normalize a medium.
-Identity 11: The atom MUST compare two media codepoint for codepoint.
+Identity 11: The atom MUST compare two media code point for code point.
 Identity 12: The atom MUST NOT normalize an outcome.
-Identity 13: The atom MUST compare two outcomes codepoint for codepoint.
+Identity 13: The atom MUST compare two outcomes code point for code point.
 Identity 14: The atom MUST compare two occurred instants as instants.
 ```
 
@@ -526,7 +526,7 @@ Operation 36: [History For] MUST answer EVERY match.
 Operation 37: [History For] MUST NOT answer a withdrawn communication.
 Operation 38: [History For] MUST answer an empty list for a reference no match carries.
 Operation 39: [History For] MUST answer matches in order of occurred instant, earliest first (Execution Contract Read 5, Execution Contract Logic confinement 10).
-Operation 40: [History For] MUST answer two matches sharing an occurred instant in codepoint order of communication id (Execution Contract Read 5, Execution Contract Logic confinement 10).
+Operation 40: [History For] MUST answer two matches sharing an occurred instant in code point order of communication id (Execution Contract Read 5, Execution Contract Logic confinement 10).
 Operation 41: IF the reference is malformed OR the reference EQUALS blank OR the reference EXCEEDS the string cap THEN [History For] MUST answer an empty list (Execution Contract Query 5).
 Operation 42: IF the start instant is malformed OR the end instant is malformed THEN [History For] MUST answer an empty list (Execution Contract Query 1).
 Operation 43: [History For] MUST NOT write.

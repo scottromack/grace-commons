@@ -122,6 +122,8 @@ Term commitment events: opaque — the record type of the journal records Provis
 
 Term order events: opaque — the record type of the journal records Medication Order's admitted actions append; plain, carrying no seal.
 
+Term idempotency key: opaque — the value a caller sends with a request so that a repeat of the request carrying the same value is answered as the first was and never acted on twice.
+
 ## Status
 
 `todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare). The unit `bonds: the fixes` (2026-11-25, ruled by Scott 10:48 AM Central) declared `closing record` and `invocation journal`, which three atoms' need lines use. The unit `bonds: every atom mints its id` (2026-11-25, ruled by Scott 3:22 PM Central) made the page hold every id an atom mints (Bonds Key 18); the scope line owes a delta round.

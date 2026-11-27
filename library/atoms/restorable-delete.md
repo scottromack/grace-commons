@@ -48,7 +48,7 @@ Projection: item_reference
 ```
 Identity 1: The atom MUST identify a deletion by the deletion's item reference.
 Identity 2: The atom MUST NOT normalize an item reference.
-Identity 3: The atom MUST compare two item references codepoint for codepoint (Execution Contract Logic confinement 10).
+Identity 3: The atom MUST compare two item references code point for code point (Execution Contract Logic confinement 10).
 ```
 
 Term status: where an item stands, present, deleted or purged — the [Status].
@@ -332,7 +332,7 @@ list_deleted()
 ```
 
 ```
-Operation 18: [List Deleted] MUST answer EVERY deletion standing in deleted, in deleted instant order, oldest deleted first, then in codepoint order of item reference (Execution Contract Logic confinement 10).
+Operation 18: [List Deleted] MUST answer EVERY deletion standing in deleted, in deleted instant order, oldest deleted first, then in code point order of item reference (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -353,7 +353,7 @@ list_expired()
 ```
 
 ```
-Operation 19: [List Expired] MUST answer EVERY deletion standing in deleted whose restore deadline PRECEDES the injected now, in restore deadline order, the earliest deadline first, then in codepoint order of item reference (Execution Contract Logic confinement 10, Execution Contract Logic confinement 20).
+Operation 19: [List Expired] MUST answer EVERY deletion standing in deleted whose restore deadline PRECEDES the injected now, in restore deadline order, the earliest deadline first, then in code point order of item reference (Execution Contract Logic confinement 10, Execution Contract Logic confinement 20).
 ```
 
 The case space, and the rule that owns each case:
@@ -457,7 +457,7 @@ Acceptable when the checks below are provable to an external auditor from the de
 Check 1.1: An auditor MUST find EVERY deletion carrying item reference AND status (State 1).
 Check 1.2: An auditor MUST find EVERY deletion standing in EXACTLY ONE OF present, deleted, purged (State 2).
 Check 1.3: An auditor MUST find EVERY deletion standing in deleted carrying a deleted instant AND a restore deadline (State 3).
-Check 1.4: An auditor MUST find an unfiltered read answering EVERY deletion with a committed version (State 4; Execution Contract Generation acceptance 1).
+Check 1.4: An auditor MUST find a read with no filter answering EVERY deletion with a committed version (State 4; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find EVERY version of a deletion later than a purged version standing in purged (Invariant 1.1).
 Check 3.1: An auditor MUST find no two deletions sharing an item reference (Invariant 2.1).
 ```

@@ -31,9 +31,9 @@ Every place people post needs a way to say "look at this" and a way to answer it
 Identity 1: The atom MUST identify a standing by the standing's item reference.
 Identity 2: The atom MUST identify a report by the report's item reference AND reporter reference AND flagged instant.
 Identity 3: The atom MUST NOT normalize an item reference.
-Identity 4: The atom MUST compare two item references codepoint for codepoint.
+Identity 4: The atom MUST compare two item references code point for code point.
 Identity 5: The atom MUST NOT normalize a person reference.
-Identity 6: The atom MUST compare two person references codepoint for codepoint.
+Identity 6: The atom MUST compare two person references code point for code point.
 ```
 
 Term standing: where one item stands with the moderators — shown or hidden, open or locked, pinned or unpinned — a [Standing].
@@ -409,7 +409,7 @@ list_flagged()
 ```
 
 ```
-Operation 23: [List Flagged] MUST answer EVERY item reference a pending report carries, with the count of pending reports AND the earliest flagged instant among the pending reports, in earliest flagged instant order, then in codepoint order of item reference (Execution Contract Logic confinement 10).
+Operation 23: [List Flagged] MUST answer EVERY item reference a pending report carries, with the count of pending reports AND the earliest flagged instant among the pending reports, in earliest flagged instant order, then in code point order of item reference (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:

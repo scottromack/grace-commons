@@ -48,7 +48,7 @@ Identity 4: The atom MUST NOT change a disclosure id.
 Identity 5: Two disclosure records in one database instance MUST NOT share a disclosure id.
 Identity 7: The atom MUST NOT identify a disclosure record by the subject reference.
 Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject reference.
-Identity 9: The atom MUST match a subject reference exactly, as the seam has canonicalized the subject reference (Execution Contract Logic confinement 13).
+Identity 9: The atom MUST match a subject reference byte for byte, in the canonical form the seam gives the subject reference (Execution Contract Logic confinement 13).
 Identity 10: The atom MUST match a recipient exactly.
 Identity 11: The atom MUST NOT normalize a subject reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
@@ -327,7 +327,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 3 — Field completeness.**
   ```
-  Invariant 3.2: EVERY disclosure record's subject reference, recipient, scope and authority reference MUST stand non-blank.
+  Invariant 3.2: EVERY disclosure record's subject reference, recipient, scope and authority reference MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
@@ -371,11 +371,11 @@ Term correction narrative: the prose a correcting disclosure record's scope OR a
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
@@ -442,7 +442,7 @@ Deleted: Non-goal 19. Non-goal 18 owns it: the atom bounds no retention, and whi
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
 Non-goal 21: The atom MUST NOT bound disclosure instant from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
-Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 Deleted: Non-goal 24. Non-goal 23 owns it: the atom records no receipt instant, and which pattern detects a backdated disclosure instant is the app's choice.
 ```
 
@@ -518,7 +518,7 @@ This atom's acceptance is provable: an external auditor clears it from the discl
 
 ```
 Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant on EVERY disclosure record (State 1).
-Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
+Check 2.2: An auditor MUST find no disclosure record whose subject reference, recipient, scope or authority reference EQUALS blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record's authority type standing in the authority types (Invariant 2.1).
 Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
 Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).

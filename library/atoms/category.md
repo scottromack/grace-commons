@@ -32,11 +32,11 @@ Identity 1: The atom MUST identify a category by the category's category id.
 Identity 2: The atom MUST assign EVERY category a category id no other category carries.
 Identity 3: The atom MUST identify a home by the home's item reference.
 Identity 4: The atom MUST NOT normalize an item reference.
-Identity 5: The atom MUST compare two item references codepoint for codepoint.
+Identity 5: The atom MUST compare two item references code point for code point.
 Identity 6: The atom MUST NOT normalize a category name.
-Identity 7: The atom MUST compare two category names codepoint for codepoint.
+Identity 7: The atom MUST compare two category names code point for code point.
 Identity 8: The atom MUST NOT normalize a category id.
-Identity 9: The atom MUST compare two category ids codepoint for codepoint.
+Identity 9: The atom MUST compare two category ids code point for code point.
 ```
 
 Term category: one named place in the tree, top level or under another category — a [Category].
@@ -516,7 +516,7 @@ list_items(category_id)
 ```
 
 ```
-Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in codepoint order (Execution Contract Logic confinement 10).
+Operation 23: [List Items] MUST answer EVERY item reference whose home carries the category id, in code point order (Execution Contract Logic confinement 10).
 Operation 29: IF no category carries the category id THEN [List Items] MUST answer an empty list.
 Operation 32: IF the category id EQUALS blank OR the category id is malformed THEN [List Items] MUST answer an empty list (Execution Contract Query 5).
 ```
@@ -542,7 +542,7 @@ tree()
 ```
 
 ```
-Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in codepoint order of category name (Execution Contract Logic confinement 10).
+Operation 24: [Tree] MUST answer EVERY category depth first, each category ahead of the categories under the category, siblings in position order, then in code point order of category name (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -686,7 +686,7 @@ Acceptable when the checks below are provable to an external auditor from the ca
 Check 1.1: An auditor MUST find EVERY category carrying category id, category name, position AND status (State 1).
 Check 1.2: An auditor MUST find EVERY category standing in EXACTLY ONE OF listed, hidden (State 2).
 Check 1.3: An auditor MUST find EVERY home carrying the category id of a category the database holds (State 4).
-Check 1.4: An auditor MUST find an unfiltered read answering EVERY category with a committed version (State 5; Execution Contract Generation acceptance 1).
+Check 1.4: An auditor MUST find a read with no filter answering EVERY category with a committed version (State 5; Execution Contract Generation acceptance 1).
 Check 1.5: An auditor MUST find EVERY parent category naming a category the database holds (State 6).
 Check 1.6: An auditor MUST find EVERY home carrying item reference AND category id (State 3).
 Check 1.7: An auditor MUST find EVERY category carrying a position that EXCEEDS zero (State 7).

@@ -216,7 +216,7 @@ State 10: The atom MUST NOT offer a transition out of revoked.
 State 11: The atom MUST NOT remove a session from the database.
 State 12: The atom MUST NOT hold a permission.
 State 13: The atom MUST NOT hold a device context.
-State 14: The atom MUST NOT hold a concurrency bound per principal reference.
+State 14: The atom MUST NOT hold a bound on concurrent sessions per principal reference.
 State 15: EVERY session MUST carry a session id.
 ```
 
@@ -531,8 +531,8 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Revocation attribution completeness.**
   ```
   Invariant 8.1: EVERY revoked session MUST carry a revocation instant.
-  Invariant 8.2: EVERY revoked session's revoked by reference MUST stand non-blank.
-  Invariant 8.3: EVERY revoked session's revocation reason MUST stand non-blank.
+  Invariant 8.2: EVERY revoked session's revoked by reference MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 8.3: EVERY revoked session's revocation reason MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
@@ -563,7 +563,7 @@ The case space, and the rule that owns each case:
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: A session MUST NOT carry a stored expired status.
-  Invariant 12.2: A session MUST NOT carry an expiry timestamp beside expiry instant.
+  Invariant 12.2: A session MUST NOT carry an expiry time stamp beside expiry instant.
   Invariant 12.3: A lapse MUST NOT write to the session.
   Invariant 12.4: The effective status MUST rest on the stored status, expiry instant and now.
   ```
@@ -589,11 +589,11 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2; a filter's value on principal reference or issued by reference takes the maximum length of that field's string input.
 String 7: IF a string input EXCEEDS the maximum length THEN [Issue] MUST answer invalid-request.
 String 9: IF the session's status EQUALS active AND the revoked by reference the call supplies EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
@@ -664,7 +664,7 @@ Term offer key: key session id; carried by sessions.
 ```
 Non-goal 1: The atom MUST NOT verify an authentication credential.
 Deleted: Non-goal 2. Non-goal 1 owns it: the atom verifies no authentication credential, and which pattern does is the app's choice.
-Non-goal 3: The atom MUST NOT sequence a multi-factor challenge.
+Non-goal 3: The atom MUST NOT sequence a challenge of more than one factor.
 Deleted: Non-goal 4. Non-goal 3 owns it: the atom sequences no login, and the sign-in flow is the app's.
 Non-goal 5: The atom MUST NOT decide what a principal reference may do.
 Deleted: Non-goal 6. Non-goal 5 owns it: the atom decides nothing a principal may do; the app's permission does.
@@ -674,9 +674,9 @@ Non-goal 9: A composing pattern renewing a session MUST revoke the prior session
 Non-goal 10: The atom MUST NOT bind a session token to a device.
 Non-goal 11: A deployment needing device binding MUST check the device context outside the atom.
 Non-goal 12: The atom MUST NOT bound how many sessions one principal reference holds.
-Non-goal 13: A deployment needing a concurrency bound MUST enforce the bound at the composing layer.
+Non-goal 13: A deployment needing a bound on concurrent sessions MUST enforce the bound at the composing layer.
 Non-goal 14: The atom MUST NOT propagate a revocation across a principal reference's other sessions.
-Non-goal 15: A deployment needing logout propagation MUST revoke one by one the principal reference's sessions whose session token digests the deployment holds.
+Non-goal 15: A deployment needing log-out propagation MUST revoke one by one the principal reference's sessions whose session token digests the deployment holds.
 Non-goal 16: The atom MUST NOT define the session token's format.
 Non-goal 18: The atom MUST NOT enumerate a session token digest.
 Non-goal 19: The atom MUST NOT seal a session against modification.
@@ -685,7 +685,7 @@ Deleted: Non-goal 21. Non-goal 20 owns it: the atom bounds no retention, and whi
 Deleted: Non-goal 22. Non-goal 19 owns it: the atom seals no session, and which pattern makes records tamper-evident is the app's choice.
 Deleted: Non-goal 24. Composition note 3 owns it: a composing pattern owns the attribution of an issuance.
 Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
-Non-goal 26: The atom MUST NOT supply an externally verifiable timestamp.
+Non-goal 26: The atom MUST NOT supply a time stamp verifiable outside the atom.
 Non-goal 27: The atom MUST NOT detect an authentication credential's revocation.
 Non-goal 28: The atom MUST NOT set a maximum session duration.
 Non-goal 29: A deployment needing a maximum session duration MUST enforce the maximum at the composing layer.
@@ -700,9 +700,9 @@ Composition note 2: IF no verified answer EXISTS THEN a composing pattern MUST N
 Composition note 3: A composing pattern MUST own the attribution of an issuance.
 Composition note 4: IF [Validate] gives an invalid answer THEN a composing pattern MUST NOT ask a permission check for the call.
 Composition note 5: A composing pattern MUST own the renewal policy.
-Composition note 6: A composing pattern MUST own the logout propagation across a principal reference's sessions.
+Composition note 6: A composing pattern MUST own the log-out propagation across a principal reference's sessions.
 Composition note 7: A composing pattern MUST own the device binding.
-Composition note 8: A composing pattern MUST own the concurrency bound per principal reference.
+Composition note 8: A composing pattern MUST own the bound on concurrent sessions per principal reference.
 Composition note 9: A composing pattern MUST own the retention of the session records.
 Composition note 12: A composing pattern MUST own the attribution of a revocation.
 ```
@@ -776,11 +776,11 @@ Check 1.1: An auditor MUST find an expiry instant on EVERY session (Invariant 10
 Check 1.2: An auditor MUST find one principal reference, issued by reference, issuance instant and expiry instant per session across the session's whole life (Invariant 1.1, Invariant 2.1; Execution Contract Generation acceptance 1).
 Check 1.3: An auditor MUST find no session whose issuance instant DOES NOT PRECEDE the session's expiry instant (Operation 8, Operation 10, Operation 56).
 Check 2.1: An auditor MUST find no stored expired status on any session (Invariant 12.1).
-Check 2.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 12.2).
+Check 2.2: An auditor MUST find no expiry time stamp beside expiry instant (Invariant 12.2).
 Check 2.3: An auditor MUST find no session with two committed versions whose status EQUALS active (Invariant 12.3; Execution Contract Generation acceptance 1).
 Check 2.4: An auditor MUST reproduce the effective status from the stored status, expiry instant and the read-time clock (Invariant 12.4).
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Expiry 5).
-Check 4.1: An auditor MUST find a revocation instant, a non-blank revoked by reference and a non-blank revocation reason on EVERY revoked session (Invariant 8.1 through 8.3).
+Check 4.1: An auditor MUST find a revocation instant, a revoked by reference that DOES NOT EQUAL blank and a revocation reason that DOES NOT EQUAL blank on EVERY revoked session (Invariant 8.1 through 8.3).
 Check 6.1: An auditor MUST find no session leaving revoked across two committed versions of the session (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no two sessions sharing a session id (Invariant 7.3, State 15).
 ```

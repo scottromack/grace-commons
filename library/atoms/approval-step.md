@@ -54,7 +54,7 @@ Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
-Identity 10: The atom MUST compare a reference byte-exactly.
+Identity 10: The atom MUST compare a reference byte for byte.
 Identity 11: The atom MUST NOT normalize a reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
@@ -564,10 +564,10 @@ Projection: invalid-query
   ```
 - **Invariant 6 — Decision attribution completeness.**
   ```
-  Invariant 6.1: EVERY terminal step's attribution reference MUST stand non-blank.
+  Invariant 6.1: EVERY terminal step's attribution reference MUST stand as a value that DOES NOT EQUAL blank.
   Invariant 6.2: EVERY terminal step MUST carry the terminal instant.
-  Invariant 6.3: EVERY rejected step's decision reason MUST stand non-blank.
-  Invariant 6.4: EVERY withdrawn step's withdrawal reason MUST stand non-blank.
+  Invariant 6.3: EVERY rejected step's decision reason MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 6.4: EVERY withdrawn step's withdrawal reason MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 7 — Temporal ordering.**
   ```
@@ -575,7 +575,7 @@ Projection: invalid-query
   ```
 - **Invariant 8 — Submission attribution completeness.**
   ```
-  Invariant 8.1: EVERY step's step id, subject reference, approver reference, submitter reference and scope MUST stand non-blank.
+  Invariant 8.1: EVERY step's step id, subject reference, approver reference, submitter reference and scope MUST stand as a value that DOES NOT EQUAL blank.
   Invariant 8.2: EVERY step MUST carry a submission instant.
   ```
 - **Invariant 9 — Concurrent step independence.**
@@ -603,11 +603,11 @@ Indeterminate outcome 4: A deployment needing a lost [Submit] told from an earli
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input that the signature does not mark optional as blank.
 ```
 
@@ -661,7 +661,7 @@ Non-goal 3: The atom MUST NOT decide whether a subject's open gates are enough.
 Deleted: Non-goal 4. Non-goal 3 owns it: the atom decides no quorum over a subject's gates, and which pattern does is the app's choice.
 Non-goal 5: The atom MUST NOT bind a second actor to stand in for an approver reference.
 Non-goal 6: A deployment needing delegation MUST compose a delegation pattern.
-Non-goal 7: The atom MUST NOT confirm that a subject stands in an approvable state.
+Non-goal 7: The atom MUST NOT confirm that a subject stands in a state ready for approval.
 Non-goal 8: The atom MUST NOT interpret what an approved step permits.
 Non-goal 9: The atom MUST NOT decide who may call an action.
 Deleted: Non-goal 10. Non-goal 9 owns it: the atom decides no caller's authority; the app's permission does.
@@ -675,8 +675,8 @@ Deleted: Non-goal 17. Non-goal 16 owns it: the atom detects no rewrite, and whic
 Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
 Non-goal 20: The atom MUST NOT bound submission instant from below.
-Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-Non-goal 22: The atom MUST NOT own the clock's monotonicity (Execution Contract Logic confinement 7).
+Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
+Non-goal 22: The atom MUST NOT own the guarantee that the clock never goes backward (Execution Contract Logic confinement 7).
 ```
 
 NOTE: the owners — an idempotency pattern (Non-goal 1, Non-goal 2); a quorum pattern (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); Delegation *(forthcoming)* (Non-goal 5, Non-goal 6); the app's permission (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); a notification pattern (Non-goal 11, Non-goal 12; Composition note 5); an attestation pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a gated-workflow pattern (Non-goal 7, Non-goal 8); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); Trusted Timestamping *(forthcoming)* (Non-goal 20, Non-goal 21).
@@ -746,18 +746,18 @@ This atom's acceptance is provable: an external auditor clears it from the step 
 
 ```
 Check 1.1: An auditor MUST find EVERY step standing in EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
-Check 2.1: An auditor MUST find EVERY step's step id, subject reference, approver reference, submitter reference and scope non-blank (Invariant 8.1).
+Check 2.1: An auditor MUST find no step whose step id, subject reference, approver reference, submitter reference or scope EQUALS blank (Invariant 8.1).
 Check 2.2: An auditor MUST find a submission instant on EVERY step (Invariant 8.2).
-Check 3.1: An auditor MUST find EVERY terminal step's attribution reference non-blank (Invariant 6.1).
+Check 3.1: An auditor MUST find no terminal step whose attribution reference EQUALS blank (Invariant 6.1).
 Check 3.2: An auditor MUST find the terminal instant on EVERY terminal step (Invariant 6.2).
-Check 3.3: An auditor MUST find EVERY rejected step's decision reason non-blank (Invariant 6.3).
-Check 3.4: An auditor MUST find EVERY withdrawn step's withdrawal reason non-blank (Invariant 6.4).
+Check 3.3: An auditor MUST find no rejected step whose decision reason EQUALS blank (Invariant 6.3).
+Check 3.4: An auditor MUST find no withdrawn step whose withdrawal reason EQUALS blank (Invariant 6.4).
 Check 3.5: An auditor MUST find no terminal step's terminal instant preceding the step's submission instant (Invariant 7.1).
 Check 4.1: An auditor MUST find EVERY approved step's deciding actor equal to the step's approver reference (Invariant 4.1).
 Check 4.2: An auditor MUST find EVERY rejected step's deciding actor equal to the step's approver reference (Invariant 4.2).
 Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawing actor equal to the step's submitter reference (Invariant 5.1).
 Check 5.1: An auditor MUST find no attribution field on a pending step (State 13).
-Check 6.1: An auditor MUST find an unfiltered read answering EVERY step with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
+Check 6.1: An auditor MUST find a read with no filter answering EVERY step with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
 Check 6.2: An auditor MUST find EVERY step's submission fields unchanged across EVERY committed version of the step (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 6.3: An auditor MUST find no step leaving a terminal state across two committed versions of the step (Invariant 3.1; Execution Contract Generation acceptance 1).
 ```

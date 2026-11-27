@@ -326,14 +326,14 @@ Non-goal 4: A pattern needing integrity proof MUST compose Tamper Evidence.
 Non-goal 5: The atom MUST NOT record who appended an event.
 Non-goal 6: A pattern needing attribution MUST compose Actor Identity.
 Non-goal 7: The atom MUST NOT index data.
-Non-goal 8: A pattern needing lookup by payload field MUST compose a reverse-index pattern.
+Non-goal 8: A pattern needing look-up by payload field MUST compose a reverse-index pattern.
 Non-goal 9: The atom MUST NOT order events across log instances.
-Non-goal 10: A pattern needing multi-host order MUST compose a consensus pattern.
+Non-goal 10: A pattern needing an order across more than one host MUST compose a consensus pattern.
 Non-goal 11: The atom MUST NOT read data, beyond counting the bytes of data for the payload cap (Operation 5).
 Non-goal 12: A pattern needing schema validation MUST compose a schema-evolution pattern.
 Non-goal 13: The atom MUST NOT collapse events into a snapshot.
 Non-goal 14: The atom MUST NOT push an event to a subscriber.
-Non-goal 15: The atom MUST NOT append two events atomically.
+Non-goal 15: The atom MUST NOT append two events in one transaction.
 ```
 
 NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index *(forthcoming)* (Non-goal 7, Non-goal 8); a Consensus pattern *(forthcoming)* (Non-goal 10); a Schema Evolution pattern *(forthcoming)* (Non-goal 12); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14); Erasure Coordination *(forthcoming)* (Erasure 2, Erasure 3).
@@ -412,7 +412,7 @@ Term committed version: a record as it stood at the commit that wrote it, which 
 #### External checks
 
 ```
-External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
+External check 4: An auditor needing the log confirmed free of tampering MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
 External check 6: An auditor needing the payload cap confirmed MUST read the cap the instance holds PER Execution Contract Input 2 (Operation 5, Capability requirement 4).
 ```

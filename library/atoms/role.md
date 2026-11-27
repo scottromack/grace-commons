@@ -30,9 +30,9 @@ Giving each person each permission one at a time works for a handful of people a
 ```
 Identity 1: The atom MUST identify a holding by the holding's holding id.
 Identity 2: The atom MUST NOT normalize a person reference.
-Identity 3: The atom MUST compare two person references codepoint for codepoint.
-Identity 4: The atom MUST compare two role names codepoint for codepoint.
-Identity 5: The atom MUST compare two action names codepoint for codepoint.
+Identity 3: The atom MUST compare two person references code point for code point.
+Identity 4: The atom MUST compare two role names code point for code point.
+Identity 5: The atom MUST compare two action names code point for code point.
 ```
 
 Term holding: one person in one role, from a grant, kept after the person leaves the role — a [Holding].

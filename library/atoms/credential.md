@@ -55,7 +55,7 @@ Identity 3: The atom MUST NOT generate a credential id.
 Identity 4: The atom MUST NOT change a credential's credential id.
 Identity 5: Two credentials MUST NOT share a credential id.
 Identity 6: The atom MUST NOT identify a credential by the pair.
-Identity 7: The atom MUST compare a reference byte-exactly.
+Identity 7: The atom MUST compare a reference byte for byte.
 Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
@@ -558,8 +558,8 @@ Projection:   filter
   ```
 - **Invariant 9 — The revocation record is complete.**
   ```
-  Invariant 9.1: EVERY revoked credential MUST carry a non-blank revoked by reference.
-  Invariant 9.2: EVERY revoked credential MUST carry a non-blank revocation reason.
+  Invariant 9.1: EVERY revoked credential MUST carry a revoked by reference that DOES NOT EQUAL blank.
+  Invariant 9.2: EVERY revoked credential MUST carry a revocation reason that DOES NOT EQUAL blank.
   Invariant 9.3: EVERY revoked credential MUST carry a revocation instant.
   ```
 - **Invariant 11 — A lapse precludes verification.** Invariant 3.1 holds it: a lapsed credential is not the credential a proceeding verify checks against.
@@ -618,11 +618,11 @@ A [Register] is undone by a [Revoke], which stands the credential in revoked for
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN [Register] MUST answer invalid-request.
 String 9: IF a string input EXCEEDS the length bound THEN [Revoke] MUST answer invalid-request.
@@ -658,7 +658,8 @@ Capability requirement 26: The host MUST run a check function at the seam agains
 Capability requirement 27: The deployment MAY declare a material bound and the bound's measure PER credential type PER Execution Contract Input 2.
 Capability requirement 28: The derivation function MUST own credential material's normalization.
 Capability requirement 29: The deployment MUST declare a check function that matches the material the credential type's derivation function derived the verifier from.
-Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material of the same kind, and MUST own the normalization of presented material of no such kind.
+Capability requirement 30: The check function MUST normalize presented material as the credential type's derivation function normalizes credential material of the same kind.
+Capability requirement 30a: The check function MUST own the normalization of presented material of no such kind.
 Capability requirement 31: IF material EXCEEDS the material bound THEN the derivation function MUST refuse the material.
 Capability requirement 32: IF presented material EXCEEDS the material bound THEN the check function MUST refuse the presented material.
 Capability requirement 34: The deployment MUST supply id material naming no credential of the database instance.
@@ -666,7 +667,7 @@ Capability requirement 35: The deployment MUST NOT supply the same id material t
 Capability requirement 37: The deployment MUST supply the credential records PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4, Execution Contract Refusal 1 and Execution Contract Input 1.
 Capability requirement 40: The deployment MUST declare a check function that checks a secret verifier in constant time.
 Capability requirement 41: The deployment MUST NOT remove a credential type a credential carries from the derivation registry.
-Capability requirement 42: The deployment MUST supply id material in the spelling the deployment's reference canonicalization produces.
+Capability requirement 42: The deployment MUST supply id material in the spelling the deployment's canonical form of a reference gives.
 ```
 
 NOTE: watch the id the host supplies to two calls (Capability requirement 35).
@@ -703,7 +704,7 @@ Term need key: key actor id; pairs credentials.
 Non-goal 1: The atom MUST NOT confirm that a principal reference names a proofed party.
 Deleted: Non-goal 2. Non-goal 1 owns it: the atom confirms no proofed party, and which pattern proofs one is the app's choice.
 Non-goal 3: The atom MUST NOT sequence two credential checks.
-Non-goal 4: A deployment needing multi-factor sequencing MUST own the sequencing above this atom.
+Non-goal 4: A deployment needing the sequencing of more than one factor MUST own the sequencing above this atom.
 Non-goal 5: The atom MUST NOT issue a session.
 Deleted: Non-goal 6. Non-goal 5 owns it: the atom issues no session, and opening one after a verified answer is the app's sign-in glue.
 Non-goal 7: The atom MUST NOT count a failed verify.
@@ -823,15 +824,15 @@ This atom's acceptance is provable: an external auditor clears it from the crede
 
 ```
 Check 1.1: An auditor MUST find no two effective-active credentials sharing a pair, at a settled reading the auditor supplies (Invariant 2.1, Operation 65).
-Check 1.2: An auditor MUST read effective-active from the window reading and NOT from the stored status (Operation 8, Invariant 2.1).
+Check 1.2: An auditor MUST read effective-active from the window reading rather than from the stored status (Operation 8, Invariant 2.1).
 Check 2.1: An auditor MUST find no credential storing expired as a status (State 6).
 Check 2.2: An auditor MUST find no credential carrying a lapse instant (State 7, Invariant 12.1).
 Check 2.3: An auditor MUST reproduce a [Read] answer's effective status from the credential and a clock the auditor supplies (Invariant 12.2).
 Check 3.1: An auditor MUST find a successor credential id naming a credential on EVERY rotated credential (Invariant 7.1).
 Check 3.2: An auditor MUST find EVERY rotated credential's successor carrying the rotated credential's pair (Invariant 7.2).
 Check 3.3: An auditor MUST find a rotation instant on EVERY rotated credential (State 3).
-Check 4.1: An auditor MUST find a non-blank revoked by reference on EVERY revoked credential (Invariant 9.1).
-Check 4.2: An auditor MUST find a non-blank revocation reason on EVERY revoked credential (Invariant 9.2).
+Check 4.1: An auditor MUST find a revoked by reference that DOES NOT EQUAL blank on EVERY revoked credential (Invariant 9.1).
+Check 4.2: An auditor MUST find a revocation reason that DOES NOT EQUAL blank on EVERY revoked credential (Invariant 9.2).
 Check 4.3: An auditor MUST find a revocation instant on EVERY revoked credential (Invariant 9.3).
 Check 5.1: An auditor MUST find no credential material beyond the verifier in a credential (State 9).
 Check 5.2: An auditor MUST find no presented material in a credential (State 10).
@@ -842,7 +843,7 @@ Check 6.2: An auditor MUST find no terminal field on an active credential (State
 Check 7.1: An auditor MUST find EVERY credential's properties unchanged across EVERY committed version of the credential (Invariant 1.1, Invariant 6.1; Execution Contract Generation acceptance 1).
 Check 7.2: An auditor MUST find EVERY terminal field a credential carries unchanged across EVERY committed version of the credential carrying the field (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 7.3: An auditor MUST find EVERY rotated credential's fields beside status, rotation instant and successor credential id unchanged across EVERY committed version of the credential (Invariant 6.2; Execution Contract Generation acceptance 1).
-Check 8.1: An auditor MUST find an unfiltered read answering EVERY credential with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
+Check 8.1: An auditor MUST find a read with no filter answering EVERY credential with a committed version (Invariant 10.1; Execution Contract Generation acceptance 1).
 Check 9.1: An auditor MUST reconstruct EVERY credential of one pair from the database (State 1, Invariant 10.1).
 Check 10.1: An auditor MUST find no two credentials sharing a credential id (Identity 5).
 ```
@@ -867,7 +868,7 @@ External check 11: A deployment needing a credential write confirmed to an autho
 External check 12: A deployment needing [Read] confirmed to an authorized caller MUST read the composing pattern's authorization (Composition note 16).
 External check 13: A deployment needing a check function confirmed to match the credential type's derivation function MUST check material against the verifier derived from the material (Capability requirement 29, 30).
 External check 14: A deployment needing a verifier salted and costly to guess confirmed MUST read the derivation registry (Non-goal 39).
-External check 15: A deployment needing one effective-active credential per principal confirmed across spellings MUST read the deployment's own reference canonicalization and credential type declarations (Capability requirement 6, Capability requirement 13).
+External check 15: A deployment needing one effective-active credential per principal confirmed across spellings MUST read the deployment's own canonical form of a reference and credential type declarations (Capability requirement 6, Capability requirement 13).
 External check 16: A deployment needing each id material confirmed supplied to one call MUST read the deployment's own id allocation (Capability requirement 35).
 ```
 

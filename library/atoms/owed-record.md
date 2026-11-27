@@ -545,11 +545,11 @@ Clock dependence 2: The atom MUST NOT accept a caller-supplied instant other tha
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 ```
 
 ## Optional

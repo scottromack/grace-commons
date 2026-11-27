@@ -573,8 +573,8 @@ Projection:   filter
 - **Invariant 9 — Revocation attribution completeness.**
   ```
   Invariant 9.1: EVERY revoked capability MUST carry a revocation instant.
-  Invariant 9.2: EVERY revoked capability's revoked by reference MUST stand non-blank.
-  Invariant 9.3: EVERY revoked capability's revocation reason MUST stand non-blank.
+  Invariant 9.2: EVERY revoked capability's revoked by reference MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 9.3: EVERY revoked capability's revocation reason MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 10 — Every capability has a finite lifetime.**
   ```
@@ -589,13 +589,13 @@ Projection:   filter
 - **Invariant 12 — Capability token digest uniqueness.**
   ```
   Invariant 12.1: Two capabilities MUST NOT share a capability token digest.
-  Invariant 12.2: The database MUST NOT accept a write that would reuse a capability token digest any retained capability carries.
+  Invariant 12.2: The database MUST NOT accept a write carrying a capability token digest any retained capability carries.
   Invariant 12.4: Invariant 12.1 MUST range over the capabilities the database retains.
   ```
 - **Invariant 13 — Expiry is derived, never written.**
   ```
   Invariant 13.1: A capability MUST NOT carry a stored expired status.
-  Invariant 13.2: A capability MUST NOT carry an expiry timestamp beside expiry instant.
+  Invariant 13.2: A capability MUST NOT carry an expiry time stamp beside expiry instant.
   Invariant 13.3: A lapse MUST NOT write to the capability.
   Invariant 13.4: The effective status MUST rest on the stored status, the expiry instant and now.
   ```
@@ -620,11 +620,11 @@ Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
 String 7: IF a string input EXCEEDS the maximum length THEN [Allocate] MUST answer invalid-request.
 String 9: IF the capability is revocable AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.
@@ -644,7 +644,7 @@ Capability requirement 8: The token entropy MUST NOT EXCEED the token material, 
 Capability requirement 9: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
 Capability requirement 10: The deployment MUST supply at the seam, for each [Allocate] call, a capability id no capability has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 11: The deployment MUST supply the token digests at the seam (Execution Contract Logic confinement 8).
-Capability requirement 12: The deployment MUST supply a capability id and token material that are not blank and whose length does not EXCEED the maximum length (Execution Contract Input 2).
+Capability requirement 12: The deployment MUST supply a capability id and token material that are not blank and whose length DOES NOT EXCEED the maximum length (Execution Contract Input 2).
 Capability requirement 13: The deployment MUST NOT declare a maximum length below the length of the token material the deployment supplied for any retained capability (Execution Contract Input 2).
 Capability requirement 14: The deployment MUST supply a token digest that is a one-way, collision-resistant function of the capability token and whose length the token entropy DOES NOT EXCEED (Execution Contract Logic confinement 8).
 ```
@@ -713,7 +713,7 @@ Non-goal 19: The atom MUST NOT seal a capability against modification.
 Deleted: Non-goal 20. Non-goal 19 owns it: the atom seals no record, and which pattern makes the records tamper-evident is the app's choice.
 Non-goal 21: The atom MUST NOT purge a terminal capability.
 Non-goal 22: The atom MUST NOT forbid a deployment purging a terminal capability.
-Non-goal 23: The atom MUST NOT distinguish a purged capability token from an unallocated capability token.
+Non-goal 23: The atom MUST NOT distinguish a purged capability token from a capability token never allocated.
 Non-goal 24: The atom MUST NOT guarantee a replay bound beyond max redemptions and expiry instant.
 Non-goal 25: The atom MUST NOT attest an allocator reference.
 Non-goal 26: The atom MUST NOT attest a revoked by reference.
@@ -791,7 +791,7 @@ Check 2.3: An auditor MUST find a remaining redemptions of zero AND a redemption
 Check 2.4: An auditor MUST find a remaining redemptions above zero on EVERY allocated capability (Operation 32).
 Check 3.1: An auditor MUST find no redeemer identity in any capability field (Invariant 3.4, Invariant 5.2).
 Check 4.1: An auditor MUST find no stored expired status on any capability (Invariant 13.1).
-Check 4.2: An auditor MUST find no expiry timestamp beside expiry instant (Invariant 13.2).
+Check 4.2: An auditor MUST find no expiry time stamp beside expiry instant (Invariant 13.2).
 Check 4.3: An auditor MUST reproduce the effective status from the stored status and the expiry instant against the read-time clock (Invariant 13.4).
 Check 5.1: An auditor MUST find no terminal field written by a lapse (Invariant 13.3, Invariant 6.3, Invariant 6.4).
 Check 5.2: An auditor MUST find EVERY revoked capability's remaining redemptions above zero (Operation 46, Operation 31, Operation 32, Invariant 7.2).

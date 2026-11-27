@@ -374,7 +374,7 @@ The case space, and the rule that owns each case:
 - **Invariant 2 — Detectability of tampering.**
   ```
   Invariant 2.1: IF evidence EXISTS for the evidence id AND record set match EQUALS yes AND seal check DOES NOT EQUAL unavailable AND seal check DOES NOT EQUAL faulted AND the original record set differs from the sealed record set THEN [Verify] MUST answer failed-verification carrying proof-invalid.
-  Invariant 2.2: A deployment MUST NOT rest detectability on a mechanism that is not sound.
+  Invariant 2.2: A deployment MUST NOT rest the detection of a change on a mechanism that is not sound.
   ```
 - **Invariant 3 — Record-set binding.**
   ```
@@ -506,7 +506,7 @@ Non-goal 5: The atom MUST NOT choose the mechanism's signature scheme.
 Non-goal 6: The atom MUST NOT bind a proof to a named actor.
 Deleted: Non-goal 7. Non-goal 6 owns it: the atom binds no proof to a named actor, and which pattern attests an actor is the app's choice.
 Non-goal 8: The atom MUST NOT vouch for the clock.
-Non-goal 9: A deployment whose time of seal carries legal force MUST compose a trusted-timestamping pattern.
+Non-goal 9: A deployment whose time of seal carries legal force MUST compose a trusted time-stamping pattern.
 Non-goal 10: The atom MUST NOT purge an evidence alongside purged records.
 Non-goal 11: The atom MUST NOT define a record set.
 Non-goal 13: The atom MUST NOT deduplicate two [Seal] calls over one record set.

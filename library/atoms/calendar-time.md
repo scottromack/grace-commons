@@ -31,7 +31,7 @@ Software gets dates wrong in a few recurring ways, and each is a question of wha
 Identity 1: The atom MUST identify a place by the place id.
 Identity 2: The atom MUST NOT reuse a place id.
 Identity 3: The atom MUST NOT normalize a time zone.
-Identity 4: The atom MUST compare a time zone with the zone names codepoint for codepoint.
+Identity 4: The atom MUST compare a time zone with the zone names code point for code point.
 ```
 
 Term place: a time zone and the day the weeks start on there, where dates are read — a [Place].

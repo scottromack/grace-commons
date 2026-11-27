@@ -734,7 +734,7 @@ Operation 86: IF the subject reference is malformed AND the read of the workflow
   ```
 - **Invariant 9 — Transition attribution completeness.**
   ```
-  Invariant 9.1: A recorded actor reference MUST stand non-blank.
+  Invariant 9.1: A recorded actor reference MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 10 — Record durability.**
   ```
@@ -753,11 +753,11 @@ Clock semantics 4: A firing instant MUST NOT bound a later history entry's firin
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
@@ -822,10 +822,10 @@ Non-goal 15: The atom MUST NOT bound a workflow's retention.
 Deleted: Non-goal 16. Non-goal 15 owns it: the atom bounds no retention, and which pattern does is the app's choice.
 Non-goal 17: The atom MUST NOT decide who may call an action.
 Deleted: Non-goal 18. Non-goal 17 owns it: the atom decides no caller's authority; the app's permission does.
-Non-goal 19: The atom MUST NOT decide which state a workflow ought to stand in.
+Non-goal 19: The atom MUST NOT decide the right state for a workflow.
 Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one workflow id and one action as one fire.
 Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment's own idempotency key.
-Non-goal 22: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 22: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — a pattern that evaluates the guard (Non-goal 1, External check 1, Composition note 2, Composition note 3); a fork-join pattern (Non-goal 3 through 5); a definition registry pattern and the calling system (Non-goal 8 through 10); a pattern that attests an actor (Non-goal 11, External check 3); a pattern that makes records tamper-evident (Non-goal 13); a pattern that bounds retention (Non-goal 15); the app's permission (Non-goal 17); the composing system (Non-goal 19).
@@ -913,13 +913,13 @@ Check 6.1: An auditor MUST reach the workflow's current state by replaying the w
 Check 7.1: An auditor MUST find guard satisfied recorded as true on EVERY guarded declared transition's history entry (Invariant 8.1, Invariant 8.3).
 Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
 Check 8.1: An auditor MUST find history entry id, sequence number, from state, to state, action and firing instant on EVERY history entry (State 4).
-Check 8.2: An auditor MUST find EVERY recorded actor reference non-blank (Invariant 9.1).
+Check 8.2: An auditor MUST find no recorded actor reference that EQUALS blank (Invariant 9.1).
 Check 8.3: An auditor MUST find no history entry whose firing instant PRECEDES the workflow's instantiation instant (Operation 20).
 Check 10.1: An auditor MUST find EVERY workflow AND EVERY history entry a committed version holds standing in EVERY later committed version (Invariant 10.1, Invariant 10.2; Execution Contract Generation acceptance 1).
 Check 9.1: An auditor MUST find the workflow ids [Workflows About] answers for a subject reference to be the workflow ids of EVERY workflow carrying that subject reference, ordered by instantiation instant, earliest first, and then by recording commit, earliest first, and then by workflow id, ascending (Operation 80, Operation 82, Operation 83, Operation 93).
 ```
 
-Term cited: workflow id, history entry id, actor id: Declarations.
+Term cited: workflow id, history entry id, actor id, idempotency key: Declarations.
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
 

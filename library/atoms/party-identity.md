@@ -41,7 +41,7 @@ Identity 7: Two parties MUST NOT share a party id.
 Identity 8: Two verification events MUST NOT share a verification id.
 Identity 9: Two state change events MUST NOT share a state change id.
 Identity 10: The atom MUST NOT identify a party by an enrollment field.
-Identity 11: The atom MUST compare a reference byte-exactly.
+Identity 11: The atom MUST compare a reference byte for byte.
 Identity 12: The atom MUST NOT normalize a reference.
 Identity 13: The atom MUST NOT confirm that a document reference names a known document.
 Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
@@ -79,7 +79,7 @@ State 7: EVERY state change event a reasoned action appended MUST carry a reason
 Ordering 3: The atom MUST read the most recent event from insertion order.
 Ordering 4: The atom MUST NOT read an ordering from a recorded instant.
 Ordering 5: A recorded instant MUST NOT bound a reconstruction.
-Ordering 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Ordering 6: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 ```
 
 ---
@@ -641,11 +641,11 @@ Clock semantics 5: A recorded instant MUST NOT carry an ordering.
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN a writing action MUST answer invalid-request.
 ```
@@ -849,7 +849,7 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 5).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing pattern's attestation (Identity 15, Non-goal 15, Composition note 4, Composition note 5).
-External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
+External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted time-stamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing a document reference resolved MUST read the composing pattern's document records (Identity 13).
 External check 7: A deployment needing a party's record retention bounded MUST read the composing pattern that bounds retention (Non-goal 13).
 External check 8: A deployment needing an answer observed MUST read the app's journal (Non-goal 19).

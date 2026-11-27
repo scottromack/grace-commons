@@ -48,7 +48,7 @@ Projection: card_id
 ```
 Identity 1: The atom MUST identify a punch card by the card id.
 Identity 6: The atom MUST NOT reuse a card id.
-Identity 10: The atom MUST compare two card ids codepoint for codepoint.
+Identity 10: The atom MUST compare two card ids code point for code point.
 ```
 
 Term card code: the random value whose holder collects stamps on a punch card and claims its free item — a [Card Code]; unique for the system's life, answered once, by [Issue].
@@ -68,7 +68,7 @@ Identity 4: The card code MUST serve as the bearer credential [Stamp] accepts.
 Identity 5: The card code MUST serve as the bearer credential [Redeem] accepts.
 Identity 7: The atom MUST NOT reuse a card code.
 Identity 8: The atom MUST NOT normalize a card code.
-Identity 9: The atom MUST compare two card codes codepoint for codepoint.
+Identity 9: The atom MUST compare two card codes code point for code point.
 ```
 
 Term whole count: a whole number, zero or more.

@@ -79,7 +79,7 @@ NOTE: watch addressable sections.
 Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names that other closing record in supersedes and both closing records name the same invocation id.
 Which closing stands 3: A closing record's carrying resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment, carrying resolving actor, naming an escalation supersedes the escalation.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
-Which closing stands 5: EVERY surface MUST count the standing closing and every record reachable from the standing closing through supersedes as one closing.
+Which closing stands 5: EVERY surface MUST count the standing closing and every record the standing closing reaches through supersedes as one closing.
 Which closing stands 7: Among the unsuperseded closings naming one invocation id, the lowest sequence number MUST stand.
 ```
 Which closing stands 7 decides only a record set that already breaks Invariant 2.1 and Check 2.1: it keeps every reader's answer one where a conformance failure has landed, and a conforming journal never reaches it.
@@ -492,7 +492,8 @@ Primitive policy 3: The composition MUST NOT recover act key from an adopter's p
 Primitive policy 4: EVERY record this composition writes for an invocation MUST carry the invocation's invocation id in the payload.
 Primitive policy 5: Invariant 3.2 IS AUTHORITATIVE FOR the field a check over the journal or a journal join pairs on.
 Primitive policy 6: The adopter MUST pass actor reference and credential through to the attested append at the intent record.
-Primitive policy 7: The composition MUST validate actor reference and credential as not blank and MUST NOT inspect either beyond that.
+Primitive policy 7: The composition MUST validate actor reference and credential as not blank.
+Primitive policy 7a: The composition MUST NOT inspect actor reference or credential beyond the test of Primitive policy 7.
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
 Primitive policy 9: intent data MUST carry the invocation's parameters and pairing datum.
 Primitive policy 10: intent data MUST NOT carry a field the substrate or the constituent stamps or mints.
@@ -502,7 +503,7 @@ Primitive policy 10c: outcome data MUST NOT carry a field named for recovery, ac
 Primitive policy 11: The composition MUST write invocation id, kind and act key into EVERY record the composition appends.
 Primitive policy 11a: The composition MUST write intent event id into EVERY record of the invocation but the intent.
 Primitive policy 12: [Open] MUST size intent payload and, for a kind in the bindings table (open step 1.9), the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload.
-Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent payload or whose largest record would not fit.
+Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent payload or whose largest record does not fit.
 Primitive policy 13a: IF the largest record of any kind in the bindings table, sized as Primitive policy 12 sizes a largest record, on the settings the start reads, EXCEEDS the substrate's payload cap THEN the instance MUST NOT start.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for three comparisons alone: the age of an open intent against recording instant under clock allowance, at step 1 and at step 3, the retention drop of sequence high water 5, and the advance of the mark under settle bound (sequence high water 2).
@@ -762,7 +763,7 @@ Check 2.2: For EVERY elapsed intent inside the horizon, two `<kind>.intended` re
 Check 2.3: Two intents MUST NOT stand open on one (kind, act key) at any reading inside the horizon, for a kind whose service identity DOES NOT EQUAL none.
 Check 2.4: An auditor MUST read supersession transitively PER the section titled Which closing stands and count the reachable set as one closing.
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
-Check 2.6: An auditor MUST report an outcome matching no outcome shape as a conformance failure.
+Check 2.6: An auditor MUST report an outcome matching no outcome shape as a failure to conform.
 ```
 Term outcome shape: recovery absent with actor reference set to the intent's actor reference; recovery set to true with resolving actor, actor reference set to resolving actor, acting actor reference set to the intent's actor reference, whether or not a `<kind>.recovery_intended` precedes it; recovery set to true without resolving actor, actor reference set to the service identity, acting actor reference set to the intent's actor reference, preceded by one or more `<kind>.recovery_intended` naming the same invocation id.
 

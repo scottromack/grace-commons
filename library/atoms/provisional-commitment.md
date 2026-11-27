@@ -41,7 +41,7 @@ Identity 4: The atom MUST NOT change a commitment's commitment id.
 Identity 5: Two commitments MUST NOT share a commitment id.
 Identity 6: The atom MUST NOT identify a commitment by a property.
 Identity 7: An admitted place hold MUST record EXACTLY ONE commitment.
-Identity 8: The atom MUST compare a reference byte-exactly.
+Identity 8: The atom MUST compare a reference byte for byte.
 Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a resource names a known registry entry.
 Identity 11: The atom MUST NOT confirm that a requester names a known actor.
@@ -62,7 +62,7 @@ State 4: EVERY expired commitment MUST carry lapse instant.
 State 5: A held commitment MUST NOT carry a terminal instant.
 State 6: The atom MUST NOT record the duration under the duration's own name.
 State 7: The atom MUST NOT hold a state for a resource carrying no commitment.
-State 8: The atom MUST NOT offer an unconfirm surface.
+State 8: The atom MUST NOT offer a surface that reverses a confirm.
 State 9: The atom MUST NOT offer a reactivate surface.
 State 10: The atom MUST NOT offer a window extension surface.
 State 11: The atom MUST NOT offer a commitment removal surface.
@@ -468,11 +468,11 @@ Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
@@ -494,7 +494,7 @@ Capability requirement 11: The registry MUST NOT return the resource to availabi
 Capability requirement 17: The registry MUST refuse a resource a held commitment carries.
 Capability requirement 20: The registry MUST NOT remove the resource from availability on a refused [Place Hold].
 Capability requirement 12: IF no [Expire] call answering storage-failure EXISTS for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST resolve the lapsed commitment WITHIN the reclamation window.
-Capability requirement 33: The deployment MUST supply id material that is not blank and whose length does not EXCEED the string cap (Execution Contract Input 2).
+Capability requirement 33: The deployment MUST supply id material that is not blank and whose length DOES NOT EXCEED the string cap (Execution Contract Input 2).
 Capability requirement 30: IF an [Expire] call answered storage-failure for a lapsed commitment THEN a deployment firing [Expire] on a cadence MUST call [Expire] on the lapsed commitment at the expire cadence's next firing.
 Capability requirement 15: The deployment MUST supply the commitment records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Conformance 9.
 Capability requirement 21: The deployment MAY declare the string cap PER Execution Contract Input 2.
@@ -594,7 +594,7 @@ Non-goal 18: The atom MUST NOT decide what a confirmation means to the host.
 Non-goal 19: The atom MUST NOT bound a commitment's retention.
 Deleted: Non-goal 20. Non-goal 19 owns it: the atom bounds no retention, and which pattern does is the app's choice.
 Non-goal 21: The atom MUST NOT pause a hold window.
-Non-goal 22: The atom MUST NOT offer a multi-commitment transaction.
+Non-goal 22: The atom MUST NOT offer a transaction of more than one commitment.
 Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
 Non-goal 24: The atom MUST NOT hold a part of a resource.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.

@@ -48,7 +48,7 @@ Identity 7: The atom MUST NOT change a chain id.
 Identity 8: The atom MUST NOT change an entry id.
 Identity 9: The atom MUST NOT identify a chain by the artifact reference.
 Identity 10: The atom MUST admit a second chain carrying a recorded artifact reference.
-Identity 11: The atom MUST match a custodian reference exactly.
+Identity 11: The atom MUST match a custodian reference byte for byte.
 Identity 12: The atom MUST NOT normalize a custodian reference.
 Identity 13: The atom MUST NOT interpret an artifact reference.
 Identity 14: The atom MUST NOT confirm that an artifact reference names a known artifact.
@@ -655,8 +655,8 @@ Projection: invalid-query
   ```
 - **Invariant 7 — Custodian presence.**
   ```
-  Invariant 7.1: EVERY non-transferred entry's custodian reference MUST stand non-blank.
-  Invariant 7.2: EVERY transferred entry's from custodian reference and to custodian reference MUST stand non-blank.
+  Invariant 7.1: EVERY non-transferred entry's custodian reference MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 7.2: EVERY transferred entry's from custodian reference and to custodian reference MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 8 — Event type validity.**
   ```
@@ -710,11 +710,11 @@ Clock semantics 4: A guard MUST NOT rest on recording instant.
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 7: IF a reference EXCEEDS the maximum length THEN the action MUST answer invalid-ref.
 String 8: IF transformation descriptor EXCEEDS the maximum length THEN [Transform] MUST answer invalid-descriptor.
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.
@@ -782,7 +782,7 @@ Non-goal 19: The atom MUST NOT dispose of a chain.
 Deleted: Non-goal 20. Non-goal 19 owns it: the atom disposes of no chain, and which pattern disposes lawfully is the app's choice.
 Non-goal 21: The atom MUST NOT offer a read keyed by artifact reference.
 Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
-Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — a pattern that attests actors (Non-goal 1, Composition note 3); the app's permission (Non-goal 3, Composition note 2); a pattern that records a disclosure's scope and authority (Non-goal 5, Non-goal 6, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); Correction 3 and Correction 4, a correction appended as a transformed entry naming the corrected entry's sequence number (Non-goal 9 through 11); a pattern that makes records tamper-evident (Non-goal 12, Composition note 4); a pattern that bounds retention (Non-goal 14, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); a pattern that disposes of records lawfully (Non-goal 19); the host (Non-goal 18, Non-goal 21; Non-goal 22, Concurrency 4).

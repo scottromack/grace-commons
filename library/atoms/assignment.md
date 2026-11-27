@@ -148,7 +148,7 @@ State 4: A transferred assignment MUST carry transfer instant.
 State 5: [Assign] MUST stamp assignment instant from the injected now.
 State 6: [Recall] MUST stamp recall instant from the injected now.
 State 7: [Reassign] MUST stamp transfer instant from the injected now.
-State 11: The atom MUST NOT hold a task's lifecycle.
+State 11: The atom MUST NOT hold a task's life cycle.
 State 12: The atom MUST NOT hold an assignee's workload.
 State 13: The atom MUST NOT re-derive an instant an assignment carries from a later reading.
 ```

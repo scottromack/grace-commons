@@ -42,7 +42,7 @@ Identity 6: The atom MUST NOT identify a preference record by the principal refe
 Identity 7: The atom MUST NOT identify a preference record by the principal reference and the set instant.
 Identity 8: The atom MUST NOT interpret a principal reference.
 Identity 9: The atom MUST NOT normalize a principal reference.
-Identity 10: The atom MUST match a principal reference exactly.
+Identity 10: The atom MUST match a principal reference byte for byte.
 ```
 
 NOTE: watch the allocation ban (Identity 2, Capability requirement 9).
@@ -618,7 +618,7 @@ Concurrency 5: [Set] MUST serialize two calls for one principal reference PER Ex
 Channel set evolution 1: The deployment MUST own the declared channel set's change history.
 Channel set evolution 2: A change to the declared channel set MUST NOT change a recorded preference record.
 Channel set evolution 3: An auditor MUST read a historical channel preferences key against the preference record's own declared channels.
-Channel set evolution 4: A composing pattern MUST own how a preference record naming a withdrawn channel shapes delivery.
+Channel set evolution 4: A composing pattern MUST own how a preference record naming a channel no longer offered shapes delivery.
 ```
 
 ### Opaque input bounds
@@ -660,7 +660,7 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ```
 Capability requirement 1: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 7 and Execution Contract Logic confinement 11.
 Capability requirement 6: The deployment MUST supply the preference records PER Execution Contract Database 1 through 4, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Read 5, Execution Contract Read 6, Execution Contract Refusal 1 and Execution Contract Conformance 9.
-Capability requirement 7: The deployment MUST disclose the fanout-on-no-record policy.
+Capability requirement 7: The deployment MUST disclose the fan-out-on-no-record policy.
 Capability requirement 8: The deployment MUST supply the declared channel set at the seam.
 Capability requirement 9: The deployment MUST supply at the seam a preference id no preference record in the database instance has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 10: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
@@ -702,7 +702,7 @@ Non-goal 1: The atom MUST NOT route a notification.
 Non-goal 2: The atom MUST NOT fire an event.
 Non-goal 3: The atom MUST NOT create a notification.
 Non-goal 4: The atom MUST NOT deliver a notification.
-Non-goal 5: A deployment needing fanout MUST compose a preference-aware fanout pattern.
+Non-goal 5: A deployment needing fan-out MUST compose a preference-aware fan-out pattern.
 Non-goal 6: The atom MUST NOT evaluate a legal permission.
 Deleted: Non-goal 7. Non-goal 6 owns it: the atom evaluates no legal permission, and which pattern does is the app's choice.
 Non-goal 8: The atom MUST NOT evaluate a topic subscription.
@@ -738,7 +738,7 @@ NOTE: the owners — the composing pattern (Non-goal 1 through 5; Non-goal 11, C
 Composition note 2: A composing pattern MUST call [Current For] when a notification is queued.
 Composition note 3: A composing pattern MUST capture the preference record's values at queue time.
 Composition note 4: A composing pattern MUST read a suspended preference record as delivery-suppress.
-Composition note 5: A composing pattern MUST own the fanout-on-no-record policy.
+Composition note 5: A composing pattern MUST own the fan-out-on-no-record policy.
 Composition note 6: A composing pattern MUST NOT read a preference record BEFORE the legal-permission decision.
 Composition note 7: A composing pattern MUST NOT read a preference record BEFORE the topic-interest decision.
 Composition note 8: A composing pattern MUST interpret frequency limit at delivery time.
@@ -809,14 +809,14 @@ Check 2.1: An auditor MUST reconstruct the preference record currently in effect
 Check 2.2: An auditor MUST read a currency interval as half-open from set instant to deletion instant, and as open-ended where deletion instant EQUALS blank (State 11, State 12, State 13).
 Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1, Execution Contract Database 8).
 Check 5.1: An auditor MUST find EVERY channel preferences key in the preference record's own declared channels (Invariant 5.1, Invariant 10.1).
-Check 5.2: An auditor MUST mark a declared channels that EQUALS blank a conformance failure (Invariant 10.1, Invariant 10.2).
+Check 5.2: An auditor MUST mark a declared channels that EQUALS blank a failure to conform (Invariant 10.1, Invariant 10.2).
 ```
 
 #### External checks
 
 ```
 External check 2: An auditor needing the opaque input cap the instance holds MUST read the cap the instance holds PER Execution Contract Input 2 (Opaque input bound 4).
-External check 3: An auditor needing the fanout-on-no-record policy, or the default a composing pattern applies for an absent preference field, MUST read the deployment's own disclosure (Capability requirement 7, Capability requirement 11).
+External check 3: An auditor needing the fan-out-on-no-record policy, or the default a composing pattern applies for an absent preference field, MUST read the deployment's own disclosure (Capability requirement 7, Capability requirement 11).
 ```
 
 ### Vocabulary

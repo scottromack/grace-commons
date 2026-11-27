@@ -554,14 +554,14 @@ Non-goal 5: The atom MUST NOT deduplicate two holds.
 Deleted: Non-goal 6. Non-goal 5 owns it: the atom makes no placement at-most-once, and which pattern does is the app's choice.
 Non-goal 7: The atom MUST NOT gate who places a hold.
 Deleted: Non-goal 8. Non-goal 7 owns it: the atom gates no placement; the app's permission does.
-Non-goal 9: The atom MUST NOT hold a matter's lifecycle.
+Non-goal 9: The atom MUST NOT hold a matter's life cycle.
 Non-goal 10: The atom MUST NOT release every hold over a record in one call.
 Non-goal 11: The atom MUST NOT detect tampering with a hold record.
 Deleted: Non-goal 12. Non-goal 11 owns it: the atom seals no hold record, and which pattern makes the records tamper-evident is the app's choice.
 Non-goal 13: The atom MUST NOT place one hold over two records.
 Non-goal 14: The atom MUST NOT import a retention policy.
 Non-goal 15: The atom MUST NOT purge a hold record.
-Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
+Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — a retention pattern and a lawful-disposal pattern (Non-goal 1, Non-goal 14); a tamper-evidence pattern (Non-goal 11); a trusted timestamping pattern *(forthcoming)* (Non-goal 17).

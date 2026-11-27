@@ -62,7 +62,7 @@ Projection: tag_name
 
 ```
 Identity 6: The atom MUST NOT normalize a tag name.
-Identity 7: The atom MUST compare two tag names codepoint for codepoint.
+Identity 7: The atom MUST compare two tag names code point for code point.
 ```
 
 Term tagging: the record that one tag is on one item — a [Tagging].
@@ -89,7 +89,7 @@ Projection: item_reference
 
 ```
 Identity 4: The atom MUST NOT normalize an item reference.
-Identity 5: The atom MUST compare two item references codepoint for codepoint.
+Identity 5: The atom MUST compare two item references code point for code point.
 ```
 
 ```
@@ -296,7 +296,7 @@ tags_on(item_reference)
 ```
 
 ```
-Operation 13: [Tags On] MUST answer EVERY tag a tagging carrying the item reference names, in codepoint order of tag name (Execution Contract Logic confinement 10).
+Operation 13: [Tags On] MUST answer EVERY tag a tagging carrying the item reference names, in code point order of tag name (Execution Contract Logic confinement 10).
 Operation 19: IF the item reference is malformed (Execution Contract Query 5) THEN [Tags On] MUST answer an empty list in place of Execution Contract Query 5's refusal.
 ```
 
@@ -318,7 +318,7 @@ items_with(tag_id)
 ```
 
 ```
-Operation 14: [Items With] MUST answer EVERY item reference a tagging carrying the tag id carries, in codepoint order (Execution Contract Logic confinement 10).
+Operation 14: [Items With] MUST answer EVERY item reference a tagging carrying the tag id carries, in code point order (Execution Contract Logic confinement 10).
 Operation 20: IF no tag carries the tag id THEN [Items With] MUST answer an empty list, and a blank tag id is one no tag carries, in place of Execution Contract Query 5's refusal.
 ```
 
@@ -340,7 +340,7 @@ list_tags()
 ```
 
 ```
-Operation 15: [List Tags] MUST answer EVERY tag, in codepoint order of tag name (Execution Contract Logic confinement 10).
+Operation 15: [List Tags] MUST answer EVERY tag, in code point order of tag name (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:

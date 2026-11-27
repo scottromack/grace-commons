@@ -53,7 +53,7 @@ Projection: person_reference
 
 ```
 Identity 2: The atom MUST NOT normalize a person reference.
-Identity 3: The atom MUST compare two person references codepoint for codepoint.
+Identity 3: The atom MUST compare two person references code point for code point.
 ```
 
 Term item reference: the string naming the item a favorite is for, such as a product, a recipe or an article, in the deployment's own scheme — an [Item Reference]; the atom reads nothing in it.
@@ -68,7 +68,7 @@ Projection: item_reference
 
 ```
 Identity 4: The atom MUST NOT normalize an item reference.
-Identity 5: The atom MUST compare two item references codepoint for codepoint.
+Identity 5: The atom MUST compare two item references code point for code point.
 ```
 
 Term first marked instant: the instant of the first [Mark] call that recorded a favorite — the [First Marked Instant]; set once, never changed.

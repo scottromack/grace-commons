@@ -263,7 +263,7 @@ Non-goal 9: A pattern needing a guard that resets on every sighting MUST compose
 Non-goal 10: The atom MUST NOT read a calendar.
 Non-goal 11: A pattern needing day-boundary semantics MUST compose a calendar-day pattern.
 Non-goal 12: The atom MUST NOT correct clock skew.
-Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
+Non-goal 13: A pattern needing a guard whose order never repeats or goes backward MUST compose a logical-clock pattern.
 Non-goal 14: A pattern needing the entry of an identity whose guard has elapsed erased MUST compose Defensible Retention.
 ```
 

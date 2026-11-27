@@ -34,11 +34,11 @@ Identity 3: The atom MUST NOT reuse a cart id.
 Identity 4: The atom MUST NOT reuse a line id.
 Identity 5: The atom MUST NOT identify a line by the line's item reference.
 Identity 6: The atom MUST NOT normalize an item reference.
-Identity 7: The atom MUST compare two item references codepoint for codepoint.
+Identity 7: The atom MUST compare two item references code point for code point.
 Identity 8: The atom MUST NOT normalize a currency.
-Identity 9: The atom MUST compare two currencies codepoint for codepoint.
-Identity 10: The atom MUST compare two cart ids codepoint for codepoint.
-Identity 11: The atom MUST compare two line ids codepoint for codepoint.
+Identity 9: The atom MUST compare two currencies code point for code point.
+Identity 10: The atom MUST compare two cart ids code point for code point.
+Identity 11: The atom MUST compare two line ids code point for code point.
 Identity 12: The atom MUST NOT normalize a cart id.
 Identity 13: The atom MUST NOT normalize a line id.
 ```

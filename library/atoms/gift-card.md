@@ -51,7 +51,7 @@ Projection: card_id
 
 ```
 Identity 5: The atom MUST NOT reuse a card id.
-Identity 11: The atom MUST compare two card ids codepoint for codepoint.
+Identity 11: The atom MUST compare two card ids code point for code point.
 ```
 
 Term card code: the random value whose holder may spend a gift card — a [Card Code]; unique for the life of the instance, answered once, by [Issue], and never stored: the gift card carries its card code digest in its place (State 1, State 3).
@@ -70,7 +70,7 @@ Identity 3: The card code MUST serve as the bearer credential whose card code di
 Identity 4: The card code MUST serve as the bearer credential whose card code digest [Spend] accepts.
 Identity 6: The atom MUST NOT reuse a card code digest.
 Identity 7: The atom MUST NOT normalize a card code.
-Identity 8: The atom MUST compare two card code digests codepoint for codepoint.
+Identity 8: The atom MUST compare two card code digests code point for code point.
 ```
 
 Term card code digest: the digest of a card code, a string, computed at the seam (Execution Contract Logic confinement 8) over the card code as supplied or presented; the gift card carries it in place of the card code (Execution Contract Logic confinement 21).
@@ -107,7 +107,7 @@ Projection: currency
 
 ```
 Identity 9: The atom MUST NOT normalize a currency.
-Identity 10: The atom MUST compare two currencies codepoint for codepoint.
+Identity 10: The atom MUST compare two currencies code point for code point.
 ```
 
 Term minor unit: the unit the minor unit exponent of a currency's ISO 4217 code gives — the cent of a dollar, or the yen itself.

@@ -41,7 +41,7 @@ Identity 4: The atom MUST NOT change an order's order id.
 Identity 5: Two orders in one database instance MUST NOT share an order id.
 Identity 6: The atom MUST NOT reuse an order's order id.
 Identity 7: The atom MUST NOT identify an order by a core field.
-Identity 8: The atom MUST compare a reference byte-exactly.
+Identity 8: The atom MUST compare a reference byte for byte.
 Identity 9: The atom MUST NOT normalize a reference.
 Identity 10: The atom MUST NOT confirm that a patient reference names a known patient.
 Identity 11: The atom MUST NOT confirm that a medication reference names a known medication.
@@ -1046,11 +1046,11 @@ Projection: invalid-query
   ```
 - **Invariant 10 — Attribution is complete.**
   ```
-  Invariant 10.1: EVERY attribution reference an order carries MUST stand non-blank.
+  Invariant 10.1: EVERY attribution reference an order carries MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 11 — A reason is complete.**
   ```
-  Invariant 11.1: EVERY reason field an order carries MUST stand non-blank.
+  Invariant 11.1: EVERY reason field an order carries MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 12 — Transition metadata is write-once within its cycle.**
   ```
@@ -1097,11 +1097,11 @@ Term event instant: dispensing instant | administration instant | completion ins
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 String 7: IF a required string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
 ```
@@ -1169,7 +1169,7 @@ Non-goal 13: The atom MUST NOT bind an attribution reference to an actor.
 Deleted: Non-goal 14. Non-goal 13 owns it: the atom binds no attribution reference to an actor, and which pattern attests an actor is the app's choice.
 Non-goal 15: The atom MUST NOT decide who may call an action.
 Deleted: Non-goal 16. Non-goal 15 owns it: the atom decides no caller's authority; the app's permission does.
-Non-goal 17: The atom MUST NOT read a medication reference's regulatory schedule.
+Non-goal 17: The atom MUST NOT read a medication reference's schedule under regulation.
 Non-goal 18: The atom MUST NOT detect a rewrite under the database.
 Non-goal 19: The atom MUST NOT record a transition history.
 Deleted: Non-goal 20. Non-goal 19 owns it: the atom records no transition history, and the full hold history is in the order events the atom appends through its journal need (Operation 88, Operation 90, Operation 91).
@@ -1177,7 +1177,7 @@ Non-goal 21: The atom MUST NOT model a refill.
 Non-goal 22: The atom MUST NOT bound an order's retention.
 Non-goal 23: The atom MUST NOT record an answer the atom gave.
 Non-goal 24: The atom MUST NOT guarantee that an order reaches a terminal state.
-Non-goal 25: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 25: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — a decision-support pattern *(forthcoming)* (Non-goal 4 through 7); a dose-event pattern *(forthcoming)* (Non-goal 11, Non-goal 12, External check 2; Operation 69); [Tamper Evidence](./tamper-evidence.md) (Non-goal 18, External check 4); the atom's journal need, met by [Event Log](./event-log.md) (Non-goal 19, External check 1; Operation 88, Operation 90, Operation 91); a new order or a layer above (Non-goal 21; Operation 70); an idempotency pattern such as [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 8, Composition note 8, External check 6); [Retention Window](./retention-window.md) (Non-goal 22, External check 7); [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) (State 14); a trusted timestamping pattern *(forthcoming)* (Non-goal 25).
@@ -1263,8 +1263,8 @@ Check 2.6: An auditor MUST find a predecessor id naming an order on EVERY succes
 Check 3.1: An auditor MUST find no amended order that was dispensed (Invariant 3.1).
 Check 3.2: An auditor MUST find no cancelled order carrying a dispense field group (Invariant 6.1).
 Check 3.3: An auditor MUST find a dispense field group on EVERY discontinued order (Invariant 6.2).
-Check 4.1: An auditor MUST find EVERY attribution reference an order carries non-blank (Invariant 10.1).
-Check 4.2: An auditor MUST find EVERY reason field an order carries non-blank (Invariant 11.1).
+Check 4.1: An auditor MUST find no attribution reference an order carries that EQUALS blank (Invariant 10.1).
+Check 4.2: An auditor MUST find no reason field an order carries that EQUALS blank (Invariant 11.1).
 Check 5.1: An auditor MUST find verifier reference and verification instant on EVERY dispensed order (State 2, State 13).
 Check 5.2: An auditor MUST find a dispense field group on EVERY administered order (State 3, State 13).
 Check 5.3: An auditor MUST find an administration field group on EVERY completed order (State 5, State 13).

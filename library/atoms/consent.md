@@ -46,7 +46,7 @@ Identity 3: The transition MUST NOT allocate a consent id.
 Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
 Identity 6: The atom MUST NOT identify a consent record by the subject reference and the purpose.
-Identity 7: EVERY consent id MUST stand non-blank.
+Identity 7: EVERY consent id MUST stand as a value that DOES NOT EQUAL blank.
 Identity 9: The atom MUST NOT interpret a subject reference.
 Identity 10: The atom MUST NOT interpret a purpose.
 Identity 11: The atom MUST NOT confirm that a subject reference names a known data subject.
@@ -552,7 +552,7 @@ Projection: invalid-query
 - **Invariant 1 — Grant immutability.**
   ```
   Invariant 1.1: A recorded consent record's grant fields MUST NOT change.
-  Invariant 1.2: A grant field [Grant] did not record MUST NOT appear later.
+  Invariant 1.2: A grant field missing from the record [Grant] wrote MUST NOT appear later.
   ```
 - **Invariant 2 — Membership exclusivity.**
   ```
@@ -567,8 +567,8 @@ Projection: invalid-query
   ```
 - **Invariant 4 — Revocation attribution is complete.**
   ```
-  Invariant 4.1: EVERY revoked consent record's revoking actor MUST stand non-blank.
-  Invariant 4.2: EVERY revoked consent record's revocation reason MUST stand non-blank.
+  Invariant 4.1: EVERY revoked consent record's revoking actor MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 4.2: EVERY revoked consent record's revocation reason MUST stand as a value that DOES NOT EQUAL blank.
   Invariant 4.3: EVERY revoked consent record MUST carry a revocation instant.
   ```
 - **Invariant 5 — Temporal ordering on revocation.**
@@ -581,7 +581,7 @@ Projection: invalid-query
   ```
 - **Invariant 7 — Grant attribution is complete.**
   ```
-  Invariant 7.1: EVERY consent record's consent id, subject reference, purpose and granting actor MUST stand non-blank.
+  Invariant 7.1: EVERY consent record's consent id, subject reference, purpose and granting actor MUST stand as a value that DOES NOT EQUAL blank.
   Invariant 7.2: EVERY consent record MUST carry a grant instant.
   ```
 - **Invariant 8 — Consent record durability.**
@@ -683,7 +683,7 @@ Non-goal 7: The atom MUST NOT interpret metadata.
 Non-goal 8: A deployment needing required metadata content MUST NOT call [Grant] BEFORE enforcing the content.
 Non-goal 9: The atom MUST NOT propagate a withdrawal downstream.
 Non-goal 10: A deployment needing propagation MUST compose Propagate Consent Revocation Downstream.
-Non-goal 11: The atom MUST NOT hold a lawful basis the data subject did not give.
+Non-goal 11: The atom MUST NOT hold a lawful basis the data subject never gave.
 Non-goal 12: The atom MUST NOT gate an action on a caller's authority.
 Deleted: Non-goal 13. Non-goal 12 owns it: the atom gates no action on a caller's authority; the app's permission does.
 Non-goal 14: The atom MUST NOT establish that a granting actor may agree for the data subject.
@@ -768,10 +768,10 @@ This atom's acceptance is provable: an external auditor clears it from the conse
 ```
 Check 1.1: An auditor MUST find EVERY issued consent id in the database through [Read] (Invariant 8.1; Execution Contract Generation acceptance 1).
 Check 1.2: An auditor MUST find no two consent records in one database instance sharing a consent id (Instance 2).
-Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
+Check 2.1: An auditor MUST find no consent record whose consent id, subject reference, purpose or granting actor EQUALS blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
 Check 2.3: An auditor MUST find EVERY consent record's grant fields unchanged across EVERY committed version of the consent record (Invariant 1.1, Invariant 1.2, Invariant 9.1; Execution Contract Generation acceptance 1).
-Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
+Check 3.1: An auditor MUST find no revoked consent record whose revoking actor or revocation reason EQUALS blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find no revoked consent record whose revocation instant PRECEDES the consent record's grant instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
 Check 5.1: An auditor MUST find [Check] answering granted for an at time that PRECEDES the candidate record's expiry instant, and expired for an at time that DOES NOT PRECEDE the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).

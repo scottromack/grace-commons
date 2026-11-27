@@ -369,8 +369,8 @@ Projection:   continuation_key
 - **Invariant 4 — Every erasure tombstone carries its authority and its actor.**
   ```
   Invariant 4.1: The atom MUST NOT record an erasure tombstone whose authority kind IS NOT IN the recognized kinds.
-  Invariant 4.2: EVERY erasure tombstone's authority reference MUST stand non-blank.
-  Invariant 4.3: EVERY erasure tombstone's actor reference MUST stand non-blank.
+  Invariant 4.2: EVERY erasure tombstone's authority reference MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 4.3: EVERY erasure tombstone's actor reference MUST stand as a value that DOES NOT EQUAL blank.
   ```
 - **Invariant 5 — Listing is deterministic.**
   ```
@@ -403,11 +403,11 @@ Clock dependence 2: [Record Destruction] MUST NOT accept a caller-supplied destr
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank (the grammar's Term blank).
+String 5: The atom MUST read a string input carrying only white space as blank (the grammar's Term blank).
 ```
 
 ## Optional
@@ -529,7 +529,7 @@ Check 1.2: An auditor MUST find one set of field values per erasure tombstone ac
 Check 2.1: An auditor MUST find no two erasure tombstones sharing a destroyed pattern and a destroyed id (Invariant 2.1).
 Check 3.1: An auditor MUST find no field on any erasure tombstone beside the six State 1 names (Invariant 3.1, State 4).
 Check 4.1: An auditor MUST find no erasure tombstone whose authority kind IS NOT IN the recognized kinds (Invariant 4.1).
-Check 6.1: An auditor MUST find destroyed pattern, destroyed id, authority reference and actor reference non-blank on EVERY erasure tombstone (Invariant 4.2, Invariant 4.3).
+Check 6.1: An auditor MUST find no erasure tombstone whose destroyed pattern, destroyed id, authority reference or actor reference EQUALS blank (Invariant 4.2, Invariant 4.3).
 Check 7.1: An auditor MUST find two [List Destroyed] calls with one destroyed pattern, one window and one continuation key answering one sequence over one database state (Invariant 5.1).
 ```
 

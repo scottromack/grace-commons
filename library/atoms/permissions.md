@@ -379,8 +379,8 @@ Self-containment and denial-by-absence give the *determinism* property — one q
 ```
 Deprovisioning 2: A composing pattern MUST enumerate a departing subject's active grants.
 Deprovisioning 3: A composing pattern MUST call [Revoke] for EVERY grant the enumeration returns.
-Deprovisioning 4: A composing pattern MUST NOT read one revoke as a subject's deprovisioning.
-Deprovisioning 5: A composing pattern MUST record a subject's deprovisioning ONLY IF no active grant EXISTS for the subject.
+Deprovisioning 4: A composing pattern MUST NOT read one revoke as the removal of every grant a subject holds.
+Deprovisioning 5: A composing pattern MUST record the removal of a subject ONLY IF no active grant EXISTS for the subject.
 ```
 
 ### Grant concurrency and revoke concurrency
@@ -402,11 +402,11 @@ Revoke persistence 4: A high-assurance deployment MUST raise a security alert on
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string as empty.
+String 5: The atom MUST read a string carrying only white space as empty.
 String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer invalid-request.
 String 7: [Check] MUST read an over-length string input as matching nothing.
 String 8: [Revoke] MUST read a grant id that EXCEEDS the string cap, or that is not a string, as naming no grant.
@@ -489,7 +489,7 @@ Deleted: Composition note 1. Execution Contract Conformance 9 owns it: a deploym
 Composition note 2: A composing pattern MUST own the scope vocabulary.
 Composition note 3: A composing pattern MUST own the binding between the authenticated caller and the subject reference.
 Composition note 4: A composing pattern needing grantor attribution MUST attest [Grant] under the grantor's credential.
-Composition note 5: A composing pattern MUST own a departing subject's deprovisioning sweep.
+Composition note 5: A composing pattern MUST own the sweep removing a departing subject's grants.
 ```
 
 NOTE: composing patterns — an app names the atoms it composes; this pattern names none.
@@ -577,7 +577,7 @@ Check 7.1: An auditor MUST find no two active grants sharing a pair (Invariant 1
 ```
 External check 1: An auditor MUST read who issued a grant from the composing pattern's attestations of the grantor (Non-goal 9).
 External check 2: An auditor MUST read whether an access was attempted from the composing pattern's log of access attempts (Non-goal 11).
-External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2 through 5).
+External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's records of the removal (Deprovisioning 2 through 5).
 ```
 
 NOTE: EVERY check names the rule the check tests. The grant records answer *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.

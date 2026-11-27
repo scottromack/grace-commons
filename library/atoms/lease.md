@@ -394,7 +394,7 @@ Term offer guard: key opaque; holder opaque; span duration; calls take, try_take
 ```
 Non-goal 2: The atom MUST NOT offer a depth count.
 Non-goal 5: The atom MUST NOT make the work under a lease atomic.
-Non-goal 6: The atom MUST NOT roll back work done under a lease.
+Non-goal 6: The atom MUST NOT roll back work a holder does under a lease.
 Non-goal 7: The atom MUST NOT isolate a holder's partial work from a reader.
 Non-goal 8: The atom MUST NOT write a record.
 Non-goal 10: The atom MUST NOT choose a grant's duration, the share term of a share of a budget excepted (Sizing 6).
@@ -461,8 +461,8 @@ This atom writes no records, so its acceptance checks are conformance checks rat
 ```
 Check 1.1: An auditor MUST confirm that two concurrent takes on one key, with no release and no expiry between the takes, yield EXACTLY ONE expires_at (Invariant 1.1, Invariant 1.2).
 Check 1.2: An auditor MUST confirm that a [Try Take] on a held key answers held (Operation 6b, Operation 7).
-Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes takeable at the instant (Invariant 2.1).
-Check 2.2: An auditor MUST confirm that such a key does not become takeable earlier (Invariant 2.2).
+Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes free to take at the instant (Invariant 2.1).
+Check 2.2: An auditor MUST confirm that such a key does not become free to take earlier (Invariant 2.2).
 Check 3.1: An auditor MUST confirm that the key of a killed holder reads held at EVERY host reading that PRECEDES the instant (Invariant 2.2, Invariant 3.2).
 Check 3.2: An auditor MUST fail a host that frees the key of a killed holder earlier, whatever the host knows about the holder (Invariant 3.2).
 Check 4.1: An auditor MUST confirm that [Take] answers a waiter by the first host reading that reaches the waiter's bound, and at the first host reading at which the key is free where the holder releases sooner (Invariant 4.1, Operation 2, Operation 3, Operation 4).

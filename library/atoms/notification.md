@@ -498,7 +498,7 @@ What a composed purge can do is a shred, as an audit pattern wires one over its 
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
@@ -571,7 +571,7 @@ Non-goal 12: The atom MUST NOT deduplicate two notifications.
 Non-goal 13: The atom MUST NOT purge a payload.
 Non-goal 14: The atom MUST NOT gate [Create] on a caller's authority.
 Non-goal 15: The atom MUST NOT expire notifications in bulk.
-Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
+Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention); the composing pattern that retries (Non-goal 3, Non-goal 4); an attestation pattern, which says who created a notification (Non-goal 14, External check 3).

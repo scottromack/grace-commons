@@ -62,7 +62,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
-**[Credential](./atoms/credential.md)** (971 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
+**[Credential](./atoms/credential.md)** (972 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
 
 - Needs key actor id.
 
@@ -70,7 +70,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Durable Intent](./atoms/durable-intent.md)** (930 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
+**[Durable Intent](./atoms/durable-intent.md)** (931 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
 
 - Mints invocation id. Needs guard critical section key; journal closing record, intent record. Offers key invocation id.
 
@@ -178,7 +178,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Retention Window](./atoms/retention-window.md)** (864 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
+**[Retention Window](./atoms/retention-window.md)** (866 lines). Retention Window records each obligation to keep a record for a minimum period, under the retention policy that sets it, and refuses to end that obligation before the period is up.
 
 - Mints retention id. Offers key retention id.
 

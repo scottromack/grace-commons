@@ -65,7 +65,7 @@ Projection: author_reference
 
 ```
 Identity 3: The atom MUST NOT normalize an author reference.
-Identity 4: The atom MUST compare two author references codepoint for codepoint.
+Identity 4: The atom MUST compare two author references code point for code point.
 ```
 
 Term title: the post's heading as the author wrote it — a [Title].
@@ -371,7 +371,7 @@ list_published()
 ```
 
 ```
-Operation 21: [List Published] MUST answer EVERY published post, in published instant order, earliest first, then in codepoint order of post id (Execution Contract Logic confinement 10).
+Operation 21: [List Published] MUST answer EVERY published post, in published instant order, earliest first, then in code point order of post id (Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -392,7 +392,7 @@ list_by_author(author_reference)
 ```
 
 ```
-Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, earliest first, then in codepoint order of post id (Execution Contract Logic confinement 10).
+Operation 22: [List By Author] MUST answer EVERY post carrying the author reference, in written instant order, earliest first, then in code point order of post id (Execution Contract Logic confinement 10).
 Operation 27: IF the author reference is malformed OR the author reference EQUALS blank OR the author reference EXCEEDS the string cap THEN [List By Author] MUST answer an empty list (Execution Contract Query 5).
 ```
 

@@ -196,8 +196,8 @@ reconcile 9a: IF a release on act section answers storage-failure THEN the run M
 - **Invariant 4 — Bounded closure (safety + liveness).**
   ```
   Invariant 4.1: The records MUST reveal, provably, EVERY act whose invocation has yielded or died, as an aged intent with no record naming the intent's invocation id.
-  Invariant 4.2: IF the journal and the adopter's database are reachable AND service identity DOES NOT EQUAL none for the intent's kind AND the intent's kind IS IN the bindings table AND no instance finding credential-refused stands for the kind THEN EVERY elapsed intent MUST carry a closing record, an outcome, an abandoned record or an escalation, WITHIN closure window of the intent's recording instant, an intent Escalation Check 3.3 exempts excepted.
-  Invariant 4.3: WHEN the journal is unreachable:
+  Invariant 4.2: IF the journal and the adopter's database are in reach AND service identity DOES NOT EQUAL none for the intent's kind AND the intent's kind IS IN the bindings table AND no instance finding credential-refused stands for the kind THEN EVERY elapsed intent MUST carry a closing record, an outcome, an abandoned record or an escalation, WITHIN closure window of the intent's recording instant, an intent Escalation Check 3.3 exempts excepted.
+  Invariant 4.3: WHEN the journal is out of reach:
       Invariant 4.3a: A writer MUST NOT close the intent during the outage.
   Invariant 4.4: [Reconcile] MUST surface a journal outage as the instance finding journal-unavailable, never as the outage's intents.
   Invariant 4.5: The outage finding MUST carry first seen per Term first seen and last seen per Term last seen.
@@ -212,7 +212,7 @@ reconcile 9a: IF a release on act section answers storage-failure THEN the run M
   ```
   ```
   Invariant 5.9: The sweep MUST escalate with candidates what the database cannot re-derive.
-  Invariant 5.10: The sweep MUST NOT close an act whose database the sweep cannot read.
+  Invariant 5.10: The sweep MUST NOT close an act whose database the sweep fails to read.
   ```
   *Rests on:* service identity (Bindings); Audit Trail Invariant 1 (the attesting actor is verified); [Reconcile] step 3.
 

@@ -55,7 +55,7 @@ Projection: person_reference
 
 ```
 Identity 2: The atom MUST NOT normalize a person reference.
-Identity 3: The atom MUST compare two person references codepoint for codepoint.
+Identity 3: The atom MUST compare two person references code point for code point.
 ```
 
 Term item reference: the string naming the item a reaction answers, such as a post, a review or a message, in the deployment's own scheme — an [Item Reference]; the atom reads no scheme in it; malformed where it is no string.
@@ -70,7 +70,7 @@ Projection: item_reference
 
 ```
 Identity 4: The atom MUST NOT normalize an item reference.
-Identity 5: The atom MUST compare two item references codepoint for codepoint.
+Identity 5: The atom MUST compare two item references code point for code point.
 ```
 
 Term reaction name: the string naming which reaction a person chose, such as like — a [Reaction Name]; a word, never a picture; the atom reads no glyph or script in it; malformed where it is no string.
@@ -85,7 +85,7 @@ Projection: reaction_name
 
 ```
 Identity 6: The atom MUST NOT normalize a reaction name.
-Identity 7: The atom MUST compare two reaction names codepoint for codepoint.
+Identity 7: The atom MUST compare two reaction names code point for code point.
 ```
 
 Term first reacted instant: the instant of the first [React] call that recorded a reaction — the [First Reacted Instant]; set once, never changed.
@@ -296,7 +296,7 @@ Operation 18: [Look Up] MUST answer an empty list for a pair no held reaction ca
 Operation 19: [Look Up] MUST NOT write.
 Operation 26: IF the person reference is malformed OR the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
 Operation 27: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
-Operation 29: [Look Up] MUST answer reaction names in codepoint order (Execution Contract Read 5, Execution Contract Logic confinement 10).
+Operation 29: [Look Up] MUST answer reaction names in code point order (Execution Contract Read 5, Execution Contract Logic confinement 10).
 ```
 
 The case space, and the rule that owns each case:
@@ -322,7 +322,7 @@ Operation 20: [Count] MUST answer the tally of EVERY reaction name a held reacti
 Operation 21: [Count] MUST answer an empty list for an item reference no held reaction carries.
 Operation 22: [Count] MUST NOT write.
 Operation 28: IF the item reference is malformed OR the item reference EQUALS blank OR the item reference EXCEEDS the string cap THEN [Count] MUST answer an empty list (Execution Contract Query 5).
-Operation 30: [Count] MUST answer tallies in codepoint order of reaction name (Execution Contract Read 5, Execution Contract Logic confinement 10).
+Operation 30: [Count] MUST answer tallies in code point order of reaction name (Execution Contract Read 5, Execution Contract Logic confinement 10).
 ```
 
 Term tally: the number of held reactions carrying one item reference and one reaction name — a [Tally].
@@ -416,7 +416,7 @@ Non-goal 3: The atom MUST NOT check an item reference against a catalog.
 Non-goal 4: The atom MUST NOT notify an item's author.
 Non-goal 5: The atom MUST NOT score a person from the tallies.
 Non-goal 6: The atom MUST NOT decide a vote.
-Non-goal 7: The atom MUST NOT hold a person's favorites.
+Non-goal 7: The atom MUST NOT hold a person's favorite items.
 Non-goal 8: The atom MUST NOT hold a save-for-later list.
 Non-goal 9: The atom MUST NOT draw a reaction.
 Non-goal 10: The atom MUST NOT list the persons holding a reaction.

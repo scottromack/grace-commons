@@ -425,7 +425,7 @@ Cancel capability 3: A deployment needing richer authorization MUST compose a pe
 ```
 Lost ledger 1: The atom MUST NOT recover a subscription id.
 Lost ledger 2: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
-Lost ledger 3: A deployment losing a subscription id MUST read the subscription as permanently active.
+Lost ledger 3: A deployment losing a subscription id MUST read the subscription as active with no end.
 Lost ledger 4: A deployment needing recovery from a lost subscription id MUST supply the recovery as the deployment's own operating policy, outside the atom, since no declared surface of the atom returns a subscription id to the recovery (Cancel capability 2, Lost ledger 1).
 ```
 
@@ -475,8 +475,8 @@ Non-goal 7: The atom MUST NOT match a scope pattern.
 Non-goal 8: The atom MUST NOT guarantee a delivery count.
 Non-goal 9: The atom MUST NOT expire a subscription.
 Non-goal 10: A deployment needing a time-bounded subscription MUST compose a temporal-subscription pattern.
-Non-goal 11: The atom MUST NOT hold a subscriber's lifecycle.
-Non-goal 12: A deployment deprovisioning an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); a subscription whose id is lost stays active (Lost ledger 3).
+Non-goal 11: The atom MUST NOT hold a subscriber's life cycle.
+Non-goal 12: A deployment removing an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); a subscription whose id is lost stays active (Lost ledger 3).
 Non-goal 13: The atom MUST NOT record who called [Subscribe].
 Deleted: Non-goal 14. Non-goal 13 owns it: the atom attributes no subscription to an actor, and which pattern attests one is the app's choice.
 Non-goal 15: The atom MUST NOT gate [Cancel] beyond the subscription id.

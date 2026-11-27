@@ -54,7 +54,7 @@ Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
 Identity 9: A subject reference MUST carry one meaning across EVERY database instance (Execution Contract Logic confinement 13; Composition note 9; Composition note 11).
 Identity 10: An observation id MUST carry one meaning within one database instance.
-Identity 11: The atom MUST compare a reference byte-exactly.
+Identity 11: The atom MUST compare a reference byte for byte.
 Identity 12: The atom MUST NOT normalize a reference.
 Identity 13: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 14: The atom MUST NOT interpret an observation type.
@@ -91,7 +91,7 @@ State 9: EVERY amended observation MUST carry a successor id.
 State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
 State 11: EVERY retracted observation MUST carry retracting actor, retraction reason and retraction instant.
 State 13: The atom MUST store a resolved recording instant that the future bound DOES NOT PRECEDE, as the call supplied the value.
-State 14: The atom MUST NOT normalize a recording instant's timezone.
+State 14: The atom MUST NOT normalize a recording instant's time zone.
 ```
 
 #### Observation
@@ -588,11 +588,11 @@ Concurrency 8: The atom MUST admit two concurrent [Record] calls against one sub
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
@@ -667,7 +667,7 @@ Non-goal 19: The atom MUST NOT read two [Record] calls carrying one field set as
 Deleted: Non-goal 20. Non-goal 19 owns it: the atom reads two records of one field set as two observations, and which pattern makes recording at-most-once is the app's choice.
 Non-goal 21: The atom MUST NOT derive a trend across two observations.
 Non-goal 22: The atom MUST NOT route a call across two database instances.
-Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted time-stamping pattern.
 ```
 
 NOTE: the owners — an attestation pattern (Non-goal 10, Non-goal 11, External check 3); the app's permission (Non-goal 12, Non-goal 13, External check 2); a retention pattern and a legal-hold pattern (Non-goal 14 through 16; State 4; Execution Contract Database 6); a tamper-evidence pattern (Non-goal 17, Non-goal 18); a composing pattern (Non-goal 21, Composition note 8; Non-goal 22, Composition note 9; Identity 9, Composition note 11).
@@ -744,9 +744,9 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation leaving retracted across two committed versions of the observation (Invariant 6.1; Execution Contract Generation acceptance 1).
-Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
-Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
-Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
+Check 5.1: An auditor MUST find no observation whose recording actor EQUALS blank (Operation 2, String 5).
+Check 5.2: An auditor MUST find no retracted observation whose retracting actor or retraction reason EQUALS blank (Operation 17, Operation 18).
+Check 5.3: An auditor MUST find no successor observation whose amending actor or amendment reason EQUALS blank (Operation 16, Operation 17).
 Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).
 Check 5.5: An auditor MUST find a retraction instant on EVERY retracted observation (State 11, Operation 64, Invariant 10.1).
 Check 6.1: An auditor MUST find two reads of one database state ordering two observations sharing a recording instant by observation id (Operation 43).

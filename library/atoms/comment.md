@@ -31,11 +31,11 @@ Wherever people are shown something, they want to say something about it, and th
 Identity 1: The atom MUST identify a comment by the comment's comment id.
 Identity 2: The atom MUST assign EVERY comment a comment id no other comment carries, from the comment id the deployment supplies (Capability requirement 7).
 Identity 3: The atom MUST NOT normalize an author reference.
-Identity 4: The atom MUST compare two author references codepoint for codepoint.
+Identity 4: The atom MUST compare two author references code point for code point.
 Identity 5: The atom MUST NOT normalize a target reference.
-Identity 6: The atom MUST compare two target references codepoint for codepoint.
+Identity 6: The atom MUST compare two target references code point for code point.
 Identity 7: The atom MUST NOT normalize a comment id.
-Identity 8: The atom MUST compare two comment ids codepoint for codepoint.
+Identity 8: The atom MUST compare two comment ids code point for code point.
 ```
 
 Term comment: one person's words on one item, answering the item or another comment on the item — a [Comment].
@@ -377,7 +377,7 @@ list(target_reference)
 ```
 
 ```
-Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, oldest first, then in codepoint order of comment id (Execution Contract Logic confinement 10).
+Operation 19: [List] MUST answer EVERY comment carrying the target reference, in added instant order, oldest first, then in code point order of comment id (Execution Contract Logic confinement 10).
 Operation 20: [List] MUST answer blank text for EVERY retracted comment carrying the target reference.
 Operation 21: [List] MUST answer an empty list for a target reference no comment carries.
 Operation 22: [List] MUST NOT write.
@@ -534,7 +534,7 @@ Check 1.1: An auditor MUST find EVERY comment carrying comment id, target refere
 Check 1.2: An auditor MUST find EVERY comment standing in EXACTLY ONE OF shown, retracted (State 2).
 Check 1.3: An auditor MUST find EVERY reply carrying the comment id of a comment the database holds (State 3).
 Check 1.4: An auditor MUST find EVERY reply carrying the target reference of the reply's parent (State 4).
-Check 1.5: An auditor MUST find an unfiltered read answering EVERY comment with a committed version (State 5; Execution Contract Generation acceptance 1).
+Check 1.5: An auditor MUST find a read with no filter answering EVERY comment with a committed version (State 5; Execution Contract Generation acceptance 1).
 Check 1.6: An auditor MUST find EVERY comment that stood in retracted in one version standing in retracted in EVERY later version (Operation 13, Operation 17).
 Check 2.1: An auditor MUST find EVERY version of a comment carrying the author reference of the comment's first version (Invariant 1.2).
 Check 2.2: An auditor MUST find EVERY version of a comment carrying the target reference of the comment's first version (Invariant 1.3).

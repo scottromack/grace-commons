@@ -50,7 +50,7 @@ Identity 4: The atom MUST NOT change an invitation's token digest.
 Identity 5: Two invitations MUST NOT share a token digest.
 Identity 6: IF the database refuses an [Initiate] write for a token digest the database holds (Capability requirement 6) THEN [Initiate] MUST answer storage-failure.
 Identity 7: The atom MUST NOT identify an invitation by a property.
-Identity 8: The atom MUST compare a reference byte-exactly.
+Identity 8: The atom MUST compare a reference byte for byte.
 Identity 9: The atom MUST NOT normalize a reference beyond the canonical form the seam gives the reference (Execution Contract Logic confinement 13).
 Identity 10: The atom MUST NOT confirm that an inviter reference names a known actor.
 Identity 11: The atom MUST NOT confirm that an invitee reference names a known actor.
@@ -524,7 +524,7 @@ Term matching invitation: an invitation the read's filter matches (Term filter).
   ```
 - **Invariant 3 — Acceptance binds identity.**
   ```
-  Invariant 3.1: EVERY accepted invitation MUST carry a non-blank accepting identity reference.
+  Invariant 3.1: EVERY accepted invitation MUST carry an accepting identity reference that DOES NOT EQUAL blank.
   ```
 - **Invariant 5 — The stored terminals are structurally distinct.**
   ```
@@ -537,8 +537,8 @@ Term matching invitation: an invitation the read's filter matches (Term filter).
   ```
 - **Invariant 8 — Revocation attribution completeness.**
   ```
-  Invariant 8.1: EVERY invitation an admitted revoke stood in revoked MUST carry a non-blank revoked by reference.
-  Invariant 8.2: EVERY invitation an admitted revoke stood in revoked MUST carry a non-blank revocation reason.
+  Invariant 8.1: EVERY invitation an admitted revoke stood in revoked MUST carry a revoked by reference that DOES NOT EQUAL blank.
+  Invariant 8.2: EVERY invitation an admitted revoke stood in revoked MUST carry a revocation reason that DOES NOT EQUAL blank.
   Invariant 8.3: EVERY revoked invitation MUST carry a revocation instant.
   ```
 - **Invariant 9 — Every invitation has a finite lifetime.**
@@ -579,11 +579,11 @@ Term matching invitation: an invitation the read's filter matches (Term filter).
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input, the canonical form the seam gives a reference excepted (Execution Contract Logic confinement 13).
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
@@ -679,9 +679,9 @@ Deleted: Non-goal 32. Non-goal 5 owns it: the atom issues no session, and which 
 NOTE: the owners — patterns the app chooses, none of which the atom depends on: one that redeems bearer capabilities (Non-goal 11, Non-goal 23, Composition note 9), the app's permission (Non-goal 6, Non-goal 27, External check 3), one that delivers the token (Non-goal 4, Capability requirement 9, External check 4), one that registers a credential (Non-goal 3), one that issues a session (Non-goal 5), one that creates an identity record and proofs it (Non-goal 1, Non-goal 17, External check 7), one that attests an actor (Non-goal 15); the composing pattern (Non-goal 7, Non-goal 8, Non-goal 12, Composition note 5, External check 5); the deployment's own detection and retention bound (Non-goal 20, Non-goal 28, Composition note 8, External check 6); the caller's own record (Non-goal 22, External check 1); a matching rule the app writes (Non-goal 10); the deployment's clock guarantees, Execution Contract Logic confinement 7 (Non-goal 25, Non-goal 26); the inviter and the invitee, who alone resolve an invitation (Non-goal 24).
 
 ```
-Composition note 1: A composing pattern that onboards a party MUST create the party record ONLY AFTER an admitted accept.
-Composition note 2: A composing pattern that onboards a party MUST record the accepting identity reference beside the party record's id on the onboarding's completion record.
-Composition note 3: A composing pattern that onboards a party MUST register the credential against the party record the accepted invitation's onboarding enrolled.
+Composition note 1: A composing pattern that enrolls a party MUST create the party record ONLY AFTER an admitted accept.
+Composition note 2: A composing pattern that enrolls a party MUST record the accepting identity reference beside the party record's id on the record that marks the party enrolled.
+Composition note 3: A composing pattern that enrolls a party MUST register the credential against the party record the composing pattern enrolled on the accepted invitation.
 Deleted: Composition note 4. Operation 52 owns it: the atom appends one invitation events record for every admitted write, and none for a read.
 Composition note 5: A composing pattern MUST append a refused action event on EVERY action this atom refused, the atom's own refused call writing nothing (Execution Contract Read 4, Read 7).
 Composition note 6: A composing pattern that attests actions MUST attest the actor behind an admitted accept.
@@ -750,17 +750,17 @@ Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitati
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
 Check 2.1: An auditor MUST find no invitation storing expired as a status (State 7).
 Check 2.3: An auditor MUST reproduce an admitted read's effective status from the invitation's status, the invitation's expiry instant and a clock reading the auditor supplies as that read's now (Invariant 12.2).
-Check 3.1: An auditor MUST find a non-blank accepting identity reference on EVERY accepted invitation (Invariant 3.1).
+Check 3.1: An auditor MUST find an accepting identity reference that DOES NOT EQUAL blank on EVERY accepted invitation (Invariant 3.1).
 Check 3.2: An auditor MUST find an acceptance instant on EVERY accepted invitation (State 3).
 Check 4.1: An auditor MUST find no two stored terminals carrying one resolution field pattern (Invariant 5.1).
-Check 5.1: An auditor MUST find a non-blank revoked by reference on EVERY revoked invitation carrying a revocation reason (Invariant 8.1, Operation 55).
-Check 5.2: An auditor MUST find a non-blank revocation reason on EVERY revoked invitation carrying a revoked by reference (Invariant 8.2, Operation 55).
+Check 5.1: An auditor MUST find a revoked by reference that DOES NOT EQUAL blank on EVERY revoked invitation carrying a revocation reason (Invariant 8.1, Operation 55).
+Check 5.2: An auditor MUST find a revocation reason that DOES NOT EQUAL blank on EVERY revoked invitation carrying a revoked by reference (Invariant 8.2, Operation 55).
 Check 5.3: An auditor MUST find a revocation instant on EVERY revoked invitation (Invariant 8.3).
 Check 6.1: An auditor MUST find an expiry instant on EVERY invitation (Invariant 9.1).
 Check 6.2: An auditor MUST find EVERY invitation's expiry instant unchanged across EVERY committed version of the invitation (Invariant 7.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no token digest on two invitations (Identity 5, Invariant 11.1).
 Check 7.2: An auditor MUST find EVERY invitation's properties unchanged across EVERY committed version of the invitation (Invariant 1.1, Invariant 1.3; Execution Contract Generation acceptance 1).
-Check 8.1: An auditor MUST find an unfiltered read answering EVERY invitation with a committed version (Invariant 10.1; Execution Contract Database 6, Execution Contract Generation acceptance 1).
+Check 8.1: An auditor MUST find a read with no filter answering EVERY invitation with a committed version (Invariant 10.1; Execution Contract Database 6, Execution Contract Generation acceptance 1).
 Check 9.1: An auditor MUST reconstruct EVERY invitation of one context from the database (State 1, Invariant 10.1; Execution Contract Database 6).
 ```
 

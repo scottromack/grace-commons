@@ -45,7 +45,7 @@ Identity 4: The deployment MUST allocate an audit event id at the seam.
 Identity 7: The atom MUST NOT change a pool id.
 Identity 8: The atom MUST NOT change an audit event id.
 Identity 9: The atom MUST NOT identify a pool by a pool's name.
-Identity 10: The atom MUST match a pool id exactly.
+Identity 10: The atom MUST match a pool id byte for byte.
 Identity 11: The atom MUST NOT normalize a pool id.
 Identity 12: The atom MUST NOT order a pool id.
 Identity 13: [Declare Pool] MUST NOT write over a pool the database already holds.
@@ -85,7 +85,7 @@ State 17: EVERY adjustment event MUST carry prior capacity, new capacity, adjust
 State 18: EVERY state-change event MUST carry prior state, new state, acting actor reference and a reason.
 State 19: The atom MUST NOT change a declaration field.
 State 20: The atom MUST NOT change an audit event's audit-identifier surface.
-State 21: The atom MUST NOT hold a per-allocation lifecycle.
+State 21: The atom MUST NOT hold a per-allocation life cycle.
 State 22: The atom MUST NOT hold a cross-pool bound.
 State 23: The atom MUST NOT interpret a unit.
 ```
@@ -841,7 +841,7 @@ The case space, and the rule that owns each case:
   Invariant 3.1: A closed pool MUST NOT leave closed.
   Invariant 3.2: A pool's audit log MUST NOT carry an allocation event later in insertion order than a state-change event whose new state EQUALS closed.
   Invariant 3.3: A pool's audit log MUST NOT carry an adjustment event later in insertion order than a state-change event whose new state EQUALS closed.
-  Invariant 3.4: [Release] MUST stand as the one mutating action a closed pool admits.
+  Invariant 3.4: [Release] MUST stand as the one writing action a closed pool admits.
   ```
 - **Invariant 4 — Capacity constraint.**
   ```
@@ -910,8 +910,8 @@ Invariants 4 and 5 together give the *bounded-arithmetic* property — at every 
 ### Concurrency
 
 ```
-Concurrency 4: The atom MUST NOT order two contending calls fairly.
-Concurrency 5: The atom MUST NOT offer a multi-action transaction.
+Concurrency 4: The atom MUST NOT order two contending calls by fairness.
+Concurrency 5: The atom MUST NOT offer a transaction of more than one action.
 ```
 
 ### Arithmetic
@@ -935,7 +935,7 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 ### String policy
 
 ```
-String 1: EVERY required string field MUST carry a codepoint outside the whitespace category.
+String 1: EVERY required string field MUST stand as a value that DOES NOT EQUAL blank.
 String 2: IF a required string field EQUALS blank THEN the action MUST answer invalid-request.
 String 4: IF a reason EXCEEDS the reason cap THEN the action MUST answer invalid-request.
 String 5: IF a string field EXCEEDS the field's maximum length THEN the action MUST answer invalid-request.
@@ -1004,9 +1004,9 @@ Term offer key: key audit event id; carried by audit events; calls Read Audit Ev
 ## Left to others
 
 ```
-Non-goal 1: The atom MUST NOT hold a per-allocation lifecycle.
+Non-goal 1: The atom MUST NOT hold a per-allocation life cycle.
 Deleted: Non-goal 2. Non-goal 1 owns it: the atom holds no allocation as a record of its own, and which pattern does is the app's choice.
-Non-goal 3: The atom MUST NOT order two contending calls fairly.
+Non-goal 3: The atom MUST NOT order two contending calls by fairness.
 Non-goal 4: A deployment needing fairness MUST compose a queueing pattern.
 Non-goal 5: The atom MUST NOT gate an action on a caller's authority.
 Deleted: Non-goal 6. Non-goal 5 owns it: the atom decides no caller's authority; the app's permission does.
@@ -1031,9 +1031,9 @@ Deleted: Non-goal 24. Non-goal 23 owns it: the atom bounds no retention, and whi
 Non-goal 25: The atom MUST NOT distinguish a purged pool id from an undeclared pool id.
 Non-goal 26: The atom MUST NOT record a refused call.
 Deleted: Non-goal 27. Non-goal 26 owns it: the atom records no refusal, and which pattern does is the app's choice.
-Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
-Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted timestamping pattern.
-Non-goal 30: The atom MUST NOT distinguish a retried call from a new call.
+Non-goal 28: The atom MUST NOT hold a capacity of more than one dimension.
+Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted time-stamping pattern.
+Non-goal 30: The atom MUST NOT distinguish a call sent again from a new call.
 Deleted: Non-goal 31. Non-goal 30 owns it: the atom answers a retried call as a new call, and which pattern answers a retry once is the app's choice.
 ```
 
@@ -1044,7 +1044,7 @@ NOTE: no pattern of the library owns Non-goal 15 through 17, Non-goal 20 or Non-
 Where the atom breaks down is worth naming. When the resource is not fungible at any grain — every seat distinct by legroom or fare class — per-unit identity belongs at this layer too, which is a sign the deployment wants a pattern that holds each allocation as a record of its own rather than this. When capacity is a vector rather than an integer — memory bytes *and* core count *and* disk — one running total cannot carry it, and a multi-dimensional pattern is a different atom (Non-goal 28).
 
 ```
-Composition note 2: A composing pattern MUST own the per-unit lifecycle.
+Composition note 2: A composing pattern MUST own the per-unit life cycle.
 Composition note 3: A composing pattern MUST call [Release] when the pattern's own allocation reaches a terminal state.
 Composition note 4: A composing pattern MUST record the audit event id the atom answered.
 Composition note 5: A composing pattern MUST own the authority to call an action.

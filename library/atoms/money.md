@@ -29,10 +29,10 @@ Every pattern that moves value needs the same few facts, and each one that state
 
 ```
 Identity 1: The atom MUST identify a money by the money's currency AND the money's amount.
-Identity 2: The atom MUST compare two currencies codepoint for codepoint.
+Identity 2: The atom MUST compare two currencies code point for code point.
 Identity 3: The atom MUST NOT normalize a currency.
 Identity 4: The atom MUST NOT normalize a rounding.
-Identity 5: The atom MUST compare two roundings codepoint for codepoint.
+Identity 5: The atom MUST compare two roundings code point for code point.
 ```
 
 Term amount: how many of the currency's minor unit a money holds — an [Amount]; a whole number, negative, zero or positive.

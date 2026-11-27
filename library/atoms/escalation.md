@@ -120,7 +120,7 @@ resolve 36: WHEN an outcome carrying a resolving actor stands:
     resolve 36b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land already-accounted(closing event id).
 resolve 18: An abandoned disposition for an in-flight intent MUST land invalid-request(too-young).
 resolve 19: The too-young guard MUST compare against now injected at the operator's seam.
-resolve 32: [Resolve] MUST admit the operator's abandoned disposition for an elapsed intent as the operator's attestation that the database has been quiet for as long as the operator's judgment requires.
+resolve 32: [Resolve] MUST admit the operator's abandoned disposition for an elapsed intent as the operator's attestation that the database stood quiet for as long as the operator's judgment requires.
 resolve 21: [Resolve] MUST write the closing record under the operator's own credential with recovery set to true, resolving actor set to actor reference, acting actor reference set to the intent's actor reference, and no recovery_intended.
 resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the resolution position of resolve 24 through 29.
@@ -169,8 +169,8 @@ Term operator run id: injected at the operator's seam once per [Resolve] call, f
 ### What the substrate supplies
 
 ```
-Capability requirement 9: A read_record that cannot reach the journal MUST land recording-failure(resolution) at [Resolve].
-Capability requirement 10: A read_record that cannot reach the journal MUST NOT answer not-known.
+Capability requirement 9: A read_record failing to reach the journal MUST land recording-failure(resolution) at [Resolve].
+Capability requirement 10: A read_record failing to reach the journal MUST NOT answer not-known.
 ```
 ```
 Capability requirement 18: A read_record that answers state-unavailable MUST land recording-failure(resolution) at [Resolve] (Execution Contract Read 1).

@@ -647,8 +647,8 @@ Non-goal 9: The atom MUST NOT place the atom's own records under retention.
 Non-goal 10: The atom MUST NOT record who authorized a purge.
 Deleted: Non-goal 11. Non-goal 10 owns it: the atom binds no purging actor, and which pattern attests one is the app's choice.
 Non-goal 12: The atom MUST NOT purge two retentions as one write.
-Non-goal 13: A deployment whose deadlines carry legal force MUST compose a trusted timestamping pattern.
-Non-goal 14: The atom MUST NOT hold an idempotence key for a placement.
+Non-goal 13: A deployment whose deadlines carry legal force MUST compose a trusted time-stamping pattern.
+Non-goal 14: The atom MUST NOT hold an idempotency key for a placement.
 Deleted: Non-goal 15. Non-goal 14 owns it: the atom records two placements as two retentions, and which pattern answers a retried placement once is the app's choice.
 Non-goal 16: The atom MUST NOT bound the age of a standing record.
 Non-goal 17: The atom MUST NOT destroy a record outside the database.
@@ -793,6 +793,8 @@ Term cadences: empty — a purge cadence is the composing pattern's.
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
 Term terms: latest database instant, high-assurance deployment, regulated event log, zero duration, degenerate duration, degenerate max purge delay, now, retention, retention id, record reference, policy reference, seam, transition, business caller, retention state, retention instant, retention deadline, purge deadline, purge instant, overshoot, active overdue, duration, max purge delay, purge eligible, time resolution, well-formedness check, owns the destruction, standing record, withheld record, sibling retention, joint enforcement, retention in place at the destruction, destruction, confirmation, undestroyed, query axes, matching retention, restore surface.
+
+Term cited: idempotency key: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

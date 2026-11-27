@@ -36,8 +36,8 @@ Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the standing id.
 Identity 3: The host MUST allocate a standing id at the seam that no standing record carries PER Execution Contract Logic confinement 16.
 Identity 4: The atom MUST NOT reuse a standing id.
-Identity 5: The atom MUST NOT interpret a subject beyond reading a whitespace-only subject as blank (String 5).
-Identity 6: The atom MUST NOT interpret a scope beyond reading a whitespace-only scope as blank and every blank scope as one scope (String 5, String 6).
+Identity 5: The atom MUST NOT interpret a subject beyond reading a subject carrying only white space as blank (String 5).
+Identity 6: The atom MUST NOT interpret a scope beyond reading a scope carrying only white space as blank and every blank scope as one scope (String 5, String 6).
 Identity 7: The atom MUST NOT interpret a run id.
 ```
 
@@ -534,8 +534,8 @@ Projection: not-known
   ```
 - **Invariant 5 — Every record names its run.**
   ```
-  Invariant 5.1: EVERY sighting's run id MUST stand non-blank.
-  Invariant 5.2: EVERY standing record's first run id and last run id MUST stand non-blank.
+  Invariant 5.1: EVERY sighting's run id MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 5.2: EVERY standing record's first run id and last run id MUST stand as a value that DOES NOT EQUAL blank.
   ```
 
 Invariants 1 and 4 give *a faithful history*: what a run saw reads the same forever, and a span only grows forward until it closes. Invariant 2 gives *one sighting per subject*, however many runs find it. Invariant 3 gives *distinct spans*: an outage is one record while it lasts, and a recurrence is another. Invariant 5 gives *provenance*: every record names the run that saw it.
@@ -572,11 +572,11 @@ Clock dependence 2: A writing action MUST NOT accept a caller-supplied instant.
 ### String policy
 
 ```
-String 1: The atom MUST compare a string input byte-exactly.
+String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
+String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read EVERY blank scope as one scope.
 ```
 
@@ -643,7 +643,7 @@ NOTE: the owners — the composing pattern (Non-goal 1, Non-goal 2); a notificat
 
 ```
 Composition note 1: A composing pattern MUST declare EVERY condition the composing pattern reports, with the condition's shape.
-Composition note 2: A run MUST call [Report Clear] for EVERY standing condition and scope the run checked and did not see.
+Composition note 2: A run MUST call [Report Clear] for EVERY standing condition and scope the run checked without seeing.
 Composition note 3: A failed report MUST NOT fail the rest of the run's work.
 Composition note 4: A composing pattern MUST own the meaning of a scope and a subject.
 Composition note 5: A composing pattern MUST supply a run id that no other run carries.
@@ -702,7 +702,7 @@ Check 4.1: IF a standing record's last seen PRECEDES the standing record's first
 Check 4.2: An auditor MUST find EVERY standing record's standing id, condition, scope, first run id and first seen unchanged across EVERY committed version of the standing record (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 4.3: IF a standing record's last seen PRECEDES the standing record's last seen in an earlier committed version THEN an auditor MUST report the standing record (Invariant 4.3; Execution Contract Generation acceptance 1).
 Check 4.4: IF a closed standing record's closing instant PRECEDES the standing record's last seen THEN an auditor MUST report the standing record (Invariant 4.2).
-Check 5.2: An auditor MUST find a non-blank run id on EVERY sighting and a non-blank first run id and last run id on EVERY standing record (Invariant 5.1, Invariant 5.2).
+Check 5.2: An auditor MUST find no sighting whose run id EQUALS blank and no standing record whose first run id or last run id EQUALS blank (Invariant 5.1, Invariant 5.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.

@@ -34,13 +34,13 @@ Identity 3: The atom MUST NOT reuse a waitlist id.
 Identity 4: The atom MUST NOT reuse a spot id.
 Identity 5: The atom MUST NOT identify a spot by the spot's person reference.
 Identity 6: The atom MUST NOT normalize an offering reference.
-Identity 7: The atom MUST compare two offering references codepoint for codepoint.
+Identity 7: The atom MUST compare two offering references code point for code point.
 Identity 8: The atom MUST NOT normalize a person reference.
-Identity 9: The atom MUST compare two person references codepoint for codepoint.
+Identity 9: The atom MUST compare two person references code point for code point.
 Identity 10: The deployment MUST draw a spot id from a cryptographically secure random source.
 Identity 11: The deployment MUST NOT derive a spot id from the spot's other fields.
-Identity 12: The deployment MUST record the offering reference exactly as written in the call.
-Identity 13: The deployment MUST record the person reference exactly as written in the call.
+Identity 12: The deployment MUST record the offering reference as the call writes the offering reference.
+Identity 13: The deployment MUST record the person reference as the call writes the person reference.
 ```
 
 Term waitlist: a line of spots for one offering, open to new spots or closed — a [Waitlist].
@@ -599,7 +599,7 @@ Non-goal 9: The atom MUST NOT gate an action on a caller's authority.
 Deleted: Non-goal 10. Non-goal 9 owns it: the atom decides no caller's authority; the app's permission does.
 Non-goal 11: The atom MUST NOT attribute an action to an actor.
 Deleted: Non-goal 12. Non-goal 11 owns it: the atom attributes no action, and which pattern does is the app's choice.
-Non-goal 13: The atom MUST NOT distinguish a retried call from a new call.
+Non-goal 13: The atom MUST NOT distinguish a call sent again from a new call.
 Deleted: Non-goal 14. Non-goal 13 owns it: the atom tells no retry from a new call, and which pattern answers a retry once is the app's choice.
 Non-goal 15: The atom MUST NOT give a spot priority.
 Non-goal 16: The atom MUST NOT hold a party size.
@@ -695,7 +695,7 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing a called person confirmed as offered an opening MUST read the records of the pattern that held the opening (Non-goal 1).
 External check 2: An auditor needing an action attributed to an actor MUST read the records of the pattern that attributes actions (Non-goal 11).
 External check 3: An auditor needing a person reference confirmed as naming a real person MUST read the deployment's records of people (Non-goal 17).
-External check 4: An auditor needing a spot id confirmed as drawn from a cryptographically secure random source and not derived, or an offering reference or a person reference confirmed as recorded exactly as written in the call, MUST read the deployment's own declaration of the source spot ids are drawn from and the deployment's record of the calls (Identity 10 through 13).
+External check 4: An auditor needing a spot id confirmed as drawn from a cryptographically secure random source and not derived, or an offering reference or a person reference confirmed as recorded as the call writes the reference, MUST read the deployment's own declaration of the source spot ids are drawn from and the deployment's record of the calls (Identity 10 through 13).
 ```
 
 ### Vocabulary
