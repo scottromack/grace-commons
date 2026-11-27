@@ -2117,7 +2117,7 @@
    "audit-trail"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -2145,7 +2145,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-27",
   "title": "Tamper Evidence"
  },
  "task": {
