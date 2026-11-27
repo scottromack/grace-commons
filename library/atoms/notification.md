@@ -421,7 +421,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 2.2: A status MUST NOT move to pending from a terminal status.
   Invariant 2.3: A status MUST NOT move between two terminal statuses.
-  Invariant 2.4: A notification MUST read as pending at an instant ONLY IF the notification is pending at an instant.
+  Invariant 2.4: A read of the notification records at an instant MUST answer pending ONLY IF the notification is pending at that instant (Term pending at an instant).
   ```
 - **Invariant 3 — Terminal states are exclusive.**
   ```
@@ -463,14 +463,14 @@ Immutability and durability give *auditability* — the delivery history is the 
 ```
 Bulk expiry 1: A composing pattern expiring in bulk MUST enumerate a recipient's pending notifications.
 Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns whose outcome the deployment's declared fail-versus-expire policy names for expiring (Composition note 8).
-Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
+Bulk expiry 3: A composing pattern MUST NOT read one [Expire] call as the expiry of any notification but the one the call names.
 ```
 
 ### Deliver persistence failure
 
 ```
 Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending as the call found the notification.
-Deliver persistence 2: A caller MUST retry a terminal transition that answered storage-failure, and the caller owns the retry's count and interval.
+Deliver persistence 2: A caller MUST retry a terminal transition that answered storage-failure, and the caller owns the interval and every retry past the first.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
 ```
@@ -481,7 +481,7 @@ Deliver persistence 4: A high-assurance deployment MUST raise an alert on storag
 Payload retention 1: The atom MUST keep a payload for the database's life.
 Payload retention 2: The atom MUST NOT offer a payload purge.
 Payload retention 3: A deployment whose payloads carry sensitive content MUST compose a retention pattern.
-Payload retention 4: A composing pattern purging a payload MUST leave EVERY stored field as written.
+Payload retention 4: A composing pattern MUST purge a payload by a shred that leaves EVERY stored field as written (Execution Contract Database 5).
 Payload retention 5: A composing pattern MUST NOT delete a notification record.
 ```
 
@@ -543,6 +543,10 @@ Term high-assurance deployment: a deployment that declares itself so (Capability
 
 Term string cap: the bound on the recipient reference's length, measured in Unicode code points; 256 code points where a deployment declares none.
 
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states. It states none yet. The recipient reference is a held reference: an opaque pointer to someone else's record, compared by equality and never interpreted. Its key need, `key opaque`, comes with the held-reference batch that follows Tag, which lists this atom beside Favorite, Reaction, Comment and Category. The payload is content and takes no need.
+
 ## Offers
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
@@ -569,7 +573,7 @@ Non-goal 15: The atom MUST NOT expire notifications in bulk.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention).
+NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention); the composing pattern that retries (Non-goal 3, Non-goal 4); an attestation pattern, which says who created a notification (Non-goal 14, External check 3).
 
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 
@@ -623,7 +627,7 @@ Three scenarios the notification records must survive in regulated contexts:
 
 ## Source
 
-- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — Notification is the structured-natural-language realization of the notification object: the record of the message delivered from subject to observer, the delivery itself being the transport's (Non-goal 5).
+- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — the subject-and-observer side is the library's Subscription and Notification Fanout (Non-goal 1, Non-goal 2); Notification records only the outcome of one message to one recipient, the delivery itself being the transport's (Non-goal 5).
 - **SMTP / RFC 5321** — SMTP (Simple Mail Transfer Protocol, defined in the Internet standard RFC (Request for Comments) 5321) email delivery as the canonical push transport. Two of the three terminal states map to an SMTP disposition: 2xx success (Delivered) and 5xx permanent failure (Failed); timeout without delivery (Expired) maps to none, since SMTP has no terminal disposition for it and the composing pattern owns the delivery window (Operation 14b).
 - **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) webhooks** — the delivery model standard in web systems, an HTTP POST (the request that sends data) to a URL. [Deliver] records a 2xx response; [Fail] records a 4xx/5xx or connection failure.
 - **W3C (World Wide Web Consortium — the web standards body) Activity Streams 2.0** — semantic vocabulary for describing social and messaging events. Notification payloads in web deployments often conform to Activity Streams objects.
@@ -650,7 +654,9 @@ Check 3.1: An auditor MUST find EVERY notification whose status DOES NOT EQUAL p
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (State 6).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
 Check 5.1: An auditor MUST find the notification set never shrinking across the notifications' committed versions (Invariant 9.1, Invariant 9.2; Execution Contract Generation acceptance 1).
+Check 5.2: An auditor MUST find EVERY notification carrying notification id, recipient reference, payload, creation instant and status in each of the notification's committed versions (Invariant 9.3).
 Check 6.2: An auditor MUST find no two notifications sharing a notification id (Invariant 6.1).
+Check 6.3: An auditor MUST find EVERY notification carrying one notification id across the notification's committed versions (Invariant 5.1).
 ```
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
@@ -729,11 +735,15 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 
 ```
 status: doing
-formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-27 — Final Critique 15, a full round, frozen at 79cac81e — foundational count 2, cured, not clean, no sample
+formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
+last gate: 2026-11-27 — Final Critique 15, a full round, frozen at 79cac81e — foundational count 2, cured, not clean, no sample: Bulk expiry 2 now carries the fail-versus-expire policy's condition (Composition note 8), and Deliver persistence 2 obliges the retry of every terminal transition that answered storage-failure; the refining cures declared the record type, deleted Term ok, gave the rejection members Role Rejection, read Invariant 5.1 and 9.3 as states, scoped Identity 4 to [Create] and tied Deliver persistence 1 to the call's own reading (6f28782a)
 
 open: none
 ```
+
+retired labels: 32, listed in [the history](notification.hist.md).
+
+How the Ledger's words relate: `owed rows` in the formal line are model checks not yet run; `open` lists critique findings not yet cured, none here; `not clean` says the last round counted a foundational finding, each cured in that round's commit.
 
 </details>
 
