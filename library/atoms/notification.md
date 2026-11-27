@@ -14,7 +14,7 @@ audience: common
 
 ## What it is
 
-Notification records whether a single piece of information was accepted by the transport for a single recipient. Where a subscription pattern records who wants to know about a class of events, Notification records the outcome of one delivery. It creates a permanent, unchangeable record of a delivery attempt and tracks it to one of three end states: [Delivered] (the transport layer confirmed receipt), [Failed] (the transport returned a definite error), or [Expired] (the delivery window ran out with no recorded outcome). These are kept as three distinct states because each answers a different question and is handled by a different part of the system — the delivery layer, the failure handler, the expiry scheduler. The pattern does not decide who should be notified or how to reach them; by the time it is asked to create a record, the recipient and the content are already settled. Nothing is ever deleted, so the full delivery history of any notification is always recoverable. This is what underlies delivery audit trails in regulated settings, and it is the substrate for retry logic, which records each retry as a new notification rather than altering the failed one.
+Notification records whether a single piece of information was accepted by the transport for a single recipient. Where a subscription pattern records who wants to know about a class of events, Notification records the outcome of one delivery. It creates a permanent record of one notification, whose recipient, payload and creation instant never change, and tracks it to one of three end states: [Delivered] (the transport layer confirmed receipt), [Failed] (the transport returned a definite error), or [Expired] (a composing pattern ended it as expired under the deployment's declared fail-versus-expire policy, as when the delivery window ran out with no recorded outcome). These are kept as three distinct states because each answers a different question and is handled by a different part of the system — the delivery layer, the failure handler, the expiry scheduler. The pattern does not decide who should be notified or how to reach them; by the time it is asked to create a record, the recipient and the content are already settled. Nothing is ever deleted, so the full delivery history of any notification is always recoverable. This is what underlies delivery audit trails in regulated settings, and it is the substrate for retry logic, which records each retry as a new notification rather than altering the failed one.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -151,7 +151,7 @@ Role:      Outcome
 
 #### Delivered
 
-The terminal state of a notification that reached the recipient (transport confirmed). Carries [Delivery Instant]; absorbing (Invariant 2).
+The terminal state of a notification whose delivery the transport confirmed. Carries [Delivery Instant]; absorbing (Invariant 2).
 
 Kind:      Member
 Member of: the notification status
@@ -327,13 +327,13 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
-| [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 11, Invariant 1.1) |
+| [Fail] | notification is pending | ok | [Pending] → [Failed], failure instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 11, State 8, Invariant 1.1) |
 
 ### Expire
 
 #### Expire
 
-The behavior that records lapse of the delivery window without an outcome, transitioning a [Pending] notification to terminal [Expired] and stamping [Lapse Instant]. Same preconditions as [Deliver].
+The behavior that records the end of the delivery window with no outcome, or with an outcome the deployment's declared fail-versus-expire policy names for expiring, transitioning a [Pending] notification to terminal [Expired] and stamping [Lapse Instant]. Same preconditions as [Deliver].
 
 Kind: Operation
 
@@ -352,7 +352,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the notification records |
 |---|---|---|---|
-| [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 12, Operation 13, Invariant 1.1) |
+| [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], lapse instant stamped; the notification id, recipient reference, payload and creation instant stand (Operation 12, Operation 13, State 8, Invariant 1.1) |
 
 ### Status Of
 
@@ -560,7 +560,7 @@ Term offer key: key notification id; carried by notifications; calls Status Of.
 Non-goal 1: The atom MUST NOT evaluate a subscription.
 Non-goal 2: The atom MUST NOT choose a notification's recipient.
 Non-goal 3: The atom MUST NOT retry a failed notification.
-Non-goal 4: A composing pattern retrying MUST create a second notification.
+Non-goal 4: A composing pattern retrying a failed notification MUST create a second notification.
 Non-goal 5: The atom MUST NOT deliver a notification.
 Non-goal 6: The atom MUST NOT hold a transport's mechanism.
 Non-goal 8: The atom MUST NOT record a recipient's reading.
@@ -574,7 +574,7 @@ Non-goal 15: The atom MUST NOT expire notifications in bulk.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted time-stamping pattern.
 ```
 
-NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention); the composing pattern that retries (Non-goal 3, Non-goal 4); an attestation pattern, which says who created a notification (Non-goal 14, External check 3).
+NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention); the composing pattern that retries (Non-goal 3, Non-goal 4); an attestation pattern, which says who created a notification (Non-goal 11, External check 3).
 
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 
@@ -620,9 +620,9 @@ A composing system attempts to create a notification with an empty recipient ref
 
 Three scenarios the notification records must survive in regulated contexts:
 
-- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification records for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification records answer provably, from stored fields; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
+- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification records for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification records answer provably, from stored fields; Invariants 1, 3, 4 and 9 guarantee the delivery record is complete and unambiguous.
 - **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification records for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failure Instant] or [Lapse Instant], the notification records show that no delivery was recorded, and which outcome was recorded instead. The notification records are the single source of truth for what was recorded; whether the transport reached the recipient regardless is the delivery layer's own record (External check 4).
-- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors a subscription pattern's: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification records answer the exposure scope question provably, from stored fields.
+- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either no terminal stamp (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction is Term pending at an instant: `created_at ≤ T` and (no terminal stamp, or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification records answer the exposure scope question provably, from stored fields.
 
 ---
 
@@ -657,7 +657,7 @@ Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's
 Check 5.1: An auditor MUST find the notification set never shrinking across the notifications' committed versions (Invariant 9.1, Invariant 9.2; Execution Contract Generation acceptance 1).
 Check 5.2: An auditor MUST find EVERY notification carrying notification id, recipient reference, payload, creation instant and status in each of the notification's committed versions (Invariant 9.3).
 Check 6.2: An auditor MUST find no two notifications sharing a notification id (Invariant 6.1).
-Check 6.3: An auditor MUST find EVERY notification carrying one notification id across the notification's committed versions (Invariant 5.1).
+Check 6.3: An auditor MUST find EVERY notification carrying one notification id across the notification's committed versions (Invariant 1.1, Invariant 5.1).
 ```
 
 Term committed version: a record as it stood at the commit that wrote it, as Execution Contract Generation acceptance 1 declares it.
@@ -666,9 +666,9 @@ Term committed version: a record as it stood at the commit that wrote it, as Exe
 
 ```
 External check 1: An auditor MUST read the deployment's fail-versus-expire policy from the deployment's own declaration (Operation 14, Capability requirement 8).
-External check 2: An auditor MUST read a payload's retention from the composing retention pattern's records (Non-goal 13).
-External check 3: An auditor MUST read who created a notification from the composing attestation pattern's attestations (Non-goal 11).
-External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
+External check 2: An auditor needing a payload's retention MUST read the retention from the composing retention pattern's records, where the deployment composes one (Non-goal 13, Payload retention 3).
+External check 3: An auditor needing who created a notification MUST read the attestation from a composing attestation pattern, where the deployment composes one (Non-goal 11).
+External check 4: An auditor needing the transport's own outcome MUST read the outcome from the deployment's delivery layer (Non-goal 5, Composition note 4).
 ```
 
 NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failure instant and another's lapse instant record the same operational event and no reader can tell.
@@ -727,7 +727,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -735,9 +735,9 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20; model redraw deferred to Lean: notification.tla, Invariant 2.4 (the model checks the read at the call's instant, which the rule no longer names; its check is the stronger one and still holds), 2026-11-27
-last gate: 2026-11-27 — Final Critique 18, a delta round (diff base 7bee90c7, 7 labels), one reader (Linus, on opencode-go/beam-free; GRID and EOS not run), frozen at 72288323 — foundational count 1 after the blind second triage, cured, not clean, no sample: Term delivery outcome names each outcome for failing, for expiring or for neither, and Composition note 8 forbids a composing pattern to call [Fail] or [Expire] for an outcome named for neither, which leaves the notification pending
+last gate: 2026-11-27 — Final Critique 19, a full round, three readers (GRID opencode/gpt-6-luna, EOS opencode/glm-5.3-flash, Linus opencode-go/beam-free; three families, no pass lapsed; the Claude reader off), frozen at a035d840 — foundational count 0 after the blind second triage, clean, one sample; EOS's one foundational report, that External checks 2, 3 and 4 oblige an auditor to read records no rule obliges a deployment to have, was placed refining by both triages (an external check is non-compiling and obliges no build, so a deployment that wired none and one that wired the patterns answer every call alike, and the siblings word it "An auditor needing X ... where the deployment composes one"); ten refining findings cured (the three external checks take the sibling form, the owners NOTE cites Non-goal 11 for who created a notification, the What it is gloss of [Expired] and the Expire entry name the declared policy, the record is of one notification and not of a delivery attempt, Delivered is the transport's confirmation, the Fail and Expire case rows cite State 8, Non-goal 4 names a failed notification, the breach query reads no terminal stamp where it read status, Check 6.3 cites Invariant 1.1 and the regulator scenario cites Invariant 9) and four findings refuted (Create's rejection set, Check 2.1's citations, the undeclared "caller", the Needs section); 2026-11-27 — Final Critique 18, a delta round (diff base 7bee90c7, 7 labels), one reader (Linus, on opencode-go/beam-free; GRID and EOS not run), frozen at 72288323 — foundational count 1 after the blind second triage, cured, not clean, no sample: Term delivery outcome names each outcome for failing, for expiring or for neither, and Composition note 8 forbids a composing pattern to call [Fail] or [Expire] for an outcome named for neither, which leaves the notification pending
 
 open: none
 ```
