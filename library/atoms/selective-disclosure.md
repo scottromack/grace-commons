@@ -83,7 +83,7 @@ State 7: The atom MUST NOT offer a batch record surface.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
-Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing event log pattern holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so the comparison of External check 3 spends no clock allowance (Execution Contract Logic confinement 18).
+Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing event log pattern holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so no clock allowance is spent between the receipt instant and this atom's now (Execution Contract Logic confinement 18), and External check 3 clears Invariant 4.1 against the future bound, the receipt instant plus the clock allowance.
 
 #### Disclosure Id
 
@@ -331,7 +331,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
-  Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the future bound the record's creation read.
+  Invariant 4.1: EVERY disclosure record MUST carry a disclosure instant that the future bound the record's creation read DOES NOT PRECEDE.
   ```
 - **Invariant 5 — Unrecorded transmissions.**
   ```
@@ -600,7 +600,7 @@ Term cited: now, resolved disclosure instant, reference, string cap, committed v
 ```
 status: doing
 formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12; model redraw deferred to Lean: selective-disclosure.als and its twins, Operation 7 and Invariant 4.1 (now checked against the future bound, now and the clock allowance), 2026-11-27
-last gate: 2026-11-27 — Final Critique 23, a full round, frozen at 09de2f3a — foundational count 1, cured, not clean, one sample
+last gate: 2026-11-27 — Final Critique 24, a delta round (diff base 09de2f3a, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 1 after the blind second triage, cured, not clean, one sample (Linus's report counted no foundational finding; the blind second triage found one it had not reported, that Term receipt instant said the comparison of External check 3 spends no clock allowance while Invariant 4.1, since Final Critique 23, is cleared against the future bound, now plus the clock allowance, so an auditor following the term flags a lawful record whose disclosure instant lies within the allowance past the receipt instant; cured: the term says no allowance is spent between the receipt instant and this atom's now and that the check clears Invariant 4.1 against the future bound; Invariant 4.1 now writes its comparison with DOES NOT PRECEDE, as GRACE-lang Earned vocabulary 18 asks of an instant comparison); 2026-11-27 — Final Critique 23, a full round, frozen at 09de2f3a — foundational count 1, cured, not clean, one sample
 
 open: none
 ```
