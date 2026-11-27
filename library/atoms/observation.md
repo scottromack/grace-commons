@@ -604,7 +604,7 @@ Term string input: a reference, observation type, unit, reason OR a filter's val
 
 ```
 Capability requirement 5: The deployment MUST declare the clock allowance (Execution Contract Logic confinement 18).
-Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 7, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 5.
+Capability requirement 6: The deployment MUST supply the observation records PER Execution Contract Database 1 through 8, Execution Contract Read 4, Execution Contract Refusal 1 and Execution Contract Query 1 through 5.
 Capability requirement 7: The deployment MUST declare a value constraint per observation type.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
 ```
@@ -744,9 +744,9 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation leaving retracted across two committed versions of the observation (Invariant 6.1; Execution Contract Generation acceptance 1).
-Check 5.1: An auditor MUST find no observation whose recording actor EQUALS blank (Operation 2, String 5).
-Check 5.2: An auditor MUST find no retracted observation whose retracting actor or retraction reason EQUALS blank (Operation 17, Operation 18).
-Check 5.3: An auditor MUST find no successor observation whose amending actor or amendment reason EQUALS blank (Operation 16, Operation 17).
+Check 5.1: An auditor MUST find no observation whose recording actor EQUALS blank (Operation 2, Operation 56, String 5; Execution Contract Database 8).
+Check 5.2: An auditor MUST find no retracted observation whose retracting actor or retraction reason EQUALS blank (Operation 17, Operation 18; Execution Contract Database 8).
+Check 5.3: An auditor MUST find no successor observation whose amending actor or amendment reason EQUALS blank (Operation 16, Operation 17; Execution Contract Database 8).
 Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).
 Check 5.5: An auditor MUST find a retraction instant on EVERY retracted observation (State 11, Operation 64, Invariant 10.1).
 Check 6.1: An auditor MUST find two reads of one database state ordering two observations sharing a recording instant by observation id (Operation 43).
