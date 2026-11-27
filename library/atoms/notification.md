@@ -33,7 +33,7 @@ A notification is a promise to tell somebody something, and the interesting part
 ```
 Identity 1: The atom MUST identify a notification by the notification id.
 Identity 2: The host MUST allocate a notification id at the atom's seam.
-Identity 4: The business caller MUST NOT supply a notification id.
+Identity 4: [Create] MUST NOT accept a notification id from the business caller.
 Identity 5: The atom MUST NOT reuse a notification id.
 Identity 6: The atom MUST NOT identify a notification by the recipient reference with the payload.
 Identity 7: Two notifications carrying one recipient reference and one payload MUST carry two notification ids.
@@ -41,7 +41,7 @@ Identity 7: Two notifications carrying one recipient reference and one payload M
 
 NOTE: watch the allocation ban (Execution Contract Logic confinement 3 owns it).
 
-Term notification: one delivery record — one recipient, one payload, one outcome.
+Term notification: one delivery record — one recipient, one payload, one outcome — a [Notification Record]; one for each notification id.
 
 Term recipient reference: the opaque string naming who the notification is for — a [Recipient Reference]; compared by equality and never interpreted; malformed where it is no string.
 
@@ -72,12 +72,18 @@ Term creation instant: the instant the notification was recorded — a [Creation
 
 Term notification set: the notifications the database holds.
 
+#### Notification Record
+
+Holds the notification id, the recipient reference, the payload, the creation instant, the status and, once the notification ends, its one terminal stamp. A notification id that no record carries names no notification.
+
+Kind: Type
+
 #### Notification Id
 
 The opaque, immutable identity of a notification — host-allocated at the I/O seam (the injected id), produced by [Create], never reused (Invariant 6). The recipient and payload are properties of the notification, not its identity.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: notification_id
 
 #### Recipient Reference
@@ -85,7 +91,7 @@ Projection: notification_id
 The opaque reference to the intended recipient. Set on [Create], immutable. Equality is byte-exact (no normalization); [Pending For] filters on it.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: recipient_ref
 
 #### Payload
@@ -93,7 +99,7 @@ Projection: recipient_ref
 The opaque content of the notification. Set on [Create], immutable, stored and returned unchanged — never parsed, validated, or interpreted by the atom.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: payload
 
 #### Creation Instant
@@ -101,7 +107,7 @@ Projection: payload
 The wall-time the notification was created, stamped from the injected clock at [Create]. Immutable (Invariant 1). The lower bound for any terminal timestamp (Invariant 8, Execution Contract Logic confinement 7).
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: created_at
 
 #### Status
@@ -109,31 +115,31 @@ Projection: created_at
 The notification's lifecycle state — [Pending], [Delivered], [Failed], or [Expired]. Set to [Pending] on [Create]; transitions once to a terminal (State 1, Invariant 2).
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: status
 
 #### Delivery Instant
 
-The wall-time delivery was confirmed, stamped at [Deliver]. Present iff status is [Delivered] (Invariants 3 and 4); immutable once set.
+The wall-time delivery was confirmed, stamped at [Deliver]. Present iff status is [Delivered] (State 3, Invariant 4.2); immutable once set.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: delivered_at
 
 #### Failure Instant
 
-The wall-time the failure was recorded, stamped at [Fail]. Present iff status is [Failed] (Invariants 3 and 4); immutable once set.
+The wall-time the failure was recorded, stamped at [Fail]. Present iff status is [Failed] (State 4, Invariant 4.4); immutable once set.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: failed_at
 
 #### Lapse Instant
 
-The wall-time the expiry was recorded, stamped at [Expire]. Present iff status is [Expired] (Invariants 3 and 4); immutable once set.
+The wall-time the expiry was recorded, stamped at [Expire]. Present iff status is [Expired] (State 5, Invariant 4.6); immutable once set.
 
 Kind:       Field
-Field of:   the notification record
+Field of:   Notification Record
 Projection: expired_at
 
 #### Pending
@@ -174,8 +180,6 @@ Term notification id: the opaque string naming one notification — a [Notificat
 
 ### Every action
 
-Term ok: the answer [Deliver], [Fail] and [Expire] give once the call is admitted; it carries nothing.
-
 Term notification ids: the [Notification Id] values of every pending notification addressed to a recipient reference — the answer [Pending For] gives, in the order Execution Contract Read 5 states.
 
 ```
@@ -200,7 +204,7 @@ NOTE: watch the order an atom forbids (Execution Contract Read 5 owns the order)
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and the notification carries no terminal stamp or the instant PRECEDES the terminal stamp the notification carries — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
+Term pending at an instant: the instant DOES NOT PRECEDE creation instant, and either the notification carries no terminal stamp or the instant PRECEDES the terminal stamp the notification carries — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
@@ -216,7 +220,7 @@ The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] re
 
 Kind:       Member
 Member of:  the action rejection
-Role:       Outcome
+Role:       Rejection
 Projection: not-known
 
 #### Not Pending
@@ -225,7 +229,7 @@ The refusal [Deliver], [Fail], or [Expire] returns when the target is not in [Pe
 
 Kind:       Member
 Member of:  the action rejection
-Role:       Outcome
+Role:       Rejection
 Projection: not-pending
 
 #### Storage Failure
@@ -234,7 +238,7 @@ The refusal [Create], [Deliver], [Fail] or [Expire] returns when the database re
 
 Kind:       Member
 Member of:  the action rejection
-Role:       Outcome
+Role:       Rejection
 Projection: storage-failure
 
 ### Create
@@ -275,7 +279,7 @@ The refusal [Create] returns when a request field fails its rule — a blank [Re
 
 Kind:       Member
 Member of:  the Create rejection
-Role:       Outcome
+Role:       Rejection
 Projection: invalid-request
 
 ### Deliver
@@ -431,13 +435,12 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 5 — Id stability.**
   ```
-  Invariant 5.1: [Create] MUST set the notification id.
+  Invariant 5.1: A recorded notification MUST carry the notification id the host allocated at the atom's seam (Identity 2).
   ```
 - **Invariant 6 — No id reuse.**
   ```
   Invariant 6.1: Two notifications MUST NOT share a notification id.
   ```
-- **Invariant 7 — Pending query excludes terminals.**
 - **Invariant 8 — Timestamp ordering.**
   ```
   Invariant 8.1: IF delivery instant DOES NOT EQUAL blank THEN delivery instant MUST NOT PRECEDE creation instant (Execution Contract Logic confinement 7).
@@ -448,7 +451,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
   Invariant 9.2: The notification set MUST NOT shrink.
-  Invariant 9.3: [Status Of] MUST answer a created notification's fields for the database's life.
+  Invariant 9.3: A created notification MUST carry notification id, recipient reference, payload, creation instant and status for the database's life.
   ```
 
 Immutability and durability give *auditability* — the delivery history is the database, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
@@ -459,15 +462,15 @@ Immutability and durability give *auditability* — the delivery history is the 
 
 ```
 Bulk expiry 1: A composing pattern expiring in bulk MUST enumerate a recipient's pending notifications.
-Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns.
+Bulk expiry 2: A composing pattern expiring in bulk MUST call [Expire] for EVERY notification the enumeration returns whose outcome the deployment's declared fail-versus-expire policy names for expiring (Composition note 8).
 Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 ```
 
 ### Deliver persistence failure
 
 ```
-Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending.
-Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure, and the caller owns the retry's count and interval.
+Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending as the call found the notification.
+Deliver persistence 2: A caller MUST retry a terminal transition that answered storage-failure, and the caller owns the retry's count and interval.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver] to the receiver the deployment declares.
 ```
@@ -485,7 +488,7 @@ Payload retention 5: A composing pattern MUST NOT delete a notification record.
 <details markdown="block">
 <summary>WHY</summary>
 
-What a composed purge can do is a shred, as an audit pattern wires one over its own cascade (Payload retention 4, Payload retention 5).
+What a composed purge can do is a shred, as an audit pattern wires one over its own cascade (Payload retention 4, Payload retention 5); a shred removes no version, and a purge another specification declares is answered by that specification's records (Execution Contract Database 5, Execution Contract Database 6).
 
 </details>
 
@@ -522,7 +525,7 @@ NOTE: watch the deployment's composition note (Capability requirement 7).
 
 #### Now
 
-The current clock reading every writing action consumes — supplied at the atom's seam, never read inside the transition and never a signature parameter. Its only use is the immutable stamps inside committed transitions ([Creation Instant] and the terminal stamp).
+The current clock reading every writing action consumes — supplied at the atom's seam, never read inside the transition and never supplied by the business caller. Its only use is the immutable stamps inside committed transitions ([Creation Instant] and the terminal stamp).
 
 Kind:         Parameter
 Parameter of: Create, Deliver, Fail and Expire
@@ -566,7 +569,7 @@ Non-goal 15: The atom MUST NOT expire notifications in bulk.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2); a retention pattern (Non-goal 13, Payload retention 3).
+NOTE: the owners — a subscription pattern and a fanout pattern (Non-goal 1, Non-goal 2; the library holds them as Subscription and Notification Fanout); a retention pattern (Non-goal 13, Payload retention 3; the library's Defensible Retention); an idempotency pattern (Non-goal 12, Composition note 5; the library's Duplicate Prevention).
 
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 
@@ -620,7 +623,7 @@ Three scenarios the notification records must survive in regulated contexts:
 
 ## Source
 
-- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — Notification is the structured-natural-language realization of the notification object: the message delivered from subject to observer.
+- **Observer pattern** (GoF — the Gang of Four, the four authors of *Design Patterns*) — Notification is the structured-natural-language realization of the notification object: the record of the message delivered from subject to observer, the delivery itself being the transport's (Non-goal 5).
 - **SMTP / RFC 5321** — SMTP (Simple Mail Transfer Protocol, defined in the Internet standard RFC (Request for Comments) 5321) email delivery as the canonical push transport. Two of the three terminal states map to an SMTP disposition: 2xx success (Delivered) and 5xx permanent failure (Failed); timeout without delivery (Expired) maps to none, since SMTP has no terminal disposition for it and the composing pattern owns the delivery window (Operation 14b).
 - **HTTP (HyperText Transfer Protocol — the request/response protocol of the web) webhooks** — the delivery model standard in web systems, an HTTP POST (the request that sends data) to a URL. [Deliver] records a 2xx response; [Fail] records a 4xx/5xx or connection failure.
 - **W3C (World Wide Web Consortium — the web standards body) Activity Streams 2.0** — semantic vocabulary for describing social and messaging events. Notification payloads in web deployments often conform to Activity Streams objects.
@@ -640,7 +643,7 @@ This atom's acceptance is provable: an external auditor clears it from the notif
 
 ```
 Check 1.1: An auditor MUST read EVERY notification's notification id, recipient reference, payload, creation instant and status from the database (State 2).
-Check 2.1: An auditor MUST reconstruct a notification's status at an instant from creation instant and the terminal stamp (Invariant 2.4).
+Check 2.1: An auditor MUST reconstruct whether a notification is pending at an instant from creation instant and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.1, Invariant 1.2).
 Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1 through 8.3, Execution Contract Logic confinement 7).
 Check 3.1: An auditor MUST find EVERY notification whose status DOES NOT EQUAL pending carrying EXACTLY ONE terminal stamp (Invariant 3.1).
@@ -673,7 +676,7 @@ Term records: notification — one delivery record, carrying notification id, re
 
 Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, compose, guard, declare, find, reconstruct, raise, require, precede.
 
-Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant.
+Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant. action rejection = not-known | not-pending | storage-failure. Create rejection = invalid-request.
 
 Term bounds: string cap (the bound on the recipient reference's length, measured in Unicode code points, 256 where a deployment declares none).
 
@@ -681,7 +684,7 @@ Term cadences: empty — a delivery window is the composing pattern's (Operation
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version, notification set.
+Term terms: notification, notification id, recipient reference, payload, seam, transition, business caller, now, string cap, status, terminal stamp, creation instant, terminal transition, pending at an instant, committed version, notification set, notification ids, high-assurance deployment, offer key.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -694,6 +697,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 [Expire]: #expire
 [Status Of]: #status-of
 [Pending For]: #pending-for
+[Notification Record]: #notification-record
 [Notification Id]: #notification-id
 [Recipient Reference]: #recipient-reference
 [Payload]: #payload
@@ -726,7 +730,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 ```
 status: doing
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20
-last gate: 2026-11-26 — Final Critique 14, a delta round, frozen at c00e24f8 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (claude-sonnet-5-5) counted foundational 0 and raised three refining items and one rhetorical, refuted by both triages bar the rhetorical: that Term now's "agreement across nodes" leaves a skew between nodes open (the Term names monotonicity too, which Logic confinement 7 gives the deployment and which an inversion of the two stamps would break, as Final Critique 13 found), that Term now's no-allowance clause is more than the name (Closed vocabulary 11 says MAY, and Logic confinement 18 asks a specification to name where the allowance is spent), that Capability requirement 9 is weaker than Logic confinement 16 (Logic confinement 16 lets the page's own rule stand beside it, and its reword would restate it); Capability requirement 7's first clause restates Conformance 9, rhetorical, no change; the checker's hits were cured in the settle as editorial: the NOTEs beside the deleted Identity 3, Operation 30 and Operation 21 point at the Execution Contract rules that own them, and POST and URL are glossed in the HTTP webhooks entry; the checker's Status Of and Invariant 7 hits are false (a bare value `notification`, and the empty heading the corpus keeps for a deleted invariant); 2026-11-20 — Final Critique 13, a delta round, frozen at 1216b9d1 — foundational count 0 after the blind second triage, clean, one sample; Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that Invariant 8.1 through 8.3 compare a terminal stamp with the creation instant across two clocks and name no clock allowance (Execution Contract Logic confinement 18): refuted by both triages, since a build spending an allowance breaks the invariants as written and Logic confinement 7 gives the deployment the clocks' agreement and skew, a wording the settle added to Term now; five further items refuted (String 6 and Operation 33's citation of Query 1 stand, Operation 9 and Deliver persistence 3 own the retry, the NOTE and the String 8 and 9 references are no defect); 2026-11-20 — Final Critique 12, a full round, frozen at 6c79ec3 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 11, a full round, frozen at 917cc95 — foundational count 0, clean, one sample; 2026-11-05 — Final Critique 10, a delta round, frozen at 82d4603 — foundational count 1, cured, not clean, no sample; 2026-11-05 — Final Critique 9, a delta round, frozen at 29128b6 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 8, a delta round, frozen at 075c6e4 — foundational count 1, cured, not clean, no sample; 2026-11-03 — Final Critique 7 — foundational count 2, not clean, no sample
+last gate: 2026-11-27 — Final Critique 15, a full round, frozen at 79cac81e — foundational count 2, cured, not clean, no sample
 
 open: none
 ```

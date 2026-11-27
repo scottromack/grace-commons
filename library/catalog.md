@@ -126,7 +126,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Notification](./atoms/notification.md)** (746 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
+**[Notification](./atoms/notification.md)** (750 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
 
 - Mints notification id. Offers key notification id.
 
