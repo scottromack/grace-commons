@@ -406,7 +406,7 @@ read_comment(comment_id)
 ```
 
 ```
-Operation 29: [Read Comment] MUST answer the comment's comment id, target reference, author reference, text, added instant, status AND, for a reply, the parent's comment id.
+Operation 29: [Read Comment] MUST answer the comment's comment id, target reference, author reference, text (blank where the comment stands retracted, Operation 31), added instant, status AND, for a reply, the parent's comment id.
 Operation 30: [Read Comment] MUST NOT write.
 Operation 31: IF the comment's status EQUALS retracted THEN [Read Comment] MUST answer blank text.
 ```
@@ -457,10 +457,10 @@ Capability requirement 4: The deployment MAY declare the text cap PER Execution 
 Capability requirement 5: The deployment MUST NOT normalize an author reference at the seam.
 Capability requirement 6: The deployment MUST NOT normalize a target reference at the seam.
 Capability requirement 7: The deployment MUST supply EVERY comment id PER Execution Contract Logic confinement 16.
-Capability requirement 8: The deployment MUST NOT normalize a comment id at the seam.
+Capability requirement 8: The deployment MUST NOT normalize a comment id at the seam PER Execution Contract Logic confinement 22.
 ```
 
-NOTE: Capability requirement 5, 6 and 8 are the atom's own rule for the canonical form of each reference and of the comment id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3 through 8).
+NOTE: Capability requirement 5, 6 and 8 are the atom's own rule for the canonical form of each reference and of the comment id, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each is recorded as the call carries it (Execution Contract Input 4; Identity 3 through 6; Execution Contract Logic confinement 22).
 
 Term string cap: the bound on a target reference's length and on an author reference's length in Unicode code points; 1,024 code points where a deployment declares none.
 
@@ -533,7 +533,7 @@ Check 1.2: An auditor MUST find EVERY comment standing in EXACTLY ONE OF shown, 
 Check 1.3: An auditor MUST find EVERY reply carrying the comment id of a comment the database holds (State 3).
 Check 1.4: An auditor MUST find EVERY reply carrying the target reference of the reply's parent (State 4).
 Check 1.5: An auditor MUST find a read with no filter answering EVERY comment with a committed version (State 5; Execution Contract Generation acceptance 1).
-Check 1.6: An auditor MUST find EVERY comment that stood in retracted in one version standing in retracted in EVERY later version (Operation 13, Operation 17).
+Check 1.6: An auditor MUST find EVERY comment that stood in retracted in one version standing in retracted in EVERY later version (Operation 13, Operation 17; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find EVERY version of a comment carrying the author reference of the comment's first version (Invariant 1.2).
 Check 2.2: An auditor MUST find EVERY version of a comment carrying the target reference of the comment's first version (Invariant 1.3).
 Check 2.3: An auditor MUST find EVERY version of a reply carrying the parent comment id of the reply's first version (Invariant 1.4).
@@ -603,7 +603,7 @@ Term terms: comment, comments, reply, replies, parent, comment id, target refere
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -611,9 +611,9 @@ Term terms: comment, comments, reply, replies, parent, comment id, target refere
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-27 — Final Critique 4, a full round, frozen at 62e7e4d4 — foundational count 2, not clean, one sample ([Read Comment] answered a retracted comment's words where the page says a retracted comment shows none, so one call had two answers, and it now answers blank text, Operation 31; a comment id had no canonical form beside the references', so a seam that case-folds one read a different comment, and Identity 7 and 8 with Capability requirement 8 give it the same rule as the references' (as Cart's Final Critique 9 did)); 2026-11-19 — Final Critique 3, a delta round, one counted reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; the report claimed no foundational and the blind second triage placed none (refuted: Execution Contract Read 6's "Read 5's order" is the specification's own order where one is named, and an added instant is the creation instant on this page, Operation 8; Term comment id is a string); the settle's own refining cures: Operation 19 cites Execution Contract Logic confinement 10 for its tiebreak, Operation 20, Operation 27 and Operation 28 each range over the comments carrying the target reference, as Operation 19 does, and the case-table row and the Term list point at Operation 19's order instead of restating it short; the round read the reach of Final Critique 2's cures (3 labels and the Parent term) by their diff; 2026-11-19 — Final Critique 2, a delta round, frozen at e3af1687 — foundational count 0, clean, one sample; Operation 27 split in two; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 5, a delta round (diff base 62e7e4d4, 22 labels, the reach of Final Critique 4's settle, the sweeps and Logic confinement 22 since), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 40c04769 — foundational count 0 after the blind second triage, clean, one sample (Linus rated nothing foundational and the second triage placed nothing foundational; the settle's own refining cures: a NOTE cited Identity 3 through 8 after Identity 7 and 8 went to Execution Contract Logic confinement 22, so it now cites Identity 3 through 6 and Logic confinement 22; Operation 29 says its text is blank where the comment stands retracted, Operation 31; Capability requirement 8 cites Logic confinement 22; Check 1.6 cites Generation acceptance 1); 2026-11-27 — Final Critique 4, a full round, frozen at 62e7e4d4 — foundational count 2, not clean, one sample ([Read Comment] answered a retracted comment's words where the page says a retracted comment shows none, so one call had two answers, and it now answers blank text, Operation 31; a comment id had no canonical form beside the references', so a seam that case-folds one read a different comment, and Identity 7 and 8 with Capability requirement 8 give it the same rule as the references' (as Cart's Final Critique 9 did)); 2026-11-19 — Final Critique 3, a delta round, one counted reader (Linus opencode-go/minimax-m3), frozen at 23233236 — foundational count 0 after the blind second triage, clean, one sample; the report claimed no foundational and the blind second triage placed none (refuted: Execution Contract Read 6's "Read 5's order" is the specification's own order where one is named, and an added instant is the creation instant on this page, Operation 8; Term comment id is a string); the settle's own refining cures: Operation 19 cites Execution Contract Logic confinement 10 for its tiebreak, Operation 20, Operation 27 and Operation 28 each range over the comments carrying the target reference, as Operation 19 does, and the case-table row and the Term list point at Operation 19's order instead of restating it short; the round read the reach of Final Critique 2's cures (3 labels and the Parent term) by their diff; 2026-11-19 — Final Critique 2, a delta round, frozen at e3af1687 — foundational count 0, clean, one sample; Operation 27 split in two; 2026-11-18 — Final Critique 1, frozen at b0af523c — foundational count 2, cured by the settle, not clean, no sample
 
 open: none
 ```
