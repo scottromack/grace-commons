@@ -94,9 +94,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Invitation](./atoms/invitation.md)** (876 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
+**[Invitation](./atoms/invitation.md)** (894 lines). Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?*
 
-- Needs key list id; key actor id; journal invitation events.
+- Needs key list id; key actor id; journal invitation events. Offers follow-up Accept.
 
 **[Lease](./atoms/lease.md)** (561 lines). A **lease** lets one worker have a thing to itself until a set time.
 
@@ -146,9 +146,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints party id. Needs key actor id; journal party events. Offers key party id.
 
-**[Permissions](./atoms/permissions.md)** (661 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
+**[Permissions](./atoms/permissions.md)** (663 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 
-- Needs key actor id. Offers permission opaque.
+- Needs key actor id; follow-up Grant. Offers permission opaque.
 
 **[Post](./atoms/post.md)** (599 lines). Post lets a person write a piece with a title and a body in markdown, keep it as a draft, change it, publish it for readers and take it back down.
 
@@ -252,6 +252,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 - Ordering needs key opaque: met by Actor Identity, List, Session, Task.
 - Ordering needs key list id: met by List.
 - Permissions needs key actor id: met by Actor Identity.
+- Permissions needs follow-up Grant: met by Invitation.
 - Session needs key actor id: met by Actor Identity.
 - Task needs key list id: met by List.
 - Task needs key actor id: met by Actor Identity.

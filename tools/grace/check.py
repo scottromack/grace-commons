@@ -1803,6 +1803,25 @@ def page_actions(text: str) -> dict[str, int]:
     return out
 
 
+def page_answers(text: str) -> dict[str, set[str]]:
+    """An atom's actions as a bond line names them, each with the answers its signature's answers line gives, the
+    payload's parentheses dropped (`answers accepted(a, b) | none` -> {"accepted", "none"}; unit `bonds: the
+    follow-up bond kind`: a follow-up offer names under answering only answers its after action gives)."""
+    out: dict[str, set[str]] = {}
+    current = None
+    for line in text.splitlines():
+        s = line.strip()
+        m = SIG_HEAD.match(s)
+        if m:
+            current = " ".join(w.capitalize() for w in m.group(1).split("_"))
+            out[current] = set()
+            continue
+        if current and s.startswith("answers "):
+            out[current] = {re.sub(r"\(.*$", "", a).strip() for a in s[len("answers "):].split(" | ")}
+        current = None if not s.startswith(("answers ", "refuses ")) else current
+    return out
+
+
 def per_call(value: str) -> dict[str, set[str]] | None:
     """An offer's arms, named per call: `take: a, b / remaining: c` -> {call: {arms}}; None when not in that form."""
     out: dict[str, set[str]] = {}
@@ -1900,7 +1919,9 @@ def app_findings(root: Path, lines: list[dict], kinds: dict, words: dict[str, st
         names = set(APP_ATOM.findall(app.read_text(encoding="utf-8")))
         mine = [b for b in lines if b["kind"] in kinds
                 and (b["path"] == app or (b["path"].stem in names and b["path"].parent.name == "atoms"))]
-        for need in (b for b in mine if b["side"] == "need"):
+        # a follow-up need that meets no offer of the app's atoms is no unmet need (bonds.md Term unmet need,
+        # Follow-up 6): the app makes no follow-up call for it
+        for need in (b for b in mine if b["side"] == "need" and b["kind"] != "follow-up"):
             if not any(o["side"] == "offer" and bond_meets(need, o, words, types) for o in mine):
                 findings.append(Finding(app, 1, "B-app-unmet",
                                         f"{need['path'].name}:{need['line']}: the {need['kind']} need meets no offer of the app's atoms (bonds.md Bond 10)"))
@@ -2060,12 +2081,35 @@ def bond_findings(root: Path) -> list[Finding]:
                 if name not in own:
                     findings.append(Finding(b["path"], b["line"], "B-bond-ends",
                                             f"ends names `{name}`, no action the offering atom declares (bonds.md Key)"))
+        # unit `bonds: the follow-up bond kind, accept grants first` (Scott 2026-11-27 11:17 AM Central): a follow-up
+        # need's runs names one action of the needing atom taking one input per value the need takes (subject,
+        # scope); an offer's after names one action of the offering atom, and answering names only answers that
+        # action gives (bonds.md Follow-up 2 and Follow-up 7)
+        if b["kind"] == "follow-up":
+            text_b = b["path"].read_text(encoding="utf-8")
+            own = page_actions(text_b)
+            field = "runs" if b["side"] == "need" else "after"
+            named_action = b["fields"].get(field) or set()
+            name = next(iter(named_action)) if len(named_action) == 1 else None
+            takes = sum(1 for f in ("subject", "scope") if f in b["fields"])
+            if name is None or name not in own or (b["side"] == "need" and own[name] != takes):
+                findings.append(Finding(b["path"], b["line"], "B-bond-follow-up",
+                                        f"{field} names one action the {b['side']}ing atom declares"
+                                        + (", taking one input for each value the need takes" if b["side"] == "need" else "")
+                                        + " (bonds.md Follow-up)"))
+            elif b["side"] == "offer":
+                gives = page_answers(text_b).get(name, set())
+                extra = sorted(set(b["fields"].get("answering") or set()) - gives)
+                if not b["fields"].get("answering") or extra:
+                    findings.append(Finding(b["path"], b["line"], "B-bond-follow-up",
+                                            f"answering names answers {name} does not give ({', '.join(extra) or 'none named'}) "
+                                            "(bonds.md Follow-up 7)"))
         # on end and ends name the line's own atom's actions, whose names may hold another atom's title as a word
         # (`ends Delete List`); Bond 6 reads the rest of the line (unit `bonds: on end for lists and assignments`)
         # an offer's calls names the offering atom's own existence read (bonds.md Key 26), which may hold its own
         # title as a word (Waitlist's `calls Read Waitlist`, unit `atom: Waitlist, converted`)
         named = ";".join(part for part in b["text"].split(";")
-                         if not re.match(r"\s*(on end|ends)\b", part)
+                         if not re.match(r"(?:Term (?:need|offer) [\w -]+:)?\s*(on end|ends|runs|after)\b", part)
                          and not (b["side"] == "offer" and re.match(r"\s*calls\b", part)))
         for t in titles:
             if re.search(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", named):

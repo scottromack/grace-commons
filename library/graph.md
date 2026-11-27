@@ -22,10 +22,10 @@ The atoms that bond, grouped by layer: an arrow runs from an atom to each atom w
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart TB
-  layer2["Layer 2: 3 atoms<br/>Assignment, Escalation, Sweep"]
+  layer2["Layer 2: 4 atoms<br/>Assignment, Escalation, Permissions, Sweep"]
   layer1["Layer 1: 4 atoms<br/>Durable Intent, Invitation, Ordering, Task"]
   layer0["Layer 0: 2 atoms<br/>Lease, List"]
-  layer2 -->|"3 bonds"| layer1
+  layer2 -->|"4 bonds"| layer1
   layer2 -->|"2 bonds"| layer0
   layer1 -->|"4 bonds"| layer0
 ```
@@ -37,20 +37,23 @@ flowchart TB
 flowchart LR
   b2_assignment["Assignment<br/><small>actor id · journal</small>"]
   b2_escalation["Escalation<br/><small>journal</small>"]
+  b2_permissions["Permissions<br/><small>actor id</small>"]
   b2_sweep["Sweep<br/><small>journal</small>"]
   b2_durable_intent["Durable Intent<br/><small>journal</small>"]
+  b2_invitation["Invitation<br/><small>actor id · journal</small>"]
   b2_lease["Lease"]
   b2_task["Task<br/><small>actor id · journal</small>"]
-  class b2_durable_intent,b2_lease,b2_task lower
+  class b2_durable_intent,b2_invitation,b2_lease,b2_task lower
   b2_assignment -->|"task id"| b2_task
   b2_escalation -->|"critical section key"| b2_lease
   b2_escalation -->|"invocation id"| b2_durable_intent
+  b2_permissions -->|"Grant"| b2_invitation
   b2_sweep -->|"critical section key"| b2_lease
   b2_sweep -->|"invocation id"| b2_durable_intent
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 2: [Assignment](./atoms/assignment.md), [Escalation](./atoms/escalation.md), [Sweep](./atoms/sweep.md). A dashed box is an atom of a lower layer.
+Layer 2: [Assignment](./atoms/assignment.md), [Escalation](./atoms/escalation.md), [Permissions](./atoms/permissions.md), [Sweep](./atoms/sweep.md). A dashed box is an atom of a lower layer.
 
 ### Layer 1
 

@@ -128,10 +128,14 @@ class Connections(unittest.TestCase):
 
     def test_the_todo_app_reproduces_its_hand_tally(self):
         page = catalog.connections_page(ROOT / "library" / "apps" / "todo" / "index.md", catalog.corpus(ROOT))
-        self.assertIn("**15 bonds**: 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. "
-                      "**3 glue lines**, which are not bonds: sign in, accept grants, claim.", page)
+        # unit `bonds: the follow-up bond kind, accept grants first` (2026-11-27): accept grants left the glue as the
+        # follow-up bond, Permissions' Grant after Invitation's Accept, a green arrow
+        self.assertIn("**16 bonds**: 1 follow-up arrow, 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. "
+                      "**2 glue lines**, which are not bonds: sign in, claim.", page)
+        self.assertIn('  c_permissions -->|"follow-up: Grant after Accept"| c_invitation', page)
+        self.assertIn("- **Green arrow:**", page)
         self.assertIn('  c_ordering -->|"instance 1: task id"| c_task', page)
-        self.assertIn("title: atomic weight 10 · lines written 4", page)
+        self.assertIn("title: atomic weight 10 · lines written 3", page)
         self.assertIn('  c_credential -.->|"glue: sign in<br/>atom candidate"| c_session', page)
 
     def test_every_app_gets_one_and_glue_naming_no_atom_is_listed(self):

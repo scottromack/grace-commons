@@ -52,8 +52,9 @@ def first_sentence(text: str) -> str:
 
 
 def word(b: dict) -> str:
-    """The declared word a bond line is typed by: its key, the records it journals, or the subject it gates."""
-    for f in ("key", "records", "subject"):
+    """The declared word a bond line is typed by: its key, the records it journals, or the subject it gates; a
+    follow-up line by the action it runs or follows (unit `bonds: the follow-up bond kind, accept grants first`)."""
+    for f in (("runs", "after") if b["kind"] == "follow-up" else ("key", "records", "subject")):
         v = b["fields"].get(f)
         if v:
             return v if isinstance(v, str) else ", ".join(sorted(v))
@@ -288,6 +289,8 @@ def app_connections(text: str, mine: list[Path], lines: dict, meets: dict, title
                     tag = word(o) if o["kind"] == "key" else o["kind"]
                     if tag not in tags[p]:
                         tags[p].append(tag)
+                if need["kind"] == "follow-up":
+                    w = f"follow-up: {word(need)} after {word(o)}"
                 edges.append({"from": p, "to": o["path"], "kind": need["kind"], "word": word(need) or need["kind"],
                               "as": "tag" if hub else "arrow", "tag": tag if hub else None, "label": w})
             elif not met:
@@ -366,6 +369,8 @@ def render_connections(c: dict, app_title: str) -> str:
     styles = []
     for e in (e for e in c["edges"] if e["as"] == "arrow"):
         L.append(f'  {nid[e["from"]]} -->|"{e["label"]}"| {nid[e["to"]]}')
+        if e["kind"] == "follow-up":
+            styles.append(f"  linkStyle {n} stroke:#5fb878,stroke-width:2px,color:#5fb878")
         n += 1
     for i in c["instances"]:
         L.append(f'  {nid[i["from"]]} -->|"instance {i["label"]}: {i["word"]}"| {nid[i["to"]]}')
@@ -378,6 +383,10 @@ def render_connections(c: dict, app_title: str) -> str:
     L += styles + ["```", "",
                    "- **Solid arrow:** a key bond that wires itself; the needing atom points at the atom whose offer "
                    "meets it.",
+                   ] + ([
+                   "- **Green arrow:** a follow-up bond that wires itself; the atom whose action follows points at the "
+                   "atom whose action it follows, and the app makes the call."]
+                   if any(e["kind"] == "follow-up" and e["as"] == "arrow" for e in c["edges"]) else []) + [
                    "- **Orange arrow:** a bond instance the app writes, for a need several offers meet.",
                    "- **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one), with its "
                    "birth tag, where it is headed: an atom candidate or a bond candidate; glue is counted apart and is "

@@ -14,7 +14,7 @@ How the atoms of [Shared Todo as an app](./index.md) connect, drawn from their o
 
 ```mermaid
 ---
-title: atomic weight 10 · lines written 4
+title: atomic weight 10 · lines written 3
 ---
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
@@ -31,20 +31,22 @@ flowchart LR
   c_assignment -->|"task id"| c_task
   c_invitation -->|"list id"| c_list
   c_ordering -->|"list id"| c_list
+  c_permissions -->|"follow-up: Grant after Accept"| c_invitation
   c_task -->|"list id"| c_list
   c_ordering -->|"instance 1: task id"| c_task
   c_credential -.->|"glue: sign in<br/>atom candidate"| c_session
-  c_invitation -.->|"glue: accept grants<br/>bond candidate"| c_permissions
-  linkStyle 4 stroke:#e8a33d,stroke-width:2px,color:#e8a33d
+  linkStyle 3 stroke:#5fb878,stroke-width:2px,color:#5fb878
+  linkStyle 5 stroke:#e8a33d,stroke-width:2px,color:#e8a33d
 ```
 
 - **Solid arrow:** a key bond that wires itself; the needing atom points at the atom whose offer meets it.
+- **Green arrow:** a follow-up bond that wires itself; the atom whose action follows points at the atom whose action it follows, and the app makes the call.
 - **Orange arrow:** a bond instance the app writes, for a need several offers meet.
 - **Dashed arrow:** a glue line between the atoms it names (a `glue:` tag where it names one), with its birth tag, where it is headed: an atom candidate or a bond candidate; glue is counted apart and is no bond.
 
 ## Tally
 
-**15 bonds**: 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. **3 glue lines**, which are not bonds: sign in, accept grants, claim.
+**16 bonds**: 1 follow-up arrow, 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. **2 glue lines**, which are not bonds: sign in, claim.
 
 The app page's own need, no atom's bond and not counted above: permission actor id, met by Permissions.
 
@@ -55,6 +57,7 @@ The app page's own need, no atom's bond and not counted above: permission actor 
 | Assignment | Task | key | task id | arrow |
 | Invitation | List | key | list id | arrow |
 | Ordering | List | key | list id | arrow |
+| Permissions | Invitation | follow-up | Grant | arrow |
 | Task | List | key | list id | arrow |
 | Assignment | Actor Identity | key | actor id | tag |
 | Assignment | Event Log | journal | assignment events | tag |
@@ -68,5 +71,4 @@ The app page's own need, no atom's bond and not counted above: permission actor 
 | Task | Event Log | journal | task events | tag |
 | Ordering | Task | key | task id | bond instance 1 |
 | Credential | Session | glue | sign in (atom candidate) | dashed arrow |
-| Invitation | Permissions | glue | accept grants (bond candidate) | dashed arrow |
 | Assignment | — | glue | claim (bond candidate) | tag |

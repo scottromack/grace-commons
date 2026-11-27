@@ -375,6 +375,55 @@ class BondTest(unittest.TestCase):
         self.assertFalse(check.bond_meets(need, short, words, types))
         self.assertEqual(self.codes(), [])
 
+    # unit `bonds: the follow-up bond kind, accept grants first` (Scott 2026-11-27 11:17 AM Central): one atom's action,
+    # answering a named answer, is followed by another atom's action fed from the answer, in the app's action
+    FOLLOW_BONDS = BONDS + """
+Term follow-up need fields: runs, the action; subject, the party; scope, the scope.
+
+Term follow-up offer fields: after, the action; answering, the answers; subject, the party; scope, the scope.
+"""
+    FOLLOWED = ("```\naccept(token, accepting_ref)\n  answers accepted(accepting_ref, offered_scope)\n  refuses expired\n```\n\n"
+                "Term offer follow-up: after Accept; answering accepted; subject opaque; scope opaque.\n")
+    FOLLOWER = ("```\ngrant(subject_ref, action_scope)\n  answers grant_id\n```\n\n"
+                "Term need follow-up: runs Grant; subject opaque; scope opaque.\n")
+
+    def follow_up_app(self, *atoms):
+        (self.root / "library" / "apps" / "pair").mkdir(parents=True, exist_ok=True)
+        (self.root / "library" / "apps" / "pair" / "index.md").write_text(
+            "# Pair\n\n" + "".join(f"- [{t}](../../atoms/{s}.md)\n" for t, s in atoms))
+
+    def test_a_follow_up_need_meets_the_offer_of_an_action_it_can_follow_and_stays_silent(self):
+        (self.root / "library" / "bonds.md").write_text(self.FOLLOW_BONDS)
+        self.write("followed", atom("Followed", self.FOLLOWED))
+        self.write("follower", atom("Follower", self.FOLLOWER))
+        self.follow_up_app(("Followed", "followed"), ("Follower", "follower"))
+        self.assertEqual(self.codes(), [])
+        # an app holding the follower and nothing it can follow makes no call: no unmet need (Follow-up 6)
+        self.follow_up_app(("Follower", "follower"))
+        self.assertEqual(self.codes(), [])
+
+    def test_a_follow_up_naming_no_own_action_or_an_answer_the_action_does_not_give_gates(self):
+        (self.root / "library" / "bonds.md").write_text(self.FOLLOW_BONDS)
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("after Accept", "after Redeem")))
+        self.write("follower", atom("Follower", self.FOLLOWER))
+        self.assertEqual(self.codes(), ["B-bond-follow-up"])
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("answering accepted", "answering accepted, expired")))
+        self.assertEqual(self.codes(), ["B-bond-follow-up"])
+        self.write("followed", atom("Followed", self.FOLLOWED))
+        # runs names an action taking one input per value the need takes: a one-value need on a two-input action gates
+        self.write("follower", atom("Follower", self.FOLLOWER.replace("; scope opaque", "")))
+        self.assertIn("B-bond-follow-up", self.codes())
+        self.write("follower", atom("Follower", self.FOLLOWER.replace("runs Grant", "runs Revoke")))
+        self.assertIn("B-bond-follow-up", self.codes())
+        self.assertNotIn("B-bond-follow-up", check.ADVISORY)
+
+    def test_a_follow_up_action_name_holding_an_atom_title_names_no_atom(self):
+        (self.root / "library" / "bonds.md").write_text(self.FOLLOW_BONDS)
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("accept(", "accept_follower(")
+                                    .replace("after Accept", "after Accept Follower")))
+        self.write("follower", atom("Follower", self.FOLLOWER))
+        self.assertEqual(self.codes(), [])
+
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]
         gating = [f for f in check.bond_findings(root) if f.code not in check.ADVISORY]

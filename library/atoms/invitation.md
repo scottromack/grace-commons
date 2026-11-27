@@ -14,7 +14,7 @@ audience: common
 
 ## What it is
 
-Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?* Each invitation is identified by a random token the invitee presents to act on it, and starts pending. The guarantee is that it resolves at most once, by one recorded change of state, a write, to one of three end states: accepted (recording the identity that joined, which the pattern never changes or deletes), declined (a deliberate refusal, recorded as its own outcome and distinct from never using the invitation) or revoked (the inviter withdrew it, or the list it is to ended). If the window simply passes, the invitation *reads* expired — a status computed from the deadline and the clock, never written. Any later write is told which resolution stands, or that the invitation expired, and of two people accepting at once one wins and the other is told. The credential setup, identity record and login that usually follow acceptance are separate patterns. An invitation is to one list, issued by one actor and accepted by one actor, each named by its actor id; that accepting grants access to the list is the app's glue line, not this atom's rule.
+Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient — before that party has an identity in the system, and answers *what is the state of this invitation, and who accepted it?* Each invitation is identified by a random token the invitee presents to act on it, and starts pending. The guarantee is that it resolves at most once, by one recorded change of state, a write, to one of three end states: accepted (recording the identity that joined, which the pattern never changes or deletes), declined (a deliberate refusal, recorded as its own outcome and distinct from never using the invitation) or revoked (the inviter withdrew it, or the list it is to ended). If the window simply passes, the invitation *reads* expired — a status computed from the deadline and the clock, never written. Any later write is told which resolution stands, or that the invitation expired, and of two people accepting at once one wins and the other is told. The credential setup, identity record and login that usually follow acceptance are separate patterns. An invitation is to one list, issued by one actor and accepted by one actor, each named by its actor id, and it offers one scope, the app's word for the standing an accept brings, such as a member of the list. The accept answers that scope with the accepting identity, and offers itself as a follow-up ([Bonds](../bonds.md), Follow-up): what an accept leads to is the app's call, not this atom's rule.
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -37,7 +37,7 @@ Term invitation: the record this atom holds — one invitation issued by one inv
 
 #### Invitation
 
-The record this atom defines: one invitation, issued by one inviter to join one context, resolved by at most one write. Carries [Invitation Token], [Inviter Reference], an optional [Invitee Reference], [Context], [Initiation Instant], [Expiry Instant], [Status], and the resolution fields of whichever write settled it.
+The record this atom defines: one invitation, issued by one inviter to join one context, resolved by at most one write. Carries [Invitation Token], [Inviter Reference], an optional [Invitee Reference], [Context], [Offered Scope], [Initiation Instant], [Expiry Instant], [Status], and the resolution fields of whichever write settled it.
 
 Kind: Type
 Projection: status
@@ -72,7 +72,7 @@ Term token material: the random value the deployment draws from a cryptographica
 
 Term token digest: the digest of an invitation token, computed at the seam (Execution Contract Logic confinement 8); the record carries it in place of the token and every rule that keys, compares or refuses by the invitation token reads it, so no stored field and no answer of a read is the live bearer credential (Execution Contract Logic confinement 21).
 
-Term property: inviter reference | invitee reference | context | initiation instant | expiry instant — what an invitation carries from initiation that is not the invitation's identity.
+Term property: inviter reference | invitee reference | context | offered scope | initiation instant | expiry instant — what an invitation carries from initiation that is not the invitation's identity.
 
 Term reference: invitation token, inviter reference, invitee reference, accepting identity reference OR revoked by reference — every opaque reference this atom records.
 
@@ -101,6 +101,14 @@ The list id naming the list the invitee is being invited to join. Required, immu
 Kind:       Field
 Field of:   Invitation
 Projection: context
+
+#### Offered Scope
+
+The scope the invitation offers whoever accepts it: the app's word for the standing an accept brings, such as a member of a list. Required, set on [Initiate], immutable, compared byte for byte and never read for meaning here; [Accept] answers it, and what it grants is the app's.
+
+Kind:       Field
+Field of:   Invitation
+Projection: offered_scope
 
 #### Initiation Instant
 
@@ -239,7 +247,7 @@ Term live: the window reading of a pending invitation where now PRECEDES the inv
 Term lapsed: the window reading of a pending invitation where now DOES NOT PRECEDE the invitation's expiry instant; the boundary instant — expiry instant equal to now — reads lapsed.
 
 ```
-State 1: EVERY invitation MUST carry token digest, inviter reference, context, initiation instant, expiry instant and a status.
+State 1: EVERY invitation MUST carry token digest, inviter reference, context, offered scope, initiation instant, expiry instant and a status.
 State 2: An invitation MAY carry an invitee reference.
 State 3: EVERY accepted invitation MUST carry accepting identity reference and acceptance instant.
 State 4: EVERY declined invitation MUST carry declination instant.
@@ -333,12 +341,12 @@ Projection: storage-failure
 
 ### Initiate
 
-The behavior that records a new [Invitation] — assigning a fresh [Invitation Token] from the token material the seam supplies, setting [Inviter Reference], an optional [Invitee Reference], [Context], [Initiation Instant] and [Expiry Instant], standing the record in [Pending], and answering the token. Rejected [Invalid Request] or [Storage Failure].
+The behavior that records a new [Invitation] — assigning a fresh [Invitation Token] from the token material the seam supplies, setting [Inviter Reference], an optional [Invitee Reference], [Context], [Offered Scope], [Initiation Instant] and [Expiry Instant], standing the record in [Pending], and answering the token. Rejected [Invalid Request] or [Storage Failure].
 
 Kind: Operation
 
 ```
-initiate(inviter_ref, optional invitee_ref, context, optional ttl)
+initiate(inviter_ref, optional invitee_ref, context, offered_scope, optional ttl)
   answers invitation_token
   refuses invalid-request | storage-failure
 ```
@@ -346,13 +354,14 @@ initiate(inviter_ref, optional invitee_ref, context, optional ttl)
 ```
 Operation 1: IF inviter reference EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 2: IF context EQUALS blank THEN [Initiate] MUST answer invalid-request.
+Operation 60: IF offered scope EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 3: IF ttl DOES NOT EQUAL blank AND the ttl IS NOT IN the ttl bounds THEN [Initiate] MUST answer invalid-request.
 Operation 4: IF ttl EQUALS blank THEN [Initiate] MUST read the default ttl as the ttl.
 Operation 5: IF the default ttl EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 6: [Initiate] MUST NOT answer invalid-request on an absent invitee reference.
 Operation 7: [Initiate] MUST NOT answer not-known.
 Operation 8: An admitted initiate MUST assign a fresh invitation token, one whose token digest no invitation of the database instance holds (Identity 5).
-Operation 9: An admitted initiate MUST record inviter reference and context.
+Operation 9: An admitted initiate MUST record inviter reference, context and offered scope.
 Operation 10: IF invitee reference DOES NOT EQUAL blank THEN an admitted initiate MUST record invitee reference.
 Operation 11: An admitted initiate MUST record now as initiation instant.
 Operation 12: An admitted initiate MUST record the expiry bound as expiry instant.
@@ -380,17 +389,17 @@ Kind:         Parameter
 Parameter of: Initiate
 Projection:   ttl
 
-`initiate(admin_a7, none, "org:northwind", 604800)` commits `tok_inv_g20`, and the answer never reaches the caller, who cannot tell whether the call landed. The caller's retry is a second call, which the atom admits as it did the first and answers with a fresh token, `tok_inv_h31` (Operation 8). Two pending invitations now stand where the caller meant one, and nothing in the atom links them; what a caller does after a lost answer is the composing pattern's (Execution Contract Error model 1).
+`initiate(admin_a7, none, "org:northwind", "org:northwind:member", 604800)` commits `tok_inv_g20`, and the answer never reaches the caller, who cannot tell whether the call landed. The caller's retry is a second call, which the atom admits as it did the first and answers with a fresh token, `tok_inv_h31` (Operation 8). Two pending invitations now stand where the caller meant one, and nothing in the atom links them; what a caller does after a lost answer is the composing pattern's (Execution Contract Error model 1).
 
 ### Accept
 
-The resolving write that binds an identity to the invitation, standing it in [Accepted] and recording [Accepting Identity Reference] and [Acceptance Instant]. Legal only while the invitation stands in [Pending] and reads live. Rejected [Not Known], [Already Resolved], [Expired Rejection], [Invalid Request] or [Storage Failure].
+The resolving write that binds an identity to the invitation, standing it in [Accepted], recording [Accepting Identity Reference] and [Acceptance Instant], and answering the accepting identity with the invitation's [Offered Scope]. Legal only while the invitation stands in [Pending] and reads live. Rejected [Not Known], [Already Resolved], [Expired Rejection], [Invalid Request] or [Storage Failure].
 
 Kind: Operation
 
 ```
 accept(invitation_token, accepting_identity_ref)
-  answers accepted
+  answers accepted(accepting_identity_ref, offered_scope)
   refuses not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure
 ```
 
@@ -398,6 +407,7 @@ accept(invitation_token, accepting_identity_ref)
 Operation 23: IF accepting identity reference EQUALS blank THEN [Accept] MUST answer invalid-request.
 Operation 28: An admitted accept MUST stand the invitation in accepted.
 Operation 29: An admitted accept MUST record accepting identity reference and now as acceptance instant.
+Operation 61: An admitted accept MUST answer accepted carrying the accepting identity reference the accept records AND the invitation's offered scope.
 Operation 50: IF a string input EXCEEDS the string cap THEN [Accept] MUST answer invalid-request (Execution Contract Input 2).
 ```
 
@@ -587,7 +597,7 @@ String 5: The atom MUST read a string input carrying only white space as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
-Term string input: a reference, context OR reason — every caller-supplied string this atom accepts.
+Term string input: a reference, context, offered scope OR reason — every caller-supplied string this atom accepts.
 
 Term string cap: the bound on a string input's length in Unicode code points, counted PER Execution Contract Input 2; 1,024 code points where a deployment declares none; [Decline]'s one string input is the invitation token, so an over-cap token names no invitation and answers not-known (Operation 15, Execution Contract Refusal 1); [Revoke List Invitations]'s one string input is the context, which no invitation carries over the cap (Operation 49), so an over-cap context finds no invitation and answers ok, writing nothing (Operation 58).
 
@@ -631,13 +641,19 @@ Projection:   now
 
 ## Needs
 
-The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. That an accepted invitation grants the accepting actor access to the list is the app's glue line, and no rule of this atom.
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice.
 
 Term need key: key list id; pairs invitations; on end Revoke List Invitations.
 
 Term need key: key actor id; pairs inviters and accepters.
 
 Term need journal: records invitation events; calls append; arms event_id.
+
+## Offers
+
+The bonds this atom offers, of a bond kind [Bonds](../bonds.md) states. An accept answering accepted may be followed, in the app's action and transaction, by another atom's action fed from the answer: the accepting identity as its subject and the offered scope as its scope (Bonds Follow-up 1, Follow-up 2). What follows, if anything, is the app's choice; the atom never learns it, and a refusal of the follow-up undoes the accept (Bonds Follow-up 5).
+
+Term offer follow-up: after Accept; answering accepted; subject actor id; scope opaque.
 
 ## Left to others
 
@@ -649,6 +665,7 @@ Non-goal 4: The atom MUST NOT deliver the invitation token.
 Non-goal 5: The atom MUST NOT issue a session.
 Non-goal 6: The atom MUST NOT decide who may invite whom.
 Non-goal 7: The atom MUST NOT decide what a context names.
+Non-goal 33: The atom MUST NOT decide what an offered scope grants.
 Non-goal 8: The atom MUST NOT sequence the steps following an acceptance.
 Deleted: Non-goal 9. Non-goal 8 owns it: the atom sequences nothing after an acceptance, and which pattern does is the app's choice.
 Non-goal 10: A deployment needing an accepting identity matched to an invitee MUST compose a matching rule.
@@ -701,19 +718,19 @@ NOTE: composing patterns — an app names the atoms it composes; this pattern na
 
 ### New employee onboarding — accept
 
-`initiate(admin_a7, none, "org:northwind", 604800)` → `tok_inv_c41`, standing pending, its ttl seven days. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → accepted, binding `user_u114`. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one the call presenting the token supplied. The app's onboarding proceeds from here to a party record, a credential and a session.
+`initiate(admin_a7, none, "org:northwind", "org:northwind:member", 604800)` → `tok_inv_c41`, standing pending, its ttl seven days. The token reaches the new hire out of band. Three days in, `accept(tok_inv_c41, user_u114)` → `accepted(user_u114, org:northwind:member)`, binding `user_u114`. The invitee reference was absent at initiation because the hire had no system identity to name; the identity now recorded is the one the call presenting the token supplied. The app's onboarding proceeds from here to a party record, a credential and a session.
 
 ### Workspace collaboration — decline
 
-`initiate(owner_w3, contractor_c9, "workspace:atlas", 1209600)` → `tok_inv_d58`, its ttl fourteen days. The contractor declines: `decline(tok_inv_d58)` → declined, stamping declination instant and nothing else. No identity is bound, because nobody joined. The record says a holder of the token saw the invitation and refused — which is a different fact from the window closing unanswered, and the reason declined is a terminal of its own.
+`initiate(owner_w3, contractor_c9, "workspace:atlas", "workspace:atlas:editor", 1209600)` → `tok_inv_d58`, its ttl fourteen days. The contractor declines: `decline(tok_inv_d58)` → declined, stamping declination instant and nothing else. No identity is bound, because nobody joined. The record says a holder of the token saw the invitation and refused — which is a different fact from the window closing unanswered, and the reason declined is a terminal of its own.
 
 ### Revoked before use
 
-`initiate(admin_a7, vendor_v2, "org:northwind", 2592000)` → `tok_inv_e5f`, its ttl thirty days. The engagement falls through and `revoke(tok_inv_e5f, admin_a7, "engagement cancelled")` → revoked. A later `accept(tok_inv_e5f, user_u220)` answers `already-resolved(revoked)` — not merely *no*, but *withdrawn, and here is which resolution stands*.
+`initiate(admin_a7, vendor_v2, "org:northwind", "org:northwind:vendor", 2592000)` → `tok_inv_e5f`, its ttl thirty days. The engagement falls through and `revoke(tok_inv_e5f, admin_a7, "engagement cancelled")` → revoked. A later `accept(tok_inv_e5f, user_u220)` answers `already-resolved(revoked)` — not merely *no*, but *withdrawn, and here is which resolution stands*.
 
 ### The window closes
 
-`initiate(admin_a7, none, "org:northwind", 604800)` → `tok_inv_f77`, its ttl seven days. Nobody answers. On the eighth day nothing has happened to the record: it still stands pending, carries no resolution field, and read returns it with an effective status of expired. An accept against it answers expired and writes nothing. The eventual difference between this invitation and `tok_inv_d58` above is the whole reason declined is a stored terminal.
+`initiate(admin_a7, none, "org:northwind", "org:northwind:member", 604800)` → `tok_inv_f77`, its ttl seven days. Nobody answers. On the eighth day nothing has happened to the record: it still stands pending, carries no resolution field, and read returns it with an effective status of expired. An accept against it answers expired and writes nothing. The eventual difference between this invitation and `tok_inv_d58` above is the whole reason declined is a stored terminal.
 
 ### Regulated adversarial scenarios
 
@@ -787,11 +804,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the deployment; the database; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a reader; an invitation; a pending invitation; an accepted invitation; a declined invitation; a revoked invitation; a lapsed invitation; an action; a resolving write; a refused action; an answer; a token holder; an opaque reference; a string input; a filter; the database instance's invitation count.
 
-Term records: invitation — one invitation issued by one inviter to join one list, carrying token digest, inviter reference (an actor id), context (a list id), initiation instant, expiry instant, a status and, where supplied or set, invitee reference, accepting identity reference, acceptance instant, declination instant, revoked by reference, revocation reason and revocation instant.
+Term records: invitation — one invitation issued by one inviter to join one list, carrying token digest, inviter reference (an actor id), context (a list id), offered scope, initiation instant, expiry instant, a status and, where supplied or set, invitee reference, accepting identity reference, acceptance instant, declination instant, revoked by reference, revocation reason and revocation instant.
 
 Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store.
 
-Term value sets: status = pending | accepted | declined | revoked. effective status = pending | accepted | declined | revoked | expired. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
+Term value sets: status = pending | accepted | declined | revoked. effective status = pending | accepted | declined | revoked | expired. stored terminal = accepted | declined | revoked. window reading = live | lapsed. property = inviter reference | invitee reference | context | offered scope | initiation instant | expiry instant. resolution field = accepting identity reference | acceptance instant | declination instant | revocation instant | revoked by reference | revocation reason.
 
 Term bounds: ttl bounds, default ttl, expiry bound, string cap.
 
@@ -819,6 +836,7 @@ Term cited: list id, actor id, invitation events: Declarations.
 [Inviter Reference]: #inviter-reference
 [Invitee Reference]: #invitee-reference
 [Context]: #context
+[Offered Scope]: #offered-scope
 [Initiation Instant]: #initiation-instant
 [Expiry Instant]: #expiry-instant
 [Status]: #status
@@ -855,7 +873,7 @@ Term cited: list id, actor id, invitation events: Declarations.
 
 ```
 status: done — 2026-11-26
-formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11; model redraw deferred to Lean: invitation.als and invitation.tla, Operation 53 through 59, State 15, Invariant 1.3, 2026-11-26
+formal: verified — invitation.tla + 4 twins (2026-06-03); invitation.als + 13 twins (the static data model, 2026-11-11: State 3, 4 and 6 and Invariant 2.2, 3.1, 5.1, 6.1, 6.2, 8.1, 8.2, 8.3, 9.1 and 11.1 checked on every record an admitted [Initiate], [Accept], [Decline] or [Revoke] leaves and on every answer a resolving write gives over such records, Invariant 11.1 resting on the database's refusal of a held token (Capability requirement 6); nothing testable in Alloy for Invariant 1, 7 and 10 or for 2.1: each compares an invitation with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1 and 7 (across steps); owed rows: Invariant 1; Invariant 7, 2026-11-11; model redraw deferred to Lean: invitation.als and invitation.tla, Operation 53 through 59, State 15, Invariant 1.3, 2026-11-26; model redraw deferred to Lean: invitation.als and invitation.tla, State 1, Operation 9, Operation 60, Operation 61, 2026-11-27
 last gate: 2026-11-27 — Final Critique 19, a delta round (diff base f6b08fd4, 14 labels reached, the reach of Final Critique 18's cures and the grammar batch's wording), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at efe346fd — foundational count 0 after the blind second triage, clean, one sample (Linus rated one finding foundational, that Check 5.1 and Check 5.2 test Invariant 8.1 and Invariant 8.2 only on an invitation carrying the other field, so a revoked invitation carrying neither passes both; the first triage refuted it and the blind second triage placed it refining: the conditional is the carve-out for [Revoke List Invitations], which records a revocation instant and neither field (State 15, Operation 55), the invariants quantify over an admitted [Revoke] (Operation 24, Operation 25, Operation 33 force both fields there), and the finder's cure would fail every list-revoked invitation; cured by External check 8, which sends a deployment needing a revoked invitation without a revoked by reference confirmed as a list-wide revoke's to the invitation events; of two further refining, both refuted: Term ttl bounds pins the shape Operation 3 reads and Capability requirement 4 declares the default inside it; the rhetorical one, the phrase an admitted revoke stood in revoked, is what keeps Invariant 8.1 and Invariant 8.2 off a list-revoked invitation. The checker's fifteen arm-row hits and two acronym hits are placed no defect as Final Critique 17 and 18 placed them: the page writes one case table, the refusals are owned by Operations, and the TTL and CC6.2 uses are glossed); 2026-11-26 — Final Critique 18, a delta round (the reach of the diff since 45e3af35, 10 labels and the one range of changed text at the Invalid Request description), one reader (Linus opencode-go/mimo-v2.6-pro, after inception/mercury-3 answered nothing; GRID and EOS not run), frozen at f6b08fd4 — foundational count 0 after the blind second triage, clean, one sample (Linus's three foundational reports and four refining, none foundational by either triage. Its first, that the Invalid Request description's "a string input exceeds the string cap" obliges invalid-request where Term string cap answers not-known at [Decline] and ok at [Revoke List Invitations], is refining: neither action lists invalid-request on its refuses line, so no conforming build answers it there, and the description is scoped by the Operations that do oblige it (Operation 49, Operation 50, Operation 51), cured as wording; Linus's replacement half-restated Execution Contract Input 2's own-answer clause, which the Repeats rule refutes. Its second, that an over-cap context padded with spaces canonicalizes to a stored context, is refuted: a context is no reference, so Execution Contract Logic confinement 13 never canonicalizes it and String 1 to String 4 compare it byte-exactly. Its third, that Operation 3's "falls outside the ttl bounds" is no admitted form, is a form breach with one reading (Term ttl bounds is an admitted range, each bound itself admitted), cured by Earned vocabulary 10's "IS NOT IN". The four refining lines placed no defect: Operation 5 is the page's own answer for a blank default ttl (Logic confinement 15 keeps it), Term status check defines every status check, both actions answer an over-cap token not-known (Refusal 1, not-known listed first on [Accept]), and a Term carrying an answer is the corpus's form (Closed vocabulary 11). The checker's seventeen hits placed none: the fifteen case-row hits as Final Critique 17 placed them, and TTL and CC6 stand glossed at their first use, which the checker's gloss test misses); 2026-11-26 — Final Critique 17, a delta round (the reach of the diff since f5f4ab98, 47 labels and 12 ranges of changed text), one reader (Linus opencode-go/beam-free, after opencode-go's other models answered nothing, Claude Sonnet was at its paced ceiling and the free models were spent; GRID and EOS not run), frozen at 45e3af35 — foundational count 1, cured, not clean, no sample (Linus's one foundational, that Term string cap counted the cap "on the value as the call carries it" alone while Execution Contract Input 2 counts it on that value and again on the value as the seam leaves it, so a build reading the Term alone admits a value whose canonical form is over the cap and a build reading both refuses it, cured as wording by citing Input 2 in place of restating its measure (Linus's own replacement restated the rule, which the Repeats rule refutes); the checker's one true hit of seventeen cured with it, TTL glossed at its first use; its fifteen case-row hits placed no defect, since each refusal has its rule and no rule asks a case table of an action, and its CC6 hit placed none, since CC6.2 stands glossed at its first use); 2026-11-25 — Final Critique 16, a delta round (the reach of the diff since 9104a811, 4 labels), one reader (Linus opencode-go/beam-free, after opencode/beam-free was refused "Free usage exceeded"; GRID and EOS not run), frozen at f5f4ab98 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational, that Storage Failure names only [Pending] as the residual state while a [Revoke] admitted against an [Accepted] invitation would leave [Accepted], refuted by both triages: [Revoke], like [Accept] and [Decline], is legal only while the invitation stands [Pending] and reads live, and Operation 16 answers already-resolved on a stored terminal before any write or append, so every admitted write acts on a [Pending] invitation and the two residual states are the whole set; the blind second triage's one refining finding, that Non-goal 13's "MUST NOT record a transition history" contradicted Operation 52 and Non-goal 14, which have the atom append every admitted write as the history, cured as wording: the history Non-goal 13 refuses is the invitation's own, the journal holds the appended events); 2026-11-25 — Final Critique 15, a delta round (diff base 1f757b57, 185 labels reached and every changed line), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 9104a811 — foundational count 1, cured, not clean, no sample (Linus counted none and three refining; the blind second triage placed Composition note 4's "EVERY admitted action" foundational, since it binds the atom to append on a Read that Operation 43 and the Execution Contract's read actions leave writing nothing, so a build appending on Read and one appending on the four writes leave different journals and give different Read answers when the journal fails; cured by Operation 52, which names the four writes, the Composition note tombstoned to it, Non-goal 14 pointing at it, and the Storage Failure entry naming the journal's refusal (Execution Contract Constituent failure 1); the cites to the deleted Non-goal 30 cured as wording; the two `Term need key` lines refuted as the form bonds.md writes; the blind triage's one added hardening, that a deployment canonicalizing the token under Logic confinement 13 would break the digest, cured by Capability requirement 15); 2026-11-24 — Final Critique 14, a delta round (the reach of the diff since 097687f5, 4 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 1f757b5 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted none and two refining: Composition note 5's scope and Composition note 8's time of reading, both cured as wording, the first now reading the actions this atom refused, the second the references held when the detection runs; the blind second triage placed all six of his findings below foundational, found Composition note 5 wanting Read 7's citation, cured, and placed a reading of Composition note 8 as a ceiling on what detection covers refuted, since Non-goal 20 requires the rewrite detected whole and External check 6 reads that detection); 2026-11-24 — Final Critique 13, a delta round (the reach of the diff since 369b7bb, 11 rules), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 097687f5 — foundational count 1, cured, not clean, no sample (Linus's first foundational, that Composition note 5 bound the atom to append a refused action event while Execution Contract Read 4 says a refused call writes nothing, stands: the composing pattern appends it, as the page said before the journal unit, and the need records the admitted event alone; his second, that Non-goal 20 names no owner, was placed refining: its subject is the deployment, cured by Composition note 8 saying so and the owners NOTE listing the deployment); 2026-11-20 — Final Critique 12, a delta round, frozen at 369b7bb — foundational count 0 after the blind second triage, clean, one sample (Linus's one report (nemotron-3.5-super-vl-free) claimed one foundational, that [Initiate] with a blank ttl has no defined transition: refuted by both triages, Operation 4 reading the default ttl as a blank ttl and Operation 5 answering invalid-request where no default is declared, so no two builds differ; the reach held Operation 3 and 12 and not 4 and 5, and its cure would have contradicted Operation 4); 2026-11-20 — Final Critique 11, a full round, frozen at d474077 — foundational count 1, cured, not clean, no sample; 2026-11-04 — Final Critique 10, a delta round, frozen at cd9d6f3 — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 9 (delta) — foundational count 3, cured, not clean, no sample
 
 open: none

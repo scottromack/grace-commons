@@ -448,9 +448,11 @@ Projection:   now
 
 ## Needs
 
-The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice. [Grant], [Revoke] and [Check] take no caller and check none (Non-goal 13): the binding between the authenticated caller and the subject is the composing pattern's (Composition note 3).
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Grant], [Revoke] and [Check] take no caller and check none (Non-goal 13): the binding between the authenticated caller and the subject is the composing pattern's (Composition note 3). [Grant] may follow another atom's action whose answer carries a subject and a scope, the app making the call in that action's transaction with the answer's values as its subject reference and action scope (Bonds Follow-up 1, Follow-up 2); a refusal of the grant undoes the followed action (Bonds Follow-up 5), and an app with no such action makes no such call (Bonds Follow-up 6).
 
 Term need key: key actor id; pairs grants.
+
+Term need follow-up: runs Grant; subject actor id; scope opaque.
 
 ## Offers
 
