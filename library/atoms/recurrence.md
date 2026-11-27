@@ -42,7 +42,7 @@ State 1: EVERY series MUST carry series id, start, frequency, interval, week sta
 State 2: The atom MUST NOT remove a series.
 ```
 
-Term calendar: the Gregorian calendar of ISO 8601, the international standard for dates, run back before 1582 as if always in force.
+Term calendar: the Gregorian calendar of ISO (the International Organization for Standardization) 8601, the international standard for dates, run back before 1582 as if always in force.
 
 Term calendar date: a year, a month from 1 through 12 and a day from 1 through the month's length, naming a day the calendar holds, such as 2028-02-29 but not 2026-02-29.
 
@@ -683,7 +683,7 @@ NOTE: composing patterns — none yet. Forthcoming: Calendar Event, which wires 
 
 ## Example
 
-The same atom in five uses; its rejection paths are the bullets under Every action. Lists are written in brackets, `none` for an empty one and for a limit or an end date the call leaves out, which Operation 11 through 13 and Operation 37 read as blank (GRACE-lang Term blank); dates are calendar dates with no place.
+The same atom in five uses; its rejection paths are the bullets under Every action. Lists are written in brackets, `none` for an empty one and for a limit or an end date the call leaves out, which Operation 11 through 14 and Operation 37 read as blank (GRACE-lang Term blank); dates are calendar dates with no place.
 
 ### Every second Tuesday, read two ways
 
@@ -716,7 +716,7 @@ A team meets on Mondays, ten times: `open(2026-11-02, weekly, 1, monday, none, n
 
 Recurrence is a primitive with no regulatory anchor of its own. It inherits from:
 
-- **RFC 5545 (iCalendar), sections 3.3.10 and 3.8.5** — the answer key: FREQ, INTERVAL, WKST, BYMONTH, BYMONTHDAY, BYDAY with ordinals, BYSETPOS, COUNT, UNTIL and EXDATE; a recurrence's invalid date ignored and never counted; DTSTART's part in a rule.
+- **RFC 5545 (iCalendar), sections 3.3.10 and 3.8.5** — the answer key: FREQ, INTERVAL, WKST, BYMONTH, BYMONTHDAY, BYDAY with ordinals, BYSETPOS, COUNT, UNTIL and EXDATE; a recurrence's invalid date ignored and never counted; DTSTART (the series' start)'s part in a rule.
 - **RFC 5545 errata 1911 and 4271** — an ordinal on BYDAY only for MONTHLY and YEARLY rules; a recurrence's nonexistent local time read as section 3.3.5 reads an explicit one, not dropped.
 - **RFC 7529** — RSCALE and SKIP, not adopted: the Gregorian calendar alone, and a missing date written around with month days and a position rather than skipped forward or back.
 - **ISO 8601** — the Gregorian calendar run back as if always in force, and calendar dates.
@@ -842,7 +842,7 @@ Term terms: series, series id, seam, calendar, calendar date, month length, date
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -850,9 +850,9 @@ Term terms: series, series id, seam, calendar, calendar date, month length, date
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — recurrence.als + 10 twins (vote yes, on the maintainer's ruling (after-grounding item 14, 2026-11-06: "Recurrence gets an Alloy model (it is mostly shape)"); every Invariant checked, 1.1 through 3.4, with the build order of the Terms, the exceptions that keep a limit's bound and the limit cap; the twin drops Operation 27's guard from [End] and Invariant 2.2 catches it; the daylight-saving cases that ruling gives a TLA model belong to the wiring of this atom with Calendar Time, not to this page); coverage 2026-11-10 (unit formal: more coverage for the yes votes); recurrence.tla + 15 twins (across steps, 2026-11-11: one series under [Open], [Except], [Restore] and [End], refusals in each refuses line's order, with the answer [Occurrences] gives in every state they leave: Invariant 1.1, 1.2, 2.1, 2.2 and 3.1 through 3.4, a cross-check with the Alloy model, the date taken out that still counts toward a limit (Term end bound), and Operation 7 and 8, both ways); nothing testable in TLA+ for the daylight-saving cases: an occurrence is a date with no time of day (Non-goal 2, 3), so what a clock change does to a time on it is Calendar Time's resolve, through the wiring of a composing pattern (Composition note 2); coverage 2026-11-11 (unit `atoms/recurrence.md formal layer`): no owed rows, 2026-11-11
-last gate: 2026-11-26 — Final Critique 3, frozen at bad327c5 — foundational count 1, cured, not clean, no sample (Term end bound left a bound of none unordered against a date, so Invariant 2.2, Invariant 3.3 and Check 3.2 compared a date with nothing and an auditor could fail a conforming deployment; it now says a bound of none stands later than every date; the other reports were placed refining or refuted and their wording cures are in the same commit; Linus's foundational report on the invalid-position example quoted an eleven-value call the frozen text does not carry); 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
+last gate: 2026-11-27 — Final Critique 4, a delta round, one reader (Linus), frozen at ea0506c6 — foundational count 0 after the blind second triage, clean, one sample; Linus's report counted no finding and held its three questions (the end bound can only move sooner, a limit counts the dates taken out, a yearly period's picks fit the 366 positions); the blind second triage (one cold Opus 5.5 subagent, run on the frozen page before any cure, which also pressed the delta set for itself: the end bound with limit, exceptions and [End]; the occurrence cap against Input 2 and Logic confinement 17; positions counted over picks before the start) placed nothing foundational and found none of its own; cured: the Example's blank-read range names Operation 14, and ISO and DTSTART are glossed at first use; 2026-11-26 — Final Critique 3, frozen at bad327c5 — foundational count 1, cured, not clean, no sample (Term end bound left a bound of none unordered against a date, so Invariant 2.2, Invariant 3.3 and Check 3.2 compared a date with nothing and an auditor could fail a conforming deployment; it now says a bound of none stands later than every date; the other reports were placed refining or refuted and their wording cures are in the same commit; Linus's foundational report on the invalid-position example quoted an eleven-value call the frozen text does not carry); 2026-11-08 — Final Critique 2, delta, frozen at 237cc22 — foundational count 0 after the blind second triage, clean, one sample
 
 open: none
 ```
