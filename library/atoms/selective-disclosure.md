@@ -83,7 +83,7 @@ State 7: The atom MUST NOT offer a batch record surface.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
-Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing event log pattern holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so no clock allowance is spent between the receipt instant and this atom's now (Execution Contract Logic confinement 18), and External check 3 clears Invariant 4.1 against the future bound, the receipt instant plus the clock allowance.
+Term receipt instant: the instant the deployment received a [Record] call, which a backdated disclosure instant precedes; this atom records none (State 10), and a composing event log pattern holds it as the recording instant of the event the deployment logs for the call, a reading the composing action's one clock reading fixes as this atom's now (Execution Contract Logic confinement 19), so, inside that one action, no clock allowance is spent between the receipt instant and this atom's now (Execution Contract Logic confinement 18), and External check 3 clears Invariant 4.1 against the future bound, the receipt instant plus the clock allowance the record's creation read (Execution Contract Logic confinement 17).
 
 #### Disclosure Id
 
@@ -190,6 +190,15 @@ The case space, and the rule that owns each case:
 | 3 | every precondition passes, the database refuses the write | storage-failure |
 | 4 | every precondition passes, the database accepts the write | `recorded(disclosure_id)`, the stored record's fields standing from then on (Invariant 1.1) |
 
+#### Recorded
+
+The answer [Record] gives where it recorded the disclosure record, carrying the record's disclosure id (Operation 13).
+
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: recorded
+
 #### Invalid Request
 
 The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, a non-blank supplied [Disclosure Instant] is no instant, the resolved [Disclosure Instant] follows the future bound, or a string input exceeds the string cap (Execution Contract Input 2).
@@ -230,7 +239,7 @@ Projection: invalid-query
 
 #### Record
 
-The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if a supplied instant is no instant or the resolved instant follows the future bound), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
+The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores the call's [Subject Reference], [Recipient], [Scope] and [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosure Instant] (the injected clock now if left blank; rejected [Invalid Request] if a supplied instant is no instant or the resolved instant follows the future bound), and returns [Recorded], `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].
 
 Kind: Operation
 
@@ -446,7 +455,7 @@ Non-goal 23: A deployment needing a verifiable time anchor MUST compose a truste
 Deleted: Non-goal 24. Non-goal 23 owns it: the atom records no receipt instant, and which pattern detects a backdated disclosure instant is the app's choice.
 ```
 
-NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); a consent pattern and a legal-hold pattern, and for a regulatory citation the calling system, since no pattern holds one (Non-goal 7, Non-goal 8, Non-goal 9); the app's permission (Non-goal 10, Non-goal 11); an attestation pattern (Non-goal 12, Non-goal 13); an idempotency pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); the compliance team, and a data-rights pattern for an access request (Non-goal 20); an event log pattern (Non-goal 21, Non-goal 24, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
+NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); a consent pattern and a legal-hold pattern, and for a regulatory citation the calling system, since no pattern holds one (Non-goal 7, Non-goal 8, Non-goal 9); the app's permission (Non-goal 10, Non-goal 11); an attestation pattern (Non-goal 12, Non-goal 13); an idempotency pattern (Non-goal 14, Non-goal 15); a tamper-evidence pattern (Non-goal 16, Non-goal 17); a retention pattern (Non-goal 18, Non-goal 19); the compliance team, and a data-rights pattern for an access request (Non-goal 20); an event log pattern (Non-goal 21, External check 3); Trusted Timestamping *(forthcoming)* (Non-goal 23).
 
 ---
 
@@ -581,6 +590,7 @@ Term cited: now, resolved disclosure instant, reference, string cap, committed v
 [Authority Type]: #authority-type
 [Authority Reference]: #authority-reference
 [Disclosure Instant]: #disclosure-instant
+[Recorded]: #recorded
 [Invalid Request]: #invalid-request
 [Unknown Authority Type]: #unknown-authority-type
 [Storage Failure]: #storage-failure
@@ -590,7 +600,7 @@ Term cited: now, resolved disclosure instant, reference, string cap, committed v
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -598,9 +608,9 @@ Term cited: now, resolved disclosure instant, reference, string cap, committed v
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — selective-disclosure.als + 19 twins (the static data model: State 1, 2, 3 and 10, Identity 5, 11, 13 and 14, Invariant 2.1, 3.2 and 4.1, Operation 1, 2, 3, 6, 11, 12, 38 and 42 through 44 checked on every record an admitted [Record] writes, with Operation 7 and 9 and String 2 through 5 checked through them); selective-disclosure.tla + 18 twins (across steps, while the clock moves: Invariant 1.1 and 6.1, Identity 8, Capability requirement 9, Operation 10, 13, 16 through 20 and 27 through 29, with Invariant 1.2, State 4 through 7, Identity 1, 4 and 7, Concurrency 2, Correction 1 and 2 and Non-goal 14 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 5.2, Identity 12, Capability requirement 6, Concurrency 1 and Correction 3 and 4 cannot be stated; owed rows: Identity 2, 9 and 10; Operation 4, 5, 14 and 30; Operation 22 through 25, 36 and 45; String 1 and 6, 2026-11-12; model redraw deferred to Lean: selective-disclosure.als and its twins, Operation 7 and Invariant 4.1 (now checked against the future bound, now and the clock allowance), 2026-11-27
-last gate: 2026-11-27 — Final Critique 24, a delta round (diff base 09de2f3a, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 1 after the blind second triage, cured, not clean, one sample (Linus's report counted no foundational finding; the blind second triage found one it had not reported, that Term receipt instant said the comparison of External check 3 spends no clock allowance while Invariant 4.1, since Final Critique 23, is cleared against the future bound, now plus the clock allowance, so an auditor following the term flags a lawful record whose disclosure instant lies within the allowance past the receipt instant; cured: the term says no allowance is spent between the receipt instant and this atom's now and that the check clears Invariant 4.1 against the future bound; Invariant 4.1 now writes its comparison with DOES NOT PRECEDE, as GRACE-lang Earned vocabulary 18 asks of an instant comparison); 2026-11-27 — Final Critique 23, a full round, frozen at 09de2f3a — foundational count 1, cured, not clean, one sample
+last gate: 2026-11-27 — Final Critique 25, a delta round (diff base 29e021c7, 4 labels: State 10, Term receipt instant, Invariant 4.1, External check 3), one reader (Linus opencode-go/beam-free; GRID and EOS not run; the Claude reader off), frozen at b6fb2930 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational report, that External check 3's trigger ("needing a backdated disclosure instant detected, and Invariant 4.1 cleared") cannot be established without the read it gates, was placed rhetorical by both triages (one cold Opus 5.5 subagent, given the test paragraph alone): the trigger is the deployment's need, the page's one opt-in form (External check 1, 2 and 6, Non-goal 9 and 23), and the comparison of the receipt instant with the disclosure instant is the detection, so no build reads it only after backdating is found; the finder's cure, a read for every deployment, would bind a deployment that composes no event log pattern and was not applied; the refining remark cured (Term receipt instant now says that no clock allowance is spent inside the one composing action, and that External check 3 clears Invariant 4.1 against the receipt instant plus the clock allowance the record's creation read, Execution Contract Logic confinement 17); 2026-11-27 — Final Critique 24, a delta round (diff base 09de2f3a, 106 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 1 after the blind second triage, cured, not clean, one sample (Linus's report counted no foundational finding; the blind second triage found one it had not reported, that Term receipt instant said the comparison of External check 3 spends no clock allowance while Invariant 4.1, since Final Critique 23, is cleared against the future bound, now plus the clock allowance, so an auditor following the term flags a lawful record whose disclosure instant lies within the allowance past the receipt instant; cured: the term says no allowance is spent between the receipt instant and this atom's now and that the check clears Invariant 4.1 against the future bound; Invariant 4.1 now writes its comparison with DOES NOT PRECEDE, as GRACE-lang Earned vocabulary 18 asks of an instant comparison); 2026-11-27 — Final Critique 23, a full round, frozen at 09de2f3a — foundational count 1, cured, not clean, one sample
 
 open: none
 ```

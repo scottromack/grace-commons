@@ -186,7 +186,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints holding id. Offers key holding id.
 
-**[Selective Disclosure](./atoms/selective-disclosure.md)** (620 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
+**[Selective Disclosure](./atoms/selective-disclosure.md)** (630 lines). Selective Disclosure keeps a permanent, add-only record of every time someone's data was shared with anyone other than that person — answering the question regulators and individuals routinely ask: what was shared about this person, with whom, under what authority, and when?
 
 - Mints disclosure id. Offers key disclosure id.
 
