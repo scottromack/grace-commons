@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 41 with bond lines; 2 app(s).
+53 atoms, 42 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -206,9 +206,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs guard critical section key; key invocation id; journal closing record, recovery_intended.
 
-**[Tag](./atoms/tag.md)** (520 lines). Tag lets a business keep a flat list of named tags — clay, cover-crops, beginners — and put several on one item, so the item is found through any of them.
+**[Tag](./atoms/tag.md)** (528 lines). Tag lets a business keep a flat list of named tags — clay, cover-crops, beginners — and put several on one item, so the item is found through any of them.
 
-- No bond lines yet.
+- Needs key opaque.
 
 **[Tamper Evidence](./atoms/tamper-evidence.md)** (749 lines). Tamper Evidence answers one question: has this set of records changed since it was sealed?
 

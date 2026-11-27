@@ -469,7 +469,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-app-key-read"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-app-key-read", "B-record-no-need"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -2016,6 +2016,19 @@ def bond_findings(root: Path) -> list[Finding]:
             findings.append(Finding(b["path"], b["line"], "B-app-offer",
                                     "an app carries need lines and no offer line (bonds.md Bond 13)"))
     lines = [b for b in lines if b["side"] == "need" or b["path"] not in apps]
+    # unit `atoms: a held reference is a key need — Tag first` (2026-11-27): a record atom that declares no
+    # need is a notice, not a finding: a reference it holds to another atom's record is a key need (Bonds
+    # Key 27), and the checker cannot tell a held reference from page text, so a person looks twice
+    needers = {b["path"] for b in lines if b["side"] == "need"}
+    for p in atoms:
+        if p.match(HISTORY) or p.name in ("index.md", "TAXONOMY.md", "_TAXONOMY.md") or p in needers:
+            continue
+        text = p.read_text(encoding="utf-8")
+        m = re.search(r"^Term records:[ \t]*(.+)$", text, re.M)
+        if m and not m.group(1).strip().lower().startswith(("empty", "none")):
+            findings.append(Finding(p, text[:m.start()].count("\n") + 1, "B-record-no-need",
+                                    "a record atom that declares no need: look twice, since a reference it holds "
+                                    "to a record another atom keeps is a key need (Bonds Key 27)"))
     for b in lines:
         if b["kind"] not in kinds:
             findings.append(Finding(b["path"], b["line"], "B-bond-kind", f"`{b['kind']}` is no kind bonds.md states"))

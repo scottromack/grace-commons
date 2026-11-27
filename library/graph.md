@@ -100,7 +100,7 @@ Layer 0: [Lease](./atoms/lease.md), [List](./atoms/list.md). A dashed box is an 
 
 A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no node and no arrows: Actor Identity's actor id and Event Log's journal. An app names the atom that meets it.
 
-Ordering can order the records of any atom that offers a key, so its opaque key need is drawn as no arrows; an app names which atom's key (a bond instance).
+Ordering and Tag hold a key need typed opaque, which any atom that offers a key meets, so it is drawn as no arrows; an app names which atom's key (a bond instance).
 
 ## Reverse leverage — atoms by fan-in
 

@@ -386,6 +386,14 @@ Term string cap: the bound on an item reference's length and on a tag name's len
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice (Bonds Key 27). A tagging holds an item reference, a reference to a record another atom keeps; the tag id names a record this atom keeps and is no need (Bond 1).
+
+Term need key: key opaque; pairs taggings.
+
+No on end is needed: a tagging names its item by reference only, [Items With] answers the reference as recorded, and an app that wants an ended item's taggings gone calls [Remove] for each.
+
 ## Left to others
 
 ```

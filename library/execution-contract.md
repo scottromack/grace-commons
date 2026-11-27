@@ -210,6 +210,8 @@ Atoms carrying the regulated overlay, and any atom whose examples invoke regulat
 
 An app is chosen atoms, the bond instances it declares and a little counted glue (Scott, 2026-11-22), and an app may be of any shape (2026-11-23). It is not a merged state machine and owns no records of its own: it is a **stateless flow over its atoms**, a function that, within one call of one of its actions, runs its atoms' actions in the order it states. What looks like an app's state (the answer one atom gave, the branch taken) lives on the call stack for that one call and is gone when the call returns. A state of the app's own would have no atom page, no identity model, no durability contract and no invariants, so the app keeps none: where it must remember that a sequence ran, the memory is an atom's records, read through a journal offer (the section titled Two kinds). The one state an app may carry is a derived index (the section titled App state).
 
+An atom that holds no records, such as Money, is called by the app's glue and bonds to nothing, by design.
+
 A composition not yet dissolved into an app is held to every rule of this contract said of an app: its actions are app actions, its constituents are the app's atoms, and its wiring layer is the app's flow, so each label below keeps its meaning for it, no composition loses its meaning and no sweep runs.
 
 ### App state — the derived-index rule and the extraction rule

@@ -48,7 +48,7 @@ class Catalog(unittest.TestCase):
         self.assertIn('  b1_task -->|"list id"| b1_list', lines)
         # an opaque key need (Ordering's) meets every key offer, so it is drawn as no arrow, and said once
         self.assertFalse(any(ln.startswith("  b1_ordering ") and '"opaque"' in ln for ln in lines))
-        self.assertTrue(any(ln.startswith("Ordering can order the records of any atom") for ln in lines))
+        self.assertTrue(any(ln.startswith("Ordering") and "a key need typed opaque, which any atom that offers a key meets" in ln for ln in lines))
 
     def test_bond_graph_hubs_are_tags(self):
         v = catalog.bond_layers(self.data)

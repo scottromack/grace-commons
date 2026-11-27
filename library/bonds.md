@@ -129,6 +129,7 @@ Key 23: The needing atom MUST NOT call the offering atom.
 Key 24: IF the key check finds no record carrying the written key THEN the writing action MUST answer not-known AND MUST commit nothing (Execution Contract Refusal 3).
 Key 25: The writing action MUST NOT answer storage-failure for a written key no record carries.
 Key 26: EVERY key offer MUST name the offering atom's existence read under calls.
+Key 27: A record atom MUST declare a key need for EVERY reference the record atom holds to a record another atom keeps.
 ```
 
 A key bond is a foreign key: it is checked on write and acted on at delete (Scott, 2026-11-25 11:10 PM Central, "Foreign keys are checked on write and acted on at delete"). The delete half is on end (Key 3 to 8); the write half is the key check (Key 21 to 26), decided once here for every key need, an opaque one included. The needing atom confirms nothing: the app asks the offering atom's existence read inside the writing action's transaction, so a write naming a record that does not stand commits nothing and answers not-known, never storage-failure. An atom's own rule that it does not confirm a reference stands: the app confirms it.

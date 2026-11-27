@@ -247,8 +247,10 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
         L += [f"A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no "
               f"node and no arrows: {hub_names}. An app names the atom that meets it.", ""]
     if v["opaque"]:
-        L += [f"{', '.join(titles[p] for p in v['opaque'])} can order the records of any atom that offers a key, "
-              "so its opaque key need is drawn as no arrows; an app names which atom's key (a bond instance).", ""]
+        names = [titles[p] for p in v["opaque"]]
+        who = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+        L += [f"{who} {'holds' if len(names) == 1 else 'hold'} a key need typed opaque, which any atom that offers a key "
+              "meets, so it is drawn as no arrows; an app names which atom's key (a bond instance).", ""]
     unmet = [f"{titles[p]} ({shown(n)})" for p in d["atoms"] for n in d["lines"][p]
              if n["side"] == "need" and not d["meets"][(p, n["line"])]]
     if unmet:
