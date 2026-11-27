@@ -30,7 +30,7 @@ When litigation is filed or reasonably anticipated, the duty to preserve arrives
 ```
 Identity 1: The atom MUST identify a hold by the hold id.
 Identity 2: The host MUST allocate a hold id at the atom's seam.
-Identity 3: The transition MUST NOT allocate a hold id.
+Deleted: Identity 3. Execution Contract Logic confinement 3 owns it: the host injects the hold id at the seam, and the transition allocates none.
 Identity 4: The atom MUST NOT reuse a hold id within one database instance.
 Identity 5: The atom MUST NOT reassign a hold id.
 Identity 7: The atom MUST NOT identify a hold by the record reference.
@@ -181,7 +181,7 @@ Projection: store_name
 
 #### Active
 
-The non-terminal state of a hold whose preservation obligation is in effect. A composition wiring this atom to a purge surface treats an [Active] hold as blocking purge. May be released or read.
+The non-terminal state of a hold whose preservation obligation is in effect. A composition wiring this atom to a purge surface treats an [Active] hold as blocking purge (Composition note 10). May be released or read.
 
 Kind:       Member
 Member of:  the hold state
@@ -210,6 +210,7 @@ Instance 7: IF the answered database name DOES NOT EQUAL the database name of th
 Instance 8: The deployment MUST route a call of [Place] to the record's own database instance.
 Instance 9: The deployment MUST route a call of [Release] to the database instance the host allocated the hold id for.
 Instance 10: IF the answered database name DOES NOT EQUAL the database name of the record's database instance THEN a composing pattern MUST NOT purge the record (Composition note 2).
+Instance 11: The deployment MUST NOT change a record's database instance.
 ```
 
 Term database instance: one named database — a [Database Instance]; a [Database Name] identifies it, and a deployment runs one per organization, jurisdiction or business unit.
@@ -235,7 +236,7 @@ Term resolved release instant: the release instant the release records — the c
 
 Term supplied instant: a placement instant or release instant the business caller supplies — a point in time, as GRACE-lang Term instant declares it, written with the offset from UTC (Coordinated Universal Time) that places it, as `2026-02-14T09:30:00Z`; a bare date, and a date and time with no offset, name no one point in time, so neither is an instant and the call is malformed (Execution Contract Input 3).
 
-Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the instant PRECEDES the hold's release instant, so a hold released at its own placement instant is held at no instant — the reconstruction an auditor runs over the stored fields of the committed version a read answered from, never over the hold state alone.
+Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the instant PRECEDES the hold's release instant, so a hold released at its own placement instant is held at no instant — the reconstruction an auditor runs over the stored fields of the committed version a read answered from, never over the hold state alone; a purge's check reads no instant, and Composition note 10 decides the check by the hold state, in commit order.
 
 The case space, and the rule that owns each case:
 
@@ -377,11 +378,12 @@ Operation 26: [Read] MUST accept a filter on EVERY admitted axis.
 Operation 26a: [Read] MUST accept a query combining admitted axes.
 Operation 27: IF the query carries an axis outside the admitted axes THEN [Read] MUST answer invalid-query.
 Operation 28: IF a filter value EQUALS blank THEN [Read] MUST answer invalid-query.
-Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
+Deleted: Operation 29. Execution Contract Query 1 and Operation 46 own it: a hold state filter carrying no member of the hold state set is malformed, and the read answers the query invalid-query.
 Operation 30: IF a range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
-Operation 44: IF a filter value EXCEEDS the string cap THEN [Read] MUST answer invalid-query.
-Operation 45: IF a range carries no start OR a range carries no end THEN [Read] MUST answer invalid-query.
+Deleted: Operation 44. Execution Contract Query 5 and Operation 46 own it: a filter value over the string cap is malformed, and the read answers the query invalid-query.
+Deleted: Operation 45. Execution Contract Query 1 and Operation 46 own it: a range missing the range's start or the range's end is malformed, and the read answers the query invalid-query.
+Operation 46: IF the query is malformed THEN [Read] MUST answer invalid-query (Execution Contract Query 1, Execution Contract Query 5).
 Operation 34: [Read] MUST NOT write.
 ```
 
@@ -390,7 +392,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the hold records |
 |---|---|---|---|
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
-| [Read] | unknown axis, blank value, value over the string cap, bad state, inverted range or range missing an end | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30, Operation 44, Operation 45) |
+| [Read] | unknown axis, blank value, value over the string cap, bad state, inverted range or range missing an end | [Invalid Query] | none — rejected rather than silently ignored (Operation 27, Operation 28, Operation 30, Operation 46) |
 | [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
 
 #### Holds
@@ -439,7 +441,7 @@ Projection: invalid-query
   ```
   Invariant 4.1: A release MUST NOT change another hold's state.
   Invariant 4.2: A hold's state MUST rest on that hold's own release alone.
-  Invariant 4.3: A record MUST read as held at an instant ONLY IF a hold over the record is held at the instant in the committed version of the hold the read answered from (Term held at an instant, Execution Contract Database 5).
+  Invariant 4.3: An auditor MUST read a record as held at an instant ONLY IF a hold over the record is held at the instant in the committed version of the hold the read answered from (Term held at an instant, Execution Contract Database 5).
   ```
 - **Invariant 5 — Release attribution is complete.**
   ```
@@ -575,6 +577,7 @@ Composition note 6: A composing pattern MUST own a bulk release.
 Composition note 7: A composing pattern MUST commit the check of a record's active holds and the purge of the record together, the check read inside the transaction that writes the purge (Execution Contract Database 1, Execution Contract Database 2).
 Composition note 8: A composing pattern MUST pass the placement instant and the release instant a business caller supplies down to [Place] and [Release] unchanged, in EVERY call that Composition note 3 through 6 give the composing pattern.
 Composition note 9: A composing pattern MUST read an invalid-request that the atom answers on a supplied instant as no placement and no release, whatever authority the composing pattern granted for the call.
+Composition note 10: IF the hold state of a hold over a record EQUALS active in the committed version the check of the record's active holds reads THEN a composing pattern MUST NOT purge the record (Composition note 7, Execution Contract Order 2).
 ```
 
 NOTE: composing patterns — a lawful-disposal pattern, an audit pattern.
@@ -675,7 +678,7 @@ Check 6.4: An auditor MUST find EVERY release field of a released hold equal in 
 #### External checks
 
 ```
-External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2).
+External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2, Composition note 10).
 External check 2: An auditor MUST read who was permitted to place a hold from the app's permission (Non-goal 7).
 External check 3: An auditor MUST read a hold record's integrity from the composing tamper-evidence pattern's seals (Non-goal 11).
 External check 4: An auditor MUST read the matter a case reference names from the deployment's case-management system (Non-goal 9).
@@ -751,7 +754,7 @@ Term terms: database instance, database name, hold, hold id, record reference, s
 ```
 status: doing
 formal: verified — legal-hold.tla + 4 twins (2026-06-04; 2026-11-21: the entry instant, and Invariant 1.1 and 8.2 checked across steps, Check 6.1 and 6.2 read over committed versions, Invariant 2.1 across steps by construction); legal-hold.als + 19 twins (the static data model, 2026-11-11, the entry instant 2026-11-21: Invariant 1.1, 1.2, 2.1, 3.1, 4.2, 5.1, 5.2, 5.3, 6.1, 7.1, 7.2, 7.3 and 7.4, State 5, Operation 4 and 43 and Instance 2 checked on every hold record an admitted [Place] or [Release] leaves, Invariant 1 and 3.1 read against the versions that built the record, Invariant 4.2 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 3.2, 4.1, 4.3 and 8: 3.2 names what the signature offers, not a state, and its twin is caught by 3.1; 4.1 and 8 compare two readings, a deleted hold leaving nothing in one state; 4.3 defines a reading over stored fields with no stored aggregate to hold it to); nothing testable in the models for Term supplied instant: the form a supplied instant takes is the wire's (Execution Contract Input 3), and a model's instant is already one point in time; Composition note 7 through 9 and Instance 8 through 10 are the deployment's and the composing patterns' duties, outside the atom's models; model redraw deferred to Lean: legal-hold.als, Operation 7; coverage 2026-11-10 (unit formal: more coverage for the yes votes), 2026-11-11, 2026-11-21
-last gate: 2026-11-26 — Final Critique 12, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro; the Claude reader read beside them), frozen at e5104028 — foundational count 3, cured, not clean, no sample; 2026-11-25 — Final Critique 11, a delta round, one reader (Linus Claude Sonnet 5.5; GRID and EOS not run), frozen at c00e24f8 — foundational count 0 after the blind second triage, clean, one sample (the diff base 35745b6a, the reach of the page's seven labels changed or citing a change since Final Critique 10; Linus rated one finding foundational, that Invariant 4.3's second "an instant" is not bound to its first, so a read at a past instant could answer held; the blind second triage, one cold reader on Opus 5.5, placed it refining, Kind A: the atom answers no "held" (Operation 23 answers holds, State 8 and Aggregate 2 hold no record-level reading), so no two builds differ, and the only reader at a past instant is an auditor; five refining and one rhetorical report placed, one refuted on Backdating 3; cured as refining in the round: Invariant 4.3 now binds the instant by the Term, the Term's closing phrase reads over the stored fields as they stand, Instance 7 compares names with a name, External check 6 reads the weight of a back-dated supplied instant from outside the records, and the OCR heading is spelled out; the next round is a delta round on those cures); 2026-11-21 — Final Critique 10, a full round, frozen at 35745b6a — foundational count 0 after the blind second triage, clean, one sample; Grid's one foundational claim (a placement instant equal to now) refuted, since Operation 8 refuses only a future instant, the case table admits one that is not future and a blank one resolves to exactly now (Execution Contract Logic confinement 12), and Linus's five placed refining or refuted (a released hold's storage-failure leaves it active, Place persistence 4; Database 5 binds every deployment and the checks cite Generation acceptance 1); the settle's own refining cures: Operation 10 admits a placement instant at or below now, Instance 7 reads a mismatched answer as deciding nothing, Backdating 4 gives a back-dated release instant its owner, Composition note 1 deleted to Execution Contract Conformance 9, Term held at an instant states its boundary, Non-goal 17's pattern marked forthcoming; 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8, frozen at c39a73f — foundational count 0, clean, one sample
+last gate: 2026-11-27 — Final Critique 13, a delta round (diff base e5104028, 111 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 77e6708a — foundational count 2 after the blind second triage, cured, not clean, no sample (Linus held his three questions and raised two refining lines, both refuted; the blind second triage placed his third question foundational, Kind A: Aggregate 1 read a record held on the hold state alone while Invariant 4.3 asked for a placement instant at or before the instant, so under clock skew the deployment owns a composing pattern could read the record held or purge it, cured by Invariant 4.3 binding the auditor's reconstruction and Composition note 10 deciding the purge check by the hold state in commit order; and found one of its own, Kind A: nothing fixed a record's database instance over its life, so a record moved between instances escapes Instance 7 and 10, cured by Instance 11; its two refining lines, Identity 3 restating Execution Contract Logic confinement 3 and Operations 29, 44 and 45 restating Query 1 and Query 5, are cured by tombstones and Operation 46); 2026-11-26 — Final Critique 12, a full round (GRID opencode-go/glm-5.3-flash, EOS opencode-go/minimax-m3, Linus opencode-go/mimo-v2.6-pro; the Claude reader read beside them), frozen at e5104028 — foundational count 3, cured, not clean, no sample; 2026-11-25 — Final Critique 11, a delta round, one reader (Linus Claude Sonnet 5.5; GRID and EOS not run), frozen at c00e24f8 — foundational count 0 after the blind second triage, clean, one sample (the diff base 35745b6a, the reach of the page's seven labels changed or citing a change since Final Critique 10; Linus rated one finding foundational, that Invariant 4.3's second "an instant" is not bound to its first, so a read at a past instant could answer held; the blind second triage, one cold reader on Opus 5.5, placed it refining, Kind A: the atom answers no "held" (Operation 23 answers holds, State 8 and Aggregate 2 hold no record-level reading), so no two builds differ, and the only reader at a past instant is an auditor; five refining and one rhetorical report placed, one refuted on Backdating 3; cured as refining in the round: Invariant 4.3 now binds the instant by the Term, the Term's closing phrase reads over the stored fields as they stand, Instance 7 compares names with a name, External check 6 reads the weight of a back-dated supplied instant from outside the records, and the OCR heading is spelled out; the next round is a delta round on those cures); 2026-11-21 — Final Critique 10, a full round, frozen at 35745b6a — foundational count 0 after the blind second triage, clean, one sample; Grid's one foundational claim (a placement instant equal to now) refuted, since Operation 8 refuses only a future instant, the case table admits one that is not future and a blank one resolves to exactly now (Execution Contract Logic confinement 12), and Linus's five placed refining or refuted (a released hold's storage-failure leaves it active, Place persistence 4; Database 5 binds every deployment and the checks cite Generation acceptance 1); the settle's own refining cures: Operation 10 admits a placement instant at or below now, Instance 7 reads a mismatched answer as deciding nothing, Backdating 4 gives a back-dated release instant its owner, Composition note 1 deleted to Execution Contract Conformance 9, Term held at an instant states its boundary, Non-goal 17's pattern marked forthcoming; 2026-11-02 — Final Critique 9, a delta round, frozen at d1e9f55 — foundational count 0, clean, no sample; 2026-10-24 — Final Critique 8, frozen at c39a73f — foundational count 0, clean, one sample
 
 open: none
 ```

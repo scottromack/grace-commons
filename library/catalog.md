@@ -102,7 +102,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Offers guard opaque.
 
-**[Legal Hold](./atoms/legal-hold.md)** (771 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
+**[Legal Hold](./atoms/legal-hold.md)** (774 lines). Legal Hold records a formal instruction to keep one record intact, overriding any normal deletion schedule, until the legal matter behind it ends.
 
 - Mints hold id. Needs key actor id. Offers key hold id.
 
