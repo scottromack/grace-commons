@@ -347,7 +347,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 14,
   "kind": "atom",
   "models": {
@@ -362,7 +362,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-27",
   "title": "Capacity Constraint Enforcement"
  },
  "cart": {
