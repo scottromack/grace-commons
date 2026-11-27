@@ -243,7 +243,7 @@ Every term the registry declares has an entry under `## Terms`: a `####` heading
 | Kind | What it means | Entries |
 |---|---|---|
 | Type | a record or a value the pattern declares | 40 |
-| Field | a field of a Type | 410 |
+| Field | a field of a Type, whether the database stores it or the pattern computes it at each read; an entry whose value is computed says so in its definition and takes no other kind | 410 |
 | Member | one member of a value set the pattern declares, such as an outcome or a rejection | 472 |
 | Operation | an action or a query the pattern declares; it carries no field beside `Kind` | 296 |
 | Parameter | an input an operation takes | 86 |
