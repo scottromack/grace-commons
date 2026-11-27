@@ -591,7 +591,7 @@ Term terms: erasure tombstone, destroyed id, destroyed pattern, authority refere
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -599,9 +599,9 @@ Term terms: erasure tombstone, destroyed id, destroyed pattern, authority refere
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
-last gate: 2026-11-27 — Final Critique 6, a full round, frozen at cf9777df — foundational count 2, both cured, not clean, no sample
+last gate: 2026-11-27 — Final Critique 7, a delta round (diff base cf9777df, 15 labels, the reach of Final Critique 6's settle and the changes since), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational-rated finding (Capability requirement 2 omits Read 5, Read 6 and Query 2) was refuted: Term listing key and Operation 16, Term page size, Operation 15 and Non-goal 16, and Term window displace them, and no cure was owed
 
 open: none
 ```
