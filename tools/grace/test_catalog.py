@@ -130,6 +130,15 @@ class Connections(unittest.TestCase):
                       "**3 glue lines**, which are not bonds: sign in, accept grants, claim.", page)
         self.assertIn('  c_ordering -->|"instance 1: task id"| c_task', page)
 
+    def test_every_app_gets_one_and_glue_naming_no_atom_is_listed(self):
+        # Scott 2026-11-27 11:25 AM Central: "yes every app"
+        apps = sorted(p.parent.name for p in (ROOT / "library" / "apps").glob("*/index.md"))
+        self.assertEqual(sorted(catalog.CONNECTOR_APPS), apps)
+        page = catalog.connections_page(ROOT / "library" / "apps" / "recoverable-invocation" / "index.md",
+                                        catalog.corpus(ROOT))
+        self.assertIn('  c_sweep -->|"critical section key"| c_lease', page)
+        self.assertIn("| — | — | glue | commit 1 | not drawn: names no atom |", page)
+
 
 if __name__ == "__main__":
     unittest.main()

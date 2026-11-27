@@ -260,8 +260,8 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
 
 # Unit `site: an app's connector diagram, generated — the to-do app first` (Scott 2026-11-27 10:56 AM Central,
 # "Yes,"): an app page's connector diagram is generated from the same bond lines, never drawn by hand. Every render
-# change is pretested on one page, so the generator writes it for the apps named here.
-CONNECTOR_APPS = ("todo",)
+# change is pretested on one page; Scott 2026-11-27 11:25 AM Central, on the pretest: "yes every app".
+CONNECTOR_APPS = ("todo", "recoverable-invocation")
 GLUE_LINE = re.compile(r"^([a-z][\w ]*?): (.+?)\s*\{birth: [^}]+\}\s*$")
 
 
@@ -283,7 +283,7 @@ def app_connections(text: str, mine: list[Path], lines: dict, meets: dict, title
             if len(met) == 1:
                 o = met[0]
                 hub = (o["path"], o["line"]) in hubs
-                w = word(need) if need["kind"] == "key" else (word(o) if o["kind"] == "key" else need["kind"])
+                w = word(need) or need["kind"]
                 if hub:
                     tag = word(o) if o["kind"] == "key" else o["kind"]
                     if tag not in tags[p]:
@@ -392,6 +392,10 @@ def render_connections(c: dict, app_title: str) -> str:
           + f", and {len(c['instances'])} bond instance{'s' if len(c['instances']) != 1 else ''}. "
           + f"**{len(c['glue'])} glue line{'s' if len(c['glue']) != 1 else ''}**, which are not bonds: "
           + ", ".join(g["name"] for g in c["glue"]) + ".", ""]
+    unplaced = [g["name"] for g in c["glue"] if not g["atoms"]]
+    if unplaced:
+        L += [f"{len(unplaced)} of the glue lines name none of the app's atoms by name (`<Atom>'s`), so the diagram "
+              "draws no arrow or tag for them; the edge list names them.", ""]
     if c["own"]:
         L += ["The app page's own need" + ("s" if len(c["own"]) > 1 else "") + ", no atom's bond and not counted "
               "above: " + "; ".join(f"{shown(b)}, met by {', '.join(met) or 'no offer of the app atoms'}"
@@ -411,6 +415,8 @@ def render_connections(c: dict, app_title: str) -> str:
             L.append(f"| {t(g['atoms'][0])} | — | glue | {g['name']} | tag |")
         for q in g["atoms"][1:]:
             L.append(f"| {t(g['atoms'][0])} | {t(q)} | glue | {g['name']} | dashed arrow |")
+        if not g["atoms"]:
+            L.append(f"| — | — | glue | {g['name']} | not drawn: names no atom |")
     return "\n".join(L).rstrip("\n") + "\n"
 
 

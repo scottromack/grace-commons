@@ -39,6 +39,8 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 
 Bond kinds are [the bonds page](../../bonds.md)'s, one source; this app names the kinds it instantiates and defines none.
 
+The [connector diagram](./connections.md) draws these bonds and counts the glue below, generated from the atoms' need and offer lines and never drawn by hand.
+
 - **guard** — [Lease](../../atoms/lease.md): one writer per act. The critical section is keyed by `(kind, act_key)`; the invocation, the sweep and an operator's [Resolve] each take it before they write a closing (Durable Intent act section 8 through 10; Sweep act section 11 through 13; Bonds guard 1).
 - **key** — invocation id: every record the three atoms write for an invocation carries it, and every check and journal join pairs on it and no other field (Durable Intent Primitive policy 4 and 5; Invariant 3.1 and 3.2 of Durable Intent).
 - **journal** — [Event Log](../../atoms/event-log.md): every record Durable Intent appends and every read of an act's records goes to the one stream `invocation journal` (Durable Intent's journal need, Bonds journal 1 through 9). One keep per instance (the retention period) and one tamper (sealed): kinds with different retention periods run under different instances.
