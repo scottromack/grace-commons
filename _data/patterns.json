@@ -1217,7 +1217,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -1228,7 +1228,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-27",
   "title": "Money"
  },
  "multi-party-approval": {
