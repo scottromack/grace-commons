@@ -54,7 +54,7 @@ Identity 4: The atom MUST NOT change a step id.
 Identity 5: Two steps in one database instance MUST NOT share a step id.
 Identity 8: The atom MUST NOT identify a step by the subject reference.
 Identity 9: The atom MUST admit a second step carrying a recorded subject reference.
-Identity 10: The atom MUST compare a reference byte for byte.
+Deleted: Identity 10. String 1 owns it: a reference is a string input, compared byte for byte.
 Identity 11: The atom MUST NOT normalize a reference.
 Identity 12: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
@@ -607,7 +607,7 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 String 6: The atom MUST read an absent string input that the signature does not mark optional as blank.
 ```
 

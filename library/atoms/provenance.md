@@ -501,7 +501,7 @@ The case space, and the rule that owns each case:
 
 `transform("chain-0041", "manuf-lab-7", "added label update")` against the archived pharmaceutical chain → archived. The chain-state rejection precedes the attribution guard, so the caller learns the chain is closed rather than that they are not the custodian (Operation 13, Execution Contract Refusal 1).
 
-`transform("chain-0107", "forensic-lab-12", "   ")` → invalid-descriptor. A whitespace-only descriptor EQUALS blank (Operation 24, String 5).
+`transform("chain-0107", "forensic-lab-12", "   ")` → invalid-descriptor. A whitespace-only descriptor EQUALS blank (Operation 24, GRACE-lang Term blank).
 
 #### Invalid Descriptor
 
@@ -714,7 +714,7 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 String 7: IF a reference EXCEEDS the maximum length THEN the action MUST answer invalid-ref.
 String 8: IF transformation descriptor EXCEEDS the maximum length THEN [Transform] MUST answer invalid-descriptor.
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.

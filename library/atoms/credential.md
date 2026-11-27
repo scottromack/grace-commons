@@ -55,7 +55,7 @@ Identity 3: The atom MUST NOT generate a credential id.
 Identity 4: The atom MUST NOT change a credential's credential id.
 Identity 5: Two credentials MUST NOT share a credential id.
 Identity 6: The atom MUST NOT identify a credential by the pair.
-Identity 7: The atom MUST compare a reference byte for byte.
+Deleted: Identity 7. String 1 owns it: a reference is a string input, compared byte for byte.
 Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
@@ -622,8 +622,8 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
-String 6: The atom MUST read an absent string input as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 String 7: IF a string input EXCEEDS the length bound THEN [Register] MUST answer invalid-request.
 String 9: IF a string input EXCEEDS the length bound THEN [Revoke] MUST answer invalid-request.
 String 11: IF a string input EXCEEDS the length bound THEN [Verify] MUST answer no-active-credential (Execution Contract Input 2).

@@ -36,8 +36,8 @@ Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the standing id.
 Identity 3: The host MUST allocate a standing id at the seam that no standing record carries PER Execution Contract Logic confinement 16.
 Identity 4: The atom MUST NOT reuse a standing id.
-Identity 5: The atom MUST NOT interpret a subject beyond reading a subject carrying only white space as blank (String 5).
-Identity 6: The atom MUST NOT interpret a scope beyond reading a scope carrying only white space as blank and every blank scope as one scope (String 5, String 6).
+Identity 5: The atom MUST NOT interpret a subject beyond reading a subject carrying only white space as blank (the grammar's Term blank).
+Identity 6: The atom MUST NOT interpret a scope beyond reading a scope carrying only white space as blank and every blank scope as one scope (the grammar's Term blank, String 6).
 Identity 7: The atom MUST NOT interpret a run id.
 ```
 
@@ -576,7 +576,7 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 String 6: The atom MUST read EVERY blank scope as one scope.
 ```
 

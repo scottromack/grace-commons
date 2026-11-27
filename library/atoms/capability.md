@@ -624,7 +624,7 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 String 6: The deployment MAY declare a maximum length per string input PER Execution Contract Input 2.
 String 7: IF a string input EXCEEDS the maximum length THEN [Allocate] MUST answer invalid-request.
 String 9: IF the capability is revocable AND revoked by reference EXCEEDS the maximum length THEN [Revoke] MUST answer invalid-request.

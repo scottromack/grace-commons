@@ -472,8 +472,8 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
-String 6: The atom MUST read an absent string input as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 ```
 
 Term string input: resource, requester OR commitment id — every caller-supplied string this atom accepts; a commitment id over the string cap names no commitment.

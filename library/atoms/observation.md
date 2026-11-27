@@ -54,7 +54,7 @@ Identity 7: The atom MUST NOT identify an observation by the subject reference.
 Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
 Identity 9: A subject reference MUST carry one meaning across EVERY database instance (Execution Contract Logic confinement 13; Composition note 9; Composition note 11).
 Identity 10: An observation id MUST carry one meaning within one database instance.
-Identity 11: The atom MUST compare a reference byte for byte.
+Deleted: Identity 11. String 1 owns it: a reference is a string input, compared byte for byte.
 Identity 12: The atom MUST NOT normalize a reference.
 Identity 13: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 14: The atom MUST NOT interpret an observation type.
@@ -592,8 +592,8 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
-String 6: The atom MUST read an absent string input as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 ```
 
 Term string input: a reference, observation type, unit, reason OR a filter's value — every caller-supplied string this atom accepts.
@@ -744,7 +744,7 @@ Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation leaving retracted across two committed versions of the observation (Invariant 6.1; Execution Contract Generation acceptance 1).
-Check 5.1: An auditor MUST find no observation whose recording actor EQUALS blank (Operation 2, Operation 56, String 5; Execution Contract Database 8).
+Check 5.1: An auditor MUST find no observation whose recording actor EQUALS blank (Operation 2, Operation 56, the grammar's Term blank; Execution Contract Database 8).
 Check 5.2: An auditor MUST find no retracted observation whose retracting actor or retraction reason EQUALS blank (Operation 17, Operation 18; Execution Contract Database 8).
 Check 5.3: An auditor MUST find no successor observation whose amending actor or amendment reason EQUALS blank (Operation 16, Operation 17; Execution Contract Database 8).
 Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).

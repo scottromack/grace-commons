@@ -50,7 +50,7 @@ Identity 4: The atom MUST NOT change an invitation's token digest.
 Identity 5: Two invitations MUST NOT share a token digest.
 Identity 6: IF the database refuses an [Initiate] write for a token digest the database holds (Capability requirement 6) THEN [Initiate] MUST answer storage-failure.
 Identity 7: The atom MUST NOT identify an invitation by a property.
-Identity 8: The atom MUST compare a reference byte for byte.
+Deleted: Identity 8. String 1 owns it: a reference is a string input, compared byte for byte.
 Identity 9: The atom MUST NOT normalize a reference beyond the canonical form the seam gives the reference (Execution Contract Logic confinement 13).
 Identity 10: The atom MUST NOT confirm that an inviter reference names a known actor.
 Identity 11: The atom MUST NOT confirm that an invitee reference names a known actor.
@@ -593,8 +593,8 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input, the canonical form the seam gives a reference excepted (Execution Contract Logic confinement 13).
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
-String 6: The atom MUST read an absent string input as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 ```
 
 Term string input: a reference, context, offered scope OR reason — every caller-supplied string this atom accepts.

@@ -597,7 +597,7 @@ Operation 57: IF the query is malformed THEN [History] MUST answer invalid-query
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 45: IF a sequence number range's start EXCEEDS the range's end THEN [History] MUST answer invalid-query.
 Operation 58: IF a firing instant range's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
-Operation 87: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query (String 5, Execution Contract Query 5).
+Operation 87: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query (the grammar's Term blank, Execution Contract Query 5).
 Operation 88: IF a string filter's value EXCEEDS the string cap THEN [History] MUST answer invalid-query (Execution Contract Query 5).
 Operation 89: IF a range filter lacks the range's start OR lacks the range's end THEN [History] MUST answer invalid-query (Execution Contract Query 1).
 ```
@@ -617,7 +617,7 @@ Where two rows hold at once, the earlier row answers: row 1 by Execution Contrac
 
 #### Invalid Query
 
-The rejection [History] returns for a malformed filter — a null or whitespace-only [History Entry Id], [From State], [To State], [Action], or [Actor Reference], or one over the string cap; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key. A blank filter value is malformed: String 5 reads a whitespace-only value as blank, and a blank filter matches nothing a caller meant (Operation 43, Operation 45, Operation 57, Operation 58, Operation 87 through 89).
+The rejection [History] returns for a malformed filter — a null or whitespace-only [History Entry Id], [From State], [To State], [Action], or [Actor Reference], or one over the string cap; a reversed [Sequence Number] or [Firing Instant] range, or one missing its start or its end; or an unrecognized filter key. A blank filter value is malformed: GRACE-lang Term blank reads a whitespace-only value as blank, and a blank filter matches nothing a caller meant (Operation 43, Operation 45, Operation 57, Operation 58, Operation 87 through 89).
 
 Kind:       Member
 Member of:  the History rejection
@@ -757,8 +757,8 @@ String 1: The atom MUST compare a string input byte for byte.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a string input carrying only white space as blank.
-String 6: The atom MUST read an absent string input as blank.
+Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
+Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
 ```
 
 Term string input: workflow id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
