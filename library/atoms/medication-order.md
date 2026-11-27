@@ -471,7 +471,7 @@ Operation 1: IF a required string input EQUALS blank THEN an action MUST answer 
 Operation 10: IF order id EQUALS blank THEN an order action MUST answer a blank-input rejection.
 Operation 11: IF the order id names no order THEN an order action MUST answer not-known.
 Operation 12: An order action MUST answer not-known ONLY IF order id DOES NOT EQUAL blank.
-Operation 13: IF the order's state EQUALS on-hold THEN an order action MUST answer on-hold.
+Operation 13: IF the order's state EQUALS on-hold THEN an order action other than [Hold] and [Reinstate] MUST answer on-hold.
 Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
 Operation 62: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 88: [Order], [Amend], [Verify], [Hold], [Reinstate], [Dispense], [Administer], [Complete], [Cancel] AND [Discontinue] MUST append one order events record through the atom's journal need for EVERY admitted call.
@@ -494,7 +494,7 @@ NOTE: watch the untyped input (Operation 86, Term numeric input).
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order id, including a refused one.
 
-Term state-changing action: an order action that would change the order's state — every order action.
+Term state-changing action: every order action, whether or not the call would change the order's state.
 
 Term terminal state: completed | cancelled | discontinued.
 
@@ -515,7 +515,7 @@ Term blank-input rejection: invalid-order for [Order], invalid-request for an or
 Term required string input: patient reference, prescriber reference, medication reference, the dose unit, route and frequency of an [Order], reason, an attribution reference OR order id — every string an action refuses when blank.
 
 Term future bound: (now + clock allowance).
-NOTE: watch the future bound — now plus the clock allowance, the ceiling a claimed or occurred instant is checked against, declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
+NOTE: watch the future bound — now plus the clock allowance, the ceiling a supplied order instant is checked against (Clock semantics 4; Clock semantics 5 leaves a supplied event instant unbounded), declared here beside Execution Contract Logic confinement 18 and Offline 1, as Communication, Medication Order, Observation and Selective Disclosure each declare it.
 
 Term query axes: order id, patient reference, medication reference, prescriber reference, state and a range over order instant — every filter axis [Read] admits.
 
@@ -807,7 +807,7 @@ Operation 44: An admitted verify MUST stand the order in verified.
 
 #### Hold
 
-The behavior that suspends an order from any actionable state, recording the [State] it paused as [Prior State] along with [Holding Actor], [Hold Reason] and [Hold Instant]. An on-hold order refuses every action but [Reinstate], and a [Hold] of an on-hold order is refused [Already On Hold].
+The behavior that suspends an order from any actionable state, recording the [State] it paused as [Prior State] along with [Holding Actor], [Hold Reason] and [Hold Instant]. An on-hold order refuses every action but [Reinstate], and a [Hold] of an on-hold order is refused [Already On Hold]. It answers [Held].
 
 Kind: Operation
 
@@ -824,11 +824,18 @@ Operation 46: An admitted hold MUST record holding actor, reason as hold reason 
 Operation 47: An admitted hold MUST stand the order in on-hold.
 ```
 
+#### Held
+
+The answer [Hold] gives where the order now stands in on-hold: the order, with the state it paused, the holding actor, the reason and the instant.
+
+Kind:       Type
+Projection: held
+
 ### Reinstate
 
 #### Reinstate
 
-The behavior that resumes a held order, returning it to the state its hold recorded. Takes no target state, so it cannot return an order anywhere else. Refused [Not On Hold] on any order not on hold.
+The behavior that resumes a held order, returning it to the state its hold recorded. Takes no target state, so it cannot return an order anywhere else. Refused [Not On Hold] on any order not on hold. It answers [Reinstated].
 
 Kind: Operation
 
@@ -844,6 +851,13 @@ Operation 48: An admitted reinstate MUST record reinstating actor and now as rei
 Operation 49: An admitted reinstate MUST stand the order in the order's prior state.
 Operation 50: [Reinstate] MUST NOT accept a target state.
 ```
+
+#### Reinstated
+
+The answer [Reinstate] gives where the order is back in the state its hold recorded: the order, with the reinstating actor and the instant.
+
+Kind:       Type
+Projection: reinstated
 
 ### Dispense
 
@@ -1092,7 +1106,7 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
+String 7: IF a required string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
 ```
 
 Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.
@@ -1323,6 +1337,8 @@ Term cited: `execution-contract.md` Logic confinement — the seam and the trans
 [Discontinue]: #discontinue
 [Read]: #read
 [Order Id]: #order-id
+[Held]: #held
+[Reinstated]: #reinstated
 [Patient Reference]: #patient-reference
 [Prescriber Reference]: #prescriber-reference
 [Medication Reference]: #medication-reference
@@ -1402,8 +1418,8 @@ Term cited: `execution-contract.md` Logic confinement — the seam and the trans
 
 ```
 status: doing
-formal: verified — medication-order.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2, 3 and 4 in one state, 2026-06-04); medication-order.tla + 17 twins (re-derived 2026-11-11 over one order's amendment chain under every order action, refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 6.2, 7.1, 8.1, 9.1, 12.1 through 12.3, 13.1, 13.2 and 14.1, Invariant 2.1, 3.1 and 4.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 5 through 9 and 12 through 14: each compares an order with a later version of it or reads what a call answers, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/medication-order.md formal layer`): no owed rows, Invariant 10 and 11 unstatable (blank strings not modeled), 2026-11-11; model redraw deferred to Lean: medication-order.tla and its twins, Invariant 4.3, 5.1, 9.1, 12.2 and 12.3 (now Operation 49, 13, 45 through 46 and 48), State 13, Check 5.4, Operation 2, 80, 88, 90 and 91, 2026-11-26
-last gate: 2026-11-26 — Final Critique 8, a full round (GRID, EOS and Linus on opencode-go/glm-5.3-flash, opencode-go/minimax-m3 and opencode-go/mimo-v2.6-pro), frozen at f6b08fd4 — foundational count 6, cured, not clean, no sample (EOS's one foundational: Operation 88 fixed that one order events record is appended and what it carries nowhere, while External check 1 and the Non-goal 20 tombstone rest the full hold history on those records, and Invariant 12.2 overwrites the hold fields each cycle; cured by Operation 90 and Operation 91, which name what a hold's and a reinstate's record carry. Linus's first and second, that Invariant 12.1 forbade changing any field a prior transition wrote beside a hold field and a reinstate field, which the Order transition's state breaks at every later action, and that State 13 and Check 5.4 read a field group by value or by presence across a hold cycle; cured together: Invariant 12.1 excepts the order's state, State 13 owns presence (an order carries every field a prior transition wrote) and Check 5.4 tests the same value beside state, hold and reinstate fields. His third, that no rule refused a non-positive dose on an [Amend], cured by Operation 89. His fourth, that Term required string input named dose unit, route and frequency without the qualifier an [Amend] needs, so Operation 1 refused the worked example's amend, cured by naming them as an [Order]'s and dropping the two members no supplied string can fire. His sixth, that Indeterminate outcome 1 forbade retrying a lost [Order] before reading an order the caller cannot name, cured by scoping it to an order action, so a lost [Order] is the app's (Error model 1; Non-goal 8, Composition note 8, External check 6). His fifth, that Operation 13 and Invariant 9.1 oblige [Hold] and [Reinstate] to answer on-hold, placed rhetorical: Closed vocabulary 29 binds them only where the signature carries the outcome. The refining findings cured in the round: the four Invariants that obliged an act tombstoned to their Operations (Standard label 14), the answers held, reinstated and new_order_id declared as terms, clock offset allowance renamed clock allowance with Logic confinement 18 cited, an unused field fault term cut, the Read's query declared, a blank dose and quantity refused by name, a fractional dose admitted by name, Invariant 4.3 for the amendment chain's well-foundedness, the owners linked or marked forthcoming, and the undo sentence of Undo 4; the checker's thirty-two code-source hits placed none (the inactive states' codes are named by Term inactive state's rejection and their entries), its two code-entry hits (held, reinstated) are GRID's second refining finding, cured, and its acronym hit (II, the Roman numeral of a DEA schedule) placed none; model redraw deferred to Lean: see the formal line); 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 — foundational count 0, clean, one sample
+formal: verified — medication-order.als + 3 twins (the static data model: the amendment chain's shape, Invariant 2, 3 and 4 in one state, 2026-06-04); medication-order.tla + 17 twins (re-derived 2026-11-11 over one order's amendment chain under every order action, refusals in each refuses line's order, while the clock moves: Invariant 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 6.2, 7.1, 8.1, 9.1, 12.1 through 12.3, 13.1, 13.2 and 14.1, Invariant 2.1, 3.1 and 4.1 a cross-check with the Alloy model); nothing testable in Alloy for Invariant 1, 5 through 9 and 12 through 14: each compares an order with a later version of it or reads what a call answers, which a single state cannot show, so they are the TLA+ model's; coverage 2026-11-11 (unit `atoms/medication-order.md formal layer`): no owed rows, Invariant 10 and 11 unstatable (blank strings not modeled), 2026-11-11; model redraw deferred to Lean: medication-order.tla and its twins, Invariant 4.3, 5.1, 9.1, 12.2 and 12.3 (now Operation 49, 13, 45 through 46 and 48), State 13, Check 5.4, Operation 2, 80, 88, 90 and 91, 2026-11-26; model redraw deferred to Lean: medication-order.tla and its twins, Operation 13 (its subject now leaves out [Hold] and [Reinstate]), 2026-11-27
+last gate: 2026-11-27 — Final Critique 9, a delta round, one reader (Linus opencode-go/mimo-v2.6-flash), frozen at 2f287cf7 — foundational count 1, cured, not clean, no sample (Operation 13 bound every order action, [Hold] and [Reinstate] included, so a held order's reinstate was refused on-hold and no transition left on-hold; the rule now names the two actions it leaves out, and Operation 26 and Operation 27 stand as their refusals; Linus's other foundational, Operation 82 against Execution Contract Read 5, was refuted since Operation 74 names the primary order, the order instant; refining cured: the future bound NOTE names the supplied order instant it checks, String 7 binds a required string input, the answers held and reinstated have entries; rhetorical: the state-changing action gloss is the definition); 2026-11-26 — Final Critique 8, a full round (GRID, EOS and Linus on opencode-go/glm-5.3-flash, opencode-go/minimax-m3 and opencode-go/mimo-v2.6-pro), frozen at f6b08fd4 — foundational count 6, cured, not clean, no sample (EOS's one foundational: Operation 88 fixed that one order events record is appended and what it carries nowhere, while External check 1 and the Non-goal 20 tombstone rest the full hold history on those records, and Invariant 12.2 overwrites the hold fields each cycle; cured by Operation 90 and Operation 91, which name what a hold's and a reinstate's record carry. Linus's first and second, that Invariant 12.1 forbade changing any field a prior transition wrote beside a hold field and a reinstate field, which the Order transition's state breaks at every later action, and that State 13 and Check 5.4 read a field group by value or by presence across a hold cycle; cured together: Invariant 12.1 excepts the order's state, State 13 owns presence (an order carries every field a prior transition wrote) and Check 5.4 tests the same value beside state, hold and reinstate fields. His third, that no rule refused a non-positive dose on an [Amend], cured by Operation 89. His fourth, that Term required string input named dose unit, route and frequency without the qualifier an [Amend] needs, so Operation 1 refused the worked example's amend, cured by naming them as an [Order]'s and dropping the two members no supplied string can fire. His sixth, that Indeterminate outcome 1 forbade retrying a lost [Order] before reading an order the caller cannot name, cured by scoping it to an order action, so a lost [Order] is the app's (Error model 1; Non-goal 8, Composition note 8, External check 6). His fifth, that Operation 13 and Invariant 9.1 oblige [Hold] and [Reinstate] to answer on-hold, placed rhetorical: Closed vocabulary 29 binds them only where the signature carries the outcome. The refining findings cured in the round: the four Invariants that obliged an act tombstoned to their Operations (Standard label 14), the answers held, reinstated and new_order_id declared as terms, clock offset allowance renamed clock allowance with Logic confinement 18 cited, an unused field fault term cut, the Read's query declared, a blank dose and quantity refused by name, a fractional dose admitted by name, Invariant 4.3 for the amendment chain's well-foundedness, the owners linked or marked forthcoming, and the undo sentence of Undo 4; the checker's thirty-two code-source hits placed none (the inactive states' codes are named by Term inactive state's rejection and their entries), its two code-entry hits (held, reinstated) are GRID's second refining finding, cured, and its acronym hit (II, the Roman numeral of a DEA schedule) placed none; model redraw deferred to Lean: see the formal line); 2026-11-05 — Final Critique 7, a delta round, frozen at ec26ba5 — foundational count 0, clean, one sample
 
 open: none
 ```

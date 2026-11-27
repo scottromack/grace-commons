@@ -110,7 +110,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints list id. Needs key actor id. Offers key list id.
 
-**[Medication Order](./atoms/medication-order.md)** (1423 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
+**[Medication Order](./atoms/medication-order.md)** (1439 lines). Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end.
 
 - Mints order id. Needs key actor id; journal order events. Offers key order id.
 
