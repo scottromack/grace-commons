@@ -1023,7 +1023,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1043,7 +1043,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "done \u2014 2026-11-26",
+  "status": "doing",
   "title": "Invitation"
  },
  "lease": {
