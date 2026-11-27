@@ -44,7 +44,7 @@ Term recipient reference: the opaque string naming who the notification is for �
 
 Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged. The atom sets no cap on its size: a payload the database refuses to write answers storage-failure (Operation 7).
 
-Term delivery outcome: what a delivery attempt — the composing pattern's own, as it owns the transport (Composition note 4) — ended in, as that pattern's records hold it for a pending notification, or none where its delivery window ended with none recorded (Operation 13, Operation 14b); the value the deployment's declared fail-versus-expire policy names for failing or for expiring (Non-goal 5, Capability requirement 8); the atom keeps none (State 2).
+Term delivery outcome: what a delivery attempt — the composing pattern's own, as it owns the transport (Composition note 4) — ended in, as that pattern's records hold it for a pending notification, or none where its delivery window ended with none recorded (Operation 13, Operation 14b); each such value is one the deployment's declared fail-versus-expire policy names for failing, for expiring or for neither (Non-goal 5, Capability requirement 8); the atom keeps none (State 2).
 
 NOTE: watch the seam citation (Term seam, Term transition, Term business caller).
 
@@ -583,7 +583,7 @@ Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
 Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with an idempotency pattern.
 Composition note 6: A composing pattern MUST own a payload's retention.
-Composition note 8: A composing pattern MUST call [Fail] for each delivery outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each delivery outcome the declared policy names for expiring (Operation 14, Capability requirement 8).
+Composition note 8: A composing pattern MUST call [Fail] for each delivery outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each delivery outcome the declared policy names for expiring, and MUST NOT call either for a delivery outcome the declared policy names for neither, which leaves the notification pending (State 1, Operation 14, Capability requirement 8).
 ```
 
 NOTE: composing patterns — a fanout pattern and a preference-aware fanout pattern.
@@ -737,7 +737,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 ```
 status: doing
 formal: verified — notification.als + 5 twins (the static data model: Invariant 2, 3 and 4, and the terminal transitions' fields and statuses, 2026-06-03); notification.tla + 30 twins (2026-11-11; across steps: Invariant 1.1, 1.2, 2.2, 2.3, 2.4 (at the read), 5.1, 6.1, 8.1 through 8.3, 9.1 through 9.3, State 7, 8, Operation 1, 3, 4, 5, 7 through 13, 15 through 20, 22, 23, String 6, 8, 9; and, by way of those checks, Identity 5 through 7 (Invariant 6.1 and Operation 1), State 10 (Invariant 9.1) and Operation 14 (Operation 11 and 12)); the expiry WITHIN the 2026-11-10 note owed is no rule of the page, Operation 14a and 14b giving the delivery window to a composing pattern; owed rows: Operation 33 (a malformed recipient reference answers an empty list; the call reads and adds no state), 2026-11-20; model redraw deferred to Lean: notification.tla, Invariant 2.4 (the model checks the read at the call's instant, which the rule no longer names; its check is the stronger one and still holds), 2026-11-27
-last gate: 2026-11-27 — Final Critique 17, a delta round (diff base 9e5cfc06, 115 labels), one reader (Linus, on opencode/beam-free, then anthropic/claude-sonnet-5-5 once the free allowance ran out; GRID and EOS not run), frozen at 7bee90c7 — foundational count 2, cured, not clean, no sample: Invariant 2.4 no longer reads a read at an instant (the read's clock reading precedes its database read, Execution Contract Logic confinement 20, so a [Create] committed between the two could break it) and promises what the commit it answers from holds, no terminal stamp, with Check 2.1 citing Invariant 2.2 and Invariant 2.3 and Term pending at an instant left to the auditor's reconstruction; Capability requirement 8 keeps the failing and the expiring outcomes disjoint; the refining cure widened Deliver persistence 3 to a repeat after a lost reply
+last gate: 2026-11-27 — Final Critique 18, a delta round (diff base 7bee90c7, 7 labels), one reader (Linus, on opencode-go/beam-free; GRID and EOS not run), frozen at 72288323 — foundational count 1 after the blind second triage, cured, not clean, no sample: Term delivery outcome names each outcome for failing, for expiring or for neither, and Composition note 8 forbids a composing pattern to call [Fail] or [Expire] for an outcome named for neither, which leaves the notification pending
 
 open: none
 ```
