@@ -182,7 +182,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints retention id. Offers key retention id.
 
-**[Role](./atoms/role.md)** (635 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
+**[Role](./atoms/role.md)** (642 lines). Role lets a business name sets of allowed actions — member, moderator, admin — and put people in them.
 
 - Mints holding id. Offers key holding id.
 

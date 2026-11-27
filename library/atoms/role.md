@@ -170,6 +170,8 @@ Term holding id: the string the host supplies at the seam for the [Grant] that r
 
 Term person reference: the string naming a person, in the deployment's own scheme — a [Person Reference]; the atom reads no scheme in it.
 
+NOTE: Capability requirement 7 is the atom's own rule for the canonical form of the person reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so it is recorded as the call carries it (Execution Contract Input 4; Identity 2).
+
 ## What people do
 
 ### Every action
@@ -186,7 +188,7 @@ Operation 22: IF the person reference OR the granter reference is malformed THEN
 
 Term holding action: [Grant] | [Revoke] — the actions that change a holding.
 
-Term reading action: [Ask] | [Look Up] | [Look Up Role] — the actions that change nothing.
+Term reading action: [Ask] | [Look Up] | [Look Up Role] | [Read Holding] — the actions that change nothing.
 
 The case space, and the rule that owns each case:
 
@@ -344,7 +346,7 @@ look_up(person_reference)
 ```
 
 ```
-Operation 17: [Look Up] MUST answer the role name of EVERY held holding carrying the person reference, in the order of Execution Contract Logic confinement 10.
+Operation 17: [Look Up] MUST answer the role name of EVERY held holding carrying the person reference, in ascending role name order PER Execution Contract Logic confinement 10.
 Operation 25: IF the person reference is malformed OR the person reference EQUALS blank OR the person reference EXCEEDS the string cap THEN [Look Up] MUST answer an empty list (Execution Contract Query 5).
 ```
 
@@ -368,7 +370,7 @@ look_up_role(role_name)
 ```
 
 ```
-Operation 18: [Look Up Role] MUST answer the allowed actions of the role carrying the role name, in the order of Execution Contract Logic confinement 10.
+Operation 18: [Look Up Role] MUST answer the allowed actions of the role carrying the role name, in ascending action name order PER Execution Contract Logic confinement 10.
 Operation 19: IF the role name is malformed OR the role table holds no role carrying the role name THEN [Look Up Role] MUST answer an empty list.
 ```
 
@@ -457,7 +459,7 @@ A deployment that removes an action from a role, or a role from the table, chang
 ## Optional
 
 ```
-Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
+Capability requirement 1: The deployment MUST supply the database PER Execution Contract Database 1 through 8, Execution Contract Read 1 through 6, Execution Contract Refusal 1, Execution Contract Input 1 and Execution Contract Query 5.
 Capability requirement 2: The deployment MUST supply now at the seam PER Execution Contract Logic confinement 11.
 Capability requirement 3: The deployment MUST declare the role table PER Execution Contract Logic confinement 17.
 Capability requirement 4: The deployment MAY declare the hierarchy PER Execution Contract Logic confinement 17.
@@ -498,7 +500,7 @@ Non-goal 5: The atom MUST NOT name the first holders of grant.
 Non-goal 6: The atom MUST NOT hold a person's job in a thing.
 ```
 
-NOTE: the owners — an attestation pattern and a session pattern (Non-goal 1); the app's permission for one person and one item, a bearer-token pattern for an outsider holding a link (Non-goal 2); a lease pattern (Non-goal 3); an onboarding pattern and the forthcoming Forum, which seeds the deployment (Non-goal 4, 5); a tenure pattern, whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
+NOTE: the owners — an attestation pattern and a session pattern (Non-goal 1); the app's permission for one person and one item, [Capability-Backed Sharing](../compositions/capability-backed-sharing.md) for an outsider holding a link (Non-goal 2); [Lease](./lease.md) (Non-goal 3); an onboarding pattern and the forthcoming Forum, which seeds the deployment (Non-goal 4, 5); [Tenure](./tenure.md), whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
 
 Where the atom breaks down: a permission on one item — this post, this cart — which is the app's permission; a right that anyone holding a link may use, which is a bearer-token pattern's.
 
@@ -508,7 +510,7 @@ Composition note 2: A composing pattern MUST supply the granter reference of the
 Composition note 3: A composing pattern MUST call [Ask] once per action, at the start of the action.
 ```
 
-NOTE: composing patterns — none yet. Forthcoming: Forum, Moderation.
+NOTE: composing patterns — none yet. Forthcoming: Forum.
 
 ## Example
 
@@ -527,7 +529,7 @@ A shop declares cashier and manager, the hierarchy off. Only manager lists grant
 Role is a primitive with no regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the concept as a freestanding, composable unit of software design.
-- **Sandhu, Coyne, Feinstein and Youman, "Role-Based Access Control Models,"** IEEE (Institute of Electrical and Electronics Engineers) Computer, 1996, and the NIST (National Institute of Standards and Technology) standard built on it, ANSI (American National Standards Institute) INCITS 359-2004 — roles as named sets of permissions, people assigned to roles, and an optional role hierarchy.
+- **Sandhu, Coyne, Feinstein and Youman, "Role-Based Access Control Models,"** IEEE (Institute of Electrical and Electronics Engineers) Computer, 1996, and the NIST (National Institute of Standards and Technology) standard built on it, ANSI (American National Standards Institute) INCITS (the InterNational Committee for Information Technology Standards) 359-2004 — roles as named sets of permissions, people assigned to roles, and an optional role hierarchy.
 
 ---
 
@@ -535,7 +537,7 @@ Role is a primitive with no regulatory anchor. It inherits from:
 
 ### Generation acceptance
 
-Acceptable when the checks below are provable to an external auditor from the holdings the database holds, with their earlier versions, and the role table (Execution Contract Database 5, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
+Acceptable when the checks below are provable to an external auditor from the holdings the database holds, with their earlier versions, and the role table (Execution Contract Database 5, Execution Contract Database 8, Execution Contract Generation acceptance 1). The atom is not regulated and carries no adversarial scenarios.
 
 #### Conformance checks
 
@@ -546,12 +548,17 @@ Check 1.3: An auditor MUST find EVERY revoked holding carrying a revoker referen
 Check 2.1: An auditor MUST find no two held holdings sharing a person reference AND a role name (Invariant 2.1).
 Check 3.1: An auditor MUST find EVERY version of a holding carrying the holding id, person reference, role name, granter reference AND granted instant of the holding's first version (Invariant 3.1, Invariant 3.3 through 3.5, Invariant 3.8).
 Check 3.2: An auditor MUST find EVERY version of a holding later than a revoked version standing in revoked AND carrying the revoker reference AND the revoked instant of the revoked version (Invariant 3.2, Invariant 3.6, Invariant 3.7).
-Check 4.1: An auditor replaying [Ask] over the holdings AND the role table MUST find no allow for an action name the allowed actions of no held role carry (Invariant 1.1).
 ```
 
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes and Execution Contract Generation acceptance 1 has a check read.
 
-NOTE: EVERY check names the rule the check tests. Invariant 1.1 and Operation 15 never meet: [Ask] answers allow only where a held role's allowed actions carry the action name (advisory read by hand).
+NOTE: EVERY check names the rule the check tests. Invariant 1.1 and Operation 15 never meet: [Ask] answers allow only where a held role's allowed actions carry the action name, which no record shows, since [Ask] writes none, so External check 1 reads it by hand.
+
+#### External checks
+
+```
+External check 1: An auditor needing Invariant 1.1 cleared MUST replay [Ask] over the holdings AND the role table by hand and find no allow for an action name the allowed actions of no held role carry (Invariant 1.1).
+```
 
 ### Vocabulary
 
@@ -563,7 +570,7 @@ Term records: holding — one person in one role, carrying holding id, person re
 
 Term record verbs: identify, normalize, compare, carry, stand, remove, supply, declare, record, stamp, answer, change, write, read, share, find, tell, allow, end, choose, name, hold, own, call, replay.
 
-Term value sets: holding action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — held | revoked; decision — allow | deny; hierarchy — on | off; self-grant — on | off; action rejection — invalid-person-reference | invalid-role | not-authorized | storage-failure.
+Term value sets: holding action and reading action are declared above and cited here (GRACE-lang Closed vocabulary 15); status — held | revoked; decision — allow | deny; hierarchy — on | off; self-grant — on | off; action rejection — invalid-person-reference | invalid-role | not-authorized | not-known | storage-failure.
 
 Term bounds: string cap (the bound on a person reference's length in Unicode code points, 1,024 where a deployment declares none).
 
@@ -605,7 +612,7 @@ Term terms: holding, holdings, holding id, person reference, granter reference, 
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-27` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -613,9 +620,9 @@ Term terms: holding, holdings, holding id, person reference, granter reference, 
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 7e7453c4 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 0 foundational, 3 refining, 1 rhetorical, and the blind triage agreed on the count (its press of Final Critique 2's cure, Capability requirement 10 and the paragraph on a role table that changes, found no two builds that diverge); refining cured: Capability requirement 10 reads a role that names a parent role the role table does not hold, so a role with no parent role is a lawful root, a retiring role's children take another parent role or none, and the revoke-first clause is a deployment's own practice stated as such and cites the rule that requires the reparent (the blind triage refuted the clause's finding as a state the page names and explains); rhetorical left (counts in no ask is Term held and Term revoked's own idiom); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at bcecf938 — foundational count 1, cured by the settle, not clean, no sample; Linus's first foundational kept Kind A by the first triage (Opus 5.5 decided it): Capability requirement 8 forbade only a parent cycle, so a role table whose role named a parent the table does not hold left Term allowed actions without an answer, and one build let the missing parent add nothing where another refused the call, for [Ask], [Look Up Role] and the grant and revoke checks alike; cured as the finder proposed in a requirement of its own (Capability requirement 10, so Capability requirement 8 gains no `or`), less its clause on a parent that is not a string, which cannot name a role the table holds (Identity 4), and the paragraph on a role table that changes now has a retiring deployment reparent the role's children; its second foundational (Operation 22 against the [Ask] and [Look Up] rows) refuted by Term holding action, which lists [Grant] and [Revoke] only, so Operation 23 and Operation 25 answer a malformed reference there; its three refining items refuted or owed no cure (Term hierarchy and Term reading action define what the reader said was undefined, and an empty list for an unknown role and for a role with no actions are both defined); 2026-11-18 — Final Critique 1, frozen at 66927df3 — foundational count 7, cured by the settle, not clean, no sample
+last gate: 2026-11-27 — Final Critique 4, a full round, three readers (GRID opencode-go/glm-5.3-flash, EOS opencode-go/claude-haiku-5-5, Linus opencode-go/mimo-v2.6-pro), frozen at 62e7e4d4 — foundational count 0 after the blind second triage, clean, one sample; five reports were rated foundational by their finders and both triages placed each refining: the replay of [Ask] among the conformance checks replays an action that writes no record, over a role table the records do not hold, so it cannot fail and is no records-alone check (cured: it is External check 1, read by hand); Database 8 binds every specification's state checks whether the page cites it (cured: cited); Capability requirement 7 against Execution Contract Logic confinement 13, where "MUST NOT normalize" fixes the canonical form as the string the call supplies (cured: a NOTE says the rule stands in place of Logic confinement 13); the reads' caller (the app's permission owns it, Bonds permission 2); the string cap's reach (a hardening choice, the page bounds the person reference only); and the order of [Look Up] and [Look Up Role] (cured: ascending, PER Logic confinement 10); the owners' links, the reading action's term, the forthcoming Moderation, the acronym and the action rejection's value set are cured too; 2026-11-19 — Final Critique 3, a delta round, one reader (Linus claude-sonnet-5-5), frozen at 7e7453c4 — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 0 foundational, 3 refining, 1 rhetorical, and the blind triage agreed on the count (its press of Final Critique 2's cure, Capability requirement 10 and the paragraph on a role table that changes, found no two builds that diverge); refining cured: Capability requirement 10 reads a role that names a parent role the role table does not hold, so a role with no parent role is a lawful root, a retiring role's children take another parent role or none, and the revoke-first clause is a deployment's own practice stated as such and cites the rule that requires the reparent (the blind triage refuted the clause's finding as a state the page names and explains); rhetorical left (counts in no ask is Term held and Term revoked's own idiom); 2026-11-19 — Final Critique 2, a delta round, one reader (Linus opencode/beam-free), frozen at bcecf938 — foundational count 1, cured by the settle, not clean, no sample; Linus's first foundational kept Kind A by the first triage (Opus 5.5 decided it): Capability requirement 8 forbade only a parent cycle, so a role table whose role named a parent the table does not hold left Term allowed actions without an answer, and one build let the missing parent add nothing where another refused the call, for [Ask], [Look Up Role] and the grant and revoke checks alike; cured as the finder proposed in a requirement of its own (Capability requirement 10, so Capability requirement 8 gains no `or`), less its clause on a parent that is not a string, which cannot name a role the table holds (Identity 4), and the paragraph on a role table that changes now has a retiring deployment reparent the role's children; its second foundational (Operation 22 against the [Ask] and [Look Up] rows) refuted by Term holding action, which lists [Grant] and [Revoke] only, so Operation 23 and Operation 25 answer a malformed reference there; its three refining items refuted or owed no cure (Term hierarchy and Term reading action define what the reader said was undefined, and an empty list for an unknown role and for a role with no actions are both defined); 2026-11-18 — Final Critique 1, frozen at 66927df3 — foundational count 7, cured by the settle, not clean, no sample
 
 open: none
 ```
