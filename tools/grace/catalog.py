@@ -101,7 +101,7 @@ def catalog(root: Path, data: dict | None = None) -> str:
                         and isinstance(b["fields"].get("key"), str)})
         needs = [shown(b) for b in bl if b["side"] == "need"]
         offers = [shown(b) for b in bl if b["side"] == "offer"]
-        L.append(f"**[{titles[p]}](./atoms/{p.stem}.md)** ({text.count(chr(10)) + 1} lines). {first_sentence(text)}")
+        L.append(f"**[{titles[p]}](./atoms/{p.name})** ({text.count(chr(10)) + 1} lines). {first_sentence(text)}")
         parts = []
         if mints:
             parts.append("mints " + ", ".join(mints))
@@ -240,7 +240,7 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
             L += [f'  {nid[p]} -->|"{w}"| {nid[q]}' for p in own for q, w in arrows[p]]
             L.append("  classDef lower stroke-dasharray: 4 4")
         L += ["```", ""]
-        L += [f"Layer {k}: " + ", ".join(f"[{titles[p]}](./atoms/{p.stem}.md)" for p in own) + "."
+        L += [f"Layer {k}: " + ", ".join(f"[{titles[p]}](./atoms/{p.name})" for p in own) + "."
               + (" A dashed box is an atom of a lower layer." if k else
                  " A dashed box is an atom of a higher layer that needs one of them."), ""]
     if v["hubs"]:

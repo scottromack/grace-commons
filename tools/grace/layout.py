@@ -74,7 +74,8 @@ def old_path(new: str, root: str | None = None) -> str:
 
 def found_at(repo, rev: str, path: str) -> tuple[str | None, str | None]:
     """`path`'s text at `rev`, read under the path it had at that revision, and that path."""
-    for name in dict.fromkeys((path, old_path(path), new_path(path))):
+    # a pattern renamed to .idd (Scott 2026-11-26) sat at its .md name between the move and the rename
+    for name in dict.fromkeys((path, old_path(path), new_path(path), re.sub(r"\.idd$", ".md", path))):
         done = subprocess.run(["git", "--no-optional-locks", "-C", str(repo), "show", f"{rev}:{name}"],
                               capture_output=True, text=True)
         if done.returncode == 0:

@@ -638,7 +638,7 @@ def pretest(page: Path, root: Path = ROOT, keep: Path | None = None) -> dict:
 
 def atoms(root: Path = ROOT) -> list[Path]:
     """Every atom page: library/atoms/*.md but its history files, index.md and the taxonomy note."""
-    return sorted(p for p in (root / "library" / "atoms").glob("*.md")
+    return sorted(p for p in [*(root / "library" / "atoms").glob("*.md"), *(root / "library" / "atoms").glob("*.idd")]
                   if not p.name.endswith(".hist.md") and p.name not in ("index.md", "TAXONOMY.md", "_TAXONOMY.md"))
 
 

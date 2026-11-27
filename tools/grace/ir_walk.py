@@ -420,7 +420,7 @@ def walk_non_goals(rel: str, lines: list[str], rules: list[dict], spec: cites.Sp
                     owner = owner.replace("(" + par + ")", " ")
             whos = [{"owner": part,
                      "links": [posixpath.normpath(posixpath.join(posixpath.dirname(rel), lk))
-                               for _, lk in check.MD_LINK.findall(part) if lk.endswith(".md")],
+                               for _, lk in check.MD_LINK.findall(part) if lk.endswith((".md", ".idd"))],
                      "forthcoming": bool(FORTHCOMING.search(part)), "line": k + 1}
                     for part in owner_parts(owner)]
             for label in expand(cited, spec):

@@ -169,7 +169,7 @@ patterns:
   - id: 73
     file: library/atoms/tag.md
   - id: 74
-    file: library/atoms/role.md
+    file: library/atoms/role.idd
   - id: 75
     file: library/atoms/moderation.md
   - id: 76

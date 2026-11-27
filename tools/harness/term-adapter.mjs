@@ -129,7 +129,7 @@ if (all) {
   inputs = [];
   for (const d of ["library/atoms", "library/compositions"]) {
     // a spec's history file, `<spec name>.hist.md`, is no spec
-    if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".md") && !f.endsWith(".hist.md")) inputs.push(join(d, f));
+    if (existsSync(d)) for (const f of readdirSync(d)) if ((f.endsWith(".md") || f.endsWith(".idd")) && !f.endsWith(".hist.md")) inputs.push(join(d, f));
   }
 } else {
   if (!pos[0]) {

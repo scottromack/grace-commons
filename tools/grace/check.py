@@ -1610,7 +1610,7 @@ def pattern_files(root: Path) -> list[Path]:
     """Every atom and composition: not a history file, not an index page."""
     out = []
     for d in ("library/atoms", "library/compositions"):
-        for p in sorted((root / d).glob("*.md")):
+        for p in sorted([*(root / d).glob("*.md"), *(root / d).glob("*.idd")]):
             if p.match(HISTORY) or p.relative_to(root).as_posix() in INDEX_PAGES:
                 continue
             out.append(p)
@@ -2000,7 +2000,7 @@ def need_cycle(lines: list[dict], words: dict[str, str], types: set[str]) -> lis
 def bond_findings(root: Path) -> list[Finding]:
     kinds = bond_kinds(root)
     words, types = declared_words(root)
-    atoms = sorted((root / "library" / "atoms").glob("*.md"))
+    atoms = sorted([*(root / "library" / "atoms").glob("*.md"), *(root / "library" / "atoms").glob("*.idd")])
     titles = set()
     for p in atoms:
         fm = _FRONT_MATTER.match(p.read_text(encoding="utf-8"))
@@ -2109,7 +2109,7 @@ def main(argv: list[str]) -> int:
         paths = [root / "how" / "GRACE-lang.md", root / "library" / "bonds.md", root / "library" / "declarations.md",
                  root / "library" / "contracts.md"]
         for d in ("library/atoms", "library/compositions"):
-            for p in sorted((root / d).glob("*.md")):
+            for p in sorted([*(root / d).glob("*.md"), *(root / d).glob("*.idd")]):
                 if p.match(HISTORY):
                     continue
                 # a spec declares itself migrated; a stray fence is not a claim

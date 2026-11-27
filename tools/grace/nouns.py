@@ -305,7 +305,7 @@ def main(argv: list[str]) -> int:
     only = argv[argv.index("--spec") + 1] if "--spec" in argv else None
     paths = []
     for d in ("library/atoms", "library/compositions"):
-        for p in sorted((ROOT / d).glob("*.md")):
+        for p in sorted([*(ROOT / d).glob("*.md"), *(ROOT / d).glob("*.idd")]):
             if p.match(C.HISTORY) or (only and p.stem != only):
                 continue
             if C.MIGRATED.search(p.read_text(encoding="utf-8")):

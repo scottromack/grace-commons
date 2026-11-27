@@ -48,7 +48,8 @@
   "atoms/personal-todo.md": "library/atoms/task.md",
   "atoms/personal-todo.hist.md": "library/atoms/task.hist.md",
   "library/atoms/personal-todo.md": "library/atoms/task.md",
-  "library/atoms/personal-todo.hist.md": "library/atoms/task.hist.md"
+  "library/atoms/personal-todo.hist.md": "library/atoms/task.hist.md",
+  "atoms/role.md": "library/atoms/role.idd"
  },
  "deleted": {
   "requested.md": "readme.md"

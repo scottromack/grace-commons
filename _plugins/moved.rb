@@ -27,7 +27,7 @@ module GraceMoved
     # the address Jekyll gave a page at `old`: index.md and README.md answer as their folder
     def address(old)
       return "/" + old.sub(%r{(index|README)\.md\z}, "") if old =~ %r{(\A|/)(index|README)\.md\z}
-      "/" + old.sub(/\.md\z/, ".html")
+      "/" + old.sub(/\.(md|idd)\z/, ".html")
     end
   end
 end

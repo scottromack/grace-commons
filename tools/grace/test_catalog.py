@@ -23,7 +23,7 @@ class Catalog(unittest.TestCase):
 
     def test_one_entry_per_atom(self):
         atoms = [p for p in check.pattern_files(ROOT) if p.parent.name == "atoms"]
-        entries = re.findall(r"^\*\*\[[^\]]+\]\(\./atoms/([\w-]+)\.md\)\*\*", self.text, re.M)
+        entries = re.findall(r"^\*\*\[[^\]]+\]\(\./atoms/([\w-]+)\.(?:md|idd)\)\*\*", self.text, re.M)
         self.assertEqual(entries, [p.stem for p in atoms])
 
     def test_mints_are_key_offers(self):

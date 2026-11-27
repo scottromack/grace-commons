@@ -208,6 +208,8 @@ def main():
     cards, substrate_edges = {}, []          # (composer, substrate)
     for a in atoms:
         p = root / "library" / "atoms" / f"{a}.md"
+        if not p.exists():                     # a pattern's file may take .idd (Scott 2026-11-26)
+            p = p.with_suffix(".idd")
         text = p.read_text(encoding="utf-8")
         e = index[a]
         stds = sorted({s for ss in e["overlays"]["standards_by_composer"].values() for s in ss})
@@ -224,6 +226,8 @@ def main():
         }
     for c in comps:
         p = root / "library" / "compositions" / f"{c['name']}.md"
+        if not p.exists():
+            p = p.with_suffix(".idd")
         text = p.read_text(encoding="utf-8")
         subs = substrates_of(text, comp_slugs)
         substrate_edges += [(c["name"], s) for s in subs]

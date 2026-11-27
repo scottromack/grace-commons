@@ -66,7 +66,7 @@ _26 compositions (26 regulated) · 53 atoms · 92 composition→atom edges. Gene
 | [Recurrence](./recurrence.md) | — | — | — | *(none yet)* |
 | [Restorable Delete](./restorable-delete.md) | — | — | — | *(none yet)* |
 | [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
-| [Role](./role.md) | — | — | — | *(none yet)* |
+| [Role](./role.idd) | — | — | — | *(none yet)* |
 | [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights |
 | [Session](./session.md) | — | yes (4) | yes | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
 | [State Machine](./state-machine.md) | — | yes (2) | — | compensable-workflow, execute-gated-workflow |
@@ -190,7 +190,7 @@ Atoms no composition yet composes. The overlays say nothing about them — an ho
 - [Reaction](./reaction.md)
 - [Recurrence](./recurrence.md)
 - [Restorable Delete](./restorable-delete.md)
-- [Role](./role.md)
+- [Role](./role.idd)
 - [Tag](./tag.md)
 - [Tenure](./tenure.md)
 - [Waitlist](./waitlist.md)

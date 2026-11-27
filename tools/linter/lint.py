@@ -166,9 +166,9 @@ SECTION_DIRS = ("library", "how", "evidence", "community", "log", "essays")
 
 def root_pages(root: Path) -> list[Path]:
     """The pages that sat at the root before the move: the root's own and each section folder's."""
-    out = sorted(root.glob("*.md"))
+    out = sorted([*root.glob("*.md"), *root.glob("*.idd")])
     for d in SECTION_DIRS:
-        out += sorted((root / d).glob("*.md"))
+        out += sorted([*(root / d).glob("*.md"), *(root / d).glob("*.idd")])
     return out
 # a spec's history sits beside it as `<spec name>.hist.md` and is no pattern:
 # every walk that reads atoms/ and compositions/ as specs skips it
@@ -358,7 +358,7 @@ class Pattern:
 def load_patterns(root: Path) -> dict[Path, Pattern]:
     out: dict[Path, Pattern] = {}
     for d in PATTERN_DIRS:
-        for md in sorted((root / d).rglob("*.md")):
+        for md in sorted([*(root / d).rglob("*.md"), *(root / d).rglob("*.idd")]):
             name = md.name.lower()
             # readme/index are catalogs; a file whose name starts with `_` is a
             # helper, such as _TAXONOMY.md, the proposal doc (spec-format.md, Atom
@@ -442,7 +442,7 @@ def published_pages(root: Path) -> list[Path]:
     underscore path, nothing `_config.yml` excludes."""
     excl = config_excludes(root)
     out = []
-    for p in sorted(root.rglob("*.md")):
+    for p in sorted([*root.rglob("*.md"), *root.rglob("*.idd")]):
         rel = p.relative_to(root).as_posix()
         if any(part.startswith((".", "_")) or part in ("node_modules", "build") for part in rel.split("/")):
             continue
@@ -1995,7 +1995,7 @@ def check_council_register(root: Path) -> list[Finding]:
             dirnames[:] = [d for d in dirnames
                            if d != "node_modules" and not d.startswith(".")]
             for fn in sorted(filenames):
-                if fn.endswith(".md"):
+                if fn.endswith((".md", ".idd")):
                     yield Path(dirpath) / fn
 
     for f in corpus_md(root):
@@ -2134,7 +2134,7 @@ def check_banned_token(root: Path) -> list[Finding]:
         # prune in place so excluded trees (node_modules, …) are
         # never descended into — rglob-then-filter walks them and is far too slow
         dirnames[:] = [d for d in dirnames if d not in BANNED_TOKEN_EXCLUDED_DIRS]
-        md_files += [Path(dirpath) / f for f in filenames if f.endswith(".md")]
+        md_files += [Path(dirpath) / f for f in filenames if f.endswith((".md", ".idd"))]
     for md in sorted(md_files):
         try:
             text = md.read_text(encoding="utf-8")
@@ -2182,7 +2182,7 @@ def check_banned_application(root: Path) -> list[Finding]:
     for d in PATTERN_DIRS:
         base = root / d
         if base.is_dir():
-            scoped += sorted(p for p in base.glob("*.md") if not p.match(HISTORY_FILE))
+            scoped += sorted(p for p in [*base.glob("*.md"), *base.glob("*.idd")] if not p.match(HISTORY_FILE))
     scoped += [root / n for n in OUTPUT_NOUN_CORE_DOCS if (root / n).exists()]
     guide = root / "tools" / "guide"
     if guide.is_dir():
@@ -2909,7 +2909,7 @@ def label_families(root: Path) -> set[str]:
     fams: set[str] = set()
     sources = [root / "how" / "GRACE-lang.md"]
     for d in PATTERN_DIRS:
-        sources += sorted(p for p in (root / d).glob("*.md") if not p.match(HISTORY_FILE))
+        sources += sorted(p for p in [*(root / d).glob("*.md"), *(root / d).glob("*.idd")] if not p.match(HISTORY_FILE))
     for src in sources:
         if not src.exists():
             continue
@@ -2962,7 +2962,7 @@ def check_range_form(root: Path) -> list[Finding]:
     md_files: list[Path] = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS]
-        md_files += [Path(dirpath) / f for f in filenames if f.endswith(".md")]
+        md_files += [Path(dirpath) / f for f in filenames if f.endswith((".md", ".idd"))]
     out: list[Finding] = []
     for md in sorted(md_files):
         try:
@@ -3015,7 +3015,7 @@ def check_stripped_links(root: Path) -> list[Finding]:
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS]
         for fn in filenames:
-            if not fn.endswith(".md"):
+            if not fn.endswith((".md", ".idd")):
                 continue
             md = Path(dirpath) / fn
             try:
@@ -3072,7 +3072,7 @@ def _history_sibling(path: Path) -> Path:
     page's other sections."""
     if path.name.endswith(".hist.md"):
         return path.with_name(path.name[:-len(".hist.md")] + ".md")
-    return path.with_name(path.name[:-len(".md")] + ".hist.md")
+    return path.with_name(path.stem + ".hist.md")
 
 
 def check_section_titles(root: Path) -> list[Finding]:
@@ -3088,7 +3088,7 @@ def check_section_titles(root: Path) -> list[Finding]:
 
     out: list[Finding] = []
     for sub in PATTERN_DIRS:
-        for md in sorted((root / sub).glob("*.md")):
+        for md in sorted([*(root / sub).glob("*.md"), *(root / sub).glob("*.idd")]):
             if md.match(HISTORY_FILE):
                 continue
             for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
@@ -3144,7 +3144,7 @@ def check_contract_labels(root: Path) -> list[Finding]:
         return []
     out: list[Finding] = []
     for sub in PATTERN_DIRS:
-        for md in sorted((root / sub).glob("*.md")):
+        for md in sorted([*(root / sub).glob("*.md"), *(root / sub).glob("*.idd")]):
             if md.match(HISTORY_FILE):
                 continue
             for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
@@ -3282,11 +3282,11 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
     out: list[Finding] = []
     for p in patterns.values():
         rel = p.path.relative_to(root).as_posix()
-        hist_rel = rel[:-len(".md")] + ".hist.md"
+        hist_rel = rel[:-len(p.path.suffix)] + ".hist.md"
         refs: list[tuple[str, str, str]] = []   # where, the page, its history file's *Deleted rules*
 
         def deleted_at(rev: str, name: str) -> str:
-            body = git("show", f"{rev}:{name[:-len('.md')]}.hist.md")
+            body = git("show", f"{rev}:{name[:-len(p.path.suffix)]}.hist.md")
             return deleted_text(p.path, body) if body is not None else ""
         if (rel in changed or hist_rel in changed) and (head := git("show", f"HEAD:{rel}")) is not None:
             refs.append(("at HEAD", head, deleted_at("HEAD", rel)))

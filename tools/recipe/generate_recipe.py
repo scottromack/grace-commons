@@ -139,10 +139,10 @@ def main():
     today = datetime.date.today().isoformat()
 
     # a spec's history file, `<spec name>.hist.md`, is no spec
-    atom_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "atoms", "**", "*.md"), recursive=True)
+    atom_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "atoms", "**", "*.md"), recursive=True) + glob.glob(os.path.join(repo, "library", "atoms", "**", "*.idd"), recursive=True)
                   if os.path.basename(p).lower() not in ("readme.md", "index.md", "taxonomy.md")
                   and not p.endswith(".hist.md")]
-    comp_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "compositions", "*.md"))
+    comp_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "library", "compositions", "*.md")) + glob.glob(os.path.join(repo, "library", "compositions", "*.idd"))
                   if os.path.basename(p).lower() not in ("readme.md", "index.md")
                   and not p.endswith(".hist.md")]
     title_index = {}

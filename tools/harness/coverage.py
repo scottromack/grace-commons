@@ -73,7 +73,7 @@ def word(cell):
 def count(directory=HERE / "coverage"):
     """page -> {word: n}, and the problems: (page, line, what)."""
     pages, problems = {}, []
-    for path in sorted(pathlib.Path(directory).glob("*.md")):
+    for path in sorted([*pathlib.Path(directory).glob("*.md"), *pathlib.Path(directory).glob("*.idd")]):
         if path.name in NOT_MATRICES:
             continue
         n = {w: 0 for w in WORDS}

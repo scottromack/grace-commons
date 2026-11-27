@@ -42,7 +42,7 @@ def excluded(root: Path) -> list[str]:
 
 def pages(root: Path) -> list[Path]:
     skip = excluded(root)
-    files = subprocess.run(["git", "-C", str(root), "ls-files", "*.md"], capture_output=True, text=True, check=True).stdout.split("\n")
+    files = subprocess.run(["git", "-C", str(root), "ls-files", "*.md", "*.idd"], capture_output=True, text=True, check=True).stdout.split("\n")
     out = []
     for f in sorted(x for x in files if x):
         if f.startswith(".") or any(f == s or f.startswith(s if s.endswith("/") else s + "/") for s in skip):

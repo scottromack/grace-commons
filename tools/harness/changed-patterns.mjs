@@ -30,8 +30,8 @@ export function patternNames(root, folder) {
   const dir = join(root, folder);
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((f) => f.endsWith(".md") && !f.endsWith(".hist.md"))
-    .map((f) => f.slice(0, -3))
+    .filter((f) => (f.endsWith(".md") || f.endsWith(".idd")) && !f.endsWith(".hist.md"))
+    .map((f) => f.replace(/\.(md|idd)$/, ""))
     .filter((n) => !NOT_PATTERNS.has(n));
 }
 
@@ -65,7 +65,7 @@ export function selection(paths, names = {}) {
       continue;
     }
     const [, folder, file] = m;
-    const base = basename(file).replace(/\.(hist\.md|md|als|tla|cfg)$/, "");
+    const base = basename(file).replace(/\.(hist\.md|md|idd|als|tla|cfg)$/, "");
     if (base === basename(file)) continue; // not a page, history or model file
     const name = owner(base, names[folder] ?? []);
     if (name !== null && !OWN_WORKFLOW.has(`${folder}/${name}`)) touched.add(`${folder}/${name}`);

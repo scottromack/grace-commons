@@ -6,7 +6,7 @@ search_exclude: true
 
 # Role — history
 
-The dated record of how [Role](./role.md) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/role.md`.
+The dated record of how [Role](./role.idd) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log --follow -- library/atoms/role.idd`.
 
 ## Decisions
 

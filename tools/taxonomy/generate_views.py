@@ -25,6 +25,8 @@ from reverse_index import build_index  # noqa: E402  (same directory)
 
 def atom_title(root, slug):
     p = root / "library" / "atoms" / f"{slug}.md"
+    if not p.exists():                     # a pattern's file may take .idd (Scott 2026-11-26)
+        p = p.with_suffix(".idd")
     try:
         t = p.read_text(encoding="utf-8")
     except OSError:
@@ -47,7 +49,8 @@ def main():
     edges = sum(len(c["atoms"]) for c in comps)
 
     def link(slug):
-        return f"[{atom_title(root, slug)}](./{slug}.md)"
+        ext = ".idd" if (root / "library" / "atoms" / f"{slug}.idd").exists() else ".md"
+        return f"[{atom_title(root, slug)}](./{slug}{ext})"
 
     L = []
     P = L.append

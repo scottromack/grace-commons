@@ -23,6 +23,9 @@ plugins:
 # A link written as a file path (`./method.md`, `../atoms/favorite.md#intent`) reads on GitHub and in an editor, and the site
 # turns it into the page's address. GitHub's own Pages build did this by default; the workflow that replaced it does not, so
 # the plugin is named here. A link to a file the site does not build is left as it was written. Nothing in a page changes.
+# A pattern's file takes the .idd extension (Scott 2026-11-26), Markdown the site renders as it renders .md.
+markdown_ext: "markdown,mkdown,mkdn,mkd,md,idd"
+
 relative_links:
   enabled: true
   collections: false

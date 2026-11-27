@@ -153,7 +153,7 @@ def build_index(root):
     # atoms/<name>.md (post-flatten). Catalog / landing / generated-view pages are
     # not atoms — excluded by name and by their has_children/nav_exclude frontmatter;
     # nor is a spec's history file, `<spec name>.hist.md`, excluded by pattern.
-    for p in sorted(atoms_dir.rglob("*.md")):
+    for p in sorted([*atoms_dir.rglob("*.md"), *atoms_dir.rglob("*.idd")]):
         if p.name.lower() in ("readme.md", "index.md", "taxonomy.md") or p.match("*.hist.md"):
             continue
         text = p.read_text(encoding="utf-8")
@@ -163,7 +163,7 @@ def build_index(root):
                         "domain": frontmatter_domain(text),
                         "audience": frontmatter_audience(text)}
 
-    comps = [parse_composition(p) for p in sorted(comps_dir.glob("*.md"))
+    comps = [parse_composition(p) for p in sorted([*comps_dir.glob("*.md"), *comps_dir.glob("*.idd")])
              if p.name.lower() != "readme.md" and not p.match("*.hist.md")]
 
     composed_by = defaultdict(list)         # atom -> [composer]

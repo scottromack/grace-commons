@@ -90,7 +90,7 @@ def history_file(path: Path) -> Path:
     """A spec's history file, `<spec name>.hist.md` beside it."""
     if path.name.endswith(".hist.md"):
         return path
-    return path.with_name(path.name[:-len(".md")] + ".hist.md")
+    return path.with_name(path.stem + ".hist.md")
 
 
 def deleted_rules_of(text: str) -> list[tuple[int, str]]:
@@ -590,8 +590,8 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
     if paths:
         candidates = paths
     else:
-        candidates = [root / GRAMMAR_PATH, root / CONTRACT_PATH] + sorted(root.glob("library/atoms/*.md")) + \
-                     sorted(root.glob("library/compositions/*.md"))
+        candidates = [root / GRAMMAR_PATH, root / CONTRACT_PATH] + sorted([*root.glob("library/atoms/*.md"), *root.glob("library/atoms/*.idd")]) + \
+                     sorted([*root.glob("library/compositions/*.md"), *root.glob("library/compositions/*.idd")])
     out = []
     for p in candidates:
         if not p.exists() or p.match(HISTORY):

@@ -265,7 +265,7 @@ def specs(root: Path) -> list[Path]:
     """The specs lint.py's load_patterns loads: atoms/ and compositions/, less
     the catalogues, the taxonomy proposal and every `.hist.md`. Found without
     reading them, so a spec that cannot be read is a finding of its own."""
-    return sorted(md for d in PATTERN_DIRS for md in (root / d).rglob("*.md")
+    return sorted(md for d in PATTERN_DIRS for md in [*(root / d).rglob("*.md"), *(root / d).rglob("*.idd")]
                   if md.name.lower() not in ("readme.md", "index.md", "taxonomy.md") and not md.name.startswith("_")
                   and not md.match(HISTORY_FILE))
 
