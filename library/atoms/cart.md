@@ -90,7 +90,7 @@ Projection: cart_id
 
 #### Currency
 
-The unit of account a cart's prices and [Total] are counted in, such as an ISO 4217 code; set by [Open] from the accepted currencies, never changed, stored as supplied and compared codepoint for codepoint.
+The unit of account a cart's prices and [Total] are counted in, such as a code from ISO 4217 (the International Organization for Standardization's standard for currency codes); set by [Open] from the accepted currencies, never changed, stored as supplied and compared codepoint for codepoint.
 
 Kind:       Field
 Field of:   Cart
@@ -116,7 +116,7 @@ Term currency: the unit of account a cart's prices and total are counted in, suc
 
 #### Line
 
-One item on a cart, named by its [Line Id]: its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
+One item on a cart, named by its [Line Id]: the [Cart Id] of the cart it is on, its [Item Reference], its [Quantity] and the [Unit Price] taken when it was added; recorded by [Add], removed by [Remove] or [Clear].
 
 Kind: Type
 
@@ -130,7 +130,7 @@ Projection: line_id
 
 #### Item Reference
 
-Names the item a line is for, with the options chosen for it (a size, a color, oat milk, a gift wrap), in the deployment's own scheme, so a flat white and a flat white with oat milk are two lines. Stored as supplied and compared codepoint for codepoint; the atom reads nothing in it, and whether it names a real item, with which options, is a catalog's question.
+Names the item a line is for, with the options chosen for it (a size, a color, oat milk, a gift wrap), in the deployment's own scheme, so a flat white and a flat white with oat milk are two lines. Stored as supplied and compared codepoint for codepoint; whether it names a real item, with which options, is a catalog's question.
 
 Kind:       Field
 Field of:   Line
@@ -194,7 +194,7 @@ A deployment that accepts `"EUR"` and `"USD"`, exercising the rejection surface 
 - `add(c404, "pen", 1, 500)`, where no cart `c404` exists — rejected as [Not Known]; so is a blank cart id, one over the string cap, `C9` or `c9 ` where only `c9` exists: two cart ids are compared codepoint for codepoint, and none is normalized.
 - an [Add] to `c9` of an item reference 1,025 code points long, with quantity 1 and unit price 500 — rejected as [Invalid Item Reference]: the reference is over the string cap, 1,024 code points where the deployment declares none.
 
-This covers every refusal but [Storage Failure], which answers when the database refuses a write.
+This covers every refusal but [Cart Full], whose example stands under [Remove] (Operation 24), and [Storage Failure], which answers when the database refuses a write.
 
 #### Invalid Currency
 
@@ -423,7 +423,7 @@ The case space, and the rule that owns each case:
 
 #### Read
 
-Answers a cart and changes nothing: its [Cart Id], its [Currency], every [Line] it carries, in the order the lines were added, with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
+Answers a cart and changes nothing: its [Cart Id], its [Currency], every [Line] it carries, in the order of each line's recording commit, earliest first (Operation 25), with each line's [Line Id], [Item Reference], [Quantity] and [Unit Price], and its [Total].
 
 Kind: Operation
 
@@ -444,7 +444,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the carts |
 |---|---|---|---|
-| [Read] | the cart exists | the cart id, the cart's currency, its lines in the order they were added, and its total | none (Operation 21 through 23, Operation 25) |
+| [Read] | the cart exists | the cart id, the cart's currency, its lines in the order of their recording commits, and its total | none (Operation 21 through 23, Operation 25) |
 
 ### Read Line
 
@@ -477,6 +477,15 @@ The case space, and the rule that owns each case:
   ```
   Invariant 1.1: Two lines one cart carries MUST NOT share an item reference.
   ```
+- **Invariant 5 — Every line belongs to a cart.**
+  ```
+  Invariant 5.1: EVERY line's cart id MUST name a cart.
+  ```
+- **Invariant 6 — Counts and amounts stay whole.**
+  ```
+  Invariant 6.1: EVERY line MUST carry a positive count as the line's quantity.
+  Invariant 6.2: EVERY line MUST carry a whole amount as the line's unit price.
+  ```
 - **Invariant 2 — The price taken when added.**
   ```
   Invariant 2.1: The atom MUST NOT change a line's unit price.
@@ -489,15 +498,6 @@ The case space, and the rule that owns each case:
 - **Invariant 4 — A cart keeps its currency.**
   ```
   Invariant 4.1: The atom MUST NOT change a cart's currency.
-  ```
-- **Invariant 5 — Every line belongs to a cart.**
-  ```
-  Invariant 5.1: EVERY line's cart id MUST name a cart.
-  ```
-- **Invariant 6 — Counts and amounts stay whole.**
-  ```
-  Invariant 6.1: EVERY line MUST carry a positive count as the line's quantity.
-  Invariant 6.2: EVERY line MUST carry a whole amount as the line's unit price.
   ```
 
 ## When something happens
@@ -571,7 +571,7 @@ Non-goal 16: The atom MUST NOT read an item reference's options.
 Non-goal 17: The atom MUST NOT apply a delivery charge.
 ```
 
-NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1, 2; External check 1); a tax pattern *(forthcoming)* (Non-goal 3); a hold pattern (Non-goal 4, 5); a payment pattern *(forthcoming)* (Non-goal 6); a checkout pattern *(forthcoming)* (Non-goal 7, 8, 13); the composing pattern that knows the shopper, such as one built on a session or a party pattern (Non-goal 9); a catalog pattern *(forthcoming)* (Non-goal 10, 16; External check 2); a currency pattern *(forthcoming)* (Non-goal 11); a cart-expiry pattern *(forthcoming)* (Non-goal 12); the composing pattern that shows the cart (Non-goal 14); a purchase-limit pattern *(forthcoming)* (Non-goal 15); a delivery pattern *(forthcoming)* (Non-goal 17).
+NOTE: the owners — a pricing pattern *(forthcoming)* (Non-goal 1, 2; External check 1); a tax pattern *(forthcoming)* (Non-goal 3); a hold pattern (Non-goal 4); a payment pattern *(forthcoming)* (Non-goal 6); a checkout pattern *(forthcoming)* (Non-goal 7, 8, 13); the composing pattern that knows the shopper, such as one built on a session or a party pattern (Non-goal 9); a catalog pattern *(forthcoming)* (Non-goal 10, 16; External check 2); a currency pattern *(forthcoming)* (Non-goal 11); a cart-expiry pattern *(forthcoming)* (Non-goal 12); the composing pattern that shows the cart (Non-goal 14); a purchase-limit pattern *(forthcoming)* (Non-goal 15); a delivery pattern *(forthcoming)* (Non-goal 17).
 
 Where the atom breaks down: a purchase whose lines are priced in more than one currency; a cart whose prices must follow the catalog as it changes.
 
@@ -584,7 +584,7 @@ NOTE: composing patterns — none yet. Forthcoming: a checkout pattern, a pricin
 
 ## Example
 
-The same pattern in three domains, then the rejection paths. Amounts are whole numbers of the currency's minor unit, so `1999` in euros is €19.99.
+The same pattern in three domains. Amounts are whole numbers of the currency's minor unit, so `1999` in euros is €19.99.
 
 ### Online store
 
@@ -592,7 +592,7 @@ A shop selling in euros opens a cart: `open("EUR")` answers [Cart Id] `c1`. The 
 
 ### Café tab
 
-A café opens a tab for table 4 in US dollars — `open("USD")` answers `t4`. Two flat whites at $4.50 — `add(t4, "flat-white", 2, 450)` answers `l5` — and a croissant at $3.25 — `add(t4, "croissant", 1, 325)` answers `l6`: the total is 1225. A third flat white is ordered — `change_quantity(l5, 3)`; the total is 1675. Then a flat white with oat milk at $5.10 — `add(t4, "flat-white-oat", 1, 510)` answers `l10`, a second line beside `l5` at its own price, since an item reference names the item with its options; the total is 2185. The croissant goes back — `remove(l6)`; the total is 1860. At three o'clock the café's afternoon prices start; the tab's lines keep the prices they were taken at.
+A café opens a tab for table 4 in United States dollars — `open("USD")` answers `t4`. Two flat whites at $4.50 — `add(t4, "flat-white", 2, 450)` answers `l5` — and a croissant at $3.25 — `add(t4, "croissant", 1, 325)` answers `l6`: the total is 1225. A third flat white is ordered — `change_quantity(l5, 3)`; the total is 1675. Then a flat white with oat milk at $5.10 — `add(t4, "flat-white-oat", 1, 510)` answers `l10`, a second line beside `l5` at its own price, since an item reference names the item with its options; the total is 2185. The croissant goes back — `remove(l6)`; the total is 1860. At three o'clock the café's afternoon prices start; the tab's lines keep the prices they were taken at.
 
 ### Wholesale order
 
@@ -620,7 +620,7 @@ Acceptable when the checks below are provable to an external auditor from the ca
 ```
 Check 1.1: An auditor MUST find EVERY cart carrying cart id AND currency (State 1).
 Check 1.2: An auditor MUST find EVERY line carrying line id, cart id, item reference, quantity AND unit price (State 2).
-Check 2.1: An auditor MUST find no two carts sharing a cart id (Identity 3).
+Check 2.1: An auditor MUST find no cart id carried by two carts in the committed versions Execution Contract Database 5 keeps readable, a cart a composing pattern removed included (Identity 3).
 Check 2.2: An auditor MUST find no line id carried by two lines in the committed versions Execution Contract Database 5 keeps readable, a line taken off a cart included (Identity 4).
 Check 2.3: An auditor MUST find no two lines one cart carries sharing an item reference (Invariant 1.1).
 Check 2.4: An auditor MUST find EVERY line's cart id naming a cart (Invariant 5.1).
@@ -642,6 +642,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing a line's unit price confirmed as the item's price when the line was added MUST read the records of the pattern that priced the item (Non-goal 1).
 External check 2: An auditor needing an item reference confirmed as naming a real item MUST read the deployment's catalog (Non-goal 10).
+External check 3: An auditor needing an item reference, a currency, a cart id and a line id confirmed as the value the caller supplied MUST compare the records with the calls the deployment's seam received (Identity 6, Identity 8, Identity 12, Identity 13; Capability requirement 8 through 11).
 ```
 
 ### Vocabulary
@@ -709,7 +710,7 @@ Term terms: cart, line, cart id, line id, item reference, seam, quantity, new qu
 ```
 status: doing
 formal: verified — cart.als + 14 twins (the static data model: State 1 and 2, Identity 3, 4, 6 and 8, Invariant 1.1, 5.1, 6.1 and 6.2, Operation 1, 5 and 24 checked on every state an ordered sequence of admitted calls leaves, Identity 5 caught by the Identity 4 check and Identity 9 by the Operation 1 check); cart.tla + 9 twins (across steps, while the shop's price moves: Invariant 2.1, 3.1, 3.2 and 4.1, State 3, Identity 7, Operation 14, 18 and 23); the vote no of 2026-10-23 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 21, 22 and 25, 2026-11-11; Identity 10 through 13, Capability requirement 10 and 11, Check 2.2 and the cart id Operation 2 records, 2026-11-20
-last gate: 2026-11-20 — Final Critique 10, a delta round, one reader (Linus claude-haiku-5-5), frozen at afcc3ab — foundational count 0 after the blind second triage, clean, one sample; Linus's report claimed 1 foundational and 1 refining, and the foundational did not hold (refining, Kind B: Execution Contract Logic confinement 13 reaches only the values a specification declares references and Cart declares none for its ids, and Capability requirement 10 makes a build that normalizes a cart id non-conforming, so no two conforming builds differ; the NOTE beneath the Term lines now says Logic confinement 13 reaches neither id); its refining finding on the word normalize was refuted (117 corpus rules use it); 2026-11-20 — Final Critique 9, a delta round, one reader (Linus minimax-m3), frozen at 02a1f4a — foundational count 2, not clean, one sample; 2026-11-20 — Final Critique 8, a delta round, frozen at a579d088 — foundational count 1, not clean, one sample; 2026-11-20 — Final Critique 7, frozen at 8c9896b3 — foundational count 5, not clean, one sample; 2026-11-04 — Final Critique 6, a delta round, frozen at cd6400b — foundational count 0, clean, one sample; 2026-11-03 — Final Critique 5 (delta) — foundational count 1, not clean, one sample
+last gate: 2026-11-27 — Final Critique 11, a full round, frozen at 79cac81e — foundational count 1, not clean, one sample
 
 open: none
 ```

@@ -38,7 +38,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints audit event id, pool id. Offers key pool id; key audit event id.
 
-**[Cart](./atoms/cart.md)** (729 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
+**[Cart](./atoms/cart.md)** (730 lines). Cart is a shopping cart: it holds what a person means to buy, one line per item, each line saying how many of the item and the price it had when it was added, and it adds the lines up to a total.
 
 - Mints cart id, line id. Offers key cart id; key line id.
 
