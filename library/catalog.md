@@ -138,7 +138,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key opaque; key list id.
 
-**[Owed Record](./atoms/owed-record.md)** (744 lines). Owed Record keeps the durable record that something is owed.
+**[Owed Record](./atoms/owed-record.md)** (763 lines). Owed Record keeps the durable record that something is owed.
 
 - No bond lines yet.
 
