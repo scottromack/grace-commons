@@ -407,6 +407,16 @@ Projection: holding_rule
 
 A deployment that drops a reaction name from the reaction set stops every [React] in that name (Operation 4), a repeat on a reaction already held in it included; the reactions already held in it stay held and counted, and each person may still withdraw theirs. A deployment that moves from one-of-each to one-per-item withdraws nothing by itself: a person's several held reactions stay until that person's next [React] on the item, which withdraws every rival (Operation 10).
 
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice (Bonds Key 27). A reaction holds two references to records other atoms keep: the person reference, the actor id of the person who reacts, and the item reference.
+
+Term need key: key actor id; pairs reactions.
+
+Term need key: key opaque; pairs reactions.
+
+No on end is needed: a reaction names its item by reference only, [Look Up] and [Count] answer the reference as recorded, and an app that wants an ended item's reactions gone calls [Withdraw] for each.
+
 ## Left to others
 
 ```
@@ -490,6 +500,8 @@ Term cadences: empty.
 Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-14) through the Grace connector.
 
 Term terms: reaction, reactions, triple, pair, person reference, item reference, reaction name, reaction names, reaction set, holding rule, string cap, seam, first reacted instant, status, held, withdrawn, writing action, rival, tally, tallies, version.
+
+Term cited: actor id: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

@@ -336,6 +336,16 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 NOTE: Capability requirement 4 and Capability requirement 5 are the atom's own rule for the canonical form of each reference, which stands in place of Execution Contract Logic confinement 13 (as that rule's last sentence allows a specification that gives the canonical form another owner), so each person reference and each item reference is recorded as the call carries it (Execution Contract Input 4; Identity 2 through 5).
 
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice (Bonds Key 27). A favorite holds two references to records other atoms keep: the person reference, the actor id of the person who marks, and the item reference.
+
+Term need key: key actor id; pairs favorites.
+
+Term need key: key opaque; pairs favorites.
+
+No on end is needed: a favorite names its item by reference only, [Look Up] and [List] answer the reference as recorded, and an app that wants an ended item's favorites gone calls [Unmark] for each.
+
 ## Left to others
 
 ```
@@ -420,6 +430,8 @@ Term cadences: empty.
 Term qualifiers: migrated — drafted in GRACE lang v0.73 (2026-11-14) through the Grace connector.
 
 Term terms: favorite, favorites, pair, person reference, item reference, string cap, seam, first marked instant, status, marked, unmarked, writing action, version.
+
+Term cited: actor id: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

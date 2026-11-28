@@ -139,7 +139,10 @@ def bond_layers(data: dict) -> dict:
     atoms = d["atoms"]
     met_by: dict = {}
     for p in atoms:
-        for need in (b for b in d["lines"][p] if b["side"] == "need"):
+        # a key need typed opaque meets every key offer and is drawn as no arrow, so it makes no offer a hub
+        # (unit `atoms: held references are key needs, the batch`: five more opaque needs made List's list id one)
+        for need in (b for b in d["lines"][p] if b["side"] == "need"
+                     and not (b["kind"] == "key" and word(b) == "opaque")):
             for o in d["meets"][(p, need["line"])]:
                 met_by.setdefault((o["path"], o["line"]), set()).add(p)
     hubs = {k for k, v in met_by.items() if len(v) * HUB_SHARE >= len(atoms)}

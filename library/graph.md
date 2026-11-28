@@ -111,7 +111,7 @@ Layer 0: [Credential](./atoms/credential.md), [Lease](./atoms/lease.md), [List](
 
 A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no node and no arrows: Actor Identity's actor id and Event Log's journal. An app names the atom that meets it.
 
-Ordering and Tag hold a key need typed opaque, which any atom that offers a key meets, so it is drawn as no arrows; an app names which atom's key (a bond instance).
+Category, Comment, Favorite, Notification, Ordering, Reaction and Tag hold a key need typed opaque, which any atom that offers a key meets, so it is drawn as no arrows; an app names which atom's key (a bond instance).
 
 ## Reverse leverage — atoms by fan-in
 

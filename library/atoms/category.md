@@ -624,6 +624,14 @@ Term string cap: the one bound on an item reference's length and on a category n
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the category id a creating action records here (Capability requirement 5).
 
+## Needs
+
+The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice (Bonds Key 27). A home holds an item reference, a reference to a record another atom keeps; the category id and the parent category name records this atom keeps and are no need (Bond 1).
+
+Term need key: key opaque; pairs homes; on end Unplace.
+
+When an action the meeting offer's ends names ends the item, the app calls [Unplace] with it in that action's transaction: the item's home is removed where one stands, and nothing is written where none does (Operation 18, Operation 19; Bonds Key 3, Key 7). [Unplace] refuses an item reference over the string cap, and the refusal undoes the ending action (Bonds Key 8), so an app holds every id it ends within this atom's string cap.
+
 ## Offers
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.

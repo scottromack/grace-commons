@@ -546,7 +546,11 @@ Term string cap: the bound on the recipient reference's length, measured in Unic
 
 ## Needs
 
-The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states. It states none yet. The recipient reference is a held reference: an opaque pointer to someone else's record, compared by equality and never interpreted. Its key need, `key opaque`, comes with the held-reference batch that follows Tag, which lists this atom beside Favorite, Reaction, Comment and Category. The payload is content and takes no need.
+The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice (Bonds Key 27). The recipient reference is a held reference: an opaque pointer to someone else's record, compared by equality and never interpreted. The payload is content and takes no need.
+
+Term need key: key opaque; pairs notifications.
+
+No on end is needed: a notification names its recipient by reference only, [Pending For] answers the reference as recorded, and a notification ends by its own lifecycle.
 
 ## Offers
 

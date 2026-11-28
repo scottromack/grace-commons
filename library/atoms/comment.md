@@ -468,6 +468,16 @@ Term text cap: the bound on a text's length in Unicode code points; 10,000 code 
 
 Term seam: the atom's input and output boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, now, at the seam.
 
+## Needs
+
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice (Bonds Key 27). A comment holds two references to records other atoms keep: the author reference, the actor id of the person who wrote it, and the target reference. The parent's comment id names a record this atom keeps and is no need (Bond 1).
+
+Term need key: key actor id; pairs comments.
+
+Term need key: key opaque; pairs comments.
+
+No on end is needed: a comment names its target by reference only, [List] answers the reference as recorded, and an app that wants an ended item's comments gone calls [Retract] for each.
+
 ## Offers
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
@@ -571,6 +581,8 @@ Term cadences: empty.
 Term qualifiers: migrated — drafted in GRACE lang (2026-11-18) through the Grace connector, from the Massachusetts Institute of Technology's sync-engine Commenting concept.
 
 Term terms: comment, comments, reply, replies, parent, comment id, target reference, author reference, text, string cap, text cap, seam, added instant, status, shown, retracted, writing action, recording action, wording action, comment action, version.
+
+Term cited: actor id: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

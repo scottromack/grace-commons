@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 42 with bond lines; 2 app(s).
+53 atoms, 44 with bond lines; 2 app(s).
 
 ## Atoms
 
@@ -42,13 +42,13 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints cart id, line id. Offers key cart id; key line id.
 
-**[Category](./atoms/category.md)** (797 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
+**[Category](./atoms/category.md)** (805 lines). Category lets a business arrange named categories as a tree — Gardening, and under it Soil and Seeds — and file each item in one home category.
 
-- Mints category id. Offers key category id.
+- Mints category id. Needs key opaque. Offers key category id.
 
-**[Comment](./atoms/comment.md)** (633 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
+**[Comment](./atoms/comment.md)** (645 lines). Comment lets people answer an item in their own words — a post, a product, a photo — and answer each other, so the comments on an item form a tree of replies.
 
-- Mints comment id. Offers key comment id.
+- Mints comment id. Needs key actor id; key opaque. Offers key comment id.
 
 **[Communication](./atoms/communication.md)** (792 lines). Communication keeps the history of exchanges between a business and people outside the business: a phone call, an email, a meeting, a message, a letter or a visit.
 
@@ -86,9 +86,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Offers journal.
 
-**[Favorite](./atoms/favorite.md)** (471 lines). Favorite lets a person mark an item so they can find it again later: a product, a recipe, an article, anything the business shows them.
+**[Favorite](./atoms/favorite.md)** (483 lines). Favorite lets a person mark an item so they can find it again later: a product, a recipe, an article, anything the business shows them.
 
-- No bond lines yet.
+- Needs key actor id; key opaque.
 
 **[Gift Card](./atoms/gift-card.md)** (586 lines). Gift Card is a store gift card: a gift card loaded once with a value in one currency, then spent down, in part or in full, until nothing is left.
 
@@ -126,9 +126,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Notification](./atoms/notification.md)** (761 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
+**[Notification](./atoms/notification.md)** (765 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
 
-- Mints notification id. Offers key notification id.
+- Mints notification id. Needs key opaque. Offers key notification id.
 
 **[Observation](./atoms/observation.md)** (855 lines). Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
 
@@ -166,9 +166,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Reaction](./atoms/reaction.md)** (546 lines). Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry.
+**[Reaction](./atoms/reaction.md)** (558 lines). Reaction lets a person answer an item with one word from a short list the business offers: "Like" on a post, "Thanks" on an answer, or a small set such as Like, Love and Angry.
 
-- No bond lines yet.
+- Needs key actor id; key opaque.
 
 **[Recurrence](./atoms/recurrence.md)** (869 lines). Recurrence says which dates a repeating series falls on.
 

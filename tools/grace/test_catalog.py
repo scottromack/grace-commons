@@ -48,7 +48,11 @@ class Catalog(unittest.TestCase):
         self.assertIn('  b1_task -->|"list id"| b1_list', lines)
         # an opaque key need (Ordering's) meets every key offer, so it is drawn as no arrow, and said once
         self.assertFalse(any(ln.startswith("  b1_ordering ") and '"opaque"' in ln for ln in lines))
-        self.assertTrue(any(ln.startswith("Ordering") and "a key need typed opaque, which any atom that offers a key meets" in ln for ln in lines))
+        # unit `atoms: held references are key needs, the batch`: the sentence names every atom that holds one
+        said = [ln for ln in lines if "a key need typed opaque, which any atom that offers a key meets" in ln]
+        self.assertEqual(len(said), 1)
+        for name in ("Category", "Comment", "Favorite", "Notification", "Ordering", "Reaction", "Tag"):
+            self.assertIn(name, said[0])
 
     def test_bond_graph_hubs_are_tags(self):
         v = catalog.bond_layers(self.data)
