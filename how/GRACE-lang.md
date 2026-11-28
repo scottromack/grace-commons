@@ -280,7 +280,7 @@ Term modal: MUST | MUST NOT | MAY.
 
 Term condition operator: EQUALS | DOES NOT EQUAL | EXISTS | IS IN | IS NOT IN | EXCEEDS | DOES NOT EXCEED | PRECEDES | DOES NOT PRECEDE | AND (flat) | OR (flat, inclusive).
 
-Term blank: a value that is absent, empty, or carries only whitespace, code points with the Unicode White_Space property — a caller's input, a stored field or a deployment setting that holds nothing.
+Term blank: a value that is absent, empty, or carries only whitespace, code points with the Unicode White_Space property as Unicode 6.3 and every later version define it (U+180E, the Mongolian vowel separator, has none since 6.3) — a caller's input, a stored field or a deployment setting that holds nothing.
 
 Term absence form: `no thing EXISTS`, with `for` and the identifier where one names the thing — the one way a condition says a record, an event or a condition is not there.
 
