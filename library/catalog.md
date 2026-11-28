@@ -14,7 +14,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 ## Atoms
 
-**[Actor Identity](./atoms/actor-identity.md)** (815 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
+**[Actor Identity](./atoms/actor-identity.md)** (817 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
 
 - Mints actor id. Offers key actor id.
 
