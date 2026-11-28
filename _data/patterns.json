@@ -825,7 +825,7 @@
    "shared-cart"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 7,
   "kind": "atom",
   "models": {
@@ -857,7 +857,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "done \u2014 2026-11-24",
+  "status": "doing",
   "title": "Event Log"
  },
  "execute-gated-workflow": {

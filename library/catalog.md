@@ -82,7 +82,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs guard critical section key; key invocation id; journal closing record.
 
-**[Event Log](./atoms/event-log.md)** (489 lines). Event Log is an append-only record: what is written to it stays in the order it arrived, and by design the log itself never changes or removes it.
+**[Event Log](./atoms/event-log.md)** (533 lines). Event Log is an append-only record: what is written to it stays in the order it arrived, and by design the log itself never changes or removes it.
 
 - Offers journal.
 
