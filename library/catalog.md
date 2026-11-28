@@ -202,7 +202,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints subscription id. Offers key subscription id.
 
-**[Sweep](./atoms/sweep.md)** (409 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
+**[Sweep](./atoms/sweep.md)** (410 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
 
 - Needs guard critical section key; key invocation id; journal closing record, recovery_intended.
 

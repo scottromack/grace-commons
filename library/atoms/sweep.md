@@ -112,7 +112,8 @@ Term reported: an act the run examined, of a kind whose service identity EQUALS 
        reconcile step 2.10c: The run MUST count the act in skipped.
        reconcile step 2.10d: The run MUST open or advance the instance finding journal-unavailable on compliance surface.
    reconcile step 2.11: The run MUST NOT call act probe BEFORE querying remaining((kind, act key), critical section holder).
-   reconcile step 2.12: The run MUST examine the kept intents one at a time, steps 2 to 4 for one act before the next, oldest recording instant first and, between two intents of one recording instant, the lower sequence number first (the window of Invariant 4.2 runs from the recording instant).
+   reconcile step 2.12: The run MUST examine the kept intents oldest recording instant first and, between two intents of one recording instant, the lower sequence number first (Invariant 4.2).
+   reconcile step 2.13: The run MUST examine the kept intents one at a time, steps 2 through 4 for each intent.
    ```
 3. **Probe the database.**
 
@@ -380,7 +381,7 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-28` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -388,9 +389,9 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-28
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-27 — Final Critique 6, a delta round (diff base fe3c8388, 8 labels, the reach of the grammar batch's rewording of Invariant 4.2, 4.3 and 5.10), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 8621e296 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's two foundational-rated findings were refuted by both triages (reconcile step 2.12 against Invariant 4.2: Term run bound claims no bound past the backlog the deployment sizes for, and the proposed stop would leave intents in no count; reconcile 9 and 9a cite Execution Contract Constituent failure 1 as Durable Intent open step 2.3 and Bonds' guard need do for a failed take or release, and state their own effects), and the blind second triage placed one defect Linus missed, cured: reconcile step 2.12 ordered the kept intents by recording instant alone, so two builds took intents of one recording instant in different orders and differed in tally and findings once a write answered invalid-credential (reconcile step 2.1, 2.9), and it now takes the lower sequence number first; Linus's four refining findings were each refuted or declined by a rule of the corpus (the bare Check 3 is Sweep's own and Durable Intent has no Check 3; the absolute excepted is the corpus's form; Durable Intent Check 1.1 is scoped to the horizon; Term skipped counts the act in place of any count it held)
+last gate: 2026-11-28 — Final Critique 7, a delta round (diff base 8621e296, 1 label: reconcile step 2.12, the rule Final Critique 6 cured), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 35741f8b — foundational count 0 after the blind second triage, clean, one sample; Linus reported no foundational finding and pressed three questions (two kept intents with no order between them, a restart mid-run aging an intent, a clock-stamp order against Order 2), all held; his four findings placed: that "sequence number" names no owner refuted (the Term cited line names Audit Trail, which takes it from Event Log's strictly rising integer, one numbering per instance), that "steps 2 to 4" is a run of labels in the wrong form and that one MUST carries several orderings refining, Kind B, and the parenthetical restating Invariant 4.2 rhetorical; the blind second triage, one cold reader on Opus 5.5, found a watch word of its own ("before" outside the admitted tails); cured together by splitting reconcile step 2.12 into the order, which cites Invariant 4.2, and reconcile step 2.13, the run examining the kept intents one at a time through steps 2 through 4, a restatement of what the rule already obliged, so no behaviour changes; 2026-11-27 — Final Critique 6, a delta round (diff base fe3c8388, 8 labels, the reach of the grammar batch's rewording of Invariant 4.2, 4.3 and 5.10), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 8621e296 — foundational count 1 after the blind second triage, cured, not clean, no sample; Linus's two foundational-rated findings were refuted by both triages (reconcile step 2.12 against Invariant 4.2: Term run bound claims no bound past the backlog the deployment sizes for, and the proposed stop would leave intents in no count; reconcile 9 and 9a cite Execution Contract Constituent failure 1 as Durable Intent open step 2.3 and Bonds' guard need do for a failed take or release, and state their own effects), and the blind second triage placed one defect Linus missed, cured: reconcile step 2.12 ordered the kept intents by recording instant alone, so two builds took intents of one recording instant in different orders and differed in tally and findings once a write answered invalid-credential (reconcile step 2.1, 2.9), and it now takes the lower sequence number first; Linus's four refining findings were each refuted or declined by a rule of the corpus (the bare Check 3 is Sweep's own and Durable Intent has no Check 3; the absolute excepted is the corpus's form; Durable Intent Check 1.1 is scoped to the horizon; Term skipped counts the act in place of any count it held)
 open: none
 ```
 
