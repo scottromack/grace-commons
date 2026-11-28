@@ -40,10 +40,10 @@ A subscription is a standing answer to *who wants to hear about this?* — recor
 ```
 Identity 1: The atom MUST identify a subscription by the subscription id.
 Identity 2: The host MUST allocate a subscription id at the atom's seam.
-Identity 4: The atom MUST NOT reuse a subscription id.
+Identity 4: The host MUST NOT supply one subscription id to two calls (Logic confinement 16, Invariant 5.1).
 Identity 5: The atom MUST NOT identify a subscription by the subscriber reference and the event scope.
 Identity 6: The deployment MUST draw a subscription id from a cryptographically secure source.
-Identity 7: The deployment MUST NOT draw a subscription id from the subscription's public properties.
+Identity 7: The deployment MUST NOT draw a subscription id from the subscriber reference, the event scope or the subscription instant.
 ```
 
 Term subscription: one actor's standing interest in one class of events — the record this atom holds.
@@ -75,7 +75,7 @@ Term active at an instant: subscription instant at or before the instant, and ca
 
 #### Subscription Id
 
-The opaque, immutable string identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity and names the subscription to [Cancel] and [Read Subscription]; it grants nothing, and who may cancel is the app's permission (Cancel capability 3).
+The opaque, immutable string identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity and names the subscription to [Cancel] and [Read Subscription]; it is a name and no bearer token (Logic confinement 21): it grants nothing, since the atom gates no [Cancel] (Non-goal 15), and who may cancel is the app's permission (Cancel capability 3).
 
 Kind:       Field
 Field of:   the subscription
@@ -146,8 +146,8 @@ Term event scope: the opaque string naming the class of events covered — an [E
 ### Every action
 
 ```
-Operation 7: The atom MUST NOT interpret subscriber reference beyond Operation 4, Operation 29 and Operation 30.
-Operation 8: The atom MUST NOT interpret event scope beyond Operation 5, Operation 29 and Operation 30.
+Operation 7: The atom MUST NOT interpret subscriber reference beyond Operation 4, Operation 29 and Operation 30, and beyond comparing two subscriber references for equality (Operation 6, Operation 17, Operation 20).
+Operation 8: The atom MUST NOT interpret event scope beyond Operation 5, Operation 29 and Operation 30, and beyond comparing two event scopes for equality (Operation 6, Operation 17, Operation 19, Operation 22).
 ```
 
 NOTE: watch the cap's refusal (Operation 29).
@@ -156,7 +156,7 @@ NOTE: watch the untyped input (Operation 30, Operation 31, Term subscriber refer
 
 NOTE: watch the cap's measure (Term string cap, Term bounds).
 
-Term string input: a subscriber reference or an event scope a [Subscribe] call supplies — every caller-supplied string this atom records; a subscription id and the inputs of [Subscribed] and [Subscribers For] are compared with the records and bound by no cap, so one too long matches no subscription.
+Term string input: a subscriber reference or an event scope a [Subscribe] call supplies — every caller-supplied string this atom records; a subscription id and the inputs of [Subscribed] and [Subscribers For] are compared with the records and bound by no cap, so Query 5 has no cap to hold them to and one too long matches no subscription.
 
 Term pair: one subscriber reference with one event scope — what at-most-one ranges over.
 
@@ -425,7 +425,7 @@ Cancel capability 3: A deployment gating [Cancel] MUST compose a permission patt
 ```
 Lost ledger 1: The atom MUST NOT recover a subscription id.
 Lost ledger 2: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
-Lost ledger 3: A deployment losing a subscription id MUST read the subscription as active with no end.
+Lost ledger 3: IF a deployment loses a subscription id AND the subscription's cancellation instant EQUALS blank THEN the deployment MUST read the subscription as active with no end.
 Lost ledger 4: A deployment needing recovery from a lost subscription id MUST supply the recovery as the deployment's own operating policy, outside the atom, since no declared surface of the atom returns a subscription id to the recovery (Cancel capability 2, Lost ledger 1).
 ```
 
@@ -476,7 +476,7 @@ Non-goal 8: The atom MUST NOT guarantee a delivery count.
 Non-goal 9: The atom MUST NOT expire a subscription.
 Non-goal 10: A deployment needing a time-bounded subscription MUST compose a temporal-subscription pattern.
 Non-goal 11: The atom MUST NOT hold a subscriber's life cycle.
-Non-goal 12: A deployment removing an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); a subscription whose id is lost stays active (Lost ledger 3).
+Non-goal 12: A deployment removing an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); an active subscription whose id is lost stays active (Lost ledger 3).
 Non-goal 13: The atom MUST NOT record who called [Subscribe].
 Deleted: Non-goal 14. Non-goal 13 owns it: the atom attributes no subscription to an actor, and which pattern attests one is the app's choice.
 Non-goal 15: The atom MUST NOT gate [Cancel].
@@ -487,7 +487,7 @@ Deleted: Non-goal 18. Non-goal 17 owns it: the atom bounds no retention, and whi
 
 NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12); the deployment's own operating policy (Lost ledger 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); a temporal-subscription pattern *(forthcoming)* (Non-goal 10); an Actor Registry *(forthcoming)* (Non-goal 11); an attestation pattern (Non-goal 13, Non-goal 14); the app's permission (Non-goal 15, Cancel capability 3); an event log pattern (Non-goal 17); the app's choice of a retention pattern (Non-goal 18); an event log pattern and a notification pattern (State 8, State 9).
 
-Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two active subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because [Cancel] takes the id and the atom enumerates none (Lost ledger 1, Lost ledger 3, Lost ledger 4).
+Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two active subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions still active stay active, every audit sees them, and nothing in this atom can cancel them, because [Cancel] takes the id and the atom enumerates none (Lost ledger 1, Lost ledger 3, Lost ledger 4).
 
 ```
 Composition note 2: A composing pattern MUST call [Subscribers For] when an event fires.
@@ -527,7 +527,7 @@ Three scenarios the subscription records must survive in regulated contexts:
 
 - **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`cancelled_at` is absent or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer provably, from stored fields — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant]. Invariants 1 and 9 make the timeline reconstruction exact.
 - **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription records for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the database confirms the actor was never subscribed. The subscription records prove which subscriptions named the actor and when; who called [Subscribe] they do not record, and attribution is an attestation pattern's to compose (Non-goal 13, Non-goal 14).
-- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`cancelled_at` is absent or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who was subscribed to that scope at the instant of the breach. Invariant 6 (at-most-one-active) confirms no actor holds more than one active subscription to `data:export` at any commit (Execution Contract Database 8).
+- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`cancelled_at` is absent or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who was subscribed to that scope at the instant of the breach (Term active at an instant: a subscription cancelled at exactly that instant was not subscribed at it). Invariant 6 (at-most-one-active) confirms no actor holds more than one active subscription to `data:export` at any commit (Execution Contract Database 8).
 
 ---
 
@@ -551,7 +551,7 @@ This atom's acceptance is provable: an external auditor clears it from the subsc
 #### Conformance checks
 
 ```
-Check 1.1: An auditor MUST reconstruct a scope's subscriptions active at a past instant from subscription instant and cancellation instant (State 2, State 3).
+Check 1.1: An auditor MUST reconstruct a scope's subscriptions active at a past instant from subscription instant and cancellation instant (Term active at an instant, State 2, State 3).
 Check 1.2: An auditor MUST find no subscription whose cancellation instant PRECEDES the subscription's subscription instant (Invariant 9.1).
 Check 1.3: An auditor MUST find EVERY subscription's subscription id, subscriber reference, event scope and subscription instant unchanged across EVERY committed version of the subscription (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Invariant 6.1).
@@ -630,7 +630,7 @@ Term terms: now, subscription, subscription id, subscriber reference, event scop
 ```
 status: doing
 formal: verified — subscription.als + 2 twins (the static data model: Invariant 6.1 pairwise and State 3 with its converse, 2026-06-03); coverage 2026-11-10 (unit formal: more coverage for the yes votes); subscription.tla + 32 twins (across steps, 2026-11-11: Invariant 1.1, 2.2, 4.1, 4.2, 5.1, 6.1, 7.1, 7.2, 8.1, 9.1, Identity 2, State 3, 4, 5, 7, Operation 1 through 14, 16 through 20, 22, 24, 25, 29 through 32, Non-goal 16 and Check 1.1 at the read; Invariant 6.1 and State 3 a cross-check with the Alloy model; and, by way of those checks, Identity 1 (Non-goal 16) and Identity 4 and 5 (Invariant 5.1 and 4.1); 2026-11-20, with an audience cap of 2: Operation 33 (Op33_FullScopeRefused, broken by subscription-buggy-subscribe-ignores-audience-cap.tla), its order behind Operation 6 (Op6_ActivePairRefused, broken by subscription-buggy-subscribe-full-before-already.tla) and Term audience cap at the read (AudienceCap_ReadWithinCap)); nothing testable for the answer's order, which Execution Contract Read 5 owns (Operation 23 deleted 2026-11-27); owed rows: none, 2026-11-11
-last gate: 2026-11-27 — Final Critique 16, a delta round (diff base 7f80ebd6, 11 labels), frozen at 8621e296 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims were refuted (Capability requirement 5's omitted Database 6, which binds every specification whether cited or not, so refining, cited now; Operation 29 scoping the cap to [Subscribe], which Term string input fixes, a subscription id and the read inputs being bound by no cap); the blind second triage found no defect of its own; three refining findings cured (the presence check named as Operation 4 and Operation 5, the breach example's Invariant 6 scoped to the queried scope) and Scott's ruling of 2026-11-27 04:59Z on Final Critique 15's third finding applied, the subscription id naming the subscription and the app's permission gating [Cancel]: Operation 12 and Cancel capability 1 deleted to Bonds Key 19 and Non-goal 15, Non-goal 15 and Cancel capability 3 rewritten, the Subscription Id, Term subscription id and Cancel entries and the "where the atom breaks down" sentence re-worded; the cure is a change of meaning no reader has read, so the page stays doing and its next round is a delta round; 2026-11-27 — Final Critique 15, a full round, frozen at 7f80ebd6 — foundational count 3, two cured and one waiting on Scott, not clean, one sample
+last gate: 2026-11-28 — Final Critique 17, a delta round (diff base 8621e296, 40 labels), frozen at 35741f8b — foundational count 1, cured, not clean, no sample; Lost ledger 3 read a lost-id subscription as active with no end whatever its cancellation instant, so a cancelled subscription whose id was lost read as active against Invariant 2.2 and Check 1.1: it now holds only where the cancellation instant EQUALS blank, Non-goal 12 and the breaks-down sentence worded for the active ones; six refining findings cured (the Subscription Id entry says the id is a name and no bearer token, Term string input names Query 5's having no cap to hold the read inputs to, Identity 4 binds the host, Operation 7 and Operation 8 allow an equality comparison and cite it, Identity 7 names the three properties, Check 1.1 and the breach example cite Term active at an instant); one rhetorical; the page stays doing and its next round is a delta round; 2026-11-27 — Final Critique 16, a delta round (diff base 7f80ebd6, 11 labels), frozen at 8621e296 — foundational count 0 after the blind second triage, clean, one sample; Linus's two foundational claims were refuted (Capability requirement 5's omitted Database 6, which binds every specification whether cited or not, so refining, cited now; Operation 29 scoping the cap to [Subscribe], which Term string input fixes, a subscription id and the read inputs being bound by no cap); the blind second triage found no defect of its own; three refining findings cured (the presence check named as Operation 4 and Operation 5, the breach example's Invariant 6 scoped to the queried scope) and Scott's ruling of 2026-11-27 04:59Z on Final Critique 15's third finding applied, the subscription id naming the subscription and the app's permission gating [Cancel]: Operation 12 and Cancel capability 1 deleted to Bonds Key 19 and Non-goal 15, Non-goal 15 and Cancel capability 3 rewritten, the Subscription Id, Term subscription id and Cancel entries and the "where the atom breaks down" sentence re-worded; the cure is a change of meaning no reader has read, so the page stays doing and its next round is a delta round; 2026-11-27 — Final Critique 15, a full round, frozen at 7f80ebd6 — foundational count 3, two cured and one waiting on Scott, not clean, one sample
 
 open: none
 ```
