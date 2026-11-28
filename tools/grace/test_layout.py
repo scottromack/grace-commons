@@ -16,15 +16,20 @@ import layout  # noqa: E402
 
 class Paths(unittest.TestCase):
     def test_a_page_maps_both_ways(self):
-        for old, new in (("atoms/lease.md", "library/atoms/lease.md"),
+        for old, new in (("atoms/lease.md", "library/atoms/lease.idd"),
                          ("compositions/models/x.tla", "library/compositions/models/x.tla"),
                          ("method.md", "how/method.md"), ("GRACE-lang.hist.md", "how/GRACE-lang.hist.md"),
                          ("roadmap.md", "log/roadmap.md"), ("atoms", "library/atoms")):
             self.assertEqual(layout.new_path(old), new)
             self.assertEqual(layout.old_path(new), old)
 
+    def test_a_page_renamed_after_its_move(self):
+        # atoms/lease.md -> library/atoms/lease.md (the folder move) -> library/atoms/lease.idd (the .idd sweep)
+        self.assertEqual(layout.new_path("library/atoms/lease.md"), "library/atoms/lease.idd")
+        self.assertEqual(layout.new_path("library/compositions/login.md"), "library/compositions/login.md")
+
     def test_a_page_that_never_moved_is_itself(self):
-        for path in ("readme.md", "corpus.md", "evidence.md", "tools/grace/check.py", "library/atoms/lease.md"):
+        for path in ("readme.md", "corpus.md", "evidence.md", "tools/grace/check.py", "library/atoms/lease.idd"):
             self.assertEqual(layout.new_path(path), path)
 
 

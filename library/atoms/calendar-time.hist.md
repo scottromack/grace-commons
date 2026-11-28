@@ -6,7 +6,7 @@ search_exclude: true
 
 # Calendar Time — history
 
-The dated record of how [Calendar Time](./calendar-time.md) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/calendar-time.md`.
+The dated record of how [Calendar Time](./calendar-time.idd) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/calendar-time.md`.
 
 ## Decisions
 

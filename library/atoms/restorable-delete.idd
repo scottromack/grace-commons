@@ -422,9 +422,9 @@ Non-goal 6: The atom MUST NOT purge an item on a schedule.
 Non-goal 7: The atom MUST NOT check an item reference against a catalog.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); the composing pattern that shows the item, reading [Look Up] (Non-goal 3); Shred *(forthcoming)*, with [Erasure Tombstone](./erasure-tombstone.md) recording the destruction (Non-goal 4; External check 1); [Legal Hold](./legal-hold.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 5); the composing pattern whose nightly job reads [List Expired] (Non-goal 6); Catalog *(forthcoming)* (Non-goal 7).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.idd) or [Permissions](./permissions.idd) (Non-goal 1, 2); the composing pattern that shows the item, reading [Look Up] (Non-goal 3); Shred *(forthcoming)*, with [Erasure Tombstone](./erasure-tombstone.idd) recording the destruction (Non-goal 4; External check 1); [Legal Hold](./legal-hold.idd) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 5); the composing pattern whose nightly job reads [List Expired] (Non-goal 6); Catalog *(forthcoming)* (Non-goal 7).
 
-Where the atom breaks down: a record kept for a set time by law and then destroyed, which is [Retention Window](./retention-window.md); a person's own take-back of a comment, which is a comment's retraction *(forthcoming)*.
+Where the atom breaks down: a record kept for a set time by law and then destroyed, which is [Retention Window](./retention-window.idd); a person's own take-back of a comment, which is a comment's retraction *(forthcoming)*.
 
 ```
 Composition note 1: A composing pattern MUST own what this atom declines.

@@ -429,7 +429,7 @@ A caller whose answer is lost may call again, and the repeat is a second call (E
 
 ### What undoes a write
 
-[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the author keeps or an auditor reads from the post's history (Execution Contract Database 5). A [Write] is undone by removing the post from view, which [Restorable Delete](./restorable-delete.md) owns (Execution Contract Undo 4).
+[Unpublish] undoes [Publish] and [Publish] undoes [Unpublish]; an [Edit] is undone by an [Edit] carrying the earlier wording, which the author keeps or an auditor reads from the post's history (Execution Contract Database 5). A [Write] is undone by removing the post from view, which [Restorable Delete](./restorable-delete.idd) owns (Execution Contract Undo 4).
 
 ## Optional
 
@@ -469,9 +469,9 @@ Non-goal 13: The atom MUST NOT offer a moderator's hiding of a post.
 Non-goal 14: A deployment needing a moderator to hide a post MUST compose Moderation.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2, 11, 12); [Category](./category.md) (Non-goal 3); [Comment](./comment.md) (Non-goal 4); [Reaction](./reaction.md) (Non-goal 5); [Restorable Delete](./restorable-delete.md) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10); [Moderation](./moderation.md) (Non-goal 13, Non-goal 14); a moderator's hiding is Moderation's act and not [Unpublish], whose caller the composing pattern that knows the caller admits (Non-goal 2, Non-goal 11).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.idd) or [Permissions](./permissions.idd) (Non-goal 1, 2, 11, 12); [Category](./category.idd) (Non-goal 3); [Comment](./comment.idd) (Non-goal 4); [Reaction](./reaction.idd) (Non-goal 5); [Restorable Delete](./restorable-delete.idd) (Non-goal 6); Scheduled Publish *(forthcoming)* (Non-goal 7); Post Address *(forthcoming)* (Non-goal 8); the composing pattern that shows the post, which draws the markdown as it likes (Non-goal 9); Search *(forthcoming)* (Non-goal 10); [Moderation](./moderation.idd) (Non-goal 13, Non-goal 14); a moderator's hiding is Moderation's act and not [Unpublish], whose caller the composing pattern that knows the caller admits (Non-goal 2, Non-goal 11).
 
-Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.md); a message to one person, which is a communication.
+Where the atom breaks down: an answer in a person's own words to someone else's post, which is a [comment](./comment.idd); a message to one person, which is a communication.
 
 ```
 Composition note 1: A composing pattern MUST own what this atom declines.

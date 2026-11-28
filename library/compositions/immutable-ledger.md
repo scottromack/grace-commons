@@ -40,10 +40,10 @@ What the composition is *not*: it is not a redaction or transmission engine (Sel
 ## Composes
 
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate that *is* the immutable ledger: every entry, every disclosure intent and every disclosure outcome is an attributed, sealed, retention-governed Audit Trail event.
-- **[Selective Disclosure](../atoms/selective-disclosure.md)** — the disclosure-accountability surface: the durable, append-only record of every disclosure — recipient, scope, authority, instant.
-- **[Durable Intent](../atoms/durable-intent.md)** — the protocol [Disclose Subset] follows around its accounting write: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the disclosure binding below; this pattern restates none of the protocol. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
-- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
-- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
+- **[Selective Disclosure](../atoms/selective-disclosure.idd)** — the disclosure-accountability surface: the durable, append-only record of every disclosure — recipient, scope, authority, instant.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol [Disclose Subset] follows around its accounting write: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the disclosure binding below; this pattern restates none of the protocol. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -65,11 +65,11 @@ Composes 17: EXACTLY ONE Sweep instance MUST serve the composition.
 Composes 18: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Audit Trail](./audit-trail.md), [Selective Disclosure](../atoms/selective-disclosure.md) and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the entry, the disclosure, the two verifications, the reissue, the binding index and the reconciliation.
+Term composition: this pattern's wiring of [Audit Trail](./audit-trail.md), [Selective Disclosure](../atoms/selective-disclosure.idd) and [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd) — the entry, the disclosure, the two verifications, the reissue, the binding index and the reconciliation.
 
-Term constituents: [Audit Trail](./audit-trail.md), [Selective Disclosure](../atoms/selective-disclosure.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
+Term constituents: [Audit Trail](./audit-trail.md), [Selective Disclosure](../atoms/selective-disclosure.idd), [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd).
 
-Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Tamper Evidence](../atoms/tamper-evidence.md) and [Retention Window](../atoms/retention-window.md), reached through Audit Trail; and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
+Term transitive atoms: [Event Log](../atoms/event-log.idd), [Actor Identity](../atoms/actor-identity.idd), [Tamper Evidence](../atoms/tamper-evidence.idd) and [Retention Window](../atoms/retention-window.idd), reached through Audit Trail; and [Lease](../atoms/lease.idd), reached through Recoverable Invocation.
 
 Term ledger enumeration: Event Log's read by sequence-number range, from one with an open upper bound, passed through Audit Trail unchanged, with every selection by action reference and payload field made in the composition's own code.
 
@@ -95,7 +95,7 @@ Term commit partition: committed where the disclosure write answers a disclosure
 
 Term disclosure probe: the disclosure read filtered by the act key's subject reference and recipient and by the intent's disclosure instant as a range of that one instant, kept in the composition's own code to the records carrying the act key's scope and authority — answering committed carrying ledger.disclosure.disclosed and the record's own fields where exactly one record matches, not-committed where none does, undecidable carrying the matching records' disclosure ids where more than one does, and unavailable where the read refuses or gives no answer. Every read of the database shows every record whose write has answered (Capability requirement 36).
 
-Adjacent, **not** constituents: [Consent](../atoms/consent.md) and [Permissions](../atoms/permissions.md) (whether a disclosure is permitted); [Defensible Retention](./defensible-retention.md) (hold-blocks-purge over the ledger); [Idempotent Reservation](./idempotent-reservation.md) (at-most-once append); [Chain of Custody](./chain-of-custody.md) (custody of an artifact an entry references).
+Adjacent, **not** constituents: [Consent](../atoms/consent.idd) and [Permissions](../atoms/permissions.idd) (whether a disclosure is permitted); [Defensible Retention](./defensible-retention.md) (hold-blocks-purge over the ledger); [Idempotent Reservation](./idempotent-reservation.md) (at-most-once append); [Chain of Custody](./chain-of-custody.md) (custody of an artifact an entry references).
 
 ---
 
@@ -738,7 +738,7 @@ Term unsettled escalation: an escalated closing of the act kind no settling clos
 
 Term reconciliation run bound: the bound a deployment declares on one reconciliation run, from its start to its last write, over the largest ledger and accounting records the deployment sizes for.
 
-Term settling period: the act kind's settling period, as [Durable Intent](../atoms/durable-intent.md) declares it: the time a deployment declares for an operator to settle an escalation, the longest outage of the journal or the accounting records the deployment sizes for included.
+Term settling period: the act kind's settling period, as [Durable Intent](../atoms/durable-intent.idd) declares it: the time a deployment declares for an operator to settle an escalation, the longest outage of the journal or the accounting records the deployment sizes for included.
 
 Term discloser: the original caller of a [Disclose Subset] — the actor a recovered outcome carries as its acting actor reference.
 
@@ -1043,7 +1043,7 @@ Term terms: accounting horizon, attestation verification, retention state, bundl
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Substrate composition invocation in `execution-contract.md` — the mechanism-capability residual and the multi-instance topology. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. record_action, read_record, verify_record, payload cap, sealed through, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, purged, partially-purged coverage, compensation-window, quiescence, Retained, Purged, Erasure Tombstone, verify-time presentation: Audit Trail. reference length cap: Audit Trail. record, read, disclosure id, subject reference, recipient, scope, authority, invalid-request, unknown-authority-type, storage-failure, invalid-query: Selective Disclosure. open, close, refuse, yield, read_invocation, reconcile, resolve, critical section, invocation completion bound, closure window, examine window end, service identity, outcome envelope, pairing datum, commit fence, retry terminus, recovery, acting actor reference, intent event id, cause, act-in-flight, section-unavailable, journal-unavailable, already-accounted, clock allowance, pause bound, horizon edge, act quiescence, supersedes, outcome action reference, constituent code, reply, run bound, journal write bound: Recoverable Invocation. read, invalid-query: Event Log. verify, seal: Tamper Evidence.
 
-Term composing patterns: [Consent](../atoms/consent.md); [Permissions](../atoms/permissions.md); [Defensible Retention](./defensible-retention.md); [Idempotent Reservation](./idempotent-reservation.md); [Duplicate Prevention](../atoms/duplicate-prevention.md); [Chain of Custody](./chain-of-custody.md).
+Term composing patterns: [Consent](../atoms/consent.idd); [Permissions](../atoms/permissions.idd); [Defensible Retention](./defensible-retention.md); [Idempotent Reservation](./idempotent-reservation.md); [Duplicate Prevention](../atoms/duplicate-prevention.idd); [Chain of Custody](./chain-of-custody.md).
 
 #### Record Entry
 

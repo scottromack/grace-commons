@@ -31,9 +31,9 @@ A cart is single-person by design: Cart has no notion of who is acting, Permissi
 
 ## Composes
 
-- **[Cart](../atoms/cart.md)** — the lines, their prices and the total.
-- **[Permissions](../atoms/permissions.md)** — the grants every action on a cart checks.
-- **[Event Log](../atoms/event-log.md)** — the add-only record of every change and who made it.
+- **[Cart](../atoms/cart.idd)** — the lines, their prices and the total.
+- **[Permissions](../atoms/permissions.idd)** — the grants every action on a cart checks.
+- **[Event Log](../atoms/event-log.idd)** — the add-only record of every change and who made it.
 
 ```
 Composes 1: EXACTLY ONE Cart instance MUST serve the composition.
@@ -51,9 +51,9 @@ Composes 12: A Cart instance AND an Event Log instance MUST NOT serve a pattern 
 Composes 13: The Permissions instance MUST NOT serve a pattern other than the composition AND Actor Suspension.
 ```
 
-Term composition: this pattern's wiring of [Cart](../atoms/cart.md), [Permissions](../atoms/permissions.md) and [Event Log](../atoms/event-log.md) — the gate, the scope vocabulary, the cart events and the actions below.
+Term composition: this pattern's wiring of [Cart](../atoms/cart.idd), [Permissions](../atoms/permissions.idd) and [Event Log](../atoms/event-log.idd) — the gate, the scope vocabulary, the cart events and the actions below.
 
-Term constituents: [Cart](../atoms/cart.md), [Permissions](../atoms/permissions.md), [Event Log](../atoms/event-log.md).
+Term constituents: [Cart](../atoms/cart.idd), [Permissions](../atoms/permissions.idd), [Event Log](../atoms/event-log.idd).
 
 ### Premodel
 
@@ -386,7 +386,7 @@ Non-goal 10: The composition MUST NOT limit the friends a cart is shared with.
 Non-goal 11: The composition MUST NOT exempt a grant of the cart from [Unshare Cart], the opener's grants included.
 ```
 
-NOTE: the owners — an authenticating pattern such as [Login](./login.md) or [Authenticated Actor](./authenticated-actor.md) (Non-goal 1, External check 4); [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 2); Pricing *(forthcoming)* (Non-goal 3); Checkout *(forthcoming)* (Non-goal 4); [Capability](../atoms/capability.md) (Non-goal 5); [Notification](../atoms/notification.md) (Non-goal 6); [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8); [Actor Suspension](./actor-suspension.md) (Non-goal 9, Composition note 3, Composes 13); the deployment (Non-goal 10, Non-goal 11).
+NOTE: the owners — an authenticating pattern such as [Login](./login.md) or [Authenticated Actor](./authenticated-actor.md) (Non-goal 1, External check 4); [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 2); Pricing *(forthcoming)* (Non-goal 3); Checkout *(forthcoming)* (Non-goal 4); [Capability](../atoms/capability.idd) (Non-goal 5); [Notification](../atoms/notification.idd) (Non-goal 6); [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8); [Actor Suspension](./actor-suspension.md) (Non-goal 9, Composition note 3, Composes 13); the deployment (Non-goal 10, Non-goal 11).
 
 ---
 
@@ -434,7 +434,7 @@ Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-10-30) through t
 
 Term terms: composition, constituents, actor reference, friend reference, cart event, add event, cart events, adder, whole-log query, reference bound, gated action, gated call, changing action, refused act, grant of the cart, shared cart, permitted share, permitted unshare, permitted add, permitted change, permitted remove, permitted clear, permitted view, permitted history, cart verbs, cart scope, verb scope, view scope, add scope, change scope, remove scope, share scope.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. Execution Contract Conformance 9 — the declaration of the composing patterns a deployment wired in. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary, owned; `Composition note 3` — the caller-to-subject binding, relayed (Composition note 2); `Composition note 5` — a departing subject's sweep, relayed (Composition note 3). [Cart](../atoms/cart.md) `Composition note 2` — the unit price, relayed (Composition note 4). [Event Log](../atoms/event-log.md) `Composition note 1`, `Composition note 2` and `Composition note 3` — append on every change, the meaning of an event and the payload's schema, owned.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. Execution Contract Conformance 9 — the declaration of the composing patterns a deployment wired in. [Permissions](../atoms/permissions.idd) `Composition note 2` — the scope vocabulary, owned; `Composition note 3` — the caller-to-subject binding, relayed (Composition note 2); `Composition note 5` — a departing subject's sweep, relayed (Composition note 3). [Cart](../atoms/cart.idd) `Composition note 2` — the unit price, relayed (Composition note 4). [Event Log](../atoms/event-log.idd) `Composition note 1`, `Composition note 2` and `Composition note 3` — append on every change, the meaning of an event and the payload's schema, owned.
 
 #### Open Cart
 
@@ -556,7 +556,7 @@ Projection: invalid-request
 
 ## Standards references
 
-Shared Cart is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer. The standards it touches are its constituents' and are cited there: [Cart](../atoms/cart.md), [Permissions](../atoms/permissions.md) and [Event Log](../atoms/event-log.md).
+Shared Cart is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer. The standards it touches are its constituents' and are cited there: [Cart](../atoms/cart.idd), [Permissions](../atoms/permissions.idd) and [Event Log](../atoms/event-log.idd).
 
 ## Status
 

@@ -6,7 +6,7 @@ search_exclude: true
 
 # Comment — history
 
-The dated record of how [Comment](./comment.md) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/comment.md`.
+The dated record of how [Comment](./comment.idd) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/comment.md`.
 
 ## Deleted rules
 

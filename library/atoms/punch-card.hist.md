@@ -6,7 +6,7 @@ search_exclude: true
 
 # Punch Card — history
 
-The dated record of how [Punch Card](./punch-card.md) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/punch-card.md`.
+The dated record of how [Punch Card](./punch-card.idd) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/punch-card.md`.
 
 ## Deleted rules
 

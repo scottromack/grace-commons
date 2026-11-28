@@ -651,7 +651,7 @@ Non-goal 7: The atom MUST NOT draw the menu.
 Non-goal 8: The atom MUST NOT record or answer a count of the items in a category.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or the app's [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Tag](./tag.md) (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.idd) or the app's [Permissions](./permissions.idd) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Tag](./tag.idd) (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
 
 Where the atom breaks down: several names on one item, found through any of the names, which is a tag pattern's; a folder a person keeps for their own items, which is a collection *(forthcoming)*.
 

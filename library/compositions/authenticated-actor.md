@@ -41,8 +41,8 @@ This is a composition, not a new primitive. Credential and Actor Identity are un
 
 ## Composes
 
-- **[Credential](../atoms/credential.md)** — the authentication surface, and the constituent the gate reads.
-- **[Actor Identity](../atoms/actor-identity.md)** — the attestation surface.
+- **[Credential](../atoms/credential.idd)** — the authentication surface, and the constituent the gate reads.
+- **[Actor Identity](../atoms/actor-identity.idd)** — the attestation surface.
 
 ```
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
@@ -57,9 +57,9 @@ Composes 9: The composition MUST key the gate on the principal reference AND the
 Composes 10: The composition MUST NOT key the gate on a credential id.
 ```
 
-Term composition: this pattern's wiring of [Credential](../atoms/credential.md) and [Actor Identity](../atoms/actor-identity.md) — the namespace binding, the cascade gate and the three actions below.
+Term composition: this pattern's wiring of [Credential](../atoms/credential.idd) and [Actor Identity](../atoms/actor-identity.idd) — the namespace binding, the cascade gate and the three actions below.
 
-Term constituents: [Credential](../atoms/credential.md), [Actor Identity](../atoms/actor-identity.md).
+Term constituents: [Credential](../atoms/credential.idd), [Actor Identity](../atoms/actor-identity.idd).
 
 ---
 
@@ -91,10 +91,10 @@ Term success entry: an attest log entry whose outcome is success — a success e
 
 Term bijection: the principal binding and the inverse together, unique on both keys — what neither constituent provides.
 
-**Contract classification: extraction-pending, two elements** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent records is a not-yet-extracted atom* — and it reaches both, because [Credential](../atoms/credential.md) keys on principal reference, [Actor Identity](../atoms/actor-identity.md) keys on actor reference, and neither relates the two.
+**Contract classification: extraction-pending, two elements** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent records is a not-yet-extracted atom* — and it reaches both, because [Credential](../atoms/credential.idd) keys on principal reference, [Actor Identity](../atoms/actor-identity.idd) keys on actor reference, and neither relates the two.
 
 - The **bijection** is one element, not two — two directions of one truth, with a uniqueness constraint per side. Proposed atom: a **Namespace Binding** — immutable, bijective, unique on both keys, no lifecycle beyond *bound*. Any pattern joining constituents that key on different opaque namespaces needs it.
-- The **attest log** is the second, *extraction-pending, against [Event Log](../atoms/event-log.md)*. It is an append-only record of every attempt at an action past its input checks, and of what each answered; the section titled Three-way taxonomy in [`execution-contract.md`](../execution-contract.md) says a composition that seems to need persistent state composes Event Log rather than keep records of its own, so the extraction is a second Event Log instance with a composition-supplied entry schema, the entries becoming that instance's events, and no Attempt Log atom is owed ([Login](./login.md) holds the sibling `login_event_log` pending the same way, and [Notification Fanout](./notification-fanout.md) routes the identical concept *out* to Event Log). The trigger is the Contract's: the extraction rides this page's next touch-triggered re-pass round (the section titled Composition state in `execution-contract.md`).
+- The **attest log** is the second, *extraction-pending, against [Event Log](../atoms/event-log.idd)*. It is an append-only record of every attempt at an action past its input checks, and of what each answered; the section titled Three-way taxonomy in [`execution-contract.md`](../execution-contract.md) says a composition that seems to need persistent state composes Event Log rather than keep records of its own, so the extraction is a second Event Log instance with a composition-supplied entry schema, the entries becoming that instance's events, and no Attempt Log atom is owed ([Login](./login.md) holds the sibling `login_event_log` pending the same way, and [Notification Fanout](./notification-fanout.md) routes the identical concept *out* to Event Log). The trigger is the Contract's: the extraction rides this page's next touch-triggered re-pass round (the section titled Composition state in `execution-contract.md`).
 
 ### Capability requirement
 
@@ -451,7 +451,7 @@ Non-goal 15: The composition MUST NOT set a retention policy.
 NOTE: watch the adopter's policy note (Non-goal 15).
 ```
 
-NOTE: the owners — the attestation records themselves, as the tamper-evident external-auditor surface (Non-goal 4); a composed [Retention Window](../atoms/retention-window.md), which a deployment needing a retention bound on an attestation composes (Non-goal 15; Actor Identity Composition note 4, Actor Identity Non-goal 16).
+NOTE: the owners — the attestation records themselves, as the tamper-evident external-auditor surface (Non-goal 4); a composed [Retention Window](../atoms/retention-window.idd), which a deployment needing a retention bound on an attestation composes (Non-goal 15; Actor Identity Composition note 4, Actor Identity Non-goal 16).
 
 ---
 

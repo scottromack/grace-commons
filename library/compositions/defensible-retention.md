@@ -43,8 +43,8 @@ This is a composition, not a new primitive. Legal Hold, Retention Window and Aud
 
 ## Composes
 
-- **[Legal Hold](../atoms/legal-hold.md)** — the preservation directive over a record.
-- **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime of a business record.
+- **[Legal Hold](../atoms/legal-hold.idd)** — the preservation directive over a record.
+- **[Retention Window](../atoms/retention-window.idd)** — the policy-bounded lifetime of a business record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
 
 ```
@@ -69,13 +69,13 @@ Composes 22: The composition MUST NOT write a destruction record beside Audit Tr
 Composes 23: The first half MUST read an audit event's destruction through Audit Trail's read_record alone.
 ```
 
-Term composition: this pattern's wiring of [Legal Hold](../atoms/legal-hold.md), [Retention Window](../atoms/retention-window.md) and the [Audit Trail](./audit-trail.md) substrate — the five actions, the hold gate and the two indexes.
+Term composition: this pattern's wiring of [Legal Hold](../atoms/legal-hold.idd), [Retention Window](../atoms/retention-window.idd) and the [Audit Trail](./audit-trail.md) substrate — the five actions, the hold gate and the two indexes.
 
-Term constituents: [Legal Hold](../atoms/legal-hold.md), [Retention Window](../atoms/retention-window.md), [Audit Trail](./audit-trail.md).
+Term constituents: [Legal Hold](../atoms/legal-hold.idd), [Retention Window](../atoms/retention-window.idd), [Audit Trail](./audit-trail.md).
 
-Term business retention instance: the one [Retention Window](../atoms/retention-window.md) instance this composition wires over business records — distinct from the instance [Audit Trail](./audit-trail.md) carries for the substrate's own events.
+Term business retention instance: the one [Retention Window](../atoms/retention-window.idd) instance this composition wires over business records — distinct from the instance [Audit Trail](./audit-trail.md) carries for the substrate's own events.
 
-Term audit retention instance: the one [Retention Window](../atoms/retention-window.md) instance [Audit Trail](./audit-trail.md) wires over the audit log's events (Audit Trail Composes 3) — read by the audit cascade through the constituent's declared read and never held by this composition (Composes 7).
+Term audit retention instance: the one [Retention Window](../atoms/retention-window.idd) instance [Audit Trail](./audit-trail.md) wires over the audit log's events (Audit Trail Composes 3) — read by the audit cascade through the constituent's declared read and never held by this composition (Composes 7).
 
 ---
 
@@ -139,7 +139,7 @@ Term horizon margin: `(((2 * seam_offset_allowance) + time_resolution) + section
 
 Term surviving destruction: a destroyed record whose earliest purge among the retentions over the record stands within the payload horizon — a destruction whose own record purged outcome and purge intent cannot have aged out. The edge is the record's first purge and never a sibling's later one.
 
-The audit cascade keeps one composition-state element of its own, moved here from Audit Trail with the cascade: erasure outcomes, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Execution Contract Composition state).
+The audit cascade keeps one composition-state element of its own, moved here from Audit Trail with the cascade: erasure outcomes, extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.idd) (Execution Contract Composition state).
 
 - **erasure outcomes**
   Term erasure outcomes: for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured erasure mechanism reported: destroyed or `destruction-failed(reason)`.
@@ -253,9 +253,9 @@ Term constituent instance: the Legal Hold instance holding the hold records, the
 
 Term hold check mode: hold_check_mode — strict | advisory.
 
-Term record section: the [Lease](../atoms/lease.md) this composition takes on a record reference — the key is the record reference under this instance's own namespace on the host (Concurrency 30) and the holder value is minted fresh for each take — under which one act over the record runs, from the act's first read at the gate to the act's outcome.
+Term record section: the [Lease](../atoms/lease.idd) this composition takes on a record reference — the key is the record reference under this instance's own namespace on the host (Concurrency 30) and the holder value is minted fresh for each take — under which one act over the record runs, from the act's first read at the gate to the act's outcome.
 
-Term section call pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound — the longest time from the decision to issue one call to the moment the call has taken effect or failed. It bounds a lease call, a committing call and the read an act makes for the act's outcome (Capability requirement 79), and never a whole record_action (Lease Capability requirement 7).
+Term section call pause bound: this composition's value of [Lease](../atoms/lease.idd)'s call pause bound — the longest time from the decision to issue one call to the moment the call has taken effect or failed. It bounds a lease call, a committing call and the read an act makes for the act's outcome (Capability requirement 79), and never a whole record_action (Lease Capability requirement 7).
 
 Term record destruction pattern: the pattern through which the composition destroys a business record — Record Destruction *(forthcoming)*. It destroys only a record a purged retention names, keeps each destruction's confirmation and retries a record a purge left standing, as Retention Window Record divergence 4a through 6 ask of the pattern that owns the destruction (Capability requirement 66). Under strict mode a standing record an active hold covers is a withheld record: the pattern retries a destruction only under the record section, and only where a read of Legal Hold made there answers no active hold over the record (Capability requirement 67, Capability requirement 68), so a hold placed after the purge keeps the record until the hold is released.
 
@@ -265,11 +265,11 @@ Term section work bound: the deployment's declared longest time from a take's an
 
 Term audit write latency: the deployment's disclosed longest time from issuing a record_action to the landing of the call's last write, an abandoned call's included. The unit's bound of a record_action under the record section (Lease Composition note 8a); a record_action that has not answered within it answers no answer (Audit arm 18). It is counted from the start of the unit, which starts within one section call pause bound of asking for the unit's reading (Lease Sizing 5c), as Lease's unit bound is, so the record start floor adds that pause and the one left before the instant.
 
-Term record start floor: `(audit_write_latency + (2 * section_call_pause_bound))` — the remaining term a record_action needs to land inside the grant. The floor admits a call whose [Remaining](../atoms/lease.md) reading answers a remaining term exceeding the floor (Lease Sizing 5).
+Term record start floor: `(audit_write_latency + (2 * section_call_pause_bound))` — the remaining term a record_action needs to land inside the grant. The floor admits a call whose [Remaining](../atoms/lease.idd) reading answers a remaining term exceeding the floor (Lease Sizing 5).
 
 Term sibling floor: `(record_start_floor + (3 * section_call_pause_bound))` — the remaining term below which a purge starts no further sibling's purge, so that the purge's outcome still has its floor: two section call pause bounds for the sibling's own reading and call (Lease Sizing 3, Lease Sizing 3a) and one for the read of the named retention's purge instant the outcome carries (Action wiring 106, Capability requirement 79).
 
-Term lease reading: live | expired — what a [Remaining](../atoms/lease.md) reading of the record section says of the grant, as [Lease](../atoms/lease.md) declares the two (Lease Sizing 2, Lease Sizing 2a, Lease Sizing 7).
+Term lease reading: live | expired — what a [Remaining](../atoms/lease.idd) reading of the record section says of the grant, as [Lease](../atoms/lease.idd) declares the two (Lease Sizing 2, Lease Sizing 2a, Lease Sizing 7).
 
 Term hold database name: the deployment's declared name of the one Legal Hold database instance serving the composition (Composes 1), matched against the database name Legal Hold's read answers (Legal Hold Instance 5).
 
@@ -281,7 +281,7 @@ Term hold ids cap: hold_ids_cap — the deployment's declared maximum count of h
 
 NOTE: watch the unset setting (Capability requirement 14, Capability requirement 16).
 
-Term Legal Hold: composed | absent — whether the deployment composes the [Legal Hold](../atoms/legal-hold.md) pattern over this instance; a knob, set by Capability requirement 69h. *Default:* absent.
+Term Legal Hold: composed | absent — whether the deployment composes the [Legal Hold](../atoms/legal-hold.idd) pattern over this instance; a knob, set by Capability requirement 69h. *Default:* absent.
 
 Term gate: the composition's check of a record's active holds ahead of a destruction — the gate read, the refusal it fires under strict mode and the gate record that refusal writes (Wiring decision 1 through 4); over an audit event, the check [Purge Event] makes at purge event 5.
 
@@ -947,7 +947,7 @@ Wiring decision 7: The composition MUST NOT compose a release reason for an over
 
 *Likely objection:* why not have Legal Hold intercept `RetentionWindow.purge` directly, and skip the composition?
 
-*Mechanism that resolves it:* Wiring decision 5 is the answer and it is about freestanding status rather than convenience. An atom that intercepted purge calls would have to know about retention records, storage layers and destruction mechanisms — absorbing concepts that belong to the composing layer. The atom records the obligation; the composition enforces it. Both constituents were written for this: [Legal Hold](../atoms/legal-hold.md)'s `Composition note 2` obliges a composing pattern to check a record's active holds at the purge surface, and [Retention Window](../atoms/retention-window.md)'s `Composition note 3` obliges one to own joint enforcement across retentions over one record. Both name this composition in their own words, and the *Legal hold suspension of purge* edge case, which moved here from [Audit Trail](./audit-trail.md) with the audit cascade, names it for the audit-event half of the gate (`Capability requirement 69`).
+*Mechanism that resolves it:* Wiring decision 5 is the answer and it is about freestanding status rather than convenience. An atom that intercepted purge calls would have to know about retention records, storage layers and destruction mechanisms — absorbing concepts that belong to the composing layer. The atom records the obligation; the composition enforces it. Both constituents were written for this: [Legal Hold](../atoms/legal-hold.idd)'s `Composition note 2` obliges a composing pattern to check a record's active holds at the purge surface, and [Retention Window](../atoms/retention-window.idd)'s `Composition note 3` obliges one to own joint enforcement across retentions over one record. Both name this composition in their own words, and the *Legal hold suspension of purge* edge case, which moved here from [Audit Trail](./audit-trail.md) with the audit cascade, names it for the audit-event half of the gate (`Capability requirement 69`).
 
 *Result:* the gate is structural under strict mode rather than a runtime check an operator can talk past inside this composition's surface — though not a gate a direct atom-level call cannot route around, which `Composition state 24` detects rather than prevents. Both halves of the gate's behaviour are provable: `hold_check_result: empty` on every non-override destruction, and a gate record naming the blocking holds on every refusal. On an advisory instance the [Hold Override] marker is the third reading — a destruction that proceeded past a hold the records still name.
 
@@ -1359,7 +1359,7 @@ Non-goal 32: A deployment needing an unauthenticated caller kept from the refusa
 
 Non-goal 31 and Non-goal 32 rest on one fact: [Purge Eligible] takes no credential and answers every elapsed retention's hold count and deadlines (Action wiring 35, Action wiring 38), so a refusal ahead of the intent tells an unauthenticated caller nothing that read does not, and the intent, the first record of an act, is where the substrate validates the credential (Audit arm 7, Invariant 10.1).
 
-NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal 2); the deployment (Non-goal 8; Non-goal 25 through 27); [Permissions](../atoms/permissions.md) and the deployment (Non-goal 9 through 12, Composition note 3 through 5); Shred *(forthcoming)* (Non-goal 15, Non-goal 16); a Failed-Attempt Log *(forthcoming)* (Non-goal 17, Non-goal 18); the deployment (Non-goal 22, Non-goal 23); Reverse Index *(forthcoming)* (Composes 14); Override Authorization *(forthcoming)* (Capability requirement 33).
+NOTE: the owners — Policy Reconciliation *(forthcoming)* (Non-goal 1, Non-goal 2); the deployment (Non-goal 8; Non-goal 25 through 27); [Permissions](../atoms/permissions.idd) and the deployment (Non-goal 9 through 12, Composition note 3 through 5); Shred *(forthcoming)* (Non-goal 15, Non-goal 16); a Failed-Attempt Log *(forthcoming)* (Non-goal 17, Non-goal 18); the deployment (Non-goal 22, Non-goal 23); Reverse Index *(forthcoming)* (Composes 14); Override Authorization *(forthcoming)* (Capability requirement 33).
 
 ## Edge cases
 
@@ -1481,7 +1481,7 @@ Term terms: composition, constituents, business retention instance, record, reco
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, read_record, seal_now, record_destruction, destruction-failure, nothing-to-seal, retention-period-not-elapsed, event id, recording instant, sequence number, coverage status, covering seal, purged events, destruction record, pair, retention state, per-act critical section, sealed through, unsealed tail, purge completion bound, audit edge, compensation window, slice cap, payload cap, reference length cap, clock offset allowance, call pause bound, seal cadence, window span: Audit Trail. try_take, remaining, grant, holder value, remaining term, call in flight, no answer: Lease. time resolution, standing record, withheld record, retention deadline, purge deadline, purge instant, max purge delay: Retention Window. hold state, hold id, hold reason, placing actor, placement instant, release instant, case reference, database name, string cap: Legal Hold.
 
-Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Shred *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md).
+Term composing patterns: Policy Reconciliation *(forthcoming)*; Record Destruction *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Shred *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.idd); [Permissions](../atoms/permissions.idd); [Duplicate Prevention](../atoms/duplicate-prevention.idd).
 
 Term record: the host's business record this composition governs — named by a record reference, held in the host's own records, and destroyed by the composition through the record destruction pattern once `RetentionWindow.purge` has stood its retention purged (Action wiring 112).
 

@@ -400,7 +400,7 @@ Non-goal 12: The atom MUST NOT hold money.
 Non-goal 13: The atom MUST NOT tell a repeated stamp from a new stamp.
 ```
 
-NOTE: the owners — Loyalty Card *(forthcoming)* (Non-goal 1, 2, 3, 4, 5); Checkout *(forthcoming)* (Non-goal 6, 7, 8); [Permissions](./permissions.md) (Non-goal 9); Rate Limit *(forthcoming)* (Non-goal 10); the composing pattern that knows the holder, such as one built on [Session](./session.md) or [Party Identity](./party-identity.md) (Non-goal 11); [Gift Card](./gift-card.md) (Non-goal 12); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 13).
+NOTE: the owners — Loyalty Card *(forthcoming)* (Non-goal 1, 2, 3, 4, 5); Checkout *(forthcoming)* (Non-goal 6, 7, 8); [Permissions](./permissions.idd) (Non-goal 9); Rate Limit *(forthcoming)* (Non-goal 10); the composing pattern that knows the holder, such as one built on [Session](./session.idd) or [Party Identity](./party-identity.idd) (Non-goal 11); [Gift Card](./gift-card.idd) (Non-goal 12); [Duplicate Prevention](./duplicate-prevention.idd) (Non-goal 13).
 
 Where the atom breaks down: a reward that grows with the money spent, a double-stamp day, or a stamp that must come back off when a purchase is returned, which is a loyalty card system.
 

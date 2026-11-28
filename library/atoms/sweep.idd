@@ -374,10 +374,10 @@ Term qualifiers: migrated — rewritten in GRACE-lang, the corpus's rule grammar
 Term terms: (named expressions, each declared where it is used) worst closure, examine window end, retention floor, lease spend, run floor, sweep lease spend, examine edge, horizon edge, at risk threshold, settling edge, intent age, settle bound, retention end, sweep lease, run interval, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed already, standing closing, terminus, caller kind, payload match, act quiescence, read path, read-your-writes, journal join, lost reply, `position's existing arm`, cross-seam comparison, critical section key, critical section holder, critical section duration, reply, release, hard alert, unfenced write, write floor, commit floor, act finding, instance finding, kind, act key, invocation id, now, operator run id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first seen, last seen, condition read, span, acting actor reference, resolving actor, recovery_intended, database candidates, readable intent.
 
 [Reconcile]: #reconcile
-[Close]: ./durable-intent.md#close
-[Finding]: ./escalation.md#finding
-[Read Invocation]: ./durable-intent.md#read-invocation
-[Resolve]: ./escalation.md#resolve
+[Close]: ./durable-intent.idd#close
+[Finding]: ./escalation.idd#finding
+[Read Invocation]: ./durable-intent.idd#read-invocation
+[Resolve]: ./escalation.idd#resolve
 
 ## Status
 

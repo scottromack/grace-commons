@@ -36,10 +36,10 @@ Every regulated system carries the same obligation: when the auditor arrives, th
 
 ## Composes
 
-- **[Event Log](../atoms/event-log.md)** — the append-only, totally-ordered sequence the *what happened* answer is read from. The composition's one instance is the audit log.
-- **[Actor Identity](../atoms/actor-identity.md)** — the verifiable attribution the *who authorized it* answer is read from. The one instance keeps the attestation records.
-- **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime the *was the retention honored* answer is read from. The one instance, configured with the host's regulatory policy or a policy selector, keeps the retention records.
-- **[Tamper Evidence](../atoms/tamper-evidence.md)** — the integrity proof the *has the record been altered* answer is read from. The one instance keeps the seal records, sealing ranges of the audit log on a configured cadence.
+- **[Event Log](../atoms/event-log.idd)** — the append-only, totally-ordered sequence the *what happened* answer is read from. The composition's one instance is the audit log.
+- **[Actor Identity](../atoms/actor-identity.idd)** — the verifiable attribution the *who authorized it* answer is read from. The one instance keeps the attestation records.
+- **[Retention Window](../atoms/retention-window.idd)** — the policy-bounded lifetime the *was the retention honored* answer is read from. The one instance, configured with the host's regulatory policy or a policy selector, keeps the retention records.
+- **[Tamper Evidence](../atoms/tamper-evidence.idd)** — the integrity proof the *has the record been altered* answer is read from. The one instance keeps the seal records, sealing ranges of the audit log on a configured cadence.
 
 ```
 Composes 1: EXACTLY ONE Event Log instance MUST serve the composition.
@@ -80,7 +80,7 @@ Term surviving fields: an attestation's attestation id, action reference, actor 
 
 ### Composition state
 
-Nine elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are wholly derived indexes — event to retention, event to sequence, sealed through, the uncovered mark. Four split — event to attestation is derived for an event no destruction record names and extraction-pending for one a destruction record names; seal coverage is derived over ranges and carries one extraction-pending per-entry set; compensated attestations and reported beyond horizon are derived for a member taken from an event no destruction record names and extraction-pending for one a destruction record carries. One is wholly extraction-pending — the outage record, against [Condition Register](../atoms/condition-register.md); erasure outcomes, the cascade's element, moved to [Defensible Retention](./defensible-retention.md) with the cascade. The destruction record is no element of its own: it holds the extraction-pending halves of seal coverage, event to attestation, compensated attestations and reported beyond horizon — the purged events, the pair, and what the two markers' rebuilds take from it (seal coverage 9, event to attestation 3a, compensated attestations 1a, reported beyond horizon 1a).
+Nine elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are wholly derived indexes — event to retention, event to sequence, sealed through, the uncovered mark. Four split — event to attestation is derived for an event no destruction record names and extraction-pending for one a destruction record names; seal coverage is derived over ranges and carries one extraction-pending per-entry set; compensated attestations and reported beyond horizon are derived for a member taken from an event no destruction record names and extraction-pending for one a destruction record carries. One is wholly extraction-pending — the outage record, against [Condition Register](../atoms/condition-register.idd); erasure outcomes, the cascade's element, moved to [Defensible Retention](./defensible-retention.md) with the cascade. The destruction record is no element of its own: it holds the extraction-pending halves of seal coverage, event to attestation, compensated attestations and reported beyond horizon — the purged events, the pair, and what the two markers' rebuilds take from it (seal coverage 9, event to attestation 3a, compensated attestations 1a, reported beyond horizon 1a).
 
 Term derived index: an element regenerated from the constituent records by the element's rebuild procedure.
 
@@ -424,7 +424,7 @@ purge completion bound 4: A deployment with no cascade MUST set purge completion
   slice cap 2: The count of events one slice holds MUST NOT EXCEED slice cap.
   ```
 - **call pause bound**
-  Term call pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease take, a lease check, a write to a constituent, a delegation to the erasure mechanism, never a whole [Record Action] and never a read that enumerates (Term no answer) — to the moment the call has taken effect or failed. *Default:* none.
+  Term call pause bound: this composition's value of [Lease](../atoms/lease.idd)'s call pause bound: the longest time from a holder's decision to issue one call — a lease take, a lease check, a write to a constituent, a delegation to the erasure mechanism, never a whole [Record Action] and never a read that enumerates (Term no answer) — to the moment the call has taken effect or failed. *Default:* none.
   ```
   call pause bound 1: The deployment MUST set call pause bound from the observed worst-case latency of a host or constituent call, a read that enumerates excepted (Term no answer), with headroom.
   call pause bound 2: The deployment MUST declare EVERY completion bound as exceeding twice call pause bound.
@@ -477,9 +477,9 @@ Per-act critical section 17: A holder MUST NOT re-issue, within the holder's lea
   ```
   Term act's kind: a cascade or a record action — the kind Per-act critical section 1a namespaces a key by. A cascade's key is the event id, taken by Defensible Retention's purge event (Defensible Retention purge event step 0.6), by its first half for the cascade it re-drives (Defensible Retention First half 6, Defensible Retention Cascade critical section 5) and by a hold placement (Defensible Retention Capability requirement 69a); a record action's key is the attestation id [Record Action] step 2 returns, taken by the second half for an orphan (Second half 9) and by the third half for an unretained event (Third half 5).
 
-  Term lease: live or expired as [Lease](../atoms/lease.md) Sizing 2 reads it, a remaining that answers none or no answer included.
+  Term lease: live or expired as [Lease](../atoms/lease.idd) Sizing 2 reads it, a remaining that answers none or no answer included.
 
-  Term no answer: as [Lease](../atoms/lease.md) declares it: a call with neither answer nor refusal inside call pause bound, or, for a blocking take, inside the longest duration declared for the key and call pause bound (Per-act critical section 15c); for a read that enumerates, inside the read's own bound and call pause bound — measured enumeration for the full enumeration, the read of the destruction records and the enumeration of the attestation records and of the retention records, seal completion bound for the rebuild's read of the seal records (seal now 13) — a read inside its own bound is answered however long it runs against call pause bound; the lost answer of Execution Contract Error model 1, whose caller cannot tell whether the call landed.
+  Term no answer: as [Lease](../atoms/lease.idd) declares it: a call with neither answer nor refusal inside call pause bound, or, for a blocking take, inside the longest duration declared for the key and call pause bound (Per-act critical section 15c); for a read that enumerates, inside the read's own bound and call pause bound — measured enumeration for the full enumeration, the read of the destruction records and the enumeration of the attestation records and of the retention records, seal completion bound for the rebuild's read of the seal records (seal now 13) — a read inside its own bound is answered however long it runs against call pause bound; the lost answer of Execution Contract Error model 1, whose caller cannot tell whether the call landed.
 
   Term work bound: closure floor plus one measured enumeration for the second half — the one enumeration under the section of Second half 17 — and two for the third half, the audit-log enumeration that reads narrated and the retention-record enumeration of a true miss in event to retention (Third half 6); purge completion bound for the first half.
 

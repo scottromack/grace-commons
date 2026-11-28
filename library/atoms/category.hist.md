@@ -6,7 +6,7 @@ search_exclude: true
 
 # Category — history
 
-The dated record of how [Category](./category.md) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/category.md`.
+The dated record of how [Category](./category.idd) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/category.md`.
 
 ## Deleted rules
 

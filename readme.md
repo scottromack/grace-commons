@@ -35,11 +35,11 @@ Grace
 
 - **Grammar** — the controlled English the specs are written in. Example: [GRACE-lang](./how/GRACE-lang.md). A formal grammar (GF) *(planned)*.
 - **Sub-atomic** — the three primitives (state machine, pure function, direct effect), the four-step pipeline every action runs, and the database contract's families (Database, Order, Read, Refusal, Query, Input, Undo). Example: [Execution Contract](./library/execution-contract.md).
-- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Task](./library/atoms/task.md). A proof tag on each rule (proven, tested or assumed) *(planned)*.
-- **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./library/bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./library/declarations.md). Example: [Lease](./library/atoms/lease.md) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
+- **Atoms** — one freestanding idea with its state, its actions and its rules; today a model checks each one and a status says how far it is (`todo`, `doing`, `done`). Example: [Task](./library/atoms/task.idd). A proof tag on each rule (proven, tested or assumed) *(planned)*.
+- **Bonds** — the few kinds of connection between atoms, each stated once on one page, [Bonds](./library/bonds.md), so that no atom names another: an atom says what it needs and what it offers by kind, its fields typed by the words of [the declaration space](./library/declarations.md). Example: [Lease](./library/atoms/lease.idd) offers a guard. Guard and key are written; owner key, link, range, follow-up and priority are written when a line lands on one *(planned)*.
 - **Glue** — what is left that belongs to no atom or bond yet, kept at the end of an app's page, every line tagged bond candidate, atom candidate, data or dead; each leaves by promoting, demoting or dying. Example: the glue of [Recoverable Invocation as an app](./library/apps/recoverable-invocation/index.md).
 - **Data** *(planned)* — typed tables the checkers read, outside the prose of atoms and glue; Medication Order's clinical tables are planned as the first.
-- **Outside-world contracts** — what an app asks of a system that is not Grace's, stated once on one page, [Contracts](./library/contracts.md), and tested at the edge where that system connects, never trusted. Example: the adopter's commit and its act probe, which [Durable Intent](./library/atoms/durable-intent.md) and [Sweep](./library/atoms/sweep.md) need.
+- **Outside-world contracts** — what an app asks of a system that is not Grace's, stated once on one page, [Contracts](./library/contracts.md), and tested at the edge where that system connects, never trusted. Example: the adopter's commit and its act probe, which [Durable Intent](./library/atoms/durable-intent.idd) and [Sweep](./library/atoms/sweep.idd) need.
 - **Apps** — atoms, bond instances and marked glue, wired for one job. Example: [Recoverable Invocation as an app](./library/apps/recoverable-invocation/index.md). The first whole app, the shared to-do list, *(planned)* will carry Lean statements that you review, proofs, code generated for two builds and generated tests. Not yet: `tools/lean`.
 <!-- grace-map:end -->
 
@@ -69,7 +69,7 @@ The four stops below are the longer way in, for whoever wants it.
 
 ---
 
-## Stop 1 — Read one atom: [Event Log](./library/atoms/event-log.md) *(~10 minutes)*
+## Stop 1 — Read one atom: [Event Log](./library/atoms/event-log.idd) *(~10 minutes)*
 
 An **atom** is a freestanding concept — one recurring piece of business behavior, specified completely, naming no other pattern. Event Log is the best first one: small enough to read in a sitting, load-bearing enough that half the library composes on top of it.
 

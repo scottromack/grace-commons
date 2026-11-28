@@ -406,9 +406,9 @@ Non-goal 6: The atom MUST NOT turn a tag into a category.
 Non-goal 7: The atom MUST NOT count the items carrying a tag.
 ```
 
-NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Category](./category.md) (Non-goal 4, 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category (Non-goal 6); the composing pattern that shows the tag, reading [Items With] (Non-goal 7).
+NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.idd) or [Permissions](./permissions.idd) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Category](./category.idd) (Non-goal 4, 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category (Non-goal 6); the composing pattern that shows the tag, reading [Items With] (Non-goal 7).
 
-Where the atom breaks down: one place an item lives, shown in a menu, which is a [Category](./category.md); a person's own mark to find an item again, which is a [Favorite](./favorite.md).
+Where the atom breaks down: one place an item lives, shown in a menu, which is a [Category](./category.idd); a person's own mark to find an item again, which is a [Favorite](./favorite.idd).
 
 ```
 Composition note 1: A composing pattern MUST own what this atom declines.

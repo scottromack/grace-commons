@@ -6,7 +6,7 @@ search_exclude: true
 
 # Moderation — history
 
-The dated record of how [Moderation](./moderation.md) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/moderation.md`.
+The dated record of how [Moderation](./moderation.idd) got here, kept out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- library/atoms/moderation.md`.
 
 ## Decisions
 

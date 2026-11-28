@@ -41,11 +41,11 @@ What the composition is *not*: it is not the resource-availability oracle (wheth
 
 ## Composes
 
-- **[Provisional Commitment](../atoms/provisional-commitment.md)** — the per-reservation hold lifecycle: Held, then Confirmed, Released or Expired, with the confirm-within-window guarantee and terminal absorption.
-- **[Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.md)** — the bounded pool whose running total never exceeds its declared capacity and never falls below zero.
-- **[Duplicate Prevention](../atoms/duplicate-prevention.md)** — the time-bounded guard that makes every reservation action safe to repeat.
-- **[Event Log](../atoms/event-log.md)** — the durable, append-only, totally ordered journal of every reservation act.
-- **[Actor Identity](../atoms/actor-identity.md)** — the attestation that binds every act to a verifiable actor, and the composition's only credential check.
+- **[Provisional Commitment](../atoms/provisional-commitment.idd)** — the per-reservation hold lifecycle: Held, then Confirmed, Released or Expired, with the confirm-within-window guarantee and terminal absorption.
+- **[Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.idd)** — the bounded pool whose running total never exceeds its declared capacity and never falls below zero.
+- **[Duplicate Prevention](../atoms/duplicate-prevention.idd)** — the time-bounded guard that makes every reservation action safe to repeat.
+- **[Event Log](../atoms/event-log.idd)** — the durable, append-only, totally ordered journal of every reservation act.
+- **[Actor Identity](../atoms/actor-identity.idd)** — the attestation that binds every act to a verifiable actor, and the composition's only credential check.
 
 ```
 Composes 1: EXACTLY ONE Provisional Commitment instance MUST serve the composition.
@@ -64,9 +64,9 @@ Composes 13: The composition MUST read a pool's audit events through the pool ev
 Composes 14: The composition MUST NOT read a pool's audit events through Capacity Constraint Enforcement's query.
 ```
 
-Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.md), [Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.md), [Duplicate Prevention](../atoms/duplicate-prevention.md), [Event Log](../atoms/event-log.md) and [Actor Identity](../atoms/actor-identity.md) — the five actions, the reservation-to-pool binding and the token results map.
+Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.idd), [Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.idd), [Duplicate Prevention](../atoms/duplicate-prevention.idd), [Event Log](../atoms/event-log.idd) and [Actor Identity](../atoms/actor-identity.idd) — the five actions, the reservation-to-pool binding and the token results map.
 
-Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md), [Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.md), [Duplicate Prevention](../atoms/duplicate-prevention.md), [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md).
+Term constituents: [Provisional Commitment](../atoms/provisional-commitment.idd), [Capacity Constraint Enforcement](../atoms/capacity-constraint-enforcement.idd), [Duplicate Prevention](../atoms/duplicate-prevention.idd), [Event Log](../atoms/event-log.idd), [Actor Identity](../atoms/actor-identity.idd).
 
 Term reservation: a Provisional Commitment the composition holds against one pool slot.
 
@@ -114,7 +114,7 @@ Term parameters digest: the collision-resistant digest of a call's business para
 
 Term business parameter: the pool id, the resource, the requester and the duration at [Reserve]; the reservation id at a resolving action — the inputs that decide an answer.
 
-NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), a reserve outcome entry's payload retained until the entry's binding entry stands (Capability requirement 48), a reservation's slot-returning outcome entries retained while its binding entry stands (Capability requirement 49), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.md) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
+NOTE: Contract classification, per the section titled Composition state in `execution-contract.md` — the reservation-to-pool binding: derived index over the journal's reserve outcome entries (Composition state 10, Composition state 11), a reserve outcome entry's payload retained until the entry's binding entry stands (Capability requirement 48), a reservation's slot-returning outcome entries retained while its binding entry stands (Capability requirement 49), its entries whose reserve outcome entry is an aged entry extraction-pending against [Erasure Tombstone](../atoms/erasure-tombstone.idd) (Composition state 15); the token results map: extraction-pending, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal (Composition state 16).
 
 ### Capability requirement
 
@@ -565,7 +565,7 @@ Term pre-attest refusal: a refusal answered ahead of the attestation — a malfo
 
 Term downstream surface: pricing, waitlisting or fulfilment of a reservation.
 
-NOTE: the owners — an expiry sweep outside the composition (Non-goal 6, Expiry sweep 1); a group-booking composing extension (Non-goal 9); [Retention Window](../atoms/retention-window.md), whose purge a deployment composes around the journal (Non-goal 17, Non-goal 19).
+NOTE: the owners — an expiry sweep outside the composition (Non-goal 6, Expiry sweep 1); a group-booking composing extension (Non-goal 9); [Retention Window](../atoms/retention-window.idd), whose purge a deployment composes around the journal (Non-goal 17, Non-goal 19).
 
 ---
 
@@ -630,7 +630,7 @@ Term terms: composition, constituents, reservation, reservation id, journal, jou
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index, truth-bearing and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. Execution Contract Logic confinement 18 — the clock allowance is the deployment's. commitment id, place hold, confirm, release, expire, resource, requester, duration, window reading, open, lapsed, Held, Confirmed, Released, Expired, not-held, window-elapsed, window-not-elapsed, resource-unavailable: Provisional Commitment. pool id, capacity, allocated, allocate, declare pool, query, audit log, audit event, allocation event, release event, allocation event id, release event id, opening balance, closing balance, over-capacity, suspended, closed: Capacity Constraint Enforcement. check, record, seen, not-seen: Duplicate Prevention. append, event id, sequence number, recording instant, payload cap, invalid-payload: Event Log. attest, verify, attestation id, actor reference, credential, actor registry, invalid-credential, actor-unknown-in-registry, registry-unavailable: Actor Identity.
 
-Term composing patterns: [Idempotent Reservation](./idempotent-reservation.md); [Audit Trail](./audit-trail.md); Reversal *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.md); [Permissions](../atoms/permissions.md).
+Term composing patterns: [Idempotent Reservation](./idempotent-reservation.md); [Audit Trail](./audit-trail.md); Reversal *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Erasure Tombstone](../atoms/erasure-tombstone.idd); [Permissions](../atoms/permissions.idd).
 
 Term reserve intent: the reserve_intended entry.
 

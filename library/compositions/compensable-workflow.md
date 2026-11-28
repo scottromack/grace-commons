@@ -34,7 +34,7 @@ A great many business processes are a short sequence of local steps, each touchi
 
 A *distributed transaction* — a protocol that locks every participating system and commits or rolls back all of them atomically (two-phase commit and its kin) — is the textbook answer and the one real systems routinely refuse: it couples the services, holds locks across network boundaries, and fails badly under partition. The *compensable workflow* is the alternative. A compensable workflow runs the steps as independent local commits and, for each step, records a **compensating action** — a second forward operation that semantically reverses the first (a refund reverses a charge; a release reverses a reservation). On failure or cancel, the compensable workflow executes the compensating actions for the steps that already completed, in reverse order. The net effect is *eventual* all-or-nothing — the compensable workflow ends either committed or fully compensated — achieved without any distributed lock.
 
-The two constituent atoms supply the halves this needs and neither supplies the whole. [State Machine](../atoms/state-machine.md) governs the step sequence: a deployment-declared set of states and transitions, exactly one current state at all times, and every admitted fire appended to the app's journal as a fire record, the fire records replaying deterministically to the current state (its Invariants 2 and 7). But it only ever *advances or refuses* — it has no surface for reversing a transition that already fired, and it deliberately does not evaluate the conditions under which a step should be abandoned (its Invariant 8, guard-gating without evaluation). [Event Log](../atoms/event-log.md) supplies the durable, append-only, total-ordered record of what actually happened (its Invariants 1, 3) but takes no action on it. This composition is the wiring that turns the two into a compensable workflow: each forward step, on completing, appends an event that registers its compensating action; the compensable workflow's progress is derived from that log, and the State Machine current state is the spine brought to it; and an emergent *advance-or-compensate* action drives the compensable workflow forward step by step or, once a step fails or the compensable workflow is cancelled, runs the registered compensations in reverse.
+The two constituent atoms supply the halves this needs and neither supplies the whole. [State Machine](../atoms/state-machine.idd) governs the step sequence: a deployment-declared set of states and transitions, exactly one current state at all times, and every admitted fire appended to the app's journal as a fire record, the fire records replaying deterministically to the current state (its Invariants 2 and 7). But it only ever *advances or refuses* — it has no surface for reversing a transition that already fired, and it deliberately does not evaluate the conditions under which a step should be abandoned (its Invariant 8, guard-gating without evaluation). [Event Log](../atoms/event-log.idd) supplies the durable, append-only, total-ordered record of what actually happened (its Invariants 1, 3) but takes no action on it. This composition is the wiring that turns the two into a compensable workflow: each forward step, on completing, appends an event that registers its compensating action; the compensable workflow's progress is derived from that log, and the State Machine current state is the spine brought to it; and an emergent *advance-or-compensate* action drives the compensable workflow forward step by step or, once a step fails or the compensable workflow is cancelled, runs the registered compensations in reverse.
 
 The sharpest way to locate this pattern is against the database's history. Every committed version of a record stays readable (Execution Contract Database 5), so a write inside the database is reversed by **restoring the version before it**: the record comes back as it stood. That works only when an action's entire effect lives inside the database, and it stops working exactly where an action sends email or charges a card, where restoring a record undoes nothing in the world. That boundary is the compensable workflow's whole reason to exist. A charge is not undone by restoring the record of the charge — the money has already moved — so the compensable workflow reverses it by recording and running an explicit compensating action (a refund), which is itself a real, recorded forward effect. **Restoring a version versus running a compensating action** is the line between the two.
 
@@ -44,8 +44,8 @@ This composition is **not a new primitive.** State Machine and Event Log are unc
 
 ## Composes
 
-- **[State Machine](../atoms/state-machine.md)** — the phase spine the progress is brought to.
-- **[Event Log](../atoms/event-log.md)** — the step log, the compensable workflow's one durable record.
+- **[State Machine](../atoms/state-machine.idd)** — the phase spine the progress is brought to.
+- **[Event Log](../atoms/event-log.idd)** — the step log, the compensable workflow's one durable record.
 
 ```
 Composes 1: EXACTLY ONE State Machine instance MUST serve the composition.
@@ -63,9 +63,9 @@ Composes 12: A deployment MUST NOT append an event to the Event Log instance out
 Composes 13: EVERY event the composition appends MUST carry the compensable workflow id.
 ```
 
-Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.md) and [Event Log](../atoms/event-log.md) — the step log, the five actions and the replay.
+Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.idd) and [Event Log](../atoms/event-log.idd) — the step log, the five actions and the replay.
 
-Term constituents: [State Machine](../atoms/state-machine.md), [Event Log](../atoms/event-log.md).
+Term constituents: [State Machine](../atoms/state-machine.idd), [Event Log](../atoms/event-log.idd).
 
 Term compensable workflow: one run of the composition, from [Start Compensable Workflow] to a terminal outcome, served by one spine and one step log.
 
@@ -740,7 +740,7 @@ Non-goal 23: The composition MUST NOT seal the spine's fire records in the app's
 Non-goal 24: A deployment needing a rewrite of the spine's fire records in the app's journal detected MUST compose Tamper Evidence.
 ```
 
-NOTE: the owners — Semantic Lock *(forthcoming)* (Non-goal 3, Non-goal 4); a single transactional database (Non-goal 5, Non-goal 6); operational escalation (Non-goal 10, Non-goal 11); a regulated compensable workflow composing [Audit Trail](./audit-trail.md), a future composition (Non-goal 12, Non-goal 13); [Permissions](../atoms/permissions.md) (Non-goal 17, Non-goal 18); [Retention Window](../atoms/retention-window.md) (Non-goal 19, Non-goal 20); the calling system (Non-goal 21, Non-goal 22); [Tamper Evidence](../atoms/tamper-evidence.md) (Non-goal 23, Non-goal 24).
+NOTE: the owners — Semantic Lock *(forthcoming)* (Non-goal 3, Non-goal 4); a single transactional database (Non-goal 5, Non-goal 6); operational escalation (Non-goal 10, Non-goal 11); a regulated compensable workflow composing [Audit Trail](./audit-trail.md), a future composition (Non-goal 12, Non-goal 13); [Permissions](../atoms/permissions.idd) (Non-goal 17, Non-goal 18); [Retention Window](../atoms/retention-window.idd) (Non-goal 19, Non-goal 20); the calling system (Non-goal 21, Non-goal 22); [Tamper Evidence](../atoms/tamper-evidence.idd) (Non-goal 23, Non-goal 24).
 
 NOTE: watch the adopter's policy note (State Machine Composition note 4 and note 7; Non-goal 17 through 20).
 

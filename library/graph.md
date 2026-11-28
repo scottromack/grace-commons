@@ -53,7 +53,7 @@ flowchart LR
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 2: [Assignment](./atoms/assignment.md), [Escalation](./atoms/escalation.md), [Permissions](./atoms/permissions.md), [Sweep](./atoms/sweep.md). A dashed box is an atom of a lower layer.
+Layer 2: [Assignment](./atoms/assignment.idd), [Escalation](./atoms/escalation.idd), [Permissions](./atoms/permissions.idd), [Sweep](./atoms/sweep.idd). A dashed box is an atom of a lower layer.
 
 ### Layer 1
 
@@ -78,7 +78,7 @@ flowchart LR
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 1: [Durable Intent](./atoms/durable-intent.md), [Invitation](./atoms/invitation.md), [Ordering](./atoms/ordering.md), [Session](./atoms/session.md), [Task](./atoms/task.md). A dashed box is an atom of a lower layer.
+Layer 1: [Durable Intent](./atoms/durable-intent.idd), [Invitation](./atoms/invitation.idd), [Ordering](./atoms/ordering.idd), [Session](./atoms/session.idd), [Task](./atoms/task.idd). A dashed box is an atom of a lower layer.
 
 ### Layer 0
 
@@ -107,7 +107,7 @@ flowchart TB
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 0: [Credential](./atoms/credential.md), [Lease](./atoms/lease.md), [List](./atoms/list.md). A dashed box is an atom of a higher layer that needs one of them.
+Layer 0: [Credential](./atoms/credential.idd), [Lease](./atoms/lease.idd), [List](./atoms/list.idd). A dashed box is an atom of a higher layer that needs one of them.
 
 A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no node and no arrows: Actor Identity's actor id and Event Log's journal. An app names the atom that meets it.
 

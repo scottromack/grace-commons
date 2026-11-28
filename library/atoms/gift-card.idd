@@ -445,7 +445,7 @@ Non-goal 14: The atom MUST NOT take a payment for a gift card.
 Non-goal 15: The atom MUST NOT tell a repeated spend from a new spend.
 ```
 
-NOTE: the owners — Loyalty Card *(forthcoming)* (Non-goal 1, 2, 3, 5); Payment *(forthcoming)* (Non-goal 4, 14); none, by the maintainer's ruling of 2026-10-30, a plain gift card that never expires and carries no fee (Non-goal 6, 7); Checkout *(forthcoming)* (Non-goal 8, 9); Currency *(forthcoming)* (Non-goal 10); Rate Limit *(forthcoming)* (Non-goal 11); the deployment, under the unclaimed-property law of its state (Non-goal 12); the composing pattern that knows the holder, such as one built on [Session](./session.md) or [Party Identity](./party-identity.md) (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 15).
+NOTE: the owners — Loyalty Card *(forthcoming)* (Non-goal 1, 2, 3, 5); Payment *(forthcoming)* (Non-goal 4, 14); none, by the maintainer's ruling of 2026-10-30, a plain gift card that never expires and carries no fee (Non-goal 6, 7); Checkout *(forthcoming)* (Non-goal 8, 9); Currency *(forthcoming)* (Non-goal 10); Rate Limit *(forthcoming)* (Non-goal 11); the deployment, under the unclaimed-property law of its state (Non-goal 12); the composing pattern that knows the holder, such as one built on [Session](./session.idd) or [Party Identity](./party-identity.idd) (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.idd) (Non-goal 15).
 
 Where the atom breaks down: a gift card meant to be reloaded, shared, or refunded to, which is a loyalty card system; a gift card spent across currencies.
 

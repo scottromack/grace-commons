@@ -491,7 +491,7 @@ def walk_composes(rel: str, lines: list[str]) -> list[dict]:
         ln = lines[k]
         if ln.lstrip()[:3] in ("```", "~~~"):
             break
-        link = re.match(r"[-*] .*?\[([^\]]+)\]\(([^)#\s]+\.md)\)", ln)
+        link = re.match(r"[-*] .*?\[([^\]]+)\]\(([^)#\s]+\.(?:md|idd))\)", ln)
         if not link:
             continue
         target = posixpath.normpath(posixpath.join(base, link.group(2)))

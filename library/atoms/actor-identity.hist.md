@@ -6,7 +6,7 @@ search_exclude: true
 
 # Actor Identity — history
 
-The dated record of how [Actor Identity](./actor-identity.md) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/actor-identity.md`.
+The dated record of how [Actor Identity](./actor-identity.idd) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/actor-identity.md`.
 
 ## Decisions
 

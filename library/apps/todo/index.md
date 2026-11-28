@@ -34,23 +34,23 @@ Each job has one acceptance check, the test that says the app does it.
 
 Two answers settle what the jobs leave open (Scott, 2026-11-25 7:15 PM Central):
 
-- **No reopen.** A done task is a recorded fact with a week's display life (the window of one week that read list passes to [Task](../../atoms/task.md)'s Read): a second check-off is refused, claim, recall, reassign and move task refuse a done task with `not-known` (App check 5), and the journal keeps who completed it. The app offers no reopen.
-- **The author alone recalls or reassigns a claim.** The author may take a claim back ([Assignment](../../atoms/assignment.md)'s Recall For Task) or give it to someone the list is shared with (its Reassign, through its Active For; App check 2), and the history is kept; a non-author may do neither, and a reassign to someone the list is not shared with is refused. Reassign is an author action, not a glue line.
+- **No reopen.** A done task is a recorded fact with a week's display life (the window of one week that read list passes to [Task](../../atoms/task.idd)'s Read): a second check-off is refused, claim, recall, reassign and move task refuse a done task with `not-known` (App check 5), and the journal keeps who completed it. The app offers no reopen.
+- **The author alone recalls or reassigns a claim.** The author may take a claim back ([Assignment](../../atoms/assignment.idd)'s Recall For Task) or give it to someone the list is shared with (its Reassign, through its Active For; App check 2), and the history is kept; a non-author may do neither, and a reassign to someone the list is not shared with is refused. Reassign is an author action, not a glue line.
 
 ## Atoms
 
 Ten, each used as it stands:
 
-- **[Task](../../atoms/task.md)** — the tasks of a list: add, edit, complete, delete; mints the task id; saves the completer.
-- **[List](../../atoms/list.md)** — makes a list, mints its list id, holds its name and its author.
-- **[Ordering](../../atoms/ordering.md)** — one list's sequence: the author's order of priority, a new task at the bottom.
-- **[Assignment](../../atoms/assignment.md)** — who is on a task: assign, recall, reassign, with its history.
-- **[Permissions](../../atoms/permissions.md)** — who may do what on a list: grant, revoke, permitted.
-- **[Invitation](../../atoms/invitation.md)** — bringing a person into a list: initiate, accept, decline.
-- **[Actor Identity](../../atoms/actor-identity.md)** — who someone is; offers the actor id the app's actions carry.
-- **[Session](../../atoms/session.md)** — who is calling; mints the session id.
-- **[Credential](../../atoms/credential.md)** — the proof checked at sign-in.
-- **[Event Log](../../atoms/event-log.md)** — the history: the journal of task, assignment and invitation events.
+- **[Task](../../atoms/task.idd)** — the tasks of a list: add, edit, complete, delete; mints the task id; saves the completer.
+- **[List](../../atoms/list.idd)** — makes a list, mints its list id, holds its name and its author.
+- **[Ordering](../../atoms/ordering.idd)** — one list's sequence: the author's order of priority, a new task at the bottom.
+- **[Assignment](../../atoms/assignment.idd)** — who is on a task: assign, recall, reassign, with its history.
+- **[Permissions](../../atoms/permissions.idd)** — who may do what on a list: grant, revoke, permitted.
+- **[Invitation](../../atoms/invitation.idd)** — bringing a person into a list: initiate, accept, decline.
+- **[Actor Identity](../../atoms/actor-identity.idd)** — who someone is; offers the actor id the app's actions carry.
+- **[Session](../../atoms/session.idd)** — who is calling; mints the session id.
+- **[Credential](../../atoms/credential.idd)** — the proof checked at sign-in.
+- **[Event Log](../../atoms/event-log.idd)** — the history: the journal of task, assignment and invitation events.
 
 Not in the app (the design of 2026-11-24): Capability (Permissions covers sharing), Party Identity (a team is a Permissions group in the first version), Restorable Delete (Task's plain delete in the first version). Every call of the atoms that no row of the Actions table names is left to no action of this version, and four on purpose: Actor Identity's Mint Actor Id and Credential's Register (the actor id and the credential of a person who signs in are provisioned outside the app, and the app takes an actor id as given; each such actor id is minted outside the app's actions (App permission 6), before its credential is registered (App permission 8)), Permissions' Revoke (a grant is never taken back: a member stays a member, and a deleted list's grants reach nothing) and Invitation's Revoke (a pending invitation ends by accept, decline, its expiry or the deletion of its list).
 
@@ -91,7 +91,7 @@ App permission 8: The deployment MUST NOT call Credential's Register with a prin
 
 Make list's grant is an effect of the generated action, not a gate: once List's Make List answers, make list calls Permissions' Grant of `author` and `member` on the new list to the caller, and no check is asked before it (App permission 3).
 
-The subject of every check is the caller (Bonds permission 3), the actor id that [Session](../../atoms/session.md)'s Validate answers for the call's session. Every input that names the acting party (the author, the inviter, the completer, the accepting identity, the revoker, and the assignee a claim binds) is that same actor id, never a value the call carries (Bonds Key 19); the subject of the grant that follows an accept is the accepting identity Invitation's Accept answers, so it is that actor id too (Bonds Follow-up 2). Two values the call carries are no acting party: a reassign's new assignee, which App check 2 admits only where it answers permitted, and a sign in's principal, which Credential's Verify checks against the material the call carries and which grants no authority to act (Bonds Key 19). App check 2 is a call of Permissions' Check in reassign's flow after the gate, asked of the new assignee for no gated action, as make list's Grant is a call, and no permission check of the app's need (Bonds Term permission check): the gate of reassign is App permission 1's, asked of the caller (Bonds permission 2, Bonds permission 3).
+The subject of every check is the caller (Bonds permission 3), the actor id that [Session](../../atoms/session.idd)'s Validate answers for the call's session. Every input that names the acting party (the author, the inviter, the completer, the accepting identity, the revoker, and the assignee a claim binds) is that same actor id, never a value the call carries (Bonds Key 19); the subject of the grant that follows an accept is the accepting identity Invitation's Accept answers, so it is that actor id too (Bonds Follow-up 2). Two values the call carries are no acting party: a reassign's new assignee, which App check 2 admits only where it answers permitted, and a sign in's principal, which Credential's Verify checks against the material the call carries and which grants no authority to act (Bonds Key 19). App check 2 is a call of Permissions' Check in reassign's flow after the gate, asked of the new assignee for no gated action, as make list's Grant is a call, and no permission check of the app's need (Bonds Term permission check): the gate of reassign is App permission 1's, asked of the caller (Bonds permission 2, Bonds permission 3).
 
 ### The app's checks and answers
 

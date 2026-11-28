@@ -45,7 +45,7 @@ test("a model file belongs to the longest page name it extends, not a shorter pr
 });
 
 test("a page alone, and a model beside the page before the move, both name the pattern", () => {
-  assert.deepEqual(selection(["library/atoms/cart.md"], NAMES).patterns, ["library/atoms/cart"]);
+  assert.deepEqual(selection(["library/atoms/cart.idd"], NAMES).patterns, ["library/atoms/cart"]);
   assert.deepEqual(selection(["library/compositions/shared-cart.tla"], NAMES).patterns, ["library/compositions/shared-cart"]);
 });
 
@@ -73,7 +73,7 @@ test("the command line reads paths from stdin and a root, and prints one line", 
   try {
     mkdirSync(join(root, "library", "atoms"), { recursive: true });
     mkdirSync(join(root, "library", "compositions"), { recursive: true });
-    for (const f of ["library/atoms/cart.md", "library/atoms/cart.hist.md", "library/atoms/README.md", "library/compositions/shared-cart.md"]) writeFileSync(join(root, f), "# x\n");
+    for (const f of ["library/atoms/cart.idd", "library/atoms/cart.hist.md", "library/atoms/README.md", "library/compositions/shared-cart.md"]) writeFileSync(join(root, f), "# x\n");
     assert.deepEqual(patternNames(root, "library/atoms"), ["cart"]);
     const run = (input) => spawnSync(process.execPath, [fileURLToPath(new URL("./changed-patterns.mjs", import.meta.url)), "--root", root],
       { input, encoding: "utf-8" });

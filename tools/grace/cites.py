@@ -955,7 +955,7 @@ def run(root: Path, argv: list[str]) -> int:
                     target = m.group(1)
                     if f"{m.group(1)} {m.group(2)}" in spec.rules:
                         continue  # the citing spec's own label family, not a citation
-                    if target not in migrated and (root / "library" / "atoms" / (target.lower().replace(" ", "-") + ".md")).exists():
+                    if target not in migrated and any((root / "library" / "atoms" / (target.lower().replace(" ", "-") + x)).exists() for x in (".md", ".idd")):
                         counts[target] = counts.get(target, 0) + 1
         if not counts:
             print("— every spec the corpus cites by label is migrated.")

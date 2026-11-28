@@ -6,7 +6,7 @@ search_exclude: true
 
 # Retention Window — history
 
-The dated record of how [Retention Window](./retention-window.md) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/retention-window.md`.
+The dated record of how [Retention Window](./retention-window.idd) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/retention-window.md`.
 
 ## Decisions
 
@@ -52,7 +52,7 @@ Entries that record a round or a migration rather than a turn the pattern took.
 
 ## Deleted rules
 
-The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Retention Window](./retention-window.md) may carry it again.
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Retention Window](./retention-window.idd) may carry it again.
 
 ### Structure › Identity model
 

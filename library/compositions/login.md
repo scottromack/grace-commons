@@ -39,8 +39,8 @@ This composition does not implement multi-factor authentication (MFA — requiri
 
 ## Composes
 
-- **[Credential](../atoms/credential.md)** — the verification surface.
-- **[Session](../atoms/session.md)** — the time-bounded session record.
+- **[Credential](../atoms/credential.idd)** — the verification surface.
+- **[Session](../atoms/session.idd)** — the time-bounded session record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate.
 
 ```
@@ -64,9 +64,9 @@ Composes 17: The composition MUST NOT query the substrate by a payload predicate
 Composes 18: The composition MUST read the substrate's events from sequence one.
 ```
 
-Term composition: this pattern's wiring of [Credential](../atoms/credential.md), [Session](../atoms/session.md) and the [Audit Trail](./audit-trail.md) substrate — the issuance gate, the revocation cascade and the two maps.
+Term composition: this pattern's wiring of [Credential](../atoms/credential.idd), [Session](../atoms/session.idd) and the [Audit Trail](./audit-trail.md) substrate — the issuance gate, the revocation cascade and the two maps.
 
-Term constituents: [Credential](../atoms/credential.md), [Session](../atoms/session.md), [Audit Trail](./audit-trail.md).
+Term constituents: [Credential](../atoms/credential.idd), [Session](../atoms/session.idd), [Audit Trail](./audit-trail.md).
 
 Term service identity: the composition's own registered actor and credential — a service identity; the attested emitter of every audit event this composition writes.
 
@@ -108,7 +108,7 @@ Term login event: the login-family event an admitted login records — login_fai
 **Contract classification: two derived indexes and one extraction-pending element** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)).
 
 - The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token_digest)` pair is immutable audit content, written into the login_succeeded event's data, which commits with the session. *Rebuild procedure:* enumerate the substrate through the declared read, select the login succeeded events, build the credential-to-sessions map by grouping each data's session token digest by its credential id, and build the session-to-credential map by grouping each data's credential id by its session token digest. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential (Primitive policy 18). A map write that fails leaves its pair on the login_succeeded event, so the rebuild (Composition state 7) and the sweep's backfill (Reconciliation 20) restore the entry in each map, and until they do the event-derived set keeps the session in the cascade set (Action wiring 18, Invariant 2.4) — rebuild-on-miss is the remediation path.
-- The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.md)*. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing bespoke records, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
+- The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.idd)*. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing bespoke records, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
 
 ### Capability requirement
 
@@ -514,7 +514,7 @@ Non-goal 12: The composition MUST NOT adopt a session issued outside the issuer 
 Non-goal 13: The composition MUST NOT revoke a session issued outside the issuer references.
 ```
 
-NOTE: the owners — [Session](../atoms/session.md), whose validate callers call directly (Non-goal 4); the surface that issued a session outside the issuer references (Non-goal 12, Non-goal 13).
+NOTE: the owners — [Session](../atoms/session.idd), whose validate callers call directly (Non-goal 4); the surface that issued a session outside the issuer references (Non-goal 12, Non-goal 13).
 
 ---
 
@@ -612,7 +612,7 @@ Inherited from:
 
 ## Status
 
-`done — 2026-11-21` — see the Ledger. Superseded on 2026-11-28 by the unit `composition: Login dissolved, the first dissolve` (Scott, 2026-11-27 6:43 PM Central, "agree"): no Login atom; [Credential](../atoms/credential.md) offers its credential id as a key that Revoke ends and its Verify as a follow-up, and [Session](../atoms/session.md) needs both, so its own state (the credential-to-sessions maps, their rebuild and sweep) has no successor; frozen history, no longer a source of truth.
+`done — 2026-11-21` — see the Ledger. Superseded on 2026-11-28 by the unit `composition: Login dissolved, the first dissolve` (Scott, 2026-11-27 6:43 PM Central, "agree"): no Login atom; [Credential](../atoms/credential.idd) offers its credential id as a key that Revoke ends and its Verify as a follow-up, and [Session](../atoms/session.idd) needs both, so its own state (the credential-to-sessions maps, their rebuild and sweep) has no successor; frozen history, no longer a source of truth.
 
 <details markdown="block">
 <summary>

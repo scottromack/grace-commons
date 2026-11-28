@@ -6,7 +6,7 @@ search_exclude: true
 
 # Gift Card — history
 
-The dated record of how [Gift Card](./gift-card.md) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/gift-card.md`.
+The dated record of how [Gift Card](./gift-card.idd) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/gift-card.md`.
 
 ## Decisions
 
@@ -16,7 +16,7 @@ The dated record of how [Gift Card](./gift-card.md) got here, moved out of the s
 
 ## Deleted rules
 
-The spec's tombstones, moved here from the page: each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Gift Card](./gift-card.md) may carry it again.
+The spec's tombstones, moved here from the page: each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Gift Card](./gift-card.idd) may carry it again.
 
 ### Left to others › Composition notes
 

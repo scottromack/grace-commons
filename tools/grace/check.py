@@ -380,7 +380,7 @@ def inline_arithmetic(text: str) -> tuple[str, list[str]]:
 
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 MD_LINK = re.compile(r"\[([^\]\[]+)\]\(([^)\s]*)\)")
-STRIPPED_LINK = re.compile(r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)[a-z0-9-]+\.md(?:#[^)]*)?\)")
+STRIPPED_LINK = re.compile(r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)[a-z0-9-]+\.(?:md|idd)(?:#[^)]*)?\)")
 LINK_LINE = re.compile(r"(?m)^\[([^\]]+)\]:\s*\S")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
@@ -672,7 +672,7 @@ def borrowed_names(path: Path, text: str) -> set[str]:
             names.update(x.strip() for x in re.split(r",|;| and ", run) if x.strip())
     m = re.search(r"^Term constituents:(.*)$", text, re.M)
     if m:
-        for link in re.findall(r"\]\(([^)]+\.md)", m.group(1)):
+        for link in re.findall(r"\]\(([^)]+\.(?:md|idd))", m.group(1)):
             other = (path.parent / link).resolve()
             try:
                 names |= declared_names(other.read_text(encoding="utf-8"))
@@ -1350,7 +1350,7 @@ def scan(path: Path) -> list[Finding]:
     # the specs this file links to: a label written after one of their names is theirs,
     # whatever its family -- `Lease Composition note 5c` in a spec with its own Composition notes
     linked = {m.group(1) for raw in lines
-              for m in re.finditer(r"\[([A-Z][^\]]*)\]\((?:\.{1,2}/)[^)\s]*\.md[^)]*\)", raw)}
+              for m in re.finditer(r"\[([A-Z][^\]]*)\]\((?:\.{1,2}/)[^)\s]*\.(?:md|idd)[^)]*\)", raw)}
     if names:
         name_re = re.compile(r"(?<![\w-])(" + "|".join(re.escape(x) for x in sorted(names, key=len, reverse=True)) +
                              r")( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
@@ -1902,8 +1902,8 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
     return True
 
 
-APP_ATOM = re.compile(r"\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
-APP_ATOM_TITLE = re.compile(r"\[([^\]]+)\]\((?:\.\./)+atoms/([\w-]+)\.md\)")
+APP_ATOM = re.compile(r"\]\((?:\.\./)+atoms/([\w-]+)\.(?:md|idd)\)")
+APP_ATOM_TITLE = re.compile(r"\[([^\]]+)\]\((?:\.\./)+atoms/([\w-]+)\.(?:md|idd)\)")
 # Unit `tooling: rounds read an app page` (2026-11-26): a bond instance names the needing atom, the kind and
 # (where the atom has more than one need of the kind) the records the need pairs, then the serving atom, the
 # kind and (for a key) the key: `Bond instance 1: Ordering's key need that pairs entries MUST be served by

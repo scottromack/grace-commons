@@ -6,7 +6,7 @@ search_exclude: true
 
 # Approval Step — history
 
-The dated record of how [Approval Step](./approval-step.md) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/approval-step.md`.
+The dated record of how [Approval Step](./approval-step.idd) got here, moved out of the spec on 2026-10-19 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/approval-step.md`.
 
 ## Decisions
 
@@ -16,7 +16,7 @@ Entries that record a migration or a repair rather than a turn the pattern took.
 
 - **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject reference*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
 
-- **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form Hard invariant 28 declares. *Over:* `[Selective Disclosure](./selective-disclosure.md) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
+- **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form Hard invariant 28 declares. *Over:* `[Selective Disclosure](./selective-disclosure.idd) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the step store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the eleven rules that restated them, or stood in for them, tombstoned to their owner — Operation 31, a resolve's state change and recorded fields committed in one operation, Invariant 10.2, no partial record left by a storage-failure, and Atomic writes 1, 3 and 4, no reader seeing a terminal state without its attribution fields, a dangling transition resolved and no read served before it is, to Store 1; Atomic writes 2, an uncommitted crash leaving the step as the call found it, to Store 1 and Store 3; Invariant 10.3, an answered step id naming a durably persisted step, and External check 1, the submit answers captured to find a step the store is missing, to Store 3; Concurrency 1 through 3, two resolving actions on one step serialized, the later reading what the earlier left and answering not-pending, to Store 2; rules 163 to 153. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment journalling its submit answers against a store that might lose a step. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 14, Invariant 10.1), since Store 4 alone does not keep the atom from removing a step; Check 6.1 through 6.3 rest on the auditor's own two reads, and [Read] orders by submission instant and step id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
@@ -36,7 +36,7 @@ Entries that record a migration or a repair rather than a turn the pattern took.
 
 ## Deleted rules
 
-The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Approval Step](./approval-step.md) may carry it again.
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Approval Step](./approval-step.idd) may carry it again.
 
 ### Structure › Identity model
 

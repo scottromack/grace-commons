@@ -43,9 +43,9 @@ This is a composition, not a new primitive. Task, Permissions, and Assignment ar
 
 ## Composes
 
-- **[Task](../atoms/task.md)** — the task lifecycle and its invariants.
-- **[Permissions](../atoms/permissions.md)** — the authorization surface every state-changing action checks.
-- **[Assignment](../atoms/assignment.md)** — the responsibility binding that names who is accountable for a task.
+- **[Task](../atoms/task.idd)** — the task lifecycle and its invariants.
+- **[Permissions](../atoms/permissions.idd)** — the authorization surface every state-changing action checks.
+- **[Assignment](../atoms/assignment.idd)** — the responsibility binding that names who is accountable for a task.
 
 ```
 Composes 1: EXACTLY ONE Task instance MUST serve the composition.
@@ -59,9 +59,9 @@ Composes 8: The composition MUST discharge Assignment's Term task reference.
 Composes 9: The composition MUST NOT answer a constituent's rejection changed.
 ```
 
-Term composition: this pattern's wiring of [Task](../atoms/task.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md) — the gate, the cascade, the scope vocabulary and the actions below.
+Term composition: this pattern's wiring of [Task](../atoms/task.idd), [Permissions](../atoms/permissions.idd) and [Assignment](../atoms/assignment.idd) — the gate, the cascade, the scope vocabulary and the actions below.
 
-Term constituents: [Task](../atoms/task.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
+Term constituents: [Task](../atoms/task.idd), [Permissions](../atoms/permissions.idd), [Assignment](../atoms/assignment.idd).
 
 Term caller surface: the actions and reads a constituent's own pattern declares to its callers — what a caller of that constituent alone would call.
 
@@ -443,7 +443,7 @@ Composition note 8: A deployment MUST own whether an assignee reference may hold
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Task](../atoms/task.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the pattern — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](https://github.com/scottromack/grace-commons/blob/main/tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Task](../atoms/task.idd), [Permissions](../atoms/permissions.idd), [Assignment](../atoms/assignment.idd)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -455,7 +455,7 @@ Term record verbs: call, answer, gate, define, derive, store, materialize, recal
 
 Term actors: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, left to the deployment (Composition note 2). [Permissions](../atoms/permissions.md) `Composition note 5` — a departing subject's deprovisioning sweep, left to the deployment (Composition note 7). [Assignment](../atoms/assignment.md) `Term task reference` — what a task is, which the host owns (Action wiring 13). [Assignment](../atoms/assignment.md) `Composition note 3` — whether an assignee may hold the task, left to the deployment (Composition note 8). [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, left to the deployment (Composition note 3).
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Permissions](../atoms/permissions.idd) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.idd) `Composition note 3` — the caller-to-subject binding, left to the deployment (Composition note 2). [Permissions](../atoms/permissions.idd) `Composition note 5` — a departing subject's deprovisioning sweep, left to the deployment (Composition note 7). [Assignment](../atoms/assignment.idd) `Term task reference` — what a task is, which the host owns (Action wiring 13). [Assignment](../atoms/assignment.idd) `Composition note 3` — whether an assignee may hold the task, left to the deployment (Composition note 8). [Assignment](../atoms/assignment.idd) `Composition note 4` — the completed task's assignment, left to the deployment (Composition note 3).
 
 #### Add Task
 
@@ -617,7 +617,7 @@ Projection: permission-denied
 
 ## Standards references
 
-Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer and no regulated adversarial scenarios; the clinical example shows a role split, not a regulated acceptance bar. The standards it touches are its constituents' and are cited there: [Task](../atoms/task.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
+Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer and no regulated adversarial scenarios; the clinical example shows a role split, not a regulated acceptance bar. The standards it touches are its constituents' and are cited there: [Task](../atoms/task.idd), [Permissions](../atoms/permissions.idd) and [Assignment](../atoms/assignment.idd).
 
 ## Status
 

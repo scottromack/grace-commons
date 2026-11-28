@@ -30,7 +30,7 @@ This is the mechanism payment processors use to stop a retried charge from billi
 
 Real reservation systems run over unreliable networks. A client submits [Place Hold]; the network drops the response before it arrives; the client retries. Without idempotency, the second call produces a *second* commitment — two distinct ids, two distinct audit trails, one unintended double-hold of the resource. The same hazard recurs for [Confirm], [Release], and [Expire]: a retry past Provisional Commitment's terminal-absorption boundary returns not-held, which the caller cannot distinguish from a *new* failure without out-of-band information.
 
-This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **idempotency token** on every state-changing call. The composition checks the token against a [Duplicate Prevention](../atoms/duplicate-prevention.md) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same ok, the same rejection reason) without invoking [Provisional Commitment](../atoms/provisional-commitment.md) a second time — with one exception Invariant 2 states: a resolving action whose token Duplicate Prevention reports seen while the composition holds no answer for it is re-run (Indeterminate outcome 13), effect-free where an earlier run committed, by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
+This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **idempotency token** on every state-changing call. The composition checks the token against a [Duplicate Prevention](../atoms/duplicate-prevention.idd) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same ok, the same rejection reason) without invoking [Provisional Commitment](../atoms/provisional-commitment.idd) a second time — with one exception Invariant 2 states: a resolving action whose token Duplicate Prevention reports seen while the composition holds no answer for it is re-run (Indeterminate outcome 13), effect-free where an earlier run committed, by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
 
 This is the composition payment processors run in production today — Stripe's `Idempotency-Key`, Adyen's idempotency header, ISO 20022's (the International Organization for Standardization standard for financial-messaging data) message uniqueness identifier, the IETF (Internet Engineering Task Force — the body that develops internet standards) draft idempotency-key spec. Different vocabularies; identical mechanic.
 
@@ -38,8 +38,8 @@ This is the composition payment processors run in production today — Stripe's 
 
 ### Composes
 
-- **[Provisional Commitment](../atoms/provisional-commitment.md)** — the hold lifecycle and the invariants every commitment satisfies.
-- **[Duplicate Prevention](../atoms/duplicate-prevention.md)** — the time-bounded guard against a repeated token.
+- **[Provisional Commitment](../atoms/provisional-commitment.idd)** — the hold lifecycle and the invariants every commitment satisfies.
+- **[Duplicate Prevention](../atoms/duplicate-prevention.idd)** — the time-bounded guard against a repeated token.
 
 ```
 Composes 1: EXACTLY ONE Provisional Commitment instance MUST serve the composition.
@@ -52,9 +52,9 @@ Composes 7: The composition MUST call Duplicate Prevention's record EXACTLY ONE 
 Composes 8: The composition MUST configure the Duplicate Prevention instance with the idempotency window.
 ```
 
-Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.md) and [Duplicate Prevention](../atoms/duplicate-prevention.md) — the token results map, the four token-carrying actions and the eviction leg.
+Term composition: this pattern's wiring of [Provisional Commitment](../atoms/provisional-commitment.idd) and [Duplicate Prevention](../atoms/duplicate-prevention.idd) — the token results map, the four token-carrying actions and the eviction leg.
 
-Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md), [Duplicate Prevention](../atoms/duplicate-prevention.md).
+Term constituents: [Provisional Commitment](../atoms/provisional-commitment.idd), [Duplicate Prevention](../atoms/duplicate-prevention.idd).
 
 ### Wiring decision
 
@@ -464,7 +464,7 @@ Three scenarios the composition must survive in regulated contexts, beyond happy
 
 - **Regulator audit — "show me every double-charge."** An auditor reads the composition's read, which answers every commitment with its stored fields, and joins the token results map to it on the commitment id each [Place Hold] entry records; inside the window the join carries one commitment per token (`Invariant 3 — Token to commitment, one to one`). A filter over the commitments alone for a shared `(resource, requester, placed_at-near)` signature cannot tell *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles*, because a commitment record carries no token; the map separates them. Outside the window the map may still hold the token's entry until the eviction leg runs, and a call carrying the token stands as a fresh request (Invariant 7.2), so the join no longer reaches a retry and the guarantee ends with the window (Non-goal 1).
 - **Disputed transaction — "you charged me twice."** The investigator inspects the composition's `token_results` map (or its persistent journal). If two of the customer's submitted requests carried the *same* token, the composition's cache produced one commitment and replayed the response — there is no double-spend to dispute. If the customer's client generated *different* tokens for what they intended as the same operation, the composition correctly processed them as independent operations; the dispute belongs to the client's token-generation logic, not to the reservation system.
-- **Replay attack — adversary captures and replays a token.** An adversary captures an in-flight request and replays it later within the window. The composition correctly returns the cached result. The replay produces no new state change — `Invariant 2 — Idempotent state transitions within the window`. Replays *outside* the window are treated as fresh requests; the adversary may succeed in placing a new commitment if the resource is available and they hold valid credentials, but that is an authentication / authorization failure (see [Actor Identity](../atoms/actor-identity.md)), not an idempotency failure.
+- **Replay attack — adversary captures and replays a token.** An adversary captures an in-flight request and replays it later within the window. The composition correctly returns the cached result. The replay produces no new state change — `Invariant 2 — Idempotent state transitions within the window`. Replays *outside* the window are treated as fresh requests; the adversary may succeed in placing a new commitment if the resource is available and they hold valid credentials, but that is an authentication / authorization failure (see [Actor Identity](../atoms/actor-identity.idd)), not an idempotency failure.
 - **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns token-collision. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token action binding*) is the structural guarantee; [Token Collision] is its observable form.
 
 ## Source
@@ -536,7 +536,7 @@ Term bounds: idempotency window (idempotency_window), token max length (token_ma
 
 Term cadences: empty.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam, the transition and the mechanism-capability pattern. [Provisional Commitment](../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. [Duplicate Prevention](../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam, the transition and the mechanism-capability pattern. [Provisional Commitment](../atoms/provisional-commitment.idd) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. [Duplicate Prevention](../atoms/duplicate-prevention.idd) `Invariant 2` — a record starts a guard rather than extending one.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a term marker to its term entry heading above (kramdown

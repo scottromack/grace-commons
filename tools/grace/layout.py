@@ -8,7 +8,7 @@ under library/. `_data/moves.json` is the one record of the move: the site's red
 past (a pin, a frozen round) use to find the page's old path and to compare its text whatever folder
 each copy sat in.
 
-    new_path(old)            the path a page has now ("atoms/lease.md" -> "library/atoms/lease.md")
+    new_path(old)            the path a page has now ("atoms/lease.md" -> "library/atoms/lease.idd")
     old_path(new)            the path it had before the move (the inverse; itself where it never moved)
     text_at(repo, rev, path) a page's text at a revision, under its path then, or None
     found_at(repo, rev, path) the same, with the path it was found under: (text, path) or (None, None)
@@ -55,6 +55,11 @@ def new_path(old: str, root: str | None = None) -> str:
             return after.rstrip("/")
         if old.startswith(before):
             return after + old[len(before):]
+    # a page renamed after its folder moved (atoms/x.md -> library/atoms/x.md -> library/atoms/x.idd, Scott 2026-11-27):
+    # the path between the two moves follows the file's own entry
+    back = old_path(old, root)
+    if back != old and back in m["files"]:
+        return m["files"][back]
     return old
 
 

@@ -90,7 +90,7 @@ def constituents(path: Path, text: str) -> list[Path]:
     m = re.search(r"^Term constituents:(.*)$", text, re.M)
     if not m:
         return []
-    return [(path.parent / link).resolve() for link in re.findall(r"\]\(([^)]+\.md)", m.group(1))]
+    return [(path.parent / link).resolve() for link in re.findall(r"\]\(([^)]+\.(?:md|idd))", m.group(1))]
 
 
 def rules_of(text: str):

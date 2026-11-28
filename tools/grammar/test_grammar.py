@@ -11,8 +11,8 @@ sys.path.insert(0, str(HERE))
 import grammar  # noqa: E402
 
 ROOT = HERE.parents[1]
-MONEY = ROOT / "library" / "atoms" / "money.md"
-DURABLE = ROOT / "library" / "atoms" / "durable-intent.md"
+MONEY = ROOT / "library" / "atoms" / "money.idd"
+DURABLE = ROOT / "library" / "atoms" / "durable-intent.idd"
 
 
 def gf_found() -> bool:

@@ -6,7 +6,7 @@ search_exclude: true
 
 # List — history
 
-The dated record of how [List](./list.md) got here. Everything smaller is in `git log -- atoms/list.md`.
+The dated record of how [List](./list.idd) got here. Everything smaller is in `git log -- atoms/list.md`.
 
 ## Decisions
 

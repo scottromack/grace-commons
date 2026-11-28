@@ -6,13 +6,13 @@ search_exclude: true
 
 # Notification — history
 
-The dated record of how [Notification](./notification.md) got here, moved out of the spec on 2026-10-20 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/notification.md`.
+The dated record of how [Notification](./notification.idd) got here, moved out of the spec on 2026-10-20 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- atoms/notification.md`.
 
 ## Decisions
 
 Entries that record a migration rather than a turn the pattern took.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, the three terminal transitions sharing one declared term and one precondition pair, the nine invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into notification` prints nothing, so no number is frozen from outside, and this atom completes [Notification Fanout](../compositions/notification-fanout.md)'s constituent set with [Subscription](./subscription.md).
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, the three terminal transitions sharing one declared term and one precondition pair, the nine invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into notification` prints nothing, so no number is frozen from outside, and this atom completes [Notification Fanout](../compositions/notification-fanout.md)'s constituent set with [Subscription](./subscription.idd).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the notification store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the four rules that restated them tombstoned to their owner — Terminal atomicity 1, a terminal transition changing status and the terminal stamp together, to Store 1; Terminal atomicity 2 and 3, no crash inside a terminal transition leaving a terminal status without its stamp or a stamp on a pending notification, to Store 1 and Store 3; Terminal atomicity 4, two terminal transitions on one notification id serialized, to Store 2; rules 130 to 127. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A refused call leaving the notification as the call found it stays the atom's own (Operation 16), as do the caller's reading of a refused deliver (Deliver persistence 1 through 4), the payload kept for the store's life and a composed purge leaving every stored field as written (Payload retention 1 through 5), the recorded fields and a landed stamp that never change (Invariant 1.1, Invariant 1.2) and the atom's durability (State 10, Invariant 9.1 through 9.3). Pending at an instant is read from the creation instant and terminal stamp each notification carries, and [Pending For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
@@ -34,7 +34,7 @@ Entries that record a migration rather than a turn the pattern took.
 
 ## Deleted rules
 
-The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Notification](./notification.md) may carry it again.
+The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Notification](./notification.idd) may carry it again.
 
 ### Structure › Identity model
 

@@ -5,7 +5,7 @@ nav_exclude: true
 
 # Tenure
 
-> A trial layout of [`atoms/tenure.md`](../library/atoms/tenure.md) in the order of the rough draft's form: the same page, every rule with its label and its words as the atom has them, reordered. Staging, not canon (Scott, 2026-11-18, trial: Tenure as a tree, in the rough draft's order).
+> A trial layout of [`atoms/tenure.md`](../library/atoms/tenure.idd) in the order of the rough draft's form: the same page, every rule with its label and its words as the atom has them, reordered. Staging, not canon (Scott, 2026-11-18, trial: Tenure as a tree, in the rough draft's order).
 
 ## What it is
 

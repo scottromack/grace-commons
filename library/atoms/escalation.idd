@@ -300,8 +300,8 @@ Term terms: (named expressions, each declared where it is used) worst closure, e
 [Section Unavailable]: #section-unavailable
 [Invalid Credential]: #invalid-credential
 [Finding]: #finding
-[Read Invocation]: ./durable-intent.md#read-invocation
-[Reconcile]: ./sweep.md#reconcile
+[Read Invocation]: ./durable-intent.idd#read-invocation
+[Reconcile]: ./sweep.idd#reconcile
 
 ## Status
 

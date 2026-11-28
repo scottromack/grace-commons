@@ -41,8 +41,8 @@ This is not a Role-Based Access Control layer, not a delegation system, and not 
 
 ## Composes
 
-- **[Permissions](../atoms/permissions.md)** — the grant records and the evaluation surface.
-- **[Actor Identity](../atoms/actor-identity.md)** — the attestation surface the administration is attributed through.
+- **[Permissions](../atoms/permissions.idd)** — the grant records and the evaluation surface.
+- **[Actor Identity](../atoms/actor-identity.idd)** — the attestation surface the administration is attributed through.
 
 ```
 Composes 1: EXACTLY ONE Permissions instance MUST serve the composition.
@@ -71,9 +71,9 @@ Composes 23: The composition MUST mint one attestation PER administered grant's 
 Composes 24: The composition MUST NOT share one attestation across two administered grants.
 ```
 
-Term composition: this pattern's wiring of [Permissions](../atoms/permissions.md) and [Actor Identity](../atoms/actor-identity.md) — the three administrative actions, the attribution query, the evaluation passthrough, the two pairing maps, the orphan log and the report-only leg.
+Term composition: this pattern's wiring of [Permissions](../atoms/permissions.idd) and [Actor Identity](../atoms/actor-identity.idd) — the three administrative actions, the attribution query, the evaluation passthrough, the two pairing maps, the orphan log and the report-only leg.
 
-Term constituents: [Permissions](../atoms/permissions.md), [Actor Identity](../atoms/actor-identity.md).
+Term constituents: [Permissions](../atoms/permissions.idd), [Actor Identity](../atoms/actor-identity.idd).
 
 Term administered grant: a grant this composition's own surface issued or revoked, as against one a direct database write produced.
 
@@ -746,8 +746,8 @@ These are adjacent patterns, **not** constituents of Attributed Permissions Admi
 
 - **Binding Registry** *(forthcoming)* — the write-once key-to-key pairing records the two attribution maps are extraction-pending against (Non-goal 12). The same shape recurs for a principal-to-actor bijection elsewhere in the corpus, which is the recurrence argument for the extraction.
 - **Event Log** — the home the orphan log is extraction-pending against (Non-goal 13). This composition's cut has no Event Log constituent, so the log is composition-held under Invariant 8 until the re-housing lands.
-- **[Tamper Evidence](../atoms/tamper-evidence.md)** — what elevates the composition's own emergent state from trusted storage to a verifiable claim, and what closes the direct-database-write gap Composes 19 declares open.
-- **[Retention Window](../atoms/retention-window.md)** — the retention discipline Composition state 27 depends on and Capability requirement 27 makes the deployment declare. A per-store scope is what the query's purge branch exists for; a pair-scoped one is what makes an absent attestation evidence.
+- **[Tamper Evidence](../atoms/tamper-evidence.idd)** — what elevates the composition's own emergent state from trusted storage to a verifiable claim, and what closes the direct-database-write gap Composes 19 declares open.
+- **[Retention Window](../atoms/retention-window.idd)** — the retention discipline Composition state 27 depends on and Capability requirement 27 makes the deployment declare. A per-store scope is what the query's purge branch exists for; a pair-scoped one is what makes an absent attestation evidence.
 - **Delegation** *(forthcoming)* — the meta-grant layer that answers whether a grantor was permitted to issue a scope (Non-goal 1, External check 1).
 - **Compromise Disclosure** *(forthcoming)* — what reinterprets an attestation whose credential was later compromised (External check 2).
 - **Trusted Timestamping** *(forthcoming)* — the adversarially-defensible time anchor Invariant 4 does not supply (Non-goal 17).
@@ -778,7 +778,7 @@ Term terms: pair, composition, constituents, administered grant, administrative 
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
-Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcoming)*; Compromise Disclosure *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Scope Registry *(forthcoming)*; [Event Log](../atoms/event-log.md); [Tamper Evidence](../atoms/tamper-evidence.md); [Retention Window](../atoms/retention-window.md); [Idempotent Reservation](./idempotent-reservation.md); [Multi-Party Approval](./multi-party-approval.md).
+Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcoming)*; Compromise Disclosure *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Scope Registry *(forthcoming)*; [Event Log](../atoms/event-log.idd); [Tamper Evidence](../atoms/tamper-evidence.idd); [Retention Window](../atoms/retention-window.idd); [Idempotent Reservation](./idempotent-reservation.md); [Multi-Party Approval](./multi-party-approval.md).
 
 #### Issue Grant
 

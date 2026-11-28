@@ -26,7 +26,7 @@ import sys, os, re, json, glob, datetime
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "grace"))
 import layout  # noqa: E402  a demo quotes a spec by the path it had when the demo was built
 
-SPEC_PATH_RE = re.compile(r'(?:\.\./)*((?:atoms|compositions)/[A-Za-z0-9_\-/]+\.md)')
+SPEC_PATH_RE = re.compile(r'(?:\.\./)*((?:atoms|compositions)/[A-Za-z0-9_\-/]+\.(?:md|idd))')
 ATOM_HDR_RE  = re.compile(r'//\s*Atom:\s*(.+)')
 NOT_ATOM_RE  = re.compile(r'Not a Grace Commons atom')
 TITLE_RE     = re.compile(r'^title:\s*(.+)$', re.MULTILINE)
@@ -77,7 +77,7 @@ def direct_constituents(repo, comp_rel):
     paths = set()
     for m in SPEC_PATH_RE.finditer(sec):
         paths.add(layout.new_path(m.group(1)))
-    for m in re.finditer(r'\]\(\./([A-Za-z0-9_\-]+\.md)\)', sec):
+    for m in re.finditer(r'\]\(\./([A-Za-z0-9_\-]+\.(?:md|idd))\)', sec):
         paths.add("library/compositions/" + m.group(1))
     return paths
 

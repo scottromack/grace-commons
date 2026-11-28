@@ -2,8 +2,8 @@
 """The grammar tree: every labelled rule of a page parsed to one GF tree (the council's
 assets/design/grammar-tree.md, the pretest).
 
-    python3 tools/grammar/grammar.py pretest library/atoms/money.md [--keep <dir>]   # the report, JSON
-    python3 tools/grammar/grammar.py tree library/atoms/money.md "Operation 8"        # one rule's trees
+    python3 tools/grammar/grammar.py pretest library/atoms/money.idd [--keep <dir>]   # the report, JSON
+    python3 tools/grammar/grammar.py tree library/atoms/money.idd "Operation 8"        # one rule's trees
     python3 tools/grammar/grammar.py corpus <dir>                                      # every atom, a report each
 
 GRACE-lang.md stays the spec; the grammar is checked against it. GraceCore.gf holds the rule shape

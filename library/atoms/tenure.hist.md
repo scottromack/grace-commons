@@ -6,7 +6,7 @@ search_exclude: true
 
 # Tenure — history
 
-The dated record of how [Tenure](./tenure.md) got here, moved out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/tenure.md`.
+The dated record of how [Tenure](./tenure.idd) got here, moved out of the spec because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/tenure.md`.
 
 ## Deleted rules
 

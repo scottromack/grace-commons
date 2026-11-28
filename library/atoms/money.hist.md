@@ -6,7 +6,7 @@ search_exclude: true
 
 # Money — history
 
-The dated record of how [Money](./money.md) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/money.md`.
+The dated record of how [Money](./money.idd) got here, moved out of the spec on 2026-11-16 because a reader does not need it to use the spec today. Everything smaller is in `git log -- atoms/money.md`.
 
 ## Decisions
 

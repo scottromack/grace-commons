@@ -41,9 +41,9 @@ What the composition is *not*: it is not the issuance surface — it revokes gra
 
 ## Composes
 
-- **[Permissions](../atoms/permissions.md)** — the grant surface, enumerated and revoked.
-- **[Session](../atoms/session.md)** — the live-channel surface, enumerated and revoked.
-- **[Credential](../atoms/credential.md)** *(optional)* — the re-authentication surface, enumerated and revoked where composed.
+- **[Permissions](../atoms/permissions.idd)** — the grant surface, enumerated and revoked.
+- **[Session](../atoms/session.idd)** — the live-channel surface, enumerated and revoked.
+- **[Credential](../atoms/credential.idd)** *(optional)* — the re-authentication surface, enumerated and revoked where composed.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every record is written through.
 
 ```
@@ -81,9 +81,9 @@ Composes 31: The composition MUST NOT supply the substrate's own recording stamp
 ```
 
 
-Term composition: this pattern's wiring of [Permissions](../atoms/permissions.md), [Session](../atoms/session.md), [Credential](../atoms/credential.md) and the [Audit Trail](./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
+Term composition: this pattern's wiring of [Permissions](../atoms/permissions.idd), [Session](../atoms/session.idd), [Credential](../atoms/credential.idd) and the [Audit Trail](./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
 
-Term constituents: [Permissions](../atoms/permissions.md), [Session](../atoms/session.md), [Audit Trail](./audit-trail.md), and — where the credential arm stands composed — [Credential](../atoms/credential.md).
+Term constituents: [Permissions](../atoms/permissions.idd), [Session](../atoms/session.idd), [Audit Trail](./audit-trail.md), and — where the credential arm stands composed — [Credential](../atoms/credential.idd).
 
 Term credential arm: revoke_credential_on_suspend standing true with a Credential instance wired — the arm under which the cascade also closes the re-authentication surface.
 
@@ -515,7 +515,7 @@ Action wiring 89: An admitted reinstatement MUST answer the reinstated outcome's
 
 Term stored active: the status a constituent's own record carries, before any derivation the constituent applies at read time.
 
-Term effective active: Credential's derived active status, cited rather than restated — [Credential](../atoms/credential.md)'s own reading of a credential that has neither been revoked nor lapsed.
+Term effective active: Credential's derived active status, cited rather than restated — [Credential](../atoms/credential.idd)'s own reading of a credential that has neither been revoked nor lapsed.
 
 Term snapshot: the enumerated active set a fresh cascade reads from the constituents at one instant, which becomes the plan.
 
@@ -960,9 +960,9 @@ Term value sets: lifecycle state = active | suspending | suspended. intent = act
 
 Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, contradicts, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation id, resume invocation id, intent instant, intent event id, suspension event id, suspension instant, reinstatement instant.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound. verify_record, event id: Audit Trail.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. [Credential](../atoms/credential.idd) — the effective-active reading and the per-pair bound. verify_record, event id: Audit Trail.
 
-Term composing patterns: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Login](./login.md); [Authenticated Actor](./authenticated-actor.md); [Multi-Party Approval](./multi-party-approval.md); [Permissions](../atoms/permissions.md).
+Term composing patterns: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Login](./login.md); [Authenticated Actor](./authenticated-actor.md); [Multi-Party Approval](./multi-party-approval.md); [Permissions](../atoms/permissions.idd).
 
 #### Suspend Actor
 

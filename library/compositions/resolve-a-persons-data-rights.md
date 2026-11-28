@@ -37,12 +37,12 @@ What the composition is *not*: it is not the identity-verification surface that 
 
 ## Composes
 
-- **[Selective Disclosure](../atoms/selective-disclosure.md)** — the disclosure-accounting surface, used in both directions: read for the subject's recipients, written for the response to the requester.
+- **[Selective Disclosure](../atoms/selective-disclosure.idd)** — the disclosure-accounting surface, used in both directions: read for the subject's recipients, written for the response to the requester.
 - **[Defensible Retention](./defensible-retention.md)** — the regulated retention-governance composition, used as a substrate: the erasure gate, and the Legal Hold, Retention Window and Audit Trail instances reached through it.
-- **[Consent](../atoms/consent.md)** — a read-only authority oracle: was consent the basis for processing a record, and is that consent still in force.
-- **[Durable Intent](../atoms/durable-intent.md)** — the open, commit and close protocol around [Fulfill Erasure Request]'s planned calls, which no store transaction can enclose: the host delete and Defensible Retention's purge answer outside the composition's own store. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
-- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
-- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
+- **[Consent](../atoms/consent.idd)** — a read-only authority oracle: was consent the basis for processing a record, and is that consent still in force.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the open, commit and close protocol around [Fulfill Erasure Request]'s planned calls, which no store transaction can enclose: the host delete and Defensible Retention's purge answer outside the composition's own store. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Selective Disclosure instance MUST serve the composition.
@@ -68,11 +68,11 @@ Composes 20: EXACTLY ONE Sweep instance MUST serve the composition.
 Composes 21: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Selective Disclosure](../atoms/selective-disclosure.md), [Defensible Retention](./defensible-retention.md), [Consent](../atoms/consent.md) and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the intake, the two fulfillment siblings, the report, the two indexes and the reconciliation.
+Term composition: this pattern's wiring of [Selective Disclosure](../atoms/selective-disclosure.idd), [Defensible Retention](./defensible-retention.md), [Consent](../atoms/consent.idd) and [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd) — the intake, the two fulfillment siblings, the report, the two indexes and the reconciliation.
 
-Term constituents: [Selective Disclosure](../atoms/selective-disclosure.md), [Defensible Retention](./defensible-retention.md), [Consent](../atoms/consent.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
+Term constituents: [Selective Disclosure](../atoms/selective-disclosure.idd), [Defensible Retention](./defensible-retention.md), [Consent](../atoms/consent.idd), [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd).
 
-Term transitive pattern: [Legal Hold](../atoms/legal-hold.md), [Retention Window](../atoms/retention-window.md) or [Audit Trail](./audit-trail.md), reached through Defensible Retention, [Lease](../atoms/lease.md), reached through Recoverable Invocation, and [Event Log](../atoms/event-log.md), reached through Audit Trail.
+Term transitive pattern: [Legal Hold](../atoms/legal-hold.idd), [Retention Window](../atoms/retention-window.idd) or [Audit Trail](./audit-trail.md), reached through Defensible Retention, [Lease](../atoms/lease.idd), reached through Recoverable Invocation, and [Event Log](../atoms/event-log.idd), reached through Audit Trail.
 
 Term audit write: Audit Trail's record_action on the Audit Trail instance Defensible Retention carries.
 
@@ -941,7 +941,7 @@ Non-goal 15: The composition MUST NOT plan the purge by what a planned call can 
 Non-goal 16: The composition MUST NOT size a fulfillment's record to fit the payload cap; a fulfillment whose largest record exceeds the cap is refused (Primitive policy 13), and sizing the payload cap to the largest record a subject carries is the deployment's (Capability requirement 70).
 ```
 
-NOTE: the owners — [Permissions](../atoms/permissions.md) (Non-goal 2, External check 4); a Regulatory Deadline pattern *(forthcoming)* or a host dashboard (Non-goal 3, External check 5); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (Non-goal 10); the deployment (Non-goal 9, Non-goal 12 through 14); [Defensible Retention](./defensible-retention.md) (the retention of the disclosure and consent records, Capability requirement 60 and 61).
+NOTE: the owners — [Permissions](../atoms/permissions.idd) (Non-goal 2, External check 4); a Regulatory Deadline pattern *(forthcoming)* or a host dashboard (Non-goal 3, External check 5); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (Non-goal 10); the deployment (Non-goal 9, Non-goal 12 through 14); [Defensible Retention](./defensible-retention.md) (the retention of the disclosure and consent records, Capability requirement 60 and 61).
 
 NOTE: watch the adopter's policy note (Non-goal 9, Non-goal 10).
 
@@ -1041,7 +1041,7 @@ Term terms: composition, constituents, transitive pattern, audit write, trail, t
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the substrate. record, read, disclosure id, scope, authority, recipient, invalid-request, unknown-authority-type, storage-failure, string cap: Selective Disclosure. check, read, grant, revoke, consent id, purpose, granted, revoked, expired, not-known, granting actor, revoking actor: Consent. purge_record, ok, not-known, not-eligible, under-active-retention, under-legal-hold, hold-check-unavailable, section-unavailable, storage-failure, gate, hold ids, count, hold check mode, strict, advisory, hold check result, hold override, gate record, record_purged, purge_intended, business retention instance, landed record, owed record, audit write latency, hold ids cap, section term: Defensible Retention. record_action, verify_record, payload cap, step-2, step-3, step-4, invalid-credential, recording-failure, Erasure Tombstone: Audit Trail. read, retention state, retained, purged, retention deadline, purge instant: Retention Window. read, sequence, recording instant: Event Log. open, close, refuse, yield, act-in-flight, act-landed, journal-unavailable, invocation id, closing, escalated, executed, critical section, pause bound: Recoverable Invocation.
 
-Term composing patterns: [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Multi-Party Approval](./multi-party-approval.md); [Immutable Ledger](./immutable-ledger.md); [Customer Onboarding](./customer-onboarding.md); [Party Identity](../atoms/party-identity.md); [Actor Identity](../atoms/actor-identity.md); [Permissions](../atoms/permissions.md).
+Term composing patterns: [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Multi-Party Approval](./multi-party-approval.md); [Immutable Ledger](./immutable-ledger.md); [Customer Onboarding](./customer-onboarding.md); [Party Identity](../atoms/party-identity.idd); [Actor Identity](../atoms/actor-identity.idd); [Permissions](../atoms/permissions.idd).
 
 #### Receive Request
 

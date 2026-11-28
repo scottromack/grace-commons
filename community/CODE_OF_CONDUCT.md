@@ -9,15 +9,15 @@ Our code is these eleven lines. We hold ourselves to them and ask the same of ev
 
 <!-- code:start -->
 1.  **Define your words.** Make sure you both mean the same thing. — [Glossary](../how/glossary.md); every spec's Terms
-2.  **Be clear about who does what.** Name the owner, and the work stops falling through the cracks. — [Actor Identity](../library/atoms/actor-identity.md)
+2.  **Be clear about who does what.** Name the owner, and the work stops falling through the cracks. — [Actor Identity](../library/atoms/actor-identity.idd)
 3.  **Keep boundaries.** Stay inside what was agreed, and nothing gets trampled. — [Logic confinement](../library/execution-contract.md#logic-confinement-principle)
-4.  **Keep your promises.** Say what you'll do, then do it. — [Provisional Commitment](../library/atoms/provisional-commitment.md)
-5.  **Ask first.** Don't act for someone without their okay. — [Consent](../library/atoms/consent.md)
+4.  **Keep your promises.** Say what you'll do, then do it. — [Provisional Commitment](../library/atoms/provisional-commitment.idd)
+5.  **Ask first.** Don't act for someone without their okay. — [Consent](../library/atoms/consent.idd)
 6.  **Fail honestly.** Say when something didn't work. — [Recoverable Invocation](../library/compositions/recoverable-invocation.md)
 7.  **Make it right.** When you cause harm, repair it. — [Compensable Workflow](../library/compositions/compensable-workflow.md), [Verified Repair](../library/compositions/verified-repair.md)
 8.  **Remember what happened.** Keep the record straight, and don't rewrite it. — [Immutable Ledger](../library/compositions/immutable-ledger.md), [Audit Trail](../library/compositions/audit-trail.md)
 9.  **Hearing it twice isn't doing it twice.** A repeated request gets the same answer, not a second action. — [Idempotent Reservation](../library/compositions/idempotent-reservation.md)
-10. **Trust, then verify.** Give trust so things can move, and let your track record confirm it. — [Capability-Backed Sharing](../library/compositions/capability-backed-sharing.md), [Tamper Evidence](../library/atoms/tamper-evidence.md)
+10. **Trust, then verify.** Give trust so things can move, and let your track record confirm it. — [Capability-Backed Sharing](../library/compositions/capability-backed-sharing.md), [Tamper Evidence](../library/atoms/tamper-evidence.idd)
 11. **Forgive.** When someone makes it right, let them back in. — [Actor Suspension](../library/compositions/actor-suspension.md)
 <!-- code:end -->
 

@@ -39,13 +39,13 @@ What the composition is *not*: it is not the consent-collection UI (user interfa
 
 ## Composes
 
-- **[Consent](../atoms/consent.md)** — the data subject's grant, revoke and expire lifecycle, with the point-in-time check the gate delegates to.
-- **[Permissions](../atoms/permissions.md)** — the inward authorization surface: which internal actor may administer a consent record.
+- **[Consent](../atoms/consent.idd)** — the data subject's grant, revoke and expire lifecycle, with the point-in-time check the gate delegates to.
+- **[Permissions](../atoms/permissions.idd)** — the inward authorization surface: which internal actor may administer a consent record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every state-changing act of the composition is an attributed, sealed, retention-governed Audit Trail event.
-- **[Retention Window](../atoms/retention-window.md)** — the consent retention instance: one placement over each consent record, marking how long the controller must be able to produce it.
-- **[Durable Intent](../atoms/durable-intent.md)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
-- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
-- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
+- **[Retention Window](../atoms/retention-window.idd)** — the consent retention instance: one placement over each consent record, marking how long the controller must be able to produce it.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Consent instance MUST serve the composition.
@@ -71,11 +71,11 @@ Composes 20: EXACTLY ONE Sweep instance MUST serve the composition.
 Composes 21: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), a [Retention Window](../atoms/retention-window.md) instance and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the gate, the registration surface, the withdrawal with its propagation, the history read, the three indexes, the consent bindings and the write-ownership leg.
+Term composition: this pattern's wiring of [Consent](../atoms/consent.idd), [Permissions](../atoms/permissions.idd), [Audit Trail](./audit-trail.md), a [Retention Window](../atoms/retention-window.idd) instance and [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd) — the gate, the registration surface, the withdrawal with its propagation, the history read, the three indexes, the consent bindings and the write-ownership leg.
 
-Term constituents: [Consent](../atoms/consent.md), [Permissions](../atoms/permissions.md), [Audit Trail](./audit-trail.md), [Retention Window](../atoms/retention-window.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
+Term constituents: [Consent](../atoms/consent.idd), [Permissions](../atoms/permissions.idd), [Audit Trail](./audit-trail.md), [Retention Window](../atoms/retention-window.idd), [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd).
 
-Term transitive atoms: [Event Log](../atoms/event-log.md), [Actor Identity](../atoms/actor-identity.md), [Tamper Evidence](../atoms/tamper-evidence.md) and the audit-event [Retention Window](../atoms/retention-window.md), reached through Audit Trail, and [Lease](../atoms/lease.md), reached through Recoverable Invocation.
+Term transitive atoms: [Event Log](../atoms/event-log.idd), [Actor Identity](../atoms/actor-identity.idd), [Tamper Evidence](../atoms/tamper-evidence.idd) and the audit-event [Retention Window](../atoms/retention-window.idd), reached through Audit Trail, and [Lease](../atoms/lease.idd), reached through Recoverable Invocation.
 
 Term consent retention instance: the composition's own Retention Window instance, holding one placement per consent record — distinct from the Retention Window instance inside Audit Trail, which governs the audit events.
 
@@ -873,7 +873,7 @@ Term withdrawal surface: the unsubscribe link, preferences toggle or other data-
 
 Term denied attempt: an administration action refused permission-denied.
 
-NOTE: the owners — [Message Preference / Personalization](../atoms/message-preference.md) under [Preference-Aware Notification Fanout](./preference-aware-notification-fanout.md) (Non-goal 4); the deployment (Non-goal 5, Non-goal 6), and of each processing system the deployment runs (Non-goal 12); a failed-attempt pattern (Non-goal 8); [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md) (Non-goal 9).
+NOTE: the owners — [Message Preference / Personalization](../atoms/message-preference.idd) under [Preference-Aware Notification Fanout](./preference-aware-notification-fanout.md) (Non-goal 4); the deployment (Non-goal 5, Non-goal 6), and of each processing system the deployment runs (Non-goal 12); a failed-attempt pattern (Non-goal 8); [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md) (Non-goal 9).
 
 ---
 
@@ -909,7 +909,7 @@ The first two are Recoverable Invocation's Cross-record consistency for the two 
 
 ## Composition notes
 
-**Recoverable Invocation.** [Record Consent] and [Withdraw Consent] follow [Durable Intent](../atoms/durable-intent.md) around their acts (Composes 15 through 19): an intent before the commit, the one outcome as the close, a refusal record where the constituent refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the two act kinds once (Term consent bindings) and restates none of the protocol. [Register Processing], [Read Consent History] and [Processing Permitted] are not bound (Composes 18): a registration is one write and one record, a history read writes only its own access event, and the gate reads Consent alone.
+**Recoverable Invocation.** [Record Consent] and [Withdraw Consent] follow [Durable Intent](../atoms/durable-intent.idd) around their acts (Composes 15 through 19): an intent before the commit, the one outcome as the close, a refusal record where the constituent refuses, the act's critical section over them, and a sweep and an operator's invocation resolve for what an invocation left open. The pattern binds the two act kinds once (Term consent bindings) and restates none of the protocol. [Register Processing], [Read Consent History] and [Processing Permitted] are not bound (Composes 18): a registration is one write and one record, a history read writes only its own access event, and the gate reads Consent alone.
 
 **Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; the grant kind's is three calls in one database transaction (Term grant transaction), whose partition belongs to the transaction, the consent check's granted answer and a refusal of the grant write or the retention placement each rolling it back. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch here, as evidence for Recoverable Invocation's next revision, which is the record Recoverable Invocation Deviation 2 asks of an adopter first, as External Onboarding and Capability-Backed Sharing do. The withdrawal's commit is one call, the revoke write, and needs no such reading.
 
@@ -939,7 +939,7 @@ Term terms: composition, constituents, transitive atoms, consent retention insta
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index classification. Execution Contract Logic confinement 14 — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. record_action, read_record, verify_record, payload cap, attestation id width, unsealed tail, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, unverifiable, unsealed, purged, partially-purged-coverage, compensation-window, Retained, Purged, Erasure Tombstone, Reverse Index: Audit Trail. grant, revoke, check, read, granted, revoked, expired, not-known, already-revoked, already-expired, invalid-request, storage-failure, invalid-query, Granted, Revoked, Expired: Consent. permitted, denied: Permissions. place_under_retention, purge, invalid-policy, policy-not-found, storage-failure, Retained, Purged, retention deadline, Policy Registry: Retention Window. read: Event Log. Processing Register: forthcoming.
 
-Term composing patterns: [Customer Onboarding](./customer-onboarding.md); [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md); [Preference-Aware Notification Fanout](./preference-aware-notification-fanout.md); [Notification Fanout](./notification-fanout.md); [Message Preference / Personalization](../atoms/message-preference.md); [Defensible Retention](./defensible-retention.md); [Capability-Backed Sharing](./capability-backed-sharing.md); [Attributed Permissions Admin](./attributed-permissions-admin.md).
+Term composing patterns: [Customer Onboarding](./customer-onboarding.md); [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md); [Preference-Aware Notification Fanout](./preference-aware-notification-fanout.md); [Notification Fanout](./notification-fanout.md); [Message Preference / Personalization](../atoms/message-preference.idd); [Defensible Retention](./defensible-retention.md); [Capability-Backed Sharing](./capability-backed-sharing.md); [Attributed Permissions Admin](./attributed-permissions-admin.md).
 
 #### Record Consent
 

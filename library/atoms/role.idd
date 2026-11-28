@@ -499,7 +499,7 @@ Non-goal 5: The atom MUST NOT name the first holders of grant.
 Non-goal 6: The atom MUST NOT hold a person's job in a thing.
 ```
 
-NOTE: the owners — an attestation pattern and a session pattern (Non-goal 1); the app's permission for one person and one item, [Capability-Backed Sharing](../compositions/capability-backed-sharing.md) for an outsider holding a link (Non-goal 2); [Lease](./lease.md) (Non-goal 3); an onboarding pattern and the forthcoming Forum, which seeds the deployment (Non-goal 4, 5); [Tenure](./tenure.md), whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
+NOTE: the owners — an attestation pattern and a session pattern (Non-goal 1); the app's permission for one person and one item, [Capability-Backed Sharing](../compositions/capability-backed-sharing.md) for an outsider holding a link (Non-goal 2); [Lease](./lease.idd) (Non-goal 3); an onboarding pattern and the forthcoming Forum, which seeds the deployment (Non-goal 4, 5); [Tenure](./tenure.idd), whose "role" is a person's position in a customer, a deal or a club, not a set of allowed actions (Non-goal 6).
 
 Where the atom breaks down: a permission on one item — this post, this cart — which is the app's permission; a right that anyone holding a link may use, which is a bearer-token pattern's.
 

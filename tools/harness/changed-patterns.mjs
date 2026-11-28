@@ -57,7 +57,7 @@ export function selection(paths, names = {}) {
     const m = matrix ? null : /^(library\/(?:atoms|compositions))\/(?:models\/)?([^/]+)$/.exec(path);
     if (!m && !matrix) continue;
     if (matrix) {
-      const base = matrix[1].replace(/\.md$/, "");
+      const base = matrix[1].replace(/\.(md|idd)$/, "");
       for (const folder of FOLDERS) {
         const name = owner(base, names[folder] ?? []);
         if (name !== null && name === base && !OWN_WORKFLOW.has(`${folder}/${name}`)) touched.add(`${folder}/${name}`);

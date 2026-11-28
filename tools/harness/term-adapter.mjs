@@ -111,7 +111,7 @@ function adaptOne(mdPath, outDir) {
     manifest[key] = entry;
   }
   mkdirSync(outDir, { recursive: true });
-  const stem = basename(mdPath).replace(/\.md$/, "");
+  const stem = basename(mdPath).replace(/\.(md|idd)$/, "");
   const outPath = join(outDir, `${stem}.terms.json`);
   writeFileSync(outPath, JSON.stringify(manifest, null, 2) + "\n");
   console.log(`  ${basename(mdPath).padEnd(44)} -> ${stem}.terms.json   (${Object.keys(manifest).length} terms)`);

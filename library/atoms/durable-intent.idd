@@ -639,7 +639,7 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
   journal write bound 1: A writer MUST issue a journal write under the critical section ONLY IF a remaining the writer queried for that write EXCEEDS write floor.
   ```
 - **pause bound**
-  Term pause bound: this composition's value of [Lease](./lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
+  Term pause bound: this composition's value of [Lease](./lease.idd)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
 
   ```
   pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this pattern and for this pattern's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
@@ -901,9 +901,9 @@ Term terms: (named expressions, each declared where it is used) examine edge, se
 [Not Known]: #not-known
 [Journal Unavailable]: #journal-unavailable
 [Already Accounted]: #already-accounted
-[Finding]: ./escalation.md#finding
-[Reconcile]: ./sweep.md#reconcile
-[Resolve]: ./escalation.md#resolve
+[Finding]: ./escalation.idd#finding
+[Reconcile]: ./sweep.idd#reconcile
+[Resolve]: ./escalation.idd#resolve
 
 ## Status
 

@@ -6,7 +6,7 @@ search_exclude: true
 
 # Ordering — history
 
-The dated record of how [Ordering](./ordering.md) got here. Everything smaller is in `git log -- atoms/ordering.md`.
+The dated record of how [Ordering](./ordering.idd) got here. Everything smaller is in `git log -- atoms/ordering.md`.
 
 ## Decisions
 

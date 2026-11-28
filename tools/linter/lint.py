@@ -3006,8 +3006,8 @@ STRIPPED_LINK = re.compile(
     r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)"
     r"[a-z0-9-]+\.md(?:#[^)]*)?\)")
 COMPOSES_BULLET = re.compile(
-    r"^\s*-\s+\*{0,2}\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.md\)", re.M)
-CONSTITUENT_LINK = re.compile(r"\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.md\)")
+    r"^\s*-\s+\*{0,2}\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.(?:md|idd)\)", re.M)
+CONSTITUENT_LINK = re.compile(r"\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.(?:md|idd)\)")
 TERM_CONSTITUENTS = re.compile(r"^Term constituents: (.*)$", re.M)
 SERVE_RULE = re.compile(r"^\s*Composes \d+[a-z]?: EXACTLY ONE (.+?) (?:instance|shape) MUST serve", re.M)
 

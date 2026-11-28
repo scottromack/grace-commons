@@ -13,7 +13,7 @@ nav_order: 14
 {:toc}
 </details>
 
-**Composes:** [Session](../atoms/session.md) · [Permissions](../atoms/permissions.md)
+**Composes:** [Session](../atoms/session.idd) · [Permissions](../atoms/permissions.idd)
 
 ## Summary
 
@@ -21,7 +21,7 @@ Session-Gated Authorization is a regulated composition — a combination of two 
 
 The principal presented to Permissions is always the principal the session was issued for — never a value the caller supplies.
 
-This composition owns two rules and inherits a third. It owns the **principal binding** — [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns that to a composing pattern and declines to state it, so no atom holds it. It owns the **closure**: Permissions is unreachable unless a validate answered, which is stricter than anything Session says. The **gate itself** — that an invalid session must not reach Permissions — is [Session](../atoms/session.md)'s `Composition note 4`, cited here and obeyed, not invented here.
+This composition owns two rules and inherits a third. It owns the **principal binding** — [Permissions](../atoms/permissions.idd)'s `Composition note 3` assigns that to a composing pattern and declines to state it, so no atom holds it. It owns the **closure**: Permissions is unreachable unless a validate answered, which is stricter than anything Session says. The **gate itself** — that an invalid session must not reach Permissions — is [Session](../atoms/session.idd)'s `Composition note 4`, cited here and obeyed, not invented here.
 
 ---
 
@@ -37,8 +37,8 @@ The second guarantee is principal binding: the subject passed to `Permissions.pe
 
 ## Composes
 
-- **[Session](../atoms/session.md)** — the session a call presents, validated at the gate.
-- **[Permissions](../atoms/permissions.md)** — the grants and the permission query behind the gate.
+- **[Session](../atoms/session.idd)** — the session a call presents, validated at the gate.
+- **[Permissions](../atoms/permissions.idd)** — the grants and the permission query behind the gate.
 
 ```
 Composes 1: EXACTLY ONE Session instance MUST serve the composition.
@@ -50,9 +50,9 @@ Composes 6: The composition MUST own the binding between the authenticated calle
 Composes 7: The composition MUST obey Session Composition note 4.
 ```
 
-Term composition: this pattern's wiring of [Session](../atoms/session.md) and [Permissions](../atoms/permissions.md) — the gate, the principal binding and the one action below.
+Term composition: this pattern's wiring of [Session](../atoms/session.idd) and [Permissions](../atoms/permissions.idd) — the gate, the principal binding and the one action below.
 
-Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permissions.md).
+Term constituents: [Session](../atoms/session.idd), [Permissions](../atoms/permissions.idd).
 
 ---
 
@@ -338,7 +338,7 @@ Non-goal 13: A deployment exposing any other constituent surface beside [Check P
 Non-goal 14: A deployment needing a retention bound on the session records MUST compose Retention Window.
 ```
 
-NOTE: the owners — [Session](../atoms/session.md) issues, terminates and reads sessions (Non-goal 1, Non-goal 2, Non-goal 7, Non-goal 11); [Permissions](../atoms/permissions.md) grants and revokes a permission (Non-goal 3, Non-goal 4); the deployment's scope vocabulary decides what a scope is and how scopes relate (Non-goal 5, Non-goal 6, Composition note 3); [Audit Trail](./audit-trail.md) records an authorization decision (Non-goal 10); [Retention Window](../atoms/retention-window.md) bounds how long the session records are kept (Non-goal 14, Session Composition note 9); the Execution Contract answers a failed read (Non-goal 12, Execution Contract Read 1); the deployment's own wiring declares an exposure (Non-goal 8, Non-goal 13).
+NOTE: the owners — [Session](../atoms/session.idd) issues, terminates and reads sessions (Non-goal 1, Non-goal 2, Non-goal 7, Non-goal 11); [Permissions](../atoms/permissions.idd) grants and revokes a permission (Non-goal 3, Non-goal 4); the deployment's scope vocabulary decides what a scope is and how scopes relate (Non-goal 5, Non-goal 6, Composition note 3); [Audit Trail](./audit-trail.md) records an authorization decision (Non-goal 10); [Retention Window](../atoms/retention-window.idd) bounds how long the session records are kept (Non-goal 14, Session Composition note 9); the Execution Contract answers a failed read (Non-goal 12, Execution Contract Read 1); the deployment's own wiring declares an exposure (Non-goal 8, Non-goal 13).
 
 NOTE: watch the adopter's policy note (Non-goal 14).
 
@@ -384,7 +384,7 @@ Term actors: the composition; the constituents; a deployment; an auditor; a call
 
 Term value sets: invalid answer reasons = expired | revoked | not-known.
 
-Term cited: the section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. validation failure: Session.
+Term cited: the section titled Composition state in `execution-contract.md` — the no-stored-state classification. [Session](../atoms/session.idd) `Composition note 4` — the gate obligation. validation failure: Session.
 
 #### Check Permitted
 

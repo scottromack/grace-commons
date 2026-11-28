@@ -24,176 +24,176 @@ _26 compositions (26 regulated) · 53 atoms · 92 composition→atom edges. Gene
 
 | Atom | Domain | Regulated | Security | Composed by |
 |---|---|---|---|---|
-| [Actor Identity](./actor-identity.md) | — | yes (4) | yes | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
-| [Approval Step](./approval-step.md) | — | yes (2) | yes | execute-gated-workflow, multi-party-approval |
-| [Assignment](./assignment.md) | — | yes (3) | yes | execute-gated-workflow, multi-party-approval, shared-todo |
-| [Calendar Time](./calendar-time.md) | — | — | — | *(none yet)* |
-| [Capability](./capability.md) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
-| [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) | — | yes (1) | — | reserve-from-pool |
-| [Cart](./cart.md) | — | yes (1) | — | shared-cart |
-| [Category](./category.md) | — | — | — | *(none yet)* |
-| [Comment](./comment.md) | — | — | — | *(none yet)* |
-| [Communication](./communication.md) | — | — | — | *(none yet)* |
-| [Condition Register](./condition-register.md) | — | — | — | *(none yet)* |
-| [Consent](./consent.md) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
-| [Credential](./credential.md) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
-| [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
-| [Durable Intent](./durable-intent.md) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
-| [Erasure Tombstone](./erasure-tombstone.md) | — | — | — | *(none yet)* |
-| [Escalation](./escalation.md) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
-| [Event Log](./event-log.md) | — | yes (5) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart |
-| [Favorite](./favorite.md) | — | — | — | *(none yet)* |
-| [Gift Card](./gift-card.md) | — | — | — | *(none yet)* |
-| [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
-| [Lease](./lease.md) | — | yes (2) | — | preference-aware-notification-fanout, recoverable-invocation |
-| [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
-| [List](./list.md) | — | — | — | *(none yet)* |
-| [Medication Order](./medication-order.md) | healthcare | — | — | *(none yet)* |
-| [Message Preference](./message-preference.md) | — | yes (1) | — | preference-aware-notification-fanout |
-| [Moderation](./moderation.md) | — | — | — | *(none yet)* |
-| [Money](./money.md) | — | — | — | *(none yet)* |
-| [Notification](./notification.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
-| [Observation](./observation.md) | — | — | — | *(none yet)* |
-| [Ordering](./ordering.md) | — | — | — | *(none yet)* |
-| [Owed Record](./owed-record.md) | — | — | — | *(none yet)* |
-| [Party Identity](./party-identity.md) | — | yes (2) | yes | customer-onboarding, external-onboarding |
-| [Permissions](./permissions.md) | — | yes (9) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo |
-| [Post](./post.md) | — | — | — | *(none yet)* |
-| [Provenance](./provenance.md) | — | yes (1) | — | chain-of-custody |
-| [Provisional Commitment](./provisional-commitment.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
-| [Punch Card](./punch-card.md) | — | — | — | *(none yet)* |
-| [Reaction](./reaction.md) | — | — | — | *(none yet)* |
-| [Recurrence](./recurrence.md) | — | — | — | *(none yet)* |
-| [Restorable Delete](./restorable-delete.md) | — | — | — | *(none yet)* |
-| [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
+| [Actor Identity](./actor-identity.idd) | — | yes (4) | yes | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
+| [Approval Step](./approval-step.idd) | — | yes (2) | yes | execute-gated-workflow, multi-party-approval |
+| [Assignment](./assignment.idd) | — | yes (3) | yes | execute-gated-workflow, multi-party-approval, shared-todo |
+| [Calendar Time](./calendar-time.idd) | — | — | — | *(none yet)* |
+| [Capability](./capability.idd) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
+| [Capacity Constraint Enforcement](./capacity-constraint-enforcement.idd) | — | yes (1) | — | reserve-from-pool |
+| [Cart](./cart.idd) | — | yes (1) | — | shared-cart |
+| [Category](./category.idd) | — | — | — | *(none yet)* |
+| [Comment](./comment.idd) | — | — | — | *(none yet)* |
+| [Communication](./communication.idd) | — | — | — | *(none yet)* |
+| [Condition Register](./condition-register.idd) | — | — | — | *(none yet)* |
+| [Consent](./consent.idd) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
+| [Credential](./credential.idd) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
+| [Duplicate Prevention](./duplicate-prevention.idd) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
+| [Durable Intent](./durable-intent.idd) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
+| [Erasure Tombstone](./erasure-tombstone.idd) | — | — | — | *(none yet)* |
+| [Escalation](./escalation.idd) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
+| [Event Log](./event-log.idd) | — | yes (5) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart |
+| [Favorite](./favorite.idd) | — | — | — | *(none yet)* |
+| [Gift Card](./gift-card.idd) | — | — | — | *(none yet)* |
+| [Invitation](./invitation.idd) | — | yes (1) | yes | external-onboarding |
+| [Lease](./lease.idd) | — | yes (2) | — | preference-aware-notification-fanout, recoverable-invocation |
+| [Legal Hold](./legal-hold.idd) | — | yes (1) | — | defensible-retention |
+| [List](./list.idd) | — | — | — | *(none yet)* |
+| [Medication Order](./medication-order.idd) | healthcare | — | — | *(none yet)* |
+| [Message Preference](./message-preference.idd) | — | yes (1) | — | preference-aware-notification-fanout |
+| [Moderation](./moderation.idd) | — | — | — | *(none yet)* |
+| [Money](./money.idd) | — | — | — | *(none yet)* |
+| [Notification](./notification.idd) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
+| [Observation](./observation.idd) | — | — | — | *(none yet)* |
+| [Ordering](./ordering.idd) | — | — | — | *(none yet)* |
+| [Owed Record](./owed-record.idd) | — | — | — | *(none yet)* |
+| [Party Identity](./party-identity.idd) | — | yes (2) | yes | customer-onboarding, external-onboarding |
+| [Permissions](./permissions.idd) | — | yes (9) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo |
+| [Post](./post.idd) | — | — | — | *(none yet)* |
+| [Provenance](./provenance.idd) | — | yes (1) | — | chain-of-custody |
+| [Provisional Commitment](./provisional-commitment.idd) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
+| [Punch Card](./punch-card.idd) | — | — | — | *(none yet)* |
+| [Reaction](./reaction.idd) | — | — | — | *(none yet)* |
+| [Recurrence](./recurrence.idd) | — | — | — | *(none yet)* |
+| [Restorable Delete](./restorable-delete.idd) | — | — | — | *(none yet)* |
+| [Retention Window](./retention-window.idd) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
 | [Role](./role.idd) | — | — | — | *(none yet)* |
-| [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights |
-| [Session](./session.md) | — | yes (4) | yes | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
-| [State Machine](./state-machine.md) | — | yes (2) | — | compensable-workflow, execute-gated-workflow |
-| [Subscription](./subscription.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
-| [Sweep](./sweep.md) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
-| [Tag](./tag.md) | — | — | — | *(none yet)* |
-| [Tamper Evidence](./tamper-evidence.md) | — | yes (1) | — | audit-trail |
-| [Task](./task.md) | — | yes (1) | — | shared-todo |
-| [Tenure](./tenure.md) | — | — | — | *(none yet)* |
-| [Waitlist](./waitlist.md) | — | — | — | *(none yet)* |
+| [Selective Disclosure](./selective-disclosure.idd) | — | yes (3) | — | capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights |
+| [Session](./session.idd) | — | yes (4) | yes | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
+| [State Machine](./state-machine.idd) | — | yes (2) | — | compensable-workflow, execute-gated-workflow |
+| [Subscription](./subscription.idd) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
+| [Sweep](./sweep.idd) | — | yes (9) | yes | capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair |
+| [Tag](./tag.idd) | — | — | — | *(none yet)* |
+| [Tamper Evidence](./tamper-evidence.idd) | — | yes (1) | — | audit-trail |
+| [Task](./task.idd) | — | yes (1) | — | shared-todo |
+| [Tenure](./tenure.idd) | — | — | — | *(none yet)* |
+| [Waitlist](./waitlist.idd) | — | — | — | *(none yet)* |
 
 ## Lens — regulated
 
 Atoms that a regulated composition (one carrying a `## Generation acceptance` section) composes. Derived, attributed per composer.
 
-- [Actor Identity](./actor-identity.md) — via attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool
-- [Approval Step](./approval-step.md) — via execute-gated-workflow, multi-party-approval
-- [Assignment](./assignment.md) — via execute-gated-workflow, multi-party-approval, shared-todo
-- [Capability](./capability.md) — via capability-backed-sharing, privileged-access-provisioning
-- [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) — via reserve-from-pool
-- [Cart](./cart.md) — via shared-cart
-- [Consent](./consent.md) — via propagate-consent-revocation-downstream, resolve-a-persons-data-rights
-- [Credential](./credential.md) — via actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning
-- [Duplicate Prevention](./duplicate-prevention.md) — via idempotent-reservation, reserve-from-pool
-- [Durable Intent](./durable-intent.md) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
-- [Escalation](./escalation.md) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
-- [Event Log](./event-log.md) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart
-- [Invitation](./invitation.md) — via external-onboarding
-- [Lease](./lease.md) — via preference-aware-notification-fanout, recoverable-invocation
-- [Legal Hold](./legal-hold.md) — via defensible-retention
-- [Message Preference](./message-preference.md) — via preference-aware-notification-fanout
-- [Notification](./notification.md) — via notification-fanout, preference-aware-notification-fanout
-- [Party Identity](./party-identity.md) — via customer-onboarding, external-onboarding
-- [Permissions](./permissions.md) — via actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo
-- [Provenance](./provenance.md) — via chain-of-custody
-- [Provisional Commitment](./provisional-commitment.md) — via idempotent-reservation, reserve-from-pool
-- [Retention Window](./retention-window.md) — via audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream
-- [Selective Disclosure](./selective-disclosure.md) — via capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights
-- [Session](./session.md) — via actor-suspension, login, privileged-access-provisioning, session-gated-authorization
-- [State Machine](./state-machine.md) — via compensable-workflow, execute-gated-workflow
-- [Subscription](./subscription.md) — via notification-fanout, preference-aware-notification-fanout
-- [Sweep](./sweep.md) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
-- [Tamper Evidence](./tamper-evidence.md) — via audit-trail
-- [Task](./task.md) — via shared-todo
+- [Actor Identity](./actor-identity.idd) — via attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool
+- [Approval Step](./approval-step.idd) — via execute-gated-workflow, multi-party-approval
+- [Assignment](./assignment.idd) — via execute-gated-workflow, multi-party-approval, shared-todo
+- [Capability](./capability.idd) — via capability-backed-sharing, privileged-access-provisioning
+- [Capacity Constraint Enforcement](./capacity-constraint-enforcement.idd) — via reserve-from-pool
+- [Cart](./cart.idd) — via shared-cart
+- [Consent](./consent.idd) — via propagate-consent-revocation-downstream, resolve-a-persons-data-rights
+- [Credential](./credential.idd) — via actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning
+- [Duplicate Prevention](./duplicate-prevention.idd) — via idempotent-reservation, reserve-from-pool
+- [Durable Intent](./durable-intent.idd) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
+- [Escalation](./escalation.idd) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
+- [Event Log](./event-log.idd) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, shared-cart
+- [Invitation](./invitation.idd) — via external-onboarding
+- [Lease](./lease.idd) — via preference-aware-notification-fanout, recoverable-invocation
+- [Legal Hold](./legal-hold.idd) — via defensible-retention
+- [Message Preference](./message-preference.idd) — via preference-aware-notification-fanout
+- [Notification](./notification.idd) — via notification-fanout, preference-aware-notification-fanout
+- [Party Identity](./party-identity.idd) — via customer-onboarding, external-onboarding
+- [Permissions](./permissions.idd) — via actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-cart, shared-todo
+- [Provenance](./provenance.idd) — via chain-of-custody
+- [Provisional Commitment](./provisional-commitment.idd) — via idempotent-reservation, reserve-from-pool
+- [Retention Window](./retention-window.idd) — via audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream
+- [Selective Disclosure](./selective-disclosure.idd) — via capability-backed-sharing, immutable-ledger, resolve-a-persons-data-rights
+- [Session](./session.idd) — via actor-suspension, login, privileged-access-provisioning, session-gated-authorization
+- [State Machine](./state-machine.idd) — via compensable-workflow, execute-gated-workflow
+- [Subscription](./subscription.idd) — via notification-fanout, preference-aware-notification-fanout
+- [Sweep](./sweep.idd) — via capability-backed-sharing, chain-of-custody, customer-onboarding, external-onboarding, immutable-ledger, multi-party-approval, propagate-consent-revocation-downstream, resolve-a-persons-data-rights, verified-repair
+- [Tamper Evidence](./tamper-evidence.idd) — via audit-trail
+- [Task](./task.idd) — via shared-todo
 
 ## Lens — security
 
 An overlay, not a domain: an atom carries it iff it derives an identity / access / crypto-family standard (NIST 800-63/53/207, OWASP ASVS, SCIM, FIPS 180-4). Cross-cutting and multi-valued — an atom can hold it alongside any domain.
 
-- [Actor Identity](./actor-identity.md)
-- [Approval Step](./approval-step.md)
-- [Assignment](./assignment.md)
-- [Capability](./capability.md)
-- [Credential](./credential.md)
-- [Durable Intent](./durable-intent.md)
-- [Escalation](./escalation.md)
-- [Invitation](./invitation.md)
-- [Party Identity](./party-identity.md)
-- [Permissions](./permissions.md)
-- [Session](./session.md)
-- [Sweep](./sweep.md)
+- [Actor Identity](./actor-identity.idd)
+- [Approval Step](./approval-step.idd)
+- [Assignment](./assignment.idd)
+- [Capability](./capability.idd)
+- [Credential](./credential.idd)
+- [Durable Intent](./durable-intent.idd)
+- [Escalation](./escalation.idd)
+- [Invitation](./invitation.idd)
+- [Party Identity](./party-identity.idd)
+- [Permissions](./permissions.idd)
+- [Session](./session.idd)
+- [Sweep](./sweep.idd)
 
 ## Lens — by domain
 
 The one intrinsic axis. A domain earns a tag only when stripping it fails to leave a freestanding, domain-neutral primitive (the EOS test); default absent. The system is correct with zero domain tags — domain is additive, never load-bearing.
 
-- **healthcare**: [Medication Order](./medication-order.md)
+- **healthcare**: [Medication Order](./medication-order.idd)
 
 ## Lens — by standard
 
 The union of standards each atom's composers carry, attributed per composer in the atom's own pattern.
 
-- **21 CFR Part 11**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Lease](./lease.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **AMLD**: [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Party Identity](./party-identity.md), [Retention Window](./retention-window.md), [Sweep](./sweep.md)
-- **BSA/AML**: [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Party Identity](./party-identity.md), [Retention Window](./retention-window.md), [Sweep](./sweep.md)
-- **Basel III**: [Actor Identity](./actor-identity.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
-- **COSO/COBIT**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
-- **DoD 5015**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
-- **FATF**: [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Retention Window](./retention-window.md), [Sweep](./sweep.md)
-- **FINRA**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
-- **FRCP 37(e)**: [Consent](./consent.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Legal Hold](./legal-hold.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Sweep](./sweep.md)
-- **FinCEN**: [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Party Identity](./party-identity.md), [Retention Window](./retention-window.md), [Sweep](./sweep.md)
-- **GDPR**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Lease](./lease.md), [Legal Hold](./legal-hold.md), [Message Preference](./message-preference.md), [Notification](./notification.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Subscription](./subscription.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **HIPAA**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Lease](./lease.md), [Legal Hold](./legal-hold.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **ISO 15489**: [Legal Hold](./legal-hold.md), [Retention Window](./retention-window.md)
-- **ISO 27001**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **NIST 800-207**: [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
-- **NIST 800-53**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Permissions](./permissions.md), [Session](./session.md), [Sweep](./sweep.md)
-- **NIST 800-57**: [Actor Identity](./actor-identity.md), [Credential](./credential.md)
-- **NIST 800-63**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Session](./session.md), [Sweep](./sweep.md)
-- **NIST 800-92**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
-- **OWASP ASVS**: [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
-- **PCI DSS**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Lease](./lease.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **SCIM**: [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Sweep](./sweep.md)
-- **SEC 17a-4**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **SOC 2**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Credential](./credential.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Retention Window](./retention-window.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **SOX**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Durable Intent](./durable-intent.md), [Escalation](./escalation.md), [Event Log](./event-log.md), [Lease](./lease.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [State Machine](./state-machine.md), [Sweep](./sweep.md), [Tamper Evidence](./tamper-evidence.md)
-- **eIDAS**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
+- **21 CFR Part 11**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Lease](./lease.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [State Machine](./state-machine.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **AMLD**: [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Party Identity](./party-identity.idd), [Retention Window](./retention-window.idd), [Sweep](./sweep.idd)
+- **BSA/AML**: [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Party Identity](./party-identity.idd), [Retention Window](./retention-window.idd), [Sweep](./sweep.idd)
+- **Basel III**: [Actor Identity](./actor-identity.idd), [Duplicate Prevention](./duplicate-prevention.idd), [Event Log](./event-log.idd), [Provisional Commitment](./provisional-commitment.idd), [Retention Window](./retention-window.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **COSO/COBIT**: [Actor Identity](./actor-identity.idd), [Event Log](./event-log.idd), [Retention Window](./retention-window.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **DoD 5015**: [Actor Identity](./actor-identity.idd), [Event Log](./event-log.idd), [Retention Window](./retention-window.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **FATF**: [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Invitation](./invitation.idd), [Party Identity](./party-identity.idd), [Retention Window](./retention-window.idd), [Sweep](./sweep.idd)
+- **FINRA**: [Actor Identity](./actor-identity.idd), [Event Log](./event-log.idd), [Retention Window](./retention-window.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **FRCP 37(e)**: [Consent](./consent.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Legal Hold](./legal-hold.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Sweep](./sweep.idd)
+- **FinCEN**: [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Party Identity](./party-identity.idd), [Retention Window](./retention-window.idd), [Sweep](./sweep.idd)
+- **GDPR**: [Actor Identity](./actor-identity.idd), [Capability](./capability.idd), [Consent](./consent.idd), [Credential](./credential.idd), [Duplicate Prevention](./duplicate-prevention.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Invitation](./invitation.idd), [Lease](./lease.idd), [Legal Hold](./legal-hold.idd), [Message Preference](./message-preference.idd), [Notification](./notification.idd), [Party Identity](./party-identity.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Provisional Commitment](./provisional-commitment.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [Subscription](./subscription.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **HIPAA**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Consent](./consent.idd), [Credential](./credential.idd), [Duplicate Prevention](./duplicate-prevention.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Invitation](./invitation.idd), [Lease](./lease.idd), [Legal Hold](./legal-hold.idd), [Party Identity](./party-identity.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Provisional Commitment](./provisional-commitment.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [State Machine](./state-machine.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **ISO 15489**: [Legal Hold](./legal-hold.idd), [Retention Window](./retention-window.idd)
+- **ISO 27001**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Consent](./consent.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [State Machine](./state-machine.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **NIST 800-207**: [Credential](./credential.idd), [Permissions](./permissions.idd), [Session](./session.idd)
+- **NIST 800-53**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Permissions](./permissions.idd), [Session](./session.idd), [Sweep](./sweep.idd)
+- **NIST 800-57**: [Actor Identity](./actor-identity.idd), [Credential](./credential.idd)
+- **NIST 800-63**: [Actor Identity](./actor-identity.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Invitation](./invitation.idd), [Party Identity](./party-identity.idd), [Permissions](./permissions.idd), [Session](./session.idd), [Sweep](./sweep.idd)
+- **NIST 800-92**: [Actor Identity](./actor-identity.idd), [Event Log](./event-log.idd), [Retention Window](./retention-window.idd), [State Machine](./state-machine.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **OWASP ASVS**: [Credential](./credential.idd), [Permissions](./permissions.idd), [Session](./session.idd)
+- **PCI DSS**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Capacity Constraint Enforcement](./capacity-constraint-enforcement.idd), [Credential](./credential.idd), [Duplicate Prevention](./duplicate-prevention.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Lease](./lease.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Provisional Commitment](./provisional-commitment.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [State Machine](./state-machine.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **SCIM**: [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Invitation](./invitation.idd), [Party Identity](./party-identity.idd), [Sweep](./sweep.idd)
+- **SEC 17a-4**: [Actor Identity](./actor-identity.idd), [Capability](./capability.idd), [Consent](./consent.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Legal Hold](./legal-hold.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **SOC 2**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Credential](./credential.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Invitation](./invitation.idd), [Party Identity](./party-identity.idd), [Permissions](./permissions.idd), [Retention Window](./retention-window.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **SOX**: [Actor Identity](./actor-identity.idd), [Approval Step](./approval-step.idd), [Assignment](./assignment.idd), [Capability](./capability.idd), [Consent](./consent.idd), [Credential](./credential.idd), [Duplicate Prevention](./duplicate-prevention.idd), [Durable Intent](./durable-intent.idd), [Escalation](./escalation.idd), [Event Log](./event-log.idd), [Lease](./lease.idd), [Legal Hold](./legal-hold.idd), [Permissions](./permissions.idd), [Provenance](./provenance.idd), [Provisional Commitment](./provisional-commitment.idd), [Retention Window](./retention-window.idd), [Selective Disclosure](./selective-disclosure.idd), [Session](./session.idd), [State Machine](./state-machine.idd), [Sweep](./sweep.idd), [Tamper Evidence](./tamper-evidence.idd)
+- **eIDAS**: [Actor Identity](./actor-identity.idd), [Credential](./credential.idd), [Event Log](./event-log.idd), [Retention Window](./retention-window.idd), [Tamper Evidence](./tamper-evidence.idd)
 
 ## Lens — uncomposed
 
 Atoms no composition yet composes. The overlays say nothing about them — an honest gap, not a claim of non-regulation.
 
-- [Calendar Time](./calendar-time.md)
-- [Category](./category.md)
-- [Comment](./comment.md)
-- [Communication](./communication.md)
-- [Condition Register](./condition-register.md)
-- [Erasure Tombstone](./erasure-tombstone.md)
-- [Favorite](./favorite.md)
-- [Gift Card](./gift-card.md)
-- [List](./list.md)
-- [Medication Order](./medication-order.md)
-- [Moderation](./moderation.md)
-- [Money](./money.md)
-- [Observation](./observation.md)
-- [Ordering](./ordering.md)
-- [Owed Record](./owed-record.md)
-- [Post](./post.md)
-- [Punch Card](./punch-card.md)
-- [Reaction](./reaction.md)
-- [Recurrence](./recurrence.md)
-- [Restorable Delete](./restorable-delete.md)
+- [Calendar Time](./calendar-time.idd)
+- [Category](./category.idd)
+- [Comment](./comment.idd)
+- [Communication](./communication.idd)
+- [Condition Register](./condition-register.idd)
+- [Erasure Tombstone](./erasure-tombstone.idd)
+- [Favorite](./favorite.idd)
+- [Gift Card](./gift-card.idd)
+- [List](./list.idd)
+- [Medication Order](./medication-order.idd)
+- [Moderation](./moderation.idd)
+- [Money](./money.idd)
+- [Observation](./observation.idd)
+- [Ordering](./ordering.idd)
+- [Owed Record](./owed-record.idd)
+- [Post](./post.idd)
+- [Punch Card](./punch-card.idd)
+- [Reaction](./reaction.idd)
+- [Recurrence](./recurrence.idd)
+- [Restorable Delete](./restorable-delete.idd)
 - [Role](./role.idd)
-- [Tag](./tag.md)
-- [Tenure](./tenure.md)
-- [Waitlist](./waitlist.md)
+- [Tag](./tag.idd)
+- [Tenure](./tenure.idd)
+- [Waitlist](./waitlist.idd)
 
 ---
 

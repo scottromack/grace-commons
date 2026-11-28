@@ -15,7 +15,7 @@ nav_order: 10
 
 ## Summary
 
-Recoverable Invocation is the protocol a regulated action follows when it changes something it cannot take back and must leave a trustworthy account of having done so: write down what it is about to do, do it, then write down what it did. If the process dies in between, a separate clean-up run, the sweep, finishes the account later, writing only what it can read back from the database the act was made in, and where that database cannot say, recording the act for a person to settle rather than guessing. It is a composition, a pattern built by wiring simpler patterns together: [Audit Trail](./audit-trail.md) keeps every record tied to the verified person or service that made it, retained for a set period and sealed so that any later change to it shows. [Lease](../atoms/lease.md), a grant of sole standing over one act that its holder gives back when done or that runs out at a set time, never when someone notices a crash, keeps the original process and the sweep from ever both writing about one act, while the sweep looks only at acts whose time limit has passed, so it never writes about work still in progress. An action that adopts the protocol names the act, the database that makes it and how long it may take, and the protocol refuses to start where those time limits cannot be met. Wired together, they give what neither gives alone: every act made through the protocol is accounted for by one standing closing, written by one writer at a time, for as long as its records are kept, within a time limit set in advance, or else flagged for a person as at risk.
+Recoverable Invocation is the protocol a regulated action follows when it changes something it cannot take back and must leave a trustworthy account of having done so: write down what it is about to do, do it, then write down what it did. If the process dies in between, a separate clean-up run, the sweep, finishes the account later, writing only what it can read back from the database the act was made in, and where that database cannot say, recording the act for a person to settle rather than guessing. It is a composition, a pattern built by wiring simpler patterns together: [Audit Trail](./audit-trail.md) keeps every record tied to the verified person or service that made it, retained for a set period and sealed so that any later change to it shows. [Lease](../atoms/lease.idd), a grant of sole standing over one act that its holder gives back when done or that runs out at a set time, never when someone notices a crash, keeps the original process and the sweep from ever both writing about one act, while the sweep looks only at acts whose time limit has passed, so it never writes about work still in progress. An action that adopts the protocol names the act, the database that makes it and how long it may take, and the protocol refuses to start where those time limits cannot be met. Wired together, they give what neither gives alone: every act made through the protocol is accounted for by one standing closing, written by one writer at a time, for as long as its records are kept, within a time limit set in advance, or else flagged for a person as at risk.
 
 ---
 
@@ -36,7 +36,7 @@ It is not a transaction, the adopter's database, an audit journal or a class. An
 
 ## Composes
 
-- **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
+- **[Lease](../atoms/lease.idd)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease. This pattern binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics but the sizing the atom obliges a composer to state as its own (act section 16 through 18). What the atom refuses to own and this pattern adds: which key protects which work, and how long a grant must last.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../../how/spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step, committed_ids) | recording-failure(step)`, for every record this pattern writes; `read_record(event_id)`, which answers `audit_record | not-known`, or no answer where a constituent read gives none (Execution Contract Error model 1), where an event id is in hand; and the open-upper-bound sequence-range read, for every other read of the journal (Capability requirement 1). Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent's records provide it: Lease states what it is, and the deployment supplies the host.
@@ -105,7 +105,7 @@ Five elements, each carrying the Contract classification of the section titled C
 
   Term retention end: `((recorded_at + retention_period) - clock_allowance)` — the end of the intent's retention, less the allowance for the two clocks, so that a read of open invocations drops the intent no later than the substrate's clock reaches that end (Allowance 4).
 - **findings**
-  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named atom is the [Condition Register](../atoms/condition-register.md).
+  Term findings: the register of what the sweep could not close and what the instance could not do, written to the deployment's compliance surface. *Extraction-pending*; the named atom is the [Condition Register](../atoms/condition-register.idd).
   ```
   findings 1: The deployment MUST persist a finding naming a kind the bindings table serves for at least the retention period of that kind.
   findings 2: The deployment MUST persist a finding naming no kind for at least the instance's longest retention period.
@@ -123,7 +123,7 @@ Five elements, each carrying the Contract classification of the section titled C
   findings 12: The register MUST hold one record per standing condition.
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
-  NOTE: until the register moves onto the [Condition Register](../atoms/condition-register.md) (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
+  NOTE: until the register moves onto the [Condition Register](../atoms/condition-register.idd) (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both, as Audit Trail classifies its write-once outage record and Immutable Ledger its write-ownership findings against it too.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
 
@@ -180,7 +180,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   Term bindings: the table of act kinds the instance serves, each with its full binding set. *Default:* none.
   Term kind: the act kind an invocation belongs to — a key of the bindings table while the instance serves the kind, and the `<kind>` of every action reference the act's records carry (journal 2, journal 3).
 - **act section**
-  Term act section: an instance capability requirement: a [Lease](../atoms/lease.md) host. *Default:* none.
+  Term act section: an instance capability requirement: a [Lease](../atoms/lease.idd) host. *Default:* none.
   ```
   act section 1: The deployment MUST supply act section with the Lease atom's semantics.
   act section 2: A host MUST NOT free the critical section on a holder's death (Lease Invariant 3).
@@ -224,7 +224,7 @@ Term read-your-writes: Capability requirement 8 and Capability requirement 12 to
   ```
   Term sweep lease: `(closure_latency + journal_write_bound)`.
 - **pause bound**
-  Term pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
+  Term pause bound: this composition's value of [Lease](../atoms/lease.idd)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
   ```
   pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this pattern and for this pattern's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
   pause bound 2: A writer MUST issue a journal write WITHIN pause bound of asking for the write's remaining.

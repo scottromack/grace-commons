@@ -22,7 +22,7 @@ The guarantee the composition adds is invitation-gates-enrollment: no Party Iden
 
 Without the composition, any of these steps can occur independently, in any order, without a documented chain; the composition is what makes the chain mandatory and auditable.
 
-**Composes:** [Invitation](../atoms/invitation.md) · [Credential](../atoms/credential.md) · [Party Identity](../atoms/party-identity.md) · [Audit Trail](./audit-trail.md)
+**Composes:** [Invitation](../atoms/invitation.idd) · [Credential](../atoms/credential.idd) · [Party Identity](../atoms/party-identity.idd) · [Audit Trail](./audit-trail.md)
 
 ---
 
@@ -40,13 +40,13 @@ The second emergent property is the identity binding at accept, not at initiate.
 
 ## Composes
 
-- **[Invitation](../atoms/invitation.md)** — the invitation lifecycle and the single-resolution gate.
-- **[Credential](../atoms/credential.md)** — the binding between the enrolled party and the party's authentication material.
-- **[Party Identity](../atoms/party-identity.md)** — the identity record the arc enrolls in the unverified state.
+- **[Invitation](../atoms/invitation.idd)** — the invitation lifecycle and the single-resolution gate.
+- **[Credential](../atoms/credential.idd)** — the binding between the enrolled party and the party's authentication material.
+- **[Party Identity](../atoms/party-identity.idd)** — the identity record the arc enrolls in the unverified state.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every attempt and every outcome is recorded through.
-- **[Durable Intent](../atoms/durable-intent.md)** — the protocol [Onboard] follows around its arc: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the onboarding binding below; this pattern restates none of the protocol. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
-- **[Sweep](../atoms/sweep.md)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
-- **[Escalation](../atoms/escalation.md)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol [Onboard] follows around its arc: an intent before it, an outcome after it, the act's critical section over both, and a sweep that closes what an invocation left open. Bound once, for the act kind, on an instance that writes to this composition's Audit Trail instance. The bindings are the onboarding binding below; this pattern restates none of the protocol. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
+- **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
 ```
 Composes 1: EXACTLY ONE Invitation instance MUST serve the composition.
@@ -74,9 +74,9 @@ Composes 22: EXACTLY ONE Sweep instance MUST serve the composition.
 Composes 23: EXACTLY ONE Escalation instance MUST serve the composition.
 ```
 
-Term composition: this pattern's wiring of [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), the [Audit Trail](./audit-trail.md) substrate and [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md) — the four actions, the credential gate and the onboarding binding.
+Term composition: this pattern's wiring of [Invitation](../atoms/invitation.idd), [Credential](../atoms/credential.idd), [Party Identity](../atoms/party-identity.idd), the [Audit Trail](./audit-trail.md) substrate and [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd) — the four actions, the credential gate and the onboarding binding.
 
-Term constituents: [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), [Audit Trail](./audit-trail.md), [Durable Intent](../atoms/durable-intent.md), [Sweep](../atoms/sweep.md) and [Escalation](../atoms/escalation.md).
+Term constituents: [Invitation](../atoms/invitation.idd), [Credential](../atoms/credential.idd), [Party Identity](../atoms/party-identity.idd), [Audit Trail](./audit-trail.md), [Durable Intent](../atoms/durable-intent.idd), [Sweep](../atoms/sweep.idd) and [Escalation](../atoms/escalation.idd).
 
 Term substrate: the Audit Trail instance serving the composition.
 
@@ -699,7 +699,7 @@ Non-goal 16: The composition MUST NOT choose among the candidates the onboarding
 Non-goal 17: The composition MUST NOT exclude from the onboarding probe's candidates a party another token digest's records name.
 ```
 
-NOTE: the owners — a [Permissions](../atoms/permissions.md) instance over the invitation initiate and invitation revoke scopes, checked by the caller before [Invite] and [Revoke] or by a wrapping composition such as [Session-Gated Authorization](./session-gated-authorization.md) or [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 1 through 3, External check 8); a principal calling [Credential](../atoms/credential.md)'s rotate directly (Non-goal 7).
+NOTE: the owners — a [Permissions](../atoms/permissions.idd) instance over the invitation initiate and invitation revoke scopes, checked by the caller before [Invite] and [Revoke] or by a wrapping composition such as [Session-Gated Authorization](./session-gated-authorization.md) or [Attributed Permissions Admin](./attributed-permissions-admin.md) (Non-goal 1 through 3, External check 8); a principal calling [Credential](../atoms/credential.idd)'s rotate directly (Non-goal 7).
 
 ---
 
@@ -738,7 +738,7 @@ A Party Identity or Credential refusal inside the onboarding transaction, or an 
 
 **Relationship to Attributed Permissions Admin.** Once onboarded, the principal appears as a subject in Permissions. An authorized actor calls `Attributed Permissions Admin.grant(subject_ref=party_id, action_scope, ...)` to grant the newly onboarded party access to specific scopes. The `party_id` produced by External Onboarding becomes the `subject_ref` in Permissions grants.
 
-**Recoverable Invocation.** [Onboard] follows [Durable Intent](../atoms/durable-intent.md) around its arc (Composes 17 through 19): an intent before the onboarding transaction, the completion record as its outcome, a refusal record where a call refuses, the act's critical section over them, and a sweep and an operator's the invocation resolve for what an invocation left open. The pattern binds the act kind once (Term onboarding binding) and restates none of the protocol. [Invite], [Decline] and [Revoke] are not bound, since each is one constituent write and one record under the credential gate (Composes 20). An [Onboard] met by an in-flight or a landed act answers act-in-flight or act-landed before the credential gate clears (Durable Intent open step 3.5, open step 4.3), so a caller presenting a token without a valid credential learns that an act for it stands, the order Recoverable Invocation fixes and this composition cannot change (Composes 5).
+**Recoverable Invocation.** [Onboard] follows [Durable Intent](../atoms/durable-intent.idd) around its arc (Composes 17 through 19): an intent before the onboarding transaction, the completion record as its outcome, a refusal record where a call refuses, the act's critical section over them, and a sweep and an operator's the invocation resolve for what an invocation left open. The pattern binds the act kind once (Term onboarding binding) and restates none of the protocol. [Invite], [Decline] and [Revoke] are not bound, since each is one constituent write and one record under the credential gate (Composes 20). An [Onboard] met by an in-flight or a landed act answers act-in-flight or act-landed before the credential gate clears (Durable Intent open step 3.5, open step 4.3), so a caller presenting a token without a valid credential learns that an act for it stands, the order Recoverable Invocation fixes and this composition cannot change (Composes 5).
 
 **Recoverable Invocation's commit is one call.** Recoverable Invocation's bound commit is one constituent call whose arms the constituent partitions; this pattern's is three calls in one database transaction (Term onboarding transaction), whose partition belongs to the transaction, Invitation's accepted being rolled back when Credential refuses. Recoverable Invocation's closed list of deviations has no entry for it, and the pattern treats the transaction as the commit and records the mismatch here, as evidence for Recoverable Invocation's next revision, which is the record Recoverable Invocation Deviation 2 asks of an adopter first, as Capability-Backed Sharing does.
 
@@ -770,7 +770,7 @@ Term terms: composition, constituents, substrate, trail, completion relation, no
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 11 — the clock reading at the call. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the conforming, no-stored-state classification. record_action, read_record, proceed as landed, compliance alert, reference length cap, payload cap, recording instant, event id, action reference: Audit Trail. invitation token, token digest, accepting identity reference, acceptance instant, initiation instant, expiry bound, stored terminal, status, inviter reference, invitee reference, context, revoked by reference, ttl bounds: Invitation. party id, enrollment instant, enrolling actor reference, document type, document reference, name, date of birth: Party Identity. credential id, credential type, principal reference, registration instant, expiry instant: Credential.
 
-Term composing patterns: Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; [Permissions](../atoms/permissions.md); [Customer Onboarding](./customer-onboarding.md).
+Term composing patterns: Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; [Permissions](../atoms/permissions.idd); [Customer Onboarding](./customer-onboarding.md).
 
 Term initiate attempt: the invitation.initiate-attempt event — [Invite]'s attempt record.
 

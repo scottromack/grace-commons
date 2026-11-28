@@ -15,7 +15,7 @@ audience: common
 
 ## Summary
 
-Preference-Aware Notification Fanout connects an event to everyone who asked to hear about it — delivered the way each of them wants. It wires together four simpler patterns: one for who is interested in which events ([Subscription](../atoms/subscription.md)); one for each person's delivery wishes — preferred channels, "no more than N a day," "nothing between 10pm and 7am," plain versus rich format ([Message Preference](../atoms/message-preference.md)); one that creates a per-recipient delivery record and tracks its outcome ([Notification](../atoms/notification.md)); and one that keeps a permanent ordered journal of everything that happened ([Event Log](../atoms/event-log.md)). When an event fires, it asks who is subscribed and, for each subscriber, reads their current preferences and decides: deliver on these channels in this format, or don't — for a named reason (paused, inside quiet hours, over their frequency limit, or opted out of every channel). The guarantee none of the four can make alone: every subscriber gets exactly one recorded **disposition** — delivered, failed, or suppressed-with-a-reason — and nothing is silently dropped, so the deployment can later prove from the journal that it honored quiet-hours and opt-out rules, the evidence telemarketing and commercial-email regulations require or expect.
+Preference-Aware Notification Fanout connects an event to everyone who asked to hear about it — delivered the way each of them wants. It wires together four simpler patterns: one for who is interested in which events ([Subscription](../atoms/subscription.idd)); one for each person's delivery wishes — preferred channels, "no more than N a day," "nothing between 10pm and 7am," plain versus rich format ([Message Preference](../atoms/message-preference.idd)); one that creates a per-recipient delivery record and tracks its outcome ([Notification](../atoms/notification.idd)); and one that keeps a permanent ordered journal of everything that happened ([Event Log](../atoms/event-log.idd)). When an event fires, it asks who is subscribed and, for each subscriber, reads their current preferences and decides: deliver on these channels in this format, or don't — for a named reason (paused, inside quiet hours, over their frequency limit, or opted out of every channel). The guarantee none of the four can make alone: every subscriber gets exactly one recorded **disposition** — delivered, failed, or suppressed-with-a-reason — and nothing is silently dropped, so the deployment can later prove from the journal that it honored quiet-hours and opt-out rules, the evidence telemarketing and commercial-email regulations require or expect.
 
 ---
 
@@ -27,17 +27,17 @@ The stakes of that interpretation point are regulatory, not cosmetic. The TCPA (
 
 This composition does **not** compose Notification Fanout. Notification Fanout's fanout action exposes no per-subscriber hook; wrapping it cannot insert the shaping gate between the query and the creates without a breaking change to a grounded composition. The precedent is [Reserve from Pool](./reserve-from-pool.md), the pool-arithmetic superset of Idempotent Reservation: re-wire the same atoms plus more, rather than wrap the smaller composition. Notification Fanout remains the unshaped sibling — deployments that need fanout without preference shaping use it directly. This composition mirrors its loop, its failure isolation, and its fanout_id correlation discipline, widening the bipartition `{created, failed}` to the trichotomy `{created, failed, suppressed}`.
 
-Two boundary declarations the constituents themselves draw, restated here because the composing layer must honor the sequencing. First, **legal permission is not evaluated here**: whether the system may communicate with the principal at all is the Consent pattern's question, and Message Preference's own blockquote draws that line. A deployment whose deliveries require lawful basis sequences the Consent gate *before* invoking this composition; [Consent](../atoms/consent.md) and [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) are named peers, not constituents. Second, **attribution is not provided here**: a deployment that must answer *who triggered this fanout* under credential composes [Audit Trail](./audit-trail.md) or [Actor Identity](../atoms/actor-identity.md) alongside; the bare composition records dispositions, not initiators.
+Two boundary declarations the constituents themselves draw, restated here because the composing layer must honor the sequencing. First, **legal permission is not evaluated here**: whether the system may communicate with the principal at all is the Consent pattern's question, and Message Preference's own blockquote draws that line. A deployment whose deliveries require lawful basis sequences the Consent gate *before* invoking this composition; [Consent](../atoms/consent.idd) and [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) are named peers, not constituents. Second, **attribution is not provided here**: a deployment that must answer *who triggered this fanout* under credential composes [Audit Trail](./audit-trail.md) or [Actor Identity](../atoms/actor-identity.idd) alongside; the bare composition records dispositions, not initiators.
 
 ---
 
 ## Composes
 
-- **[Subscription](../atoms/subscription.md)** — who is subscribed: the Active subscriber set for a scope, and the point query that re-verifies one subscriber.
-- **[Notification](../atoms/notification.md)** — the per-recipient delivery record, its status, and the pending records per recipient.
-- **[Message Preference](../atoms/message-preference.md)** — each principal's in-effect delivery-shaping record, read-only.
-- **[Event Log](../atoms/event-log.md)** — the durable disposition journal and its replay surface.
-- **[Lease](../atoms/lease.md)** — the per-disposition exclusion: a claim on a disposition pair that ends by release or at an instant, a way to ask how much of it is left, and a deadline the writes under it carry.
+- **[Subscription](../atoms/subscription.idd)** — who is subscribed: the Active subscriber set for a scope, and the point query that re-verifies one subscriber.
+- **[Notification](../atoms/notification.idd)** — the per-recipient delivery record, its status, and the pending records per recipient.
+- **[Message Preference](../atoms/message-preference.idd)** — each principal's in-effect delivery-shaping record, read-only.
+- **[Event Log](../atoms/event-log.idd)** — the durable disposition journal and its replay surface.
+- **[Lease](../atoms/lease.idd)** — the per-disposition exclusion: a claim on a disposition pair that ends by release or at an instant, a way to ask how much of it is left, and a deadline the writes under it carry.
 
 ```
 Composes 1: EXACTLY ONE Subscription instance MUST serve the composition.
@@ -60,13 +60,13 @@ Composes 17: The composition MUST take a fresh holder value PER take (Lease Iden
 Composes 18: The composition MUST release the per-disposition exclusion on EVERY return of the holder, a return after the lease's expiry included, a grant under which a call answered no answer excepted (Lease Composition note 5b, 5c).
 ```
 
-Term composition: this pattern's wiring of [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md), [Message Preference](../atoms/message-preference.md), [Event Log](../atoms/event-log.md) and [Lease](../atoms/lease.md) — the four actions, the shaping gate, the two derived indexes and the reconciliation.
+Term composition: this pattern's wiring of [Subscription](../atoms/subscription.idd), [Notification](../atoms/notification.idd), [Message Preference](../atoms/message-preference.idd), [Event Log](../atoms/event-log.idd) and [Lease](../atoms/lease.idd) — the four actions, the shaping gate, the two derived indexes and the reconciliation.
 
-Term constituents: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md), [Message Preference](../atoms/message-preference.md), [Event Log](../atoms/event-log.md), [Lease](../atoms/lease.md).
+Term constituents: [Subscription](../atoms/subscription.idd), [Notification](../atoms/notification.idd), [Message Preference](../atoms/message-preference.idd), [Event Log](../atoms/event-log.idd), [Lease](../atoms/lease.idd).
 
 Term journal: the Event Log instance's events, in sequence order, as the composition and an auditor read them.
 
-Adjacent, **not** constituents: [Consent](../atoms/consent.md) and [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (legal permission, sequenced before this composition); [Audit Trail](./audit-trail.md) (attribution and sealing); [Duplicate Prevention](../atoms/duplicate-prevention.md) (at-most-once fanout under wholesale retry).
+Adjacent, **not** constituents: [Consent](../atoms/consent.idd) and [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md) (legal permission, sequenced before this composition); [Audit Trail](./audit-trail.md) (attribution and sealing); [Duplicate Prevention](../atoms/duplicate-prevention.idd) (at-most-once fanout under wholesale retry).
 
 ---
 ## Composition logic
@@ -649,7 +649,7 @@ A fanout fires while the Message Preference records are down. For each subscribe
 
 ### Partial failure
 
-A fanout `fx_07` to `[ana, eli, fay]`: ana's disposition pair commits (created); eli's `Notification.create` is refused by an infrastructure failure — nothing exists for eli, `fanout.create-failed` is journaled with cause create-failed, eli → `failed`; fay's pair commits (created). Returns all three classified. Had eli's delivery event been refused instead, eli would have been returned in yielded with nothing written, the create with it (Action wiring 23: the delivery pair commits in one transaction) — a gap the next [Reconcile Gaps] run redisposes. The caller retries eli with `redispose(fx_07, eli, payload)`: the gate re-evaluates (eli's preferences may have changed, the quiet window may now apply — the retry earns delivery, it does not assume it), and the outcome lands in the journal under `fx_07`. A direct `Notification.create(eli, envelope)` is **not** the retry path — it would bypass the gate and produce an unjournaled Notification that breach forensics reads as bypass evidence. A fresh [Fanout Shaped] (a new invocation against the *current* Active set) remains correct when re-fanning the whole scope is the intent — composing [Duplicate Prevention](../atoms/duplicate-prevention.md) if at-most-once across such retries is required.
+A fanout `fx_07` to `[ana, eli, fay]`: ana's disposition pair commits (created); eli's `Notification.create` is refused by an infrastructure failure — nothing exists for eli, `fanout.create-failed` is journaled with cause create-failed, eli → `failed`; fay's pair commits (created). Returns all three classified. Had eli's delivery event been refused instead, eli would have been returned in yielded with nothing written, the create with it (Action wiring 23: the delivery pair commits in one transaction) — a gap the next [Reconcile Gaps] run redisposes. The caller retries eli with `redispose(fx_07, eli, payload)`: the gate re-evaluates (eli's preferences may have changed, the quiet window may now apply — the retry earns delivery, it does not assume it), and the outcome lands in the journal under `fx_07`. A direct `Notification.create(eli, envelope)` is **not** the retry path — it would bypass the gate and produce an unjournaled Notification that breach forensics reads as bypass evidence. A fresh [Fanout Shaped] (a new invocation against the *current* Active set) remains correct when re-fanning the whole scope is the intent — composing [Duplicate Prevention](../atoms/duplicate-prevention.idd) if at-most-once across such retries is required.
 
 *Transport failure after a committed create:* back on `fx_01`, ana's `notif_91` later fails in transport (the transport layer calls `Notification.fail`). The re-send also routes through `redispose(fx_01, ana, payload)`: the transport-failure path (Action wiring 46) admits her because `status_of(notif_91)` returns `failed`; the audience re-check and the gate run fresh (if it is now 23:30 in ana's declared quiet hours, the re-send is suppressed — the retry earns delivery under *current* rules); a deliver verdict commits a new create, `notif_95`, as Notification's retry model prescribes — a distinct record with its own outcome, journaled under the invocation, with `notif_91` remaining in Failed as the audit record of the first attempt.
 
@@ -726,7 +726,7 @@ Non-goal 12: A deployment needing at-most-once across a wholesale re-fanout MUST
 
 Term covered obligation: a quiet-window obligation or a frequency obligation the deployment's regime imposes.
 
-NOTE: the owners — the deployment's scheduler (Non-goal 3); the deployment (Non-goal 5, External check 4); the transport (Non-goal 6); a composing [Permissions](../atoms/permissions.md) layer (Non-goal 7); [Audit Trail](./audit-trail.md) (Non-goal 10, Non-goal 11).
+NOTE: the owners — the deployment's scheduler (Non-goal 3); the deployment (Non-goal 5, External check 4); the transport (Non-goal 6); a composing [Permissions](../atoms/permissions.idd) layer (Non-goal 7); [Audit Trail](./audit-trail.md) (Non-goal 10, Non-goal 11).
 
 ---
 
@@ -794,7 +794,7 @@ Term terms: composition, constituents, journal, delivery count index, delivery c
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Composition model in `execution-contract.md` — Event Log as the sanctioned history records. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. subscribers_for, subscribed, not-subscribed, subscriber reference, event scope: Subscription. create, status_of, pending_for, notification id, payload, Pending, Delivered, failed, expired: Notification. current_for, read, preference id, principal reference, preference record, channel preferences, frequency limit, quiet hours, format, metadata, status, suspended: Message Preference. append, recording instant, payload cap, invalid-payload, storage-failure: Event Log.
 
-Term composing patterns: [Notification Fanout](./notification-fanout.md); [Consent](../atoms/consent.md); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Audit Trail](./audit-trail.md); [Actor Identity](../atoms/actor-identity.md); [Permissions](../atoms/permissions.md); [Duplicate Prevention](../atoms/duplicate-prevention.md); [Reserve from Pool](./reserve-from-pool.md).
+Term composing patterns: [Notification Fanout](./notification-fanout.md); [Consent](../atoms/consent.idd); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Audit Trail](./audit-trail.md); [Actor Identity](../atoms/actor-identity.idd); [Permissions](../atoms/permissions.idd); [Duplicate Prevention](../atoms/duplicate-prevention.idd); [Reserve from Pool](./reserve-from-pool.md).
 
 Term fanout id: the invocation's opaque, invocation-unique id — a [Fanout Id].
 
@@ -1012,7 +1012,7 @@ Projection: too-young
 - **GDPR Article 21(2)** — the right to object to direct-marketing processing. Per Message Preference's Standards references, the objection's delivery-shaping signal lives in the preference record and the legal-permission revocation in Consent; this composition is the named enforcement point for the first half — the recorded opt-out becomes a suppression at the next evaluation.
 - **CASL (Canadian Anti-Spam Legislation)** and the **ePrivacy Directive (2002/58/EC)** — inherited through Message Preference's standards surface; the same gate is the enforcement point.
 
-It inherits from: **[Subscription](../atoms/subscription.md)** (Observer, pub-sub, WebSub), **[Notification](../atoms/notification.md)** (SMTP — Simple Mail Transfer Protocol — disposition mapping, webhooks, the Apple and Google push services), **[Message Preference](../atoms/message-preference.md)** (CAN-SPAM, TCPA, GDPR 7(3)/21(2), CASL, ePrivacy), **[Event Log](../atoms/event-log.md)** (append-only journaling), and the **Outbox pattern** via [Notification Fanout](./notification-fanout.md)'s framing — the shaped Notification records are the outbox the transport consumes.
+It inherits from: **[Subscription](../atoms/subscription.idd)** (Observer, pub-sub, WebSub), **[Notification](../atoms/notification.idd)** (SMTP — Simple Mail Transfer Protocol — disposition mapping, webhooks, the Apple and Google push services), **[Message Preference](../atoms/message-preference.idd)** (CAN-SPAM, TCPA, GDPR 7(3)/21(2), CASL, ePrivacy), **[Event Log](../atoms/event-log.idd)** (append-only journaling), and the **Outbox pattern** via [Notification Fanout](./notification-fanout.md)'s framing — the shaped Notification records are the outbox the transport consumes.
 
 ---
 

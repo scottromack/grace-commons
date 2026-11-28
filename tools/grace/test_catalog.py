@@ -27,8 +27,8 @@ class Catalog(unittest.TestCase):
         self.assertEqual(entries, [p.stem for p in atoms])
 
     def test_mints_are_key_offers(self):
-        self.assertIn("**[Task](./atoms/task.md)**", self.text)
-        task = self.text.split("**[Task](./atoms/task.md)**", 1)[1].split("\n**[", 1)[0]
+        self.assertIn("**[Task](./atoms/task.idd)**", self.text)
+        task = self.text.split("**[Task](./atoms/task.idd)**", 1)[1].split("\n**[", 1)[0]
         self.assertIn("Mints task id.", task)
         self.assertIn("Needs key list id; key actor id; journal task events.", task)
         self.assertIn("Offers key task id.", task)
@@ -70,7 +70,7 @@ class Catalog(unittest.TestCase):
         alone = {self.data["titles"][p] for p in v["alone"]}
         # an atom that needs nothing and that nothing needs (hub tags aside) is neither drawn nor listed
         self.assertIn("Money", alone)
-        self.assertNotIn("(./atoms/money.md)", page)
+        self.assertNotIn("(./atoms/money.idd)", page)
         self.assertFalse(any(ln.lstrip().startswith("b0_money") for ln in lines))
         # layer 0 holds only foundations: atoms some drawn atom's arrow reaches
         reached = {q for p in v["drawn"] for q, _ in v["arrows"][p]}

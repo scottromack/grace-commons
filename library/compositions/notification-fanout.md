@@ -37,8 +37,8 @@ The composition makes two architectural commitments explicit. First, the subscri
 
 ## Composes
 
-- **[Subscription](../atoms/subscription.md)** — the Active subscriber set, read and never written.
-- **[Notification](../atoms/notification.md)** — the per-recipient delivery record, created once per subscriber.
+- **[Subscription](../atoms/subscription.idd)** — the Active subscriber set, read and never written.
+- **[Notification](../atoms/notification.idd)** — the per-recipient delivery record, created once per subscriber.
 
 ```
 Composes 1: EXACTLY ONE Subscription instance MUST serve the composition.
@@ -49,9 +49,9 @@ Composes 6: The composition MUST NOT write to the notification records beside No
 Composes 7: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 ```
 
-Term composition: this pattern's wiring of [Subscription](../atoms/subscription.md) and [Notification](../atoms/notification.md) — the one action below, its fan-out and its two result lists.
+Term composition: this pattern's wiring of [Subscription](../atoms/subscription.idd) and [Notification](../atoms/notification.idd) — the one action below, its fan-out and its two result lists.
 
-Term constituents: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md).
+Term constituents: [Subscription](../atoms/subscription.idd), [Notification](../atoms/notification.idd).
 
 ---
 
@@ -148,7 +148,7 @@ Term failed list: the subscriber reference of EVERY create that answered otherwi
 
 Term created recipients: the recipient references Notification's records hold for the notification ids the created list carries — what an auditor reads through status_of (Check 1.3).
 
-Term unrecordable create: a create answering neither a notification id, nor one of [Notification](../atoms/notification.md)'s declared refusals, nor the state-unavailable a failed read answers (Execution Contract Read 1) — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7, Notification Operation 16), as a state-unavailable records nothing (Execution Contract Read 3).
+Term unrecordable create: a create answering neither a notification id, nor one of [Notification](../atoms/notification.idd)'s declared refusals, nor the state-unavailable a failed read answers (Execution Contract Read 1) — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7, Notification Operation 16), as a state-unavailable records nothing (Execution Contract Read 3).
 
 #### Closure table
 
@@ -286,7 +286,7 @@ An auditor later asks: *was every subscribed compliance officer notified of poli
 
 ## Generation acceptance
 
-A derived implementation is acceptable when the checks below are provable to an external auditor given the subscription records and the notification records. **Check 1, Check 2 and Check 4.1 are clearable only where [Event Log](../atoms/event-log.md) is composed in and records the fanout PER Composition state 3a**: the composition persists no fanout id, so nothing in the bare records groups a fanout.
+A derived implementation is acceptable when the checks below are provable to an external auditor given the subscription records and the notification records. **Check 1, Check 2 and Check 4.1 are clearable only where [Event Log](../atoms/event-log.idd) is composed in and records the fanout PER Composition state 3a**: the composition persists no fanout id, so nothing in the bare records groups a fanout.
 
 ### Conformance checks
 
@@ -346,7 +346,7 @@ Non-goal 13: The composition MUST NOT validate a payload's schema.
 Non-goal 14: The composition MUST NOT bound the fan-out's cost.
 ```
 
-NOTE: the owners — the delivery layer, a transport reading [Notification](../atoms/notification.md)'s `pending_for` and calling `deliver`, `fail` or `expire` (Non-goal 10).
+NOTE: the owners — the delivery layer, a transport reading [Notification](../atoms/notification.idd)'s `pending_for` and calling `deliver`, `fail` or `expire` (Non-goal 10).
 
 ---
 
@@ -460,7 +460,7 @@ Projection: subscribers-unavailable
 
 #### Entropy Floor
 
-The uniqueness bound this composition places on its host's id source: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the bound is attributed to neither constituent and stated here as a Capability requirement (Capability requirement 3, Invariant 8.1).
+The uniqueness bound this composition places on its host's id source: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness. [Subscription](../atoms/subscription.idd) declares the same floor for its own record ids and [Notification](../atoms/notification.idd) declares none, so the bound is attributed to neither constituent and stated here as a Capability requirement (Capability requirement 3, Invariant 8.1).
 
 Kind:      Parameter
 Parameter of: the host
@@ -508,8 +508,8 @@ Projection: boundary_window
 
 It inherits from:
 
-- **[Subscription](../atoms/subscription.md)** — standards inheritance in full: Observer pattern, pub-sub, WebSub, XMPP PubSub (XMPP — the Extensible Messaging and Presence Protocol; XEP-0060, its publish-subscribe extension).
-- **[Notification](../atoms/notification.md)** — standards inheritance in full: Observer pattern, SMTP (Simple Mail Transfer Protocol — the standard email-delivery protocol), HTTP (Hypertext Transfer Protocol) webhooks, W3C Activity Streams, APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging) — the iOS and Android push-delivery services.
+- **[Subscription](../atoms/subscription.idd)** — standards inheritance in full: Observer pattern, pub-sub, WebSub, XMPP PubSub (XMPP — the Extensible Messaging and Presence Protocol; XEP-0060, its publish-subscribe extension).
+- **[Notification](../atoms/notification.idd)** — standards inheritance in full: Observer pattern, SMTP (Simple Mail Transfer Protocol — the standard email-delivery protocol), HTTP (Hypertext Transfer Protocol) webhooks, W3C Activity Streams, APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging) — the iOS and Android push-delivery services.
 
 ---
 
