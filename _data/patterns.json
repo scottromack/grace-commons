@@ -522,7 +522,7 @@
    "resolve-a-persons-data-rights"
   ],
   "domain": null,
-  "done": true,
+  "done": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -543,7 +543,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "done \u2014 2026-11-26",
+  "status": "doing",
   "title": "Consent"
  },
  "credential": {
