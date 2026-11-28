@@ -1,0 +1,42 @@
+# The root spec of the to-do render: the target (Execution Contract Conformance 10).
+# It carries what TARGET.md carried: the output stack, the UX and the existing systems.
+# Sources: assets/design/todo-app.md "The rendered app" (Scott, 2026-11-25 11:07 AM Central), each line's ruling beside it.
+
+Spec: Shared to-do list
+
+# Hono on Bun (Scott, 2026-11-16); XTDB the default store, one store (2026-10-12, 2026-10-14).
+# SpecDD 1.6 inherits Platform in child specs natively, so the platform line needs no extension of ours.
+Platform: Hono on Bun, XTDB
+
+Purpose:
+  The render of the shared to-do list: an author hands a set of to-dos to a team in priority order, and the team claims them and checks them off.
+  The intent is the app page and its pinned atoms in `.grace/`; this spec carries the render's target and no rule of the app.
+
+Structure:
+  ./.grace/
+  ./CORNERS.md
+
+References:
+  ./.grace/todo.idd
+  ./.grace/pins.tsv
+  ./.grace/bootstrap.md
+  ./CORNERS.md
+
+Must:
+  # Output stack.
+  The code is lowered from the grammar tree through Hydra.
+  # Scott, 2026-11-20; the 1.0 path of 2026-11-25.
+  The app is hosted on Fly.
+  # Scott, 2026-10-20; Unikraft after 1.0 (2026-11-23).
+  # UX.
+  The user interface is built on shadcn/ui, with INKs.
+  # Scott, 2026-11-25 9:25 AM Central; INKs in every render (2026-11-10).
+  The client is thin and a PWA, pulling only what it needs from a generated API that carries the store's validations.
+  # Scott, 2026-11-19.
+  The real app records usage events and runs A/B tests.
+  # Scott, 2026-11-19.
+  # Existing systems: none; the to-do app is new.
+
+Must not:
+  Hand-edit generated code or a contract: change the pattern and rebuild.
+  # Scott, 2026-11-16: "We don't hack code ever".
