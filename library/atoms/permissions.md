@@ -58,8 +58,6 @@ Kind:       Field
 Field of:   Permissions
 Projection: subject_ref
 
-Term action scope: the opaque reference naming what the grant covers — an [Action Scope]; matched exactly, and a composing pattern owns the vocabulary.
-
 #### Action Scope
 
 The opaque reference to *what* the grant covers — the scope the grant binds. A composing pattern defines scope semantics; the atom does exact match on the value (no hierarchy or wildcard). Set on [Grant], immutable thereafter.
@@ -448,11 +446,11 @@ Projection:   now
 
 ## Needs
 
-The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Grant], [Revoke] and [Check] take no caller and check none (Non-goal 13): the binding between the authenticated caller and the subject is the composing pattern's (Composition note 3). [Grant] may follow another atom's action whose answer carries a subject and a scope, the app making the call in that action's transaction with the answer's values as its subject reference and action scope (Bonds Follow-up 1, Follow-up 2); a refusal of the grant undoes the followed action (Bonds Follow-up 5), and an app with no such action makes no such call (Bonds Follow-up 6).
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Grant], [Revoke] and [Check] take no caller and check none (Non-goal 13): the binding between the authenticated caller and the subject is the composing pattern's (Composition note 3). [Grant] may follow another atom's action whose answer carries an actor id and then an action scope, the app making the call in that action's transaction with those two values, in that order, as its subject reference and action scope (Bonds Follow-up 1, Follow-up 2); a refusal of the grant undoes the followed action (Bonds Follow-up 5), and an app with no such action makes no such call (Bonds Follow-up 6).
 
 Term need key: key actor id; pairs grants.
 
-Term need follow-up: runs Grant; subject actor id; scope opaque.
+Term need follow-up: runs Grant; takes actor id, action scope.
 
 ## Offers
 
@@ -604,7 +602,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
 Term terms: grant record, live at an instant, grant id, subject reference, action scope, seam, transition, business caller, now, string cap, status, grant instant, revocation instant, pair, grant set, active grant set, high-assurance deployment.
 
-Term cited: actor id: Declarations.
+Term cited: actor id, action scope: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

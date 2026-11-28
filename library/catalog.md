@@ -62,9 +62,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
-**[Credential](./atoms/credential.md)** (969 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
+**[Credential](./atoms/credential.md)** (978 lines). Credential answers one question: *does this presented material belong to this principal, for this kind of credential?*
 
-- Needs key actor id.
+- Mints credential id. Needs key actor id. Offers key credential id; follow-up Verify.
 
 **[Duplicate Prevention](./atoms/duplicate-prevention.md)** (395 lines). Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats.
 
@@ -146,7 +146,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints party id. Needs key actor id; journal party events. Offers key party id.
 
-**[Permissions](./atoms/permissions.md)** (663 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
+**[Permissions](./atoms/permissions.md)** (661 lines). Permissions answers one question: "is this actor allowed to do this thing right now?"
 
 - Needs key actor id; follow-up Grant. Offers permission opaque.
 
@@ -190,9 +190,9 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints disclosure id. Offers key disclosure id.
 
-**[Session](./atoms/session.md)** (889 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
+**[Session](./atoms/session.md)** (942 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 
-- Mints session id. Needs key actor id. Offers key session id.
+- Mints session id. Needs key actor id; key credential id; follow-up Issue. Offers key session id.
 
 **[State Machine](./atoms/state-machine.md)** (1025 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
@@ -249,11 +249,13 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 - Invitation needs key actor id: met by Actor Identity.
 - Invitation needs journal invitation events: met by Event Log.
 - List needs key actor id: met by Actor Identity.
-- Ordering needs key opaque: met by Actor Identity, List, Session, Task.
+- Ordering needs key opaque: met by Actor Identity, Credential, List, Session, Task.
 - Ordering needs key list id: met by List.
 - Permissions needs key actor id: met by Actor Identity.
 - Permissions needs follow-up Grant: met by Invitation.
 - Session needs key actor id: met by Actor Identity.
+- Session needs key credential id: met by Credential.
+- Session needs follow-up Issue: met by Credential.
 - Task needs key list id: met by List.
 - Task needs key actor id: met by Actor Identity.
 - Task needs journal task events: met by Event Log.

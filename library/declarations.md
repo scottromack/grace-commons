@@ -46,6 +46,10 @@ Term task id: opaque — the one value naming a task, minted when the task is ma
 
 Term session id: opaque — the one value naming one session, minted by the host when the session opens; it grants nothing.
 
+Term credential id: opaque — the one value naming one credential, minted by the host when a register or a rotate makes the credential and never reused; it grants nothing.
+
+Term action scope: opaque — the value naming what a grant covers, matched exactly, in the vocabulary the composing app owns.
+
 Term list id: opaque — the one value naming a list of tasks, minted when the list is made and never reused.
 
 Term workflow id: opaque — the one value naming one running workflow, minted when the workflow is made and never reused.
@@ -126,6 +130,6 @@ Term idempotency key: opaque — the value a caller sends with a request so that
 
 ## Status
 
-`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare). The unit `bonds: the fixes` (2026-11-25, ruled by Scott 10:48 AM Central) declared `closing record` and `invocation journal`, which three atoms' need lines use. The unit `bonds: every atom mints its id` (2026-11-25, ruled by Scott 3:22 PM Central) made the page hold every id an atom mints (Bonds Key 18); the scope line owes a delta round.
+`todo` — written by the unit `bonds: the fifty` (2026-11-23); passed Scott's design review with the bond shape (2026-11-23 6:39 and 6:40 PM Central). Final Critique 1 (2026-11-24), a full round of three readers in a scratch slot, frozen at ca124ecf, under the unit `pressure test: bonds, contracts, declarations, glue`: three foundational cured (Declaration 1 binds a word's declaration, Declaration 2 and 3 bind every specification, the critical section key's encoding keeps two pairs apart), one held for Scott (the meanings use words the page does not declare). The unit `bonds: the fixes` (2026-11-25, ruled by Scott 10:48 AM Central) declared `closing record` and `invocation journal`, which three atoms' need lines use. The unit `bonds: every atom mints its id` (2026-11-25, ruled by Scott 3:22 PM Central) made the page hold every id an atom mints (Bonds Key 18); the scope line owes a delta round. The unit `composition: Login dissolved, the first dissolve` (2026-11-28) declared credential id, the key Credential offers and Session pairs on, and action scope, the value Invitation's accept carries and Permissions' grant takes, so the two follow-up bonds of the to-do app meet only their own offers.
 
 NOTE: End of Declarations.

@@ -648,9 +648,9 @@ Term need journal: records invitation events; calls append; arms event_id.
 
 ## Offers
 
-The bonds this atom offers, of a bond kind [Bonds](../bonds.md) states. An accept answering accepted may be followed, in the app's action and transaction, by another atom's action fed from the answer: the accepting identity as its subject and the offered scope as its scope (Bonds Follow-up 1, Follow-up 2). What follows, if anything, is the app's choice; the atom never learns it, and a refusal of the follow-up undoes the accept (Bonds Follow-up 5).
+The bonds this atom offers, of a bond kind [Bonds](../bonds.md) states. An accept answering accepted may be followed, in the app's action and transaction, by another atom's action fed from the answer, which carries the accepting identity and then the offered scope (Bonds Follow-up 1, Follow-up 2, Follow-up 7). What follows, if anything, is the app's choice; the atom never learns it, and a refusal of the follow-up undoes the accept (Bonds Follow-up 5).
 
-Term offer follow-up: after Accept; answering accepted; subject actor id; scope opaque.
+Term offer follow-up: after Accept; answering accepted; carries actor id, action scope.
 
 ## Left to others
 
@@ -817,7 +817,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: invitation, invitation token, token material, token digest, property, reference, database instance, seam, transition, now, resolving write, stored terminal, status, status check, ttl bounds, default ttl, window length, expiry bound, window reading, live, lapsed, effective status, acting reference, admitted initiate, admitted accept, admitted decline, admitted revoke, admitted resolving write, admitted read, filter, resolution field, resolution instant, committed version, string input, blank, string cap.
 
-Term cited: list id, actor id, invitation events: Declarations.
+Term cited: list id, actor id, invitation events, action scope: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

@@ -378,14 +378,14 @@ class BondTest(unittest.TestCase):
     # unit `bonds: the follow-up bond kind, accept grants first` (Scott 2026-11-27 11:17 AM Central): one atom's action,
     # answering a named answer, is followed by another atom's action fed from the answer, in the app's action
     FOLLOW_BONDS = BONDS + """
-Term follow-up need fields: runs, the action; subject, the party; scope, the scope.
+Term follow-up need fields: runs, the action; takes, the values.
 
-Term follow-up offer fields: after, the action; answering, the answers; subject, the party; scope, the scope.
+Term follow-up offer fields: after, the action; answering, the answers; carries, the values.
 """
     FOLLOWED = ("```\naccept(token, accepting_ref)\n  answers accepted(accepting_ref, offered_scope)\n  refuses expired\n```\n\n"
-                "Term offer follow-up: after Accept; answering accepted; subject opaque; scope opaque.\n")
+                "Term offer follow-up: after Accept; answering accepted; carries opaque, opaque.\n")
     FOLLOWER = ("```\ngrant(subject_ref, action_scope)\n  answers grant_id\n```\n\n"
-                "Term need follow-up: runs Grant; subject opaque; scope opaque.\n")
+                "Term need follow-up: runs Grant; takes opaque, opaque.\n")
 
     def follow_up_app(self, *atoms):
         (self.root / "library" / "apps" / "pair").mkdir(parents=True, exist_ok=True)
@@ -410,12 +410,47 @@ Term follow-up offer fields: after, the action; answering, the answers; subject,
         self.write("followed", atom("Followed", self.FOLLOWED.replace("answering accepted", "answering accepted, expired")))
         self.assertEqual(self.codes(), ["B-bond-follow-up"])
         self.write("followed", atom("Followed", self.FOLLOWED))
-        # runs names an action taking one input per value the need takes: a one-value need on a two-input action gates
-        self.write("follower", atom("Follower", self.FOLLOWER.replace("; scope opaque", "")))
+        # unit `composition: Login dissolved, the first dissolve`: the runs action takes at least one input per value
+        # the need takes, the app supplying the rest (Follow-up 8): a three-value need on a two-input action gates,
+        # a need taking nothing gates, and a one-value need on a two-input action stands
+        self.write("follower", atom("Follower", self.FOLLOWER.replace("takes opaque, opaque", "takes opaque, opaque, opaque")))
         self.assertIn("B-bond-follow-up", self.codes())
+        self.write("follower", atom("Follower", self.FOLLOWER.replace("; takes opaque, opaque", "")))
+        self.assertIn("B-bond-follow-up", self.codes())
+        self.write("follower", atom("Follower", self.FOLLOWER.replace("takes opaque, opaque", "takes opaque")))
+        self.assertNotIn("B-bond-follow-up", self.codes())
+        self.write("follower", atom("Follower", self.FOLLOWER))
+        # every answer the offer follows carries one value per word of carries and no other (Follow-up 7)
+        # (the need then meets no offer of the library either)
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("carries opaque, opaque", "carries opaque")))
+        self.assertIn("B-bond-follow-up", self.codes())
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("; carries opaque, opaque", "")))
+        self.assertIn("B-bond-follow-up", self.codes())
+        self.write("followed", atom("Followed", self.FOLLOWED.replace("carries opaque, opaque", "carries opaque, nonsense")))
+        self.assertIn("B-bond-type", self.codes())
+        self.write("followed", atom("Followed", self.FOLLOWED))
         self.write("follower", atom("Follower", self.FOLLOWER.replace("runs Grant", "runs Revoke")))
         self.assertIn("B-bond-follow-up", self.codes())
         self.assertNotIn("B-bond-follow-up", check.ADVISORY)
+
+    def test_a_follow_up_need_meets_an_offer_only_where_each_value_it_takes_matches_the_value_in_its_place(self):
+        words, types = {"actor id": "opaque", "credential id": "opaque", "session duration": "duration"}, {"opaque", "duration"}
+        need = {"path": Path("a.md"), "kind": "follow-up", "side": "need",
+                "fields": {"runs": {"Issue"}, "takes": ["actor id", "credential id"]}}
+        offer = {"path": Path("b.md"), "kind": "follow-up", "side": "offer",
+                 "fields": {"after": {"Verify"}, "answering": {"verified"}, "carries": ["actor id", "credential id"]}}
+        self.assertTrue(check.bond_meets(need, offer, words, types))
+        # a type matches a word of it, in its place (Term matches)
+        self.assertTrue(check.bond_meets(dict(need, fields=dict(need["fields"], takes=["opaque", "opaque"])), offer, words, types))
+        # the order counts: two words of one type in swapped places meet nothing
+        swapped = dict(offer, fields=dict(offer["fields"], carries=["credential id", "actor id"]))
+        self.assertFalse(check.bond_meets(need, swapped, words, types))
+        # a need taking more values than the offer carries meets nothing; one taking fewer meets
+        self.assertFalse(check.bond_meets(need, dict(offer, fields=dict(offer["fields"], carries=["actor id"])), words, types))
+        self.assertTrue(check.bond_meets(dict(need, fields=dict(need["fields"], takes=["actor id"])), offer, words, types))
+        # a value of another type meets nothing
+        self.assertFalse(check.bond_meets(dict(need, fields=dict(need["fields"], takes=["actor id", "session duration"])),
+                                          offer, words, types))
 
     def test_a_follow_up_action_name_holding_an_atom_title_names_no_atom(self):
         (self.root / "library" / "bonds.md").write_text(self.FOLLOW_BONDS)

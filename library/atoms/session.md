@@ -14,7 +14,7 @@ audience: common
 
 ## What it is
 
-Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal (the user or service whose identity a login has just proved) logs in, a session is issued: a record tying that principal to a validity window whose deadline is fixed at issue, identified by a digest of an unguessable token the caller presents on later requests, so no record holds the token itself. Checking a token gives one of four clearly separated answers — valid, with the principal and the deadline; expired; revoked; or unknown — because a lapsed login, a deliberately cancelled one and a token that never existed call for different responses. A session stays recorded as active until it is deliberately revoked, which is permanent and records who revoked it, when and why, while an active session that has reached its deadline is shown expired, a status worked out by comparing the clock with the deadline and never written into the record. The deadline never changes — a session that needs to last longer is re-issued as a new record — so every session's validity window is provable from its one record. This is the mechanism behind browser sessions, API (Application Programming Interface) access tokens, mobile logins and short-lived elevated-access windows; it deliberately does not check credentials, decide what the principal may do or run the login flow, each of which is a separate pattern. A session carries the actor id of the principal it was opened for, and a session id the host mints when the session opens, which names the one session and grants nothing: the app learns who calls from the token, through [Validate]'s lookup of its digest.
+Session answers "is this login still good, and for whom?" without re-checking the password on every request. When a principal (the user or service whose identity a login has just proved) logs in, a session is issued: a record tying that principal to a validity window whose deadline is fixed at issue, identified by a digest of an unguessable token the caller presents on later requests, so no record holds the token itself. Checking a token gives one of four clearly separated answers — valid, with the principal and the deadline; expired; revoked; or unknown — because a lapsed login, a deliberately cancelled one and a token that never existed call for different responses. A session stays recorded as active until it is deliberately revoked, which is permanent and records who revoked it, when and why, while an active session that has reached its deadline is shown expired, a status worked out by comparing the clock with the deadline and never written into the record. The deadline never changes — a session that needs to last longer is re-issued as a new record — so every session's validity window is provable from its one record. This is the mechanism behind browser sessions, API (Application Programming Interface) access tokens, mobile logins and short-lived elevated-access windows; it deliberately does not check credentials, decide what the principal may do or run the login flow, each of which is a separate pattern. A session carries the actor id of the principal it was opened for, the credential id of the credential checked when it opened, on which the sessions of one credential end together when that credential is revoked, and a session id the host mints when the session opens, which names the one session and grants nothing: the app learns who calls from the token, through [Validate]'s lookup of its digest.
 
 *Also known as: a login session, an authenticated session, an access token, a session ticket.*
 
@@ -97,6 +97,14 @@ Kind:       Field
 Field of:   Session
 Projection: principal_ref
 
+#### Credential Id
+
+The credential id of the credential whose verify the [Session] was issued after, the key the atom pairs its sessions on (Needs). The atom treats it as opaque and does not confirm that it names a credential; the app's key check does (Bonds Key 21, Key 22). Set on [Issue], immutable thereafter; [Revoke Sessions For Credential] finds the sessions it ends by it.
+
+Kind:       Field
+Field of:   Session
+Projection: credential_id
+
 Term issued by reference: the opaque reference naming the mechanism that issued the session — an [Issued By Reference].
 
 #### Issued By Reference
@@ -147,7 +155,7 @@ Role:      Outcome
 
 #### Revoked
 
-The only stored terminal state: the [Session] was explicitly revoked. It can no longer be validated as [Valid], and admits no further transitions; a re-[Revoke] returns [Already Terminal]. Revocation takes precedence over expiry in [Validate]'s outcome vocabulary.
+The only stored terminal state: the [Session] was explicitly revoked, by [Revoke], or with its credential by [Revoke Sessions For Credential]. It can no longer be validated as [Valid], and admits no further transitions; a re-[Revoke] returns [Already Terminal]. Revocation takes precedence over expiry in [Validate]'s outcome vocabulary.
 
 Kind:      Member
 Member of: the stored status
@@ -175,7 +183,7 @@ Term revoked by reference: the opaque reference naming the actor that cancelled 
 
 #### Revoked By Reference
 
-The opaque reference to the actor or mechanism that performed the revocation. Required at [Revoke]; null until revocation; immutable once set.
+The opaque reference to the actor or mechanism that performed the revocation. Required at [Revoke]; null until revocation; immutable once set; never recorded by [Revoke Sessions For Credential], whose call names no actor.
 
 Kind:       Field
 Field of:   Session
@@ -185,7 +193,7 @@ Term revocation reason: the stated ground for the cancellation — a [Revocation
 
 #### Revocation Reason
 
-The caller-supplied reason recorded for the revocation (from the [Reason] parameter). Required at [Revoke]; null until revocation; immutable once set.
+The caller-supplied reason recorded for the revocation (from the [Reason] parameter). Required at [Revoke]; null until revocation; immutable once set; never recorded by [Revoke Sessions For Credential], whose call carries no reason.
 
 Kind:       Field
 Field of:   Session
@@ -208,7 +216,7 @@ Term lapsed: the session's status EQUALS active and now is no earlier than the s
 ```
 State 1: EVERY session MUST stand in EXACTLY ONE OF active, revoked.
 State 2: EVERY session MUST carry session token digest, principal reference, issued by reference, issuance instant, expiry instant and status.
-State 4: A revoked session MUST carry revocation instant, revoked by reference and revocation reason.
+State 4: A session [Revoke] stood in revoked MUST carry revocation instant, revoked by reference and revocation reason.
 State 5: An active session MUST NOT carry revocation instant.
 State 6: An active session MUST NOT carry revoked by reference.
 State 7: An active session MUST NOT carry revocation reason.
@@ -218,6 +226,8 @@ State 12: The atom MUST NOT hold a permission.
 State 13: The atom MUST NOT hold a device context.
 State 14: The atom MUST NOT hold a bound on concurrent sessions per principal reference.
 State 15: EVERY session MUST carry a session id.
+State 16: EVERY session MUST carry a credential id.
+State 17: EVERY session [Revoke Sessions For Credential] stood in revoked MUST carry revocation instant as the session's one revocation field.
 ```
 
 #### Expiry
@@ -253,7 +263,7 @@ The case space, and the rule that owns each case:
 
 #### Invalid Request
 
-The rejection [Issue] returns when [Principal Reference] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no window length, or is zero or negative, or when the default session duration is absent, no window length, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
+The rejection [Issue] returns when [Principal Reference], [Credential Id] or [Issued By Reference] is blank or longer than the maximum length, when [Session Duration] is no window length, or is zero or negative, or when the default session duration is absent, no window length, zero or negative; and [Revoke] returns when, on a session stored [Active], [Revoked By Reference] or [Reason] is blank or longer than the maximum length, or [Reason] is malformed.
 
 Kind:       Member
 Member of:  the action rejection
@@ -271,7 +281,7 @@ Projection: not-known
 
 #### Storage Failure
 
-The rejection [Issue] or [Revoke] returns when the underlying database write fails.
+The rejection [Issue], [Revoke] or [Revoke Sessions For Credential] returns when the underlying database write fails.
 
 Kind:       Member
 Member of:  the action rejection
@@ -285,7 +295,7 @@ The behavior a composing pattern invokes to record a new [Session] for a princip
 Kind: Operation
 
 ```
-issue(principal_ref, issued_by_ref, optional session_duration)
+issue(principal_ref, credential_id, issued_by_ref, optional session_duration)
   answers issued(session_token_digest, session_id)
   refuses invalid-request | storage-failure
 ```
@@ -310,6 +320,8 @@ Operation 65: IF the default session duration is no window length THEN [Issue] M
 Operation 56: IF the default session duration DOES NOT EQUAL blank AND the default session duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 58: [Issue] MUST record the session token digest of the session token the host allocates (Identity 3, Capability requirement 12).
 Operation 62: [Issue] MUST record the session id the host allocated for the call (Identity 13).
+Operation 66: IF credential id EQUALS blank THEN [Issue] MUST answer invalid-request.
+Operation 67: [Issue] MUST record the credential id the call supplies.
 ```
 
 Term session duration: the window a [Issue] call asks for, a window length — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
@@ -341,8 +353,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the database |
 |---|---|---|---|
-| [Issue] | both references present, a positive default configured, duration positive or defaulted, database accepts | [Issued], the new session token digest and the session id | one record lands in [Active] carrying the session token digest of the session token the host allocated, the session id the host allocated and both references, issuance instant and expiry instant stamped (Operation 1, Operation 3, Operation 9, Operation 10, Operation 50, Operation 51, Operation 58, Operation 62) |
-| [Issue] | a blank or over-long reference, a duration that is no window length or is not positive, no configured default, or a default that is no window length or is not positive | [Invalid Request] | none (Operation 4, Operation 5, Operation 8, Operation 48, String 7, Operation 55, Operation 56, Operation 65) |
+| [Issue] | the principal reference, the credential id and the issued by reference present, a positive default configured, duration positive or defaulted, database accepts | [Issued], the new session token digest and the session id | one record lands in [Active] carrying the session token digest of the session token the host allocated, the session id the host allocated, the credential id and both references, issuance instant and expiry instant stamped (Operation 1, Operation 3, Operation 9, Operation 10, Operation 50, Operation 51, Operation 58, Operation 62) |
+| [Issue] | a blank or over-long reference or credential id, a duration that is no window length or is not positive, no configured default, or a default that is no window length or is not positive | [Invalid Request] | none (Operation 4, Operation 5, Operation 66, Operation 8, Operation 48, String 7, Operation 55, Operation 56, Operation 65) |
 
 ### Validate
 
@@ -465,6 +477,37 @@ Member of:  the revoke rejection
 Role:       Outcome
 Projection: already-terminal
 
+### Revoke Sessions For Credential
+
+The write that cancels every session issued on one credential when the credential is revoked, as [Revoke] cancels one: every [Session] carrying the [Credential Id] whose stored [Status] is [Active] stands in [Revoked], recording [Revocation Instant] alone; the action the credential id need's on end names, which the app calls when an action the meeting offer's ends names ends the credential (Needs; Bonds Key 3). It takes the credential id alone and records no [Revoked By Reference] and no [Revocation Reason], since no actor's call reaches it. A lapsed session is still stored [Active] and is revoked with the rest (Term lapsed); a session already [Revoked] keeps its fields. Where no stored-[Active] session carries the credential id, a blank or over-long one included, since [Issue] records neither (Operation 66, String 7), it answers ok and writes nothing (Bonds Key 7).
+
+Kind: Operation
+
+```
+revoke_sessions_for_credential(credential_id)
+  answers ok
+  refuses storage-failure
+```
+
+```
+Operation 68: [Revoke Sessions For Credential] MUST stand in revoked EVERY active session that carries the credential id.
+Operation 69: IF an active session carries the credential id THEN [Revoke Sessions For Credential] MUST stamp revocation instant from the injected now on EVERY session the call stands in revoked.
+Operation 70: [Revoke Sessions For Credential] MUST NOT record a revoked by reference.
+Operation 71: [Revoke Sessions For Credential] MUST NOT record a revocation reason.
+Operation 72: [Revoke Sessions For Credential] MUST NOT write a session other than one Operation 68 stands in revoked.
+Operation 73: IF the database refuses no write THEN [Revoke Sessions For Credential] MUST answer ok.
+Operation 74: IF no active session carries the credential id THEN [Revoke Sessions For Credential] MUST NOT write.
+Operation 75: IF the database refuses the write THEN [Revoke Sessions For Credential] MUST answer storage-failure.
+```
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the database |
+|---|---|---|---|
+| [Revoke Sessions For Credential] | a session carrying the credential id stands in [Active] | ok (Operation 73) | each such session stands in [Revoked], carrying now as its revocation instant and no revoked by reference or revocation reason (Operation 68 through 71); every other session is left as it is (Operation 72) |
+| [Revoke Sessions For Credential] | no session carrying the credential id stands in [Active] | ok (Operation 73) | none, no write (Operation 74) |
+| [Revoke Sessions For Credential] | a session carrying the credential id stands in [Active], the database refuses the write | [Storage Failure] | none, each such session stays [Active] (Operation 75, Execution Contract Database 1) |
+
 ### Read
 
 The render-time behavior that returns the matching [Session] records, each carrying its derived [Effective Status] and never its [Session Token Digest]. It only reads; no record changes. It is the surface every liveness query applies, since a raw [Active] with [Expiry Instant] in the past is a lapsed [Session], not a live one.
@@ -531,8 +574,8 @@ The case space, and the rule that owns each case:
 - **Invariant 8 — Revocation attribution completeness.**
   ```
   Invariant 8.1: EVERY revoked session MUST carry a revocation instant.
-  Invariant 8.2: EVERY revoked session's revoked by reference MUST stand as a value that DOES NOT EQUAL blank.
-  Invariant 8.3: EVERY revoked session's revocation reason MUST stand as a value that DOES NOT EQUAL blank.
+  Invariant 8.2: EVERY session [Revoke] stood in revoked MUST carry a revoked by reference that DOES NOT EQUAL blank.
+  Invariant 8.3: EVERY session [Revoke] stood in revoked MUST carry a revocation reason that DOES NOT EQUAL blank.
   ```
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
@@ -544,7 +587,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 1 — Issue immutability.**
   ```
-  Invariant 1.1: A recorded session's session token digest, principal reference, issued by reference, issuance instant and expiry instant MUST NOT change.
+  Invariant 1.1: A recorded session's session token digest, principal reference, credential id, issued by reference, issuance instant and expiry instant MUST NOT change.
   Invariant 1.2: A session's status and revocation fields MUST stand as the only fields a later action writes.
   ```
 - **Invariant 2 — Expiry instant immutability.**
@@ -631,7 +674,7 @@ NOTE: watch the seam citation (Term seam, Term transition, Term business caller)
 The current clock reading (the pipeline's `clock_t`), pipeline-injected at the I/O seam on every action — not caller-trusted, not read inside any transition, not shown as a signature parameter. It is consumed only to stamp immutable write timestamps ([Issuance Instant], [Revocation Instant]) and to evaluate the pure expiry derivation in [Validate] and [Read] (no write).
 
 Kind:         Parameter
-Parameter of: Issue, Validate, Revoke and Read
+Parameter of: Issue, Validate, Revoke, Revoke Sessions For Credential and Read
 Projection:   now
 
 ### Token format
@@ -648,9 +691,13 @@ Term claim set token: a session token whose format carries its own expiry claim 
 
 ## Needs
 
-The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice. [Issue] takes the principal the call gives and checks none: that the principal proved who it is is the app's sign-in glue (Composition note 2).
+The bonds this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets each is the app's choice. [Issue] takes the principal and the credential id the call gives and checks neither: that the principal proved who it is, with that credential, is the action [Issue] follows (Composition note 2). [Issue] may follow another atom's action whose answer carries an actor id and then a credential id, the app making the call in that action's transaction with those two values, in that order, as its principal reference and credential id, and supplying the issued by reference and any session duration from its own action (Bonds Follow-up 1, Follow-up 2, Follow-up 8); a refusal of the issue undoes the followed action (Bonds Follow-up 5), and an app with no such action makes no such call (Bonds Follow-up 6). When an action the meeting offer's ends names ends a credential id, the app calls [Revoke Sessions For Credential] with it in that action's transaction (Bonds Key 3).
 
 Term need key: key actor id; pairs sessions.
+
+Term need key: key credential id; pairs sessions; on end Revoke Sessions For Credential.
+
+Term need follow-up: runs Issue; takes actor id, credential id.
 
 ## Offers
 
@@ -691,7 +738,7 @@ Non-goal 29: A deployment needing a maximum session duration MUST enforce the ma
 Non-goal 30: The atom MUST NOT reconcile a session's revocation instant with a valid answer [Validate] gave on reading the session stored active.
 ```
 
-NOTE: the owners — a pattern that verifies credentials (Non-goal 1); the app's sign-in glue (Non-goal 3, Non-goal 27, Composition note 2); the app's permission (Non-goal 5); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6; Non-goal 28, Non-goal 29); the deployment (Non-goal 16, Capability requirement 5; Non-goal 18); a pattern that makes records tamper-evident (Non-goal 19); a pattern that bounds retention (Non-goal 20); the composing pattern that attributes an issuance (Composition note 3); Execution Contract Logic confinement 7 (Non-goal 25); Execution Contract Logic confinement 3 and Database 2 (Non-goal 30); a pattern that anchors time (Non-goal 26).
+NOTE: the owners — a pattern that verifies credentials (Non-goal 1); the app, which sequences the factors (Non-goal 3), calls [Issue] as the follow-up of a verified answer (Composition note 2) and calls [Revoke Sessions For Credential] in the action that revokes a credential, which the atom never detects (Non-goal 27; Bonds Key 3); the app's permission (Non-goal 5); the composing pattern (Non-goal 7 through 9, Composition note 5; Non-goal 10, Non-goal 11, Composition note 7; Non-goal 12, Non-goal 13, Composition note 8; Non-goal 14, Non-goal 15, Composition note 6; Non-goal 28, Non-goal 29); the deployment (Non-goal 16, Capability requirement 5; Non-goal 18); a pattern that makes records tamper-evident (Non-goal 19); a pattern that bounds retention (Non-goal 20); the composing pattern that attributes an issuance (Composition note 3); Execution Contract Logic confinement 7 (Non-goal 25); Execution Contract Logic confinement 3 and Database 2 (Non-goal 30); a pattern that anchors time (Non-goal 26).
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
@@ -718,7 +765,7 @@ NOTE: composing patterns — an app names the atoms it composes; this pattern na
 
 ### Browser login — issue and validate
 
-A user logs in through the app's sign-in. After the credential check, the app calls `issue(principal_ref: user_u91, issued_by_ref: login_svc_l01, session_duration: 3600)` → `issued(dig_7e41c9, ses_5c20)`, with the host allocating the session token `tok_abc123` and injecting its digest, `dig_7e41c9`, the session id `ses_5c20` and `now: 2026-09-01T10:00:00Z` at the seam. The record lands in [Active] keyed by `dig_7e41c9` and carrying `ses_5c20`, with `issued_at: 10:00:00Z` and `expires_at: 11:00:00Z`. The host delivers `tok_abc123` to the browser as a session cookie (Capability requirement 13); no record holds it.
+A user logs in through the app's sign-in. The credential check answers `verified(user_u91, cred_c01)`, and the app follows it with `issue(principal_ref: user_u91, credential_id: cred_c01, issued_by_ref: login_svc_l01, session_duration: 3600)` → `issued(dig_7e41c9, ses_5c20)`, with the host allocating the session token `tok_abc123` and injecting its digest, `dig_7e41c9`, the session id `ses_5c20` and `now: 2026-09-01T10:00:00Z` at the seam. The record lands in [Active] keyed by `dig_7e41c9` and carrying `ses_5c20`, with `issued_at: 10:00:00Z` and `expires_at: 11:00:00Z`. The host delivers `tok_abc123` to the browser as a session cookie (Capability requirement 13); no record holds it.
 
 Twenty minutes later the user requests a protected page with the cookie. The host computes the digest of `tok_abc123` at the seam: `validate(dig_7e41c9)` → `valid(principal_ref: user_u91, expires_at: 11:00:00Z)`, with `now: 10:20:00Z` injected. The atom finds the record, reads stored active, finds now short of the deadline, and answers. Nothing changes.
 
@@ -728,13 +775,17 @@ The user clicks log out. `revoke(dig_7e41c9, revoked_by_ref: user_u91, reason: "
 
 If the browser re-presents the old cookie at `10:50:00Z`: `validate(dig_7e41c9)` → `invalid(revoked)`. The stored status is read first, so the answer is [Invalid Revoked] and not [Invalid Expired], even though the session would have lapsed naturally at `11:00:00Z`, ten minutes later (Operation 15).
 
+### The credential is revoked — every session on it ends
+
+Later that day `cred_c01` turns up in a breach dump and an administrator revokes it. In the revoking action's transaction the app calls `revoke_sessions_for_credential(cred_c01)` → ok, with `now: 14:00:00Z` injected (Bonds Key 3). Two sessions carry `cred_c01`: `dig_9a10f3`, stored active and live, and `dig_44b2e0`, stored active but lapsed at noon. Both stand in [Revoked] carrying `revoked_at: 14:00:00Z` and no revoked by reference or revocation reason (Operation 68 through 71). `dig_7e41c9`, revoked at logout, keeps its three fields (Operation 72). A second call with `cred_c01` finds no active session and writes nothing (Operation 74).
+
 ### A window lapses — derived
 
 The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(dig_7e41c9)` → `invalid(expired)`. The record is still stored active, never transitioned; the answer comes from expiry instant against the injected now. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 2 through 5, Operation 16, Operation 38, Invariant 12.3).
 
 ### Rejection paths
 
-`issue(principal_ref: svc_s03, issued_by_ref: api_gateway_g01, session_duration: 0)` → invalid-request. A zero-length window is not an operating state (Operation 8).
+`issue(principal_ref: svc_s03, credential_id: cred_c07, issued_by_ref: api_gateway_g01, session_duration: 0)` → invalid-request. A zero-length window is not an operating state (Operation 8).
 
 `revoke(dig_7e41c9, revoked_by_ref: admin_a01, reason: "incident-response")` against an already-revoked session → already-terminal. The existing [Revocation Reason] is unchanged (Operation 23). A session that has merely *lapsed* is not a stored terminal, so the same call against a lapsed-but-unrevoked session succeeds and records the attribution (Operation 27).
 
@@ -801,7 +852,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the database; a session; a status; a lapse; a liveness query; a rejection; a write; an action; a string input; an opaque reference; the session count; the session token's random material.
 
-Term records: session — one bounded-lifetime attestation, carrying session token digest, session id, principal reference (an actor id), issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant, revoked by reference and revocation reason.
+Term records: session — one bounded-lifetime attestation, carrying session token digest, session id, principal reference (an actor id), credential id, issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant and, where [Revoke] cancelled it, revoked by reference and revocation reason.
 
 Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, differ, give, reduce, detect, reconcile, declare, deliver, authorize, take, ask.
 
@@ -815,9 +866,9 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: session, session token, session token digest, principal reference, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token, committed version.
+Term terms: session, session token, session token digest, principal reference, credential id, issued by reference, seam, transition, default session duration, token entropy, now, business caller, session duration, window length, zero duration, issuance instant, expiry deadline, expiry instant, lapsed, effective status, revocation instant, revoked by reference, revocation reason, reason, filter, liveness query, status, maximum length, validation failure, verified answer, invalid answer, authentication credential, claim set token, committed version.
 
-Term cited: actor id, session id: Declarations.
+Term cited: actor id, session id, credential id: Declarations.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -828,11 +879,13 @@ Term cited: actor id, session id: Declarations.
 [Issue]: #issue
 [Validate]: #validate
 [Revoke]: #revoke
+[Revoke Sessions For Credential]: #revoke-sessions-for-credential
 [Read]: #read
 [Session Token]: #session-token
 [Session Token Digest]: #session-token-digest
 [Session Id]: #session-id
 [Principal Reference]: #principal-reference
+[Credential Id]: #credential-id
 [Issued By Reference]: #issued-by-reference
 [Issuance Instant]: #issuance-instant
 [Expiry Instant]: #expiry-instant
@@ -868,7 +921,7 @@ Term cited: actor id, session id: Declarations.
 
 ```
 status: done — 2026-11-25
-formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11; both re-derived over the session token digest, 2026-11-21
+formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11; both re-derived over the session token digest, 2026-11-21; model redraw deferred to Lean: session.als and session.tla, State 4, State 16, State 17, Invariant 1.1, Invariant 8.2, Invariant 8.3, Operation 66 through 75, 2026-11-28
 last gate: 2026-11-27 — Final Critique 31, a delta round (diff base 88366445, 17 labels, the reach of Final Critique 30's settle, the grammar batch and the String policy tombstones), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 431dc37f — foundational count 0 after the blind second triage, clean, one sample (Linus claimed two foundational findings and the triages placed both refuted: that Term filter lists "a field other than principal reference and issued by reference" among the shapes a [Filter] names while requiring none, though the first clause only lists the shapes a caller can send, a term entry carries no obligation, and Operation 61 answers no session for such a filter, as the Filter entry and the Read case table say; and that Operation 65 leaves a default session duration that is absent, zero or negative without a refusal, though Operation 48 refuses a blank default and Operation 56 one that does not exceed the zero duration, and the rejection line agrees; the blind second triage, one cold reader on Opus 5.5, found one refining inconsistency of its own, that Term default session duration still named only absence and a value that does not exceed the zero duration as a misconfiguration after Operation 65 added the value that is no window length, cured by adding it and citing Operation 65, a term entry that changes no rule); 2026-11-25 — Final Critique 30, a delta round (diff base 7748eafc, 4 labels reached: Operation 3, 57, 64 and 65, the settle of Final Critique 29), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 88366445 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 2 foundational, 3 refining and 1 rhetorical; both its foundational findings were placed no defect and refining by both triages: Operation 64 cites Execution Contract Read 5 as the default its own order stands in place of, and Read 5 says a specification that names its own order keeps it, as Favorite, Communication, Tenure and Reaction cite it; Operation 65's citation of Execution Contract Input 1 reached a setting that Input 1 does not, so Operation 65 and Invalid Request now say the default is no window length, the page's own Term, and no build differed; refining not cured: that the default's validity gates every [Issue] call, which Term default session duration states, and Operation 57's malformed Reason, which Execution Contract Input 1 and Input 3 define; one rhetorical, the happy-path-only example, declined, since Rejection paths holds the refusals)
 
 open: none

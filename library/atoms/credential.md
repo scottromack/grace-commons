@@ -22,7 +22,7 @@ Each record stands in one open status, active, or in one of two permanent stored
 
 One principal reference holds at most one *effective-active* credential of a given type, where effective-active means stored active **and** before its deadline. That bound is judged at any moment from the latest registration for the principal and type on. A call whose clock reads earlier than a newer registration can still find an older credential live beside it. It holds across spellings because the deployment canonicalizes references — rewriting spellings that differ only in letter case, surrounding spaces or Unicode form (the several byte sequences the Unicode character standard allows for one character) to one — and declares no two credential types that differ only that way. A lapsed record no longer occupies that slot, so a fresh registration is permitted beside it. Rotation is clean: the successor is a new record and the predecessor moves to rotated carrying a link forward, so the whole chain of replacements is walkable.
 
-This is the mechanism behind password login, public-key authentication (safe against a captured answer being sent again only when a composing pattern issues a fresh challenge each time), programming-interface tokens (secrets a program presents to a service in place of a person) and hardware keys. Proving who the principal is in the first place, sequencing multiple factors, keeping someone logged in, and deciding what they may do are each a separate pattern. A credential belongs to one actor: its principal reference is the actor id of the principal it binds, and checking presented material against the credential is this atom's own rule, while opening a session after a good check is the app's sign-in glue.
+This is the mechanism behind password login, public-key authentication (safe against a captured answer being sent again only when a composing pattern issues a fresh challenge each time), programming-interface tokens (secrets a program presents to a service in place of a person) and hardware keys. Proving who the principal is in the first place, sequencing multiple factors, keeping someone logged in, and deciding what they may do are each a separate pattern. A credential belongs to one actor: its principal reference is the actor id of the principal it binds, and checking presented material against the credential is this atom's own rule, while opening a session after a good check is an action of another atom that follows [Verify] in the app's action ([Bonds](../bonds.md), Follow-up). A credential is named by a credential id the host mints, which the atom offers as a key that [Revoke] ends, so the sessions an app opens on a credential can be ended with it (Bonds Key 3).
 
 <details markdown="block">
 <summary>WHY</summary>
@@ -59,8 +59,6 @@ Identity 8: The atom MUST NOT normalize a reference.
 Identity 9: The atom MUST NOT confirm that a principal reference names a known principal.
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
 ```
-
-Term credential id: the opaque value naming one credential — a [Credential Id]; the id material the seam supplies, assigned as it stands (Identity 2).
 
 #### Credential Id
 
@@ -357,13 +355,13 @@ Projection: duplicate-active-credential
 
 ### Verify
 
-The read-only behavior that answers whether [Presented Material] matches the [Verifier] of the pair's latest-registered effective-active credential, as the type's check function decides. Answers verified, or failed-verification naming [Material Mismatch] or [No Active Credential]. Writes nothing, counts nothing, and does not say *why* no effective-active credential exists; a reference or credential type over the length bound names no pair, so it answers [No Active Credential] too (String 11).
+The read-only behavior that answers whether [Presented Material] matches the [Verifier] of the pair's latest-registered effective-active credential, as the type's check function decides. Answers verified, carrying the principal reference and the credential id of the credential it checked against, or failed-verification naming [Material Mismatch] or [No Active Credential]. Writes nothing, counts nothing, and does not say *why* no effective-active credential exists; a reference or credential type over the length bound names no pair, so it answers [No Active Credential] too (String 11).
 
 Kind: Operation
 
 ```
 verify(principal_ref, credential_type, presented_material)
-  answers verified | failed-verification(verification failure)
+  answers verified(principal_ref, credential_id) | failed-verification(verification failure)
 ```
 
 Term verification failure: material-mismatch | no-active-credential — the reasons [Verify] gives for a failed verification.
@@ -379,6 +377,7 @@ Operation 25: [Verify] MUST NOT retain presented material.
 Operation 26: [Verify] MUST NOT record a field.
 Operation 68: IF the check function refuses the presented material THEN [Verify] MUST answer material-mismatch.
 Operation 70: A proceeding verify MUST check against the credential carrying the latest registration instant among the pair's credentials effective-active at the verify's reading, and, where two such credentials share that instant, against the one whose credential id comes first in ascending order (Execution Contract Logic confinement 10).
+Operation 84: A [Verify] answering verified MUST carry the principal reference AND then the credential id of the credential Operation 70 checks against.
 ```
 
 NOTE: watch cardinality (Operation 70).
@@ -695,6 +694,14 @@ The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom
 
 Term need key: key actor id; pairs credentials.
 
+## Offers
+
+The bonds this atom offers, of a bond kind [Bonds](../bonds.md) states; which atom needs each is the app's choice. The credential id names one credential and grants nothing (Bonds Key 19); [Revoke] ends it, and [Read] filtered by it is the read that answers whether a credential carries it (Bonds Key 26). A verify answering verified may be followed, in the app's action and transaction, by another atom's action fed from the answer, which carries the principal reference and then the credential id (Operation 84; Bonds Follow-up 1, Follow-up 2, Follow-up 7). What follows, if anything, is the app's choice; the atom never learns it, and a refusal of the follow-up undoes the verify's app action (Bonds Follow-up 5).
+
+Term offer key: key credential id; carried by credentials; ends Revoke; calls Read.
+
+Term offer follow-up: after Verify; answering verified; carries actor id, credential id.
+
 ## Left to others
 
 ```
@@ -703,7 +710,7 @@ Deleted: Non-goal 2. Non-goal 1 owns it: the atom confirms no proofed party, and
 Non-goal 3: The atom MUST NOT sequence two credential checks.
 Non-goal 4: A deployment needing the sequencing of more than one factor MUST own the sequencing above this atom.
 Non-goal 5: The atom MUST NOT issue a session.
-Deleted: Non-goal 6. Non-goal 5 owns it: the atom issues no session, and opening one after a verified answer is the app's sign-in glue.
+Deleted: Non-goal 6. Non-goal 5 owns it: the atom issues no session, and opening one after a verified answer is an action of another atom that follows [Verify] (Bonds Follow-up 1).
 Non-goal 7: The atom MUST NOT count a failed verify.
 Non-goal 8: A deployment needing lockout MUST own the lockout above this atom.
 Non-goal 9: The atom MUST NOT decide what a verified principal may do.
@@ -739,11 +746,13 @@ Non-goal 38: The atom MUST NOT define an answer to a fault in a function the der
 Non-goal 39: The atom MUST NOT bound the cost of guessing a verifier.
 ```
 
+NOTE: a deployment that records, counts or locks out sign-in attempts needs an atom that follows [Verify] on both of its answers and keeps a journal need; it is forthcoming, *Sign-in Attempts*, and none stands in the library yet (Non-goal 7, Non-goal 8). The audit rules of the dissolved composition Login wait for it.
+
 NOTE: the owners — a pattern that discloses a compromise (Non-goal 19, Composition note 11); Execution Contract Logic confinement 7 (Non-goal 27); the deployment (Non-goal 11, Non-goal 14, Non-goal 17, Non-goal 23, Non-goal 26, Non-goal 37, Composition note 17); the host (Non-goal 38); the derivation function (Non-goal 18, Non-goal 39, External check 14); patterns the app chooses: one that proofs a party (Non-goal 1), issues a session (Non-goal 5), decides what a principal may do (Non-goal 9), delegates by bearer token (Non-goal 13), keeps an event log (Non-goal 24, Non-goal 25), detects a rewrite (Non-goal 20), bounds retention (Non-goal 22), supplies a verifiable time anchor (Non-goal 28), issues and spends challenges (Non-goal 29, Non-goal 31, Non-goal 36) and purges lawfully (Non-goal 32); the composing pattern that exposes [Read] (Non-goal 33, Composition note 16).
 
 ```
-Deleted: Composition note 1. The app's sign-in glue owns it: a session opens after a verified answer, and the atom issues none (Non-goal 5).
-Deleted: Composition note 3. The app's glue owns it: what a revoked credential ends beyond itself is the app's to call.
+Deleted: Composition note 1. Bonds Follow-up 1 owns it: a session opens after a verified answer as an action that follows [Verify], and the atom issues none (Non-goal 5).
+Deleted: Composition note 3. Bonds Key 3 owns it: what a revoked credential ends beyond itself is the on end of a key need that meets this atom's key offer, which the app calls in [Revoke]'s transaction.
 Composition note 4: A composing pattern that enrolls a party MUST call [Register] ONLY AFTER the party's record EXISTS.
 Composition note 5: A composing pattern that keeps an event log MUST append an event on EVERY admitted action.
 Composition note 6: A composing pattern that keeps an event log MUST append an event on EVERY refused action.
@@ -771,7 +780,7 @@ NOTE: composing patterns — an app names the atoms it composes; this pattern na
 
 ### Password authentication — registration and verification
 
-`register(user_u91, "correct horse battery staple", "password")` → `cred_c01`, standing active with no deadline on a deployment declaring the default validity unbounded (Operation 71). The material is derived to a verifier and discarded; nothing in the database holds it. Later, `verify(user_u91, "password", "correct horse battery staple")` → verified. `verify(user_u91, "password", "hunter2")` → `failed-verification(material-mismatch)`.
+`register(user_u91, "correct horse battery staple", "password")` → `cred_c01`, standing active with no deadline on a deployment declaring the default validity unbounded (Operation 71). The material is derived to a verifier and discarded; nothing in the database holds it. Later, `verify(user_u91, "password", "correct horse battery staple")` → `verified(user_u91, cred_c01)`. `verify(user_u91, "password", "hunter2")` → `failed-verification(material-mismatch)`.
 
 ### Programming-interface token — rotation
 
@@ -783,7 +792,7 @@ NOTE: composing patterns — an app names the atoms it composes; this pattern na
 
 ### Public key — a signed challenge
 
-`register(svc_s04, <Ed25519 public key>, "public-key")` → `cred_c20`; the verifier is the key's canonical encoding (Ed25519 is an elliptic-curve signature scheme). A composing pattern issues a challenge and the holder signs it: `verify(svc_s04, "public-key", {challenge, signature})` → verified. The same signature presented again also answers verified — this atom does not know the challenge was used (Non-goal 31, 36) — which is why a deployment composes a challenge pattern that refuses a spent one.
+`register(svc_s04, <Ed25519 public key>, "public-key")` → `cred_c20`; the verifier is the key's canonical encoding (Ed25519 is an elliptic-curve signature scheme). A composing pattern issues a challenge and the holder signs it: `verify(svc_s04, "public-key", {challenge, signature})` → `verified(svc_s04, cred_c20)`. The same signature presented again also answers verified — this atom does not know the challenge was used (Non-goal 31, 36) — which is why a deployment composes a challenge pattern that refuses a spent one.
 
 ### Revocation after exposure
 
@@ -889,7 +898,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: credential, credential id, lapse instant, pair, property, reference, database instance, seam, transition, now, transitioning write, stored terminal, status, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, material bound, default validity, check function, filter, fresh credential id, authorized caller, credential write, secret verifier, constant time, settled reading, terminal field, admitted register, admitted rotate, admitted revoke, string input, verification failure, default expiry, empty material, id material, committed version.
 
-Term cited: Execution Contract Logic confinement 14 — the seam and the transition. actor id: Declarations.
+Term cited: Execution Contract Logic confinement 14 — the seam and the transition. actor id, credential id: Declarations.
 
 Term composing pattern: whatever pattern an app composes beside this atom; this pattern names none.
 

@@ -13,6 +13,8 @@ nav_order: 13
 {:toc}
 </details>
 
+**Superseded** (2026-11-28): Login is dissolved and made no atom. Sign in is Credential's Verify followed by Session's Issue ([Bonds](../bonds.md), Follow-up), and the cascade is Session's credential id key need, whose on end runs in Credential's Revoke (Bonds Key 3). The audit rules wait for a forthcoming atom, *Sign-in Attempts*. This pattern stays as frozen history and is no longer a source of truth.
+
 ## Summary
 
 Login wires together the full lifecycle of logging in: checking the presented credential, issuing a time-limited session on success, logging out, and cancelling every session that came from a credential when that credential is revoked. It combines three patterns: one that verifies credentials (Credential), one that issues and tracks time-limited sessions (Session), and the tamper-evident audit record that spans all of it (Audit Trail).
@@ -610,7 +612,7 @@ Inherited from:
 
 ## Status
 
-`done — 2026-11-21` — see the Ledger.
+`done — 2026-11-21` — see the Ledger. Superseded on 2026-11-28 by the unit `composition: Login dissolved, the first dissolve` (Scott, 2026-11-27 6:43 PM Central, "agree"): no Login atom; [Credential](../atoms/credential.md) offers its credential id as a key that Revoke ends and its Verify as a follow-up, and [Session](../atoms/session.md) needs both, so its own state (the credential-to-sessions maps, their rebuild and sweep) has no successor; frozen history, no longer a source of truth.
 
 <details markdown="block">
 <summary>

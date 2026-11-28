@@ -406,7 +406,8 @@ def render_connections(c: dict, app_title: str) -> str:
     L += ["## Tally", "",
           f"**{total} bond{'s' if total != 1 else ''}**: " + ", ".join(parts + [tag_part])
           + f", and {len(c['instances'])} bond instance{'s' if len(c['instances']) != 1 else ''}. "
-          + f"**{len(c['glue'])} glue line{'s' if len(c['glue']) != 1 else ''}**, which are not bonds: "
+          + f"**{len(c['glue'])} glue line{'s' if len(c['glue']) != 1 else ''}**, which "
+          + ("are not bonds: " if len(c['glue']) != 1 else "is not a bond: ")
           + ", ".join(g["name"] for g in c["glue"]) + ".", ""]
     unplaced = [g["name"] for g in c["glue"] if not g["atoms"]]
     if unplaced:

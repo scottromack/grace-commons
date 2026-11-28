@@ -23,11 +23,11 @@ The atoms that bond, grouped by layer: an arrow runs from an atom to each atom w
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart TB
   layer2["Layer 2: 4 atoms<br/>Assignment, Escalation, Permissions, Sweep"]
-  layer1["Layer 1: 4 atoms<br/>Durable Intent, Invitation, Ordering, Task"]
-  layer0["Layer 0: 2 atoms<br/>Lease, List"]
+  layer1["Layer 1: 5 atoms<br/>Durable Intent, Invitation, Ordering, Session, Task"]
+  layer0["Layer 0: 3 atoms<br/>Credential, Lease, List"]
   layer2 -->|"4 bonds"| layer1
   layer2 -->|"2 bonds"| layer0
-  layer1 -->|"4 bonds"| layer0
+  layer1 -->|"6 bonds"| layer0
 ```
 
 ### Layer 2
@@ -63,43 +63,51 @@ flowchart LR
   b1_durable_intent["Durable Intent<br/><small>journal</small>"]
   b1_invitation["Invitation<br/><small>actor id · journal</small>"]
   b1_ordering["Ordering"]
+  b1_session["Session<br/><small>actor id</small>"]
   b1_task["Task<br/><small>actor id · journal</small>"]
+  b1_credential["Credential<br/><small>actor id</small>"]
   b1_lease["Lease"]
   b1_list["List<br/><small>actor id</small>"]
-  class b1_lease,b1_list lower
+  class b1_credential,b1_lease,b1_list lower
   b1_durable_intent -->|"critical section key"| b1_lease
   b1_invitation -->|"list id"| b1_list
   b1_ordering -->|"list id"| b1_list
+  b1_session -->|"credential id"| b1_credential
+  b1_session -->|"Issue"| b1_credential
   b1_task -->|"list id"| b1_list
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 1: [Durable Intent](./atoms/durable-intent.md), [Invitation](./atoms/invitation.md), [Ordering](./atoms/ordering.md), [Task](./atoms/task.md). A dashed box is an atom of a lower layer.
+Layer 1: [Durable Intent](./atoms/durable-intent.md), [Invitation](./atoms/invitation.md), [Ordering](./atoms/ordering.md), [Session](./atoms/session.md), [Task](./atoms/task.md). A dashed box is an atom of a lower layer.
 
 ### Layer 0
 
 ```mermaid
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart TB
+  b0_credential["Credential<br/><small>actor id</small>"]
   b0_lease["Lease"]
   b0_list["List<br/><small>actor id</small>"]
   b0_durable_intent["Durable Intent<br/><small>journal</small>"]
   b0_escalation["Escalation<br/><small>journal</small>"]
   b0_invitation["Invitation<br/><small>actor id · journal</small>"]
   b0_ordering["Ordering"]
+  b0_session["Session<br/><small>actor id</small>"]
   b0_sweep["Sweep<br/><small>journal</small>"]
   b0_task["Task<br/><small>actor id · journal</small>"]
-  class b0_durable_intent,b0_escalation,b0_invitation,b0_ordering,b0_sweep,b0_task lower
+  class b0_durable_intent,b0_escalation,b0_invitation,b0_ordering,b0_session,b0_sweep,b0_task lower
   b0_durable_intent -->|"critical section key"| b0_lease
   b0_escalation -->|"critical section key"| b0_lease
   b0_invitation -->|"list id"| b0_list
   b0_ordering -->|"list id"| b0_list
+  b0_session -->|"credential id"| b0_credential
+  b0_session -->|"Issue"| b0_credential
   b0_sweep -->|"critical section key"| b0_lease
   b0_task -->|"list id"| b0_list
   classDef lower stroke-dasharray: 4 4
 ```
 
-Layer 0: [Lease](./atoms/lease.md), [List](./atoms/list.md). A dashed box is an atom of a higher layer that needs one of them.
+Layer 0: [Credential](./atoms/credential.md), [Lease](./atoms/lease.md), [List](./atoms/list.md). A dashed box is an atom of a higher layer that needs one of them.
 
 A tag in an atom's box names a need met by an offer so many atoms need that it is drawn as no node and no arrows: Actor Identity's actor id and Event Log's journal. An app names the atom that meets it.
 

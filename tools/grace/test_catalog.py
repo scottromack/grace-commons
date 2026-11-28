@@ -130,13 +130,17 @@ class Connections(unittest.TestCase):
         page = catalog.connections_page(ROOT / "library" / "apps" / "todo" / "index.md", catalog.corpus(ROOT))
         # unit `bonds: the follow-up bond kind, accept grants first` (2026-11-27): accept grants left the glue as the
         # follow-up bond, Permissions' Grant after Invitation's Accept, a green arrow
-        self.assertIn("**16 bonds**: 1 follow-up arrow, 4 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. "
-                      "**2 glue lines**, which are not bonds: sign in, claim.", page)
+        # unit `composition: Login dissolved, the first dissolve` (2026-11-28): sign in left the glue as a follow-up
+        # bond, Session's Issue after Credential's Verify, and Session pairs on Credential's credential id
+        self.assertIn("**18 bonds**: 2 follow-up arrows, 5 key arrows, 10 tags (actor id 7, journal 3), and 1 bond instance. "
+                      "**1 glue line**, which is not a bond: claim.", page)
         self.assertIn('  c_permissions -->|"follow-up: Grant after Accept"| c_invitation', page)
+        self.assertIn('  c_session -->|"follow-up: Issue after Verify"| c_credential', page)
+        self.assertIn('  c_session -->|"credential id"| c_credential', page)
         self.assertIn("- **Green arrow:**", page)
         self.assertIn('  c_ordering -->|"instance 1: task id"| c_task', page)
-        self.assertIn("title: atomic weight 10 · lines written 3", page)
-        self.assertIn('  c_credential -.->|"glue: sign in<br/>atom candidate"| c_session', page)
+        self.assertIn("title: atomic weight 10 · lines written 2", page)
+        self.assertNotIn("glue: sign in", page)
 
     def test_every_app_gets_one_and_glue_naming_no_atom_is_listed(self):
         # Scott 2026-11-27 11:25 AM Central: "yes every app"

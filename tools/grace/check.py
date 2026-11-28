@@ -1732,6 +1732,9 @@ BOND_FIELDS = re.compile(r"^Term ([a-z][\w -]*?) (need|offer) fields:\s*(.*)$", 
 # offer's keep, both given as lengths, meets nothing (journal 9); an atom's layer is computed from its needs of the
 # layered kinds, and a layered need served from the same layer or a higher one fails the app (B-app-layer, gating).
 BOND_TYPED = ("key", "holder", "span", "keep", "tamper", "subject", "scope")
+# unit `composition: Login dissolved, the first dissolve` (Scott 2026-11-27 6:43 PM Central, "agree"): a follow-up's
+# takes and carries are typed list fields, their order counting (bonds.md Term typed list field, Bond 3, Follow-up 2)
+BOND_TYPED_LISTS = ("takes", "carries")
 LAYERED = {"guard", "journal", "permission"}
 _UNIT_SECONDS = {"s": 1, "sec": 1, "min": 60, "h": 3600, "d": 86400, "w": 604800, "y": 31536000}
 _LENGTH = re.compile(r"^(\d+(?:\.\d+)?)\s*(s|sec|min|h|d|w|y)$")
@@ -1785,6 +1788,8 @@ def bond_lines(path: Path, kinds: dict) -> list[dict]:
                 fields[name] = value
             elif name == "arms" and m.group(1) == "offer":
                 fields[name] = per_call(value)
+            elif name in BOND_TYPED_LISTS:
+                fields[name] = [w.strip() for w in value.split(",") if w.strip()]
             else:
                 fields[name] = {w.strip() for w in value.split(",") if w.strip()}
         out.append({"path": path, "line": text[:m.start()].count("\n") + 1, "side": m.group(1),
@@ -1822,6 +1827,33 @@ def page_answers(text: str) -> dict[str, set[str]]:
     return out
 
 
+def page_answer_values(text: str) -> dict[str, dict[str, int]]:
+    """An atom's actions as a bond line names them, each answer its answers line gives with the number of values its
+    payload carries (`answers accepted(a, b) | none` -> {"accepted": 2, "none": 0}; bonds.md Follow-up 7)."""
+    out: dict[str, dict[str, int]] = {}
+    current = None
+    for line in text.splitlines():
+        s = line.strip()
+        m = SIG_HEAD.match(s)
+        if m:
+            current = " ".join(w.capitalize() for w in m.group(1).split("_"))
+            out[current] = {}
+            continue
+        if current and s.startswith("answers "):
+            for a in s[len("answers "):].split(" | "):
+                name, _, rest = a.partition("(")
+                inner = rest.rsplit(")", 1)[0].strip()
+                out[current][name.strip()] = len([v for v in inner.split(",") if v.strip()]) if inner else 0
+        current = None if not s.startswith(("answers ", "refuses ")) else current
+    return out
+
+
+def typed_match(a: str, b: str, words: dict[str, str], types: set[str]) -> bool:
+    """bonds.md Term matches: two typed words name one word, or one names a declaration type and the other a word of it."""
+    at, bt = words.get(a, a if a in types else None), words.get(b, b if b in types else None)
+    return at is not None and at == bt and not (a in words and b in words and a != b)
+
+
 def per_call(value: str) -> dict[str, set[str]] | None:
     """An offer's arms, named per call: `take: a, b / remaining: c` -> {call: {arms}}; None when not in that form."""
     out: dict[str, set[str]] = {}
@@ -1854,6 +1886,9 @@ def bond_meets(need: dict, offer: dict, words: dict[str, str], types: set[str]) 
             return False
     calls = need["fields"].get("calls", set())
     if not calls <= offer["fields"].get("calls", set()):
+        return False
+    takes, carries = need["fields"].get("takes") or [], offer["fields"].get("carries") or []
+    if len(takes) > len(carries) or not all(typed_match(n, o, words, types) for n, o in zip(takes, carries)):
         return False
     if "arms" in need["fields"]:
         given = offer["fields"].get("arms") or {}
@@ -2062,6 +2097,10 @@ def bond_findings(root: Path) -> list[Finding]:
             elif f in BOND_TYPED and v not in words and v not in types and not (f == "keep" and length_seconds(v) is not None):
                 findings.append(Finding(b["path"], b["line"], "B-bond-type",
                                         f"`{v}` is neither a word nor a type declarations.md declares"))
+            elif f in BOND_TYPED_LISTS:
+                for w in (x for x in v if x not in words and x not in types):
+                    findings.append(Finding(b["path"], b["line"], "B-bond-type",
+                                            f"`{w}` is neither a word nor a type declarations.md declares"))
             elif f == "arms" and b["side"] == "offer" and (v is None or not set(v) <= b["fields"].get("calls", set())):
                 findings.append(Finding(b["path"], b["line"], "B-bond-arms",
                                         "an offer names its arms per call (`call: arms / call: arms`), each call one of its calls (bonds.md Term per-call field)"))
@@ -2082,17 +2121,19 @@ def bond_findings(root: Path) -> list[Finding]:
                     findings.append(Finding(b["path"], b["line"], "B-bond-ends",
                                             f"ends names `{name}`, no action the offering atom declares (bonds.md Key)"))
         # unit `bonds: the follow-up bond kind, accept grants first` (Scott 2026-11-27 11:17 AM Central): a follow-up
-        # need's runs names one action of the needing atom taking one input per value the need takes (subject,
-        # scope); an offer's after names one action of the offering atom, and answering names only answers that
-        # action gives (bonds.md Follow-up 2 and Follow-up 7)
+        # need's runs names one action of the needing atom; an offer's after names one action of the offering atom,
+        # and answering names only answers that action gives (bonds.md Follow-up 7). Unit `composition: Login
+        # dissolved, the first dissolve` (Scott 2026-11-27 6:43 PM Central): the runs action takes at least one input
+        # per value the need takes, the app supplying the rest (Follow-up 2, Follow-up 8), and every answer the offer
+        # follows carries one value per word of carries and no other (Follow-up 7)
         if b["kind"] == "follow-up":
             text_b = b["path"].read_text(encoding="utf-8")
             own = page_actions(text_b)
             field = "runs" if b["side"] == "need" else "after"
             named_action = b["fields"].get(field) or set()
             name = next(iter(named_action)) if len(named_action) == 1 else None
-            takes = sum(1 for f in ("subject", "scope") if f in b["fields"])
-            if name is None or name not in own or (b["side"] == "need" and own[name] != takes):
+            takes = len(b["fields"].get("takes") or [])
+            if name is None or name not in own or (b["side"] == "need" and (takes == 0 or own[name] < takes)):
                 findings.append(Finding(b["path"], b["line"], "B-bond-follow-up",
                                         f"{field} names one action the {b['side']}ing atom declares"
                                         + (", taking one input for each value the need takes" if b["side"] == "need" else "")
@@ -2104,6 +2145,14 @@ def bond_findings(root: Path) -> list[Finding]:
                     findings.append(Finding(b["path"], b["line"], "B-bond-follow-up",
                                             f"answering names answers {name} does not give ({', '.join(extra) or 'none named'}) "
                                             "(bonds.md Follow-up 7)"))
+                else:
+                    carries = len(b["fields"].get("carries") or [])
+                    counts = page_answer_values(text_b).get(name, {})
+                    short = sorted(a for a in b["fields"]["answering"] if counts.get(a) != carries)
+                    if carries == 0 or short:
+                        findings.append(Finding(b["path"], b["line"], "B-bond-follow-up",
+                                                f"answering names answers that do not carry one value per word of carries "
+                                                f"({', '.join(short) or 'carries names none'}) (bonds.md Follow-up 7)"))
         # on end and ends name the line's own atom's actions, whose names may hold another atom's title as a word
         # (`ends Delete List`); Bond 6 reads the rest of the line (unit `bonds: on end for lists and assignments`)
         # an offer's calls names the offering atom's own existence read (bonds.md Key 26), which may hold its own
