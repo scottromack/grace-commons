@@ -469,7 +469,8 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-record-no-need"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-record-no-need",
+            "A-default-none"}  # advisory until the defaults sweep has run, then a gate (2026-11-28)
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -1596,6 +1597,15 @@ def scan(path: Path) -> list[Finding]:
         uses = len(re.findall(pat, elsewhere))
         if uses < 1:
             add(k, "W-term-unused", f"`Term {name}` is declared and used nowhere")
+
+    # a knob with no default (advisory; spec-format *Defaults, not decisions*, Scott 2026-11-28): every
+    # parameter an atom exposes carries a sensible overridable default; the Ledger below Status is history
+    if path.parent.name == "atoms":
+        status_at = next((j for j, x in enumerate(lines, start=1) if x.startswith("## Status")), len(lines) + 1)
+        for k, raw in enumerate(lines, start=1):
+            if k < status_at and "*Default:* none" in raw:
+                add(k, "A-default-none", "`*Default:* none`: give the knob a sensible default a deployment may override "
+                    "(spec-format, *Defaults, not decisions*)")
     return findings
 
 

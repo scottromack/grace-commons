@@ -70,7 +70,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Durable Intent](./atoms/durable-intent.idd)** (938 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
+**[Durable Intent](./atoms/durable-intent.idd)** (941 lines). Durable Intent is the account a regulated action leaves of something it cannot take back: one record written before the act says what the act is about to do, the adopter's database makes the act, and one record written after says what happened, so that every act has one closing that stands, written by one writer at a time.
 
 - Mints invocation id. Needs guard critical section key; journal closing record, intent record. Offers key invocation id.
 
@@ -78,7 +78,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Escalation](./atoms/escalation.idd)** (334 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
+**[Escalation](./atoms/escalation.idd)** (337 lines). Escalation is how a person finishes what the sweep could not: the findings the instance leaves on the deployment's compliance surface (what the sweep could not close and what the instance could not do), the closure-at-risk finding that tells a person an act's window is running out, and [Resolve], the operator's own closing of an act under the same critical section the invocation and the sweep use.
 
 - Needs guard critical section key; key invocation id; journal closing record.
 
@@ -202,7 +202,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints subscription id. Offers key subscription id.
 
-**[Sweep](./atoms/sweep.idd)** (410 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
+**[Sweep](./atoms/sweep.idd)** (413 lines). Sweep finishes the account of an act whose invocation died or yielded: a clean-up run, started at every restart and on a set cadence, that looks only at intents whose time limit has passed, takes the same critical section the invocation held, asks the adopter's database whether the act happened, and writes only what it can read back from that database.
 
 - Needs guard critical section key; key invocation id; journal closing record, recovery_intended.
 

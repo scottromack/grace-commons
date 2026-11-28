@@ -21,6 +21,8 @@ Sweep finishes the account of an act whose invocation died or yielded: a clean-u
 
 A sweep that wrote what it could not know would be a second writer making up the first one's account, and one that read in-flight work as a crash would close an act its invocation still owns, because a dead invocation and a slow one look alike from outside. This atom is the sweep alone: it reads only aged intents (the lower edge) inside the retention horizon (the upper edge), writes a plan before an outcome, and answers what it cannot settle with an escalation, not a guess (Scott, 2026-11-23, ruling of 9:29 AM Central: the sweep closes only on committed with exactly one match; not-committed and undecidable escalate, and only a person abandons).
 
+The defaults sit together, well inside the start conditions a composing pattern checks over these settings (Recoverable Invocation's Instance start 4 through 8), taking the clock allowance, the deployment's own, at 1 second (Execution Contract Logic confinement 18). Lease spend is (2 × 2) + (2 × 2) + 5 + (9 × 1) = 22 seconds, under the 60-second invocation completion bound. The sweep's lease spend is 13 seconds plus one act probe, under the 60-second closure latency for any probe under 47 seconds. The run floor is max(60, 60 + 2) + 60 = 122 seconds, under the 10-minute run bound. Worst closure is 60 + (2 × 1) + (2 × 300) + (3 × 600) = 2,462 seconds, about 41 minutes, so a closure window of one hour clears it by 19 minutes. The retention floor is that window's end, 60 + 1 + 3,600 = 3,661 seconds, plus the settling period and one 600-second run, so 90 days of retention clears it for any settling period under 89 days. A deployment overrides any of them, and the start check still refuses an override that breaks a condition.
+
 </details>
 
 ## What it keeps
@@ -251,7 +253,7 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
   Term sweep lease: `(closure_latency + journal_write_bound)`.
 
 - **sweep cadence**
-  Term sweep cadence: the interval at which the sweep runs after the mandatory run at process restart. *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term sweep cadence: the interval at which the sweep runs after the mandatory run at process restart. *Default:* 5 minutes.
 
   ```
   sweep cadence 2: A run MUST start WITHIN sweep cadence of the previous run's return, the death of the process that ran the previous run excepted (sweep cadence 3).
@@ -260,10 +262,10 @@ Term horizon edge: `(((recorded_at + retention_period) - clock_allowance) - run_
   Term run interval: `(sweep_cadence + run_bound)` — the gap between two runs' starts that worst closure charges: a run's run bound, then the cadence.
 
 - **closure latency**
-  Term closure latency: the disclosed bound on one whole closure: re-read, act probe, `<kind>.recovery_intended`, the closing record, the index update. Condition 5. *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term closure latency: the disclosed bound on one whole closure: re-read, act probe, `<kind>.recovery_intended`, the closing record, the index update. Condition 5. *Default:* 60 seconds.
 
 - **run bound**
-  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which the guard's take ends at the waiter's last reading (reconcile step 2.3); a backlog past the one the deployment sizes for is a breach of the deployment's own sizing, and no bound is claimed for it. *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term run bound: the disclosed bound from a [Reconcile] run's start to the last closing it lands, over the largest backlog the deployment sizes for, the wait of each take counted, which the guard's take ends at the waiter's last reading (reconcile step 2.3); a backlog past the one the deployment sizes for is a breach of the deployment's own sizing, and no bound is claimed for it. *Default:* 10 minutes.
 
   ```
   run bound 1: A node MUST NOT start a run beside the node's own run in flight.
@@ -403,6 +405,7 @@ open: none
 </summary>
 
 - **2026-11-23 — Split out of Recoverable Invocation.** *Chose:* the rules of Reconcile and the sweep's bounds, Invariant 2.3, Invariant 4.1 through 4.5, 5.1 through 5.3, 5.9, 5.10 and 7, moved as they stood, a rule changing only where its owner's name changed. *Over:* one page carrying the whole protocol after 57 rounds. *Because:* a pattern that has run far past the round cap does not ground, and the corpus is moving from compositions to atoms, bonds and marked glue (Scott, 2026-11-23, rulings of 05:35Z and 9:29 AM Central).
+- **2026-11-28 — Defaults, not decisions.** *Chose:* a sweep cadence of 5 minutes, a closure latency of 60 seconds and a run bound of 10 minutes, which the arithmetic in the WHY shows clear the run floor, the sweep's lease spend and worst closure. *Over:* three settings required at start with no default. *Because:* Scott, 2026-11-28 7:57 AM Central: "sensible overridable defaults for everything" (spec-format, *Defaults, not decisions*).
 
 </details>
 

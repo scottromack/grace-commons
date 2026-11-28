@@ -21,6 +21,8 @@ Escalation is how a person finishes what the sweep could not: the findings the i
 
 An act the database cannot certify is no act a program may close for the person who made it, because a guessed outcome in a regulated account is worse than a late one, and its findings must reach a person before the act's window ends. This atom holds the person's side: the findings, the operator's [Resolve] and the closure-at-risk finding, with the sweep's escalation records as what it reads (Scott, 2026-11-23, ruling of 9:29 AM Central). The findings register's protocol is owed to an atom of its own and moves there when that atom is bonded; the rules stay here until that atom's own text covers each (findings 3 through 13).
 
+The defaults sit together, well inside the start conditions a composing pattern checks over these settings (Recoverable Invocation's Instance start 4 through 8), taking the clock allowance, the deployment's own, at 1 second (Execution Contract Logic confinement 18). Lease spend is (2 × 2) + (2 × 2) + 5 + (9 × 1) = 22 seconds, under the 60-second invocation completion bound. The sweep's lease spend is 13 seconds plus one act probe, under the 60-second closure latency for any probe under 47 seconds. The run floor is max(60, 60 + 2) + 60 = 122 seconds, under the 10-minute run bound. Worst closure is 60 + (2 × 1) + (2 × 300) + (3 × 600) = 2,462 seconds, about 41 minutes, so a closure window of one hour clears it by 19 minutes. The retention floor is that window's end, 60 + 1 + 3,600 = 3,661 seconds, plus the settling period and one 600-second run, so 90 days of retention clears it for any settling period under 89 days. A deployment overrides any of them, and the start check still refuses an override that breaks a condition.
+
 </details>
 
 ## What it keeps
@@ -203,7 +205,7 @@ Capability requirement 19: A read_record at [Resolve] that returns nothing withi
 ### Bounds the deployment declares
 
 - **intent candidates cap**
-  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation. *Default:* none, required at start (Execution Contract Logic confinement 15).
+  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation. *Default:* 16.
 
 ## Needs
 
@@ -327,6 +329,7 @@ open: none
 </summary>
 
 - **2026-11-23 — Split out of Recoverable Invocation.** *Chose:* the rules of Resolve and the findings, the closure-at-risk finding, Invariant 4.6 through 4.9, 4.11, 5.4, 5.5 and 5.8, moved as they stood, a rule changing only where its owner's name changed. *Over:* one page carrying the whole protocol after 57 rounds. *Because:* a pattern that has run far past the round cap does not ground, and the corpus is moving from compositions to atoms, bonds and marked glue (Scott, 2026-11-23, rulings of 05:35Z and 9:29 AM Central).
+- **2026-11-28 — Defaults, not decisions.** *Chose:* an intent candidates cap of 16, the same as Durable Intent's. *Over:* a setting required at start with no default. *Because:* Scott, 2026-11-28 7:57 AM Central: "sensible overridable defaults for everything" (spec-format, *Defaults, not decisions*).
 
 </details>
 

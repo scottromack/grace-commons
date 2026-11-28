@@ -21,6 +21,8 @@ Durable Intent is the account a regulated action leaves of something it cannot t
 
 An irreversible act and its account are two writes no transaction spans, because the library's rule since 2026-08-27 is that an atomic set may not contain a write the host cannot take back; the order intent, act, outcome therefore leaves exactly one reachable partial, the act committed with its record owed. This atom owns the two writes, the rule that one invocation has one standing closing (*Which closing stands*) and the position every code carries; the clean-up of the partial and a person's part belong to the atoms that follow this atom's records by key, each keeping its own rules for what it does with them (Scott, 2026-11-23, the split of Recoverable Invocation, ruling of 9:29 AM Central).
 
+The defaults sit together, well inside the start conditions a composing pattern checks over these settings (Recoverable Invocation's Instance start 4 through 8), taking the clock allowance, the deployment's own, at 1 second (Execution Contract Logic confinement 18). Lease spend is (2 × 2) + (2 × 2) + 5 + (9 × 1) = 22 seconds, under the 60-second invocation completion bound. The sweep's lease spend is 13 seconds plus one act probe, under the 60-second closure latency for any probe under 47 seconds. The run floor is max(60, 60 + 2) + 60 = 122 seconds, under the 10-minute run bound. Worst closure is 60 + (2 × 1) + (2 × 300) + (3 × 600) = 2,462 seconds, about 41 minutes, so a closure window of one hour clears it by 19 minutes. The retention floor is that window's end, 60 + 1 + 3,600 = 3,661 seconds, plus the settling period and one 600-second run, so 90 days of retention clears it for any settling period under 89 days. A deployment overrides any of them, and the start check still refuses an override that breaks a condition.
+
 </details>
 
 ## What it keeps
@@ -634,13 +636,13 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 ### Bounds the deployment declares
 
 - **journal write bound**
-  Term journal write bound: the disclosed bound on an attested append from issue to landing: issue-to-first-commit latency, with headroom. *Default:* none.
+  Term journal write bound: the disclosed bound on an attested append from issue to landing: issue-to-first-commit latency, with headroom. *Default:* 2 seconds.
 
   ```
   journal write bound 1: A writer MUST issue a journal write under the critical section ONLY IF a remaining the writer queried for that write EXCEEDS write floor.
   ```
 - **pause bound**
-  Term pause bound: this composition's value of [Lease](./lease.idd)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* none.
+  Term pause bound: this composition's value of [Lease](./lease.idd)'s call pause bound: the longest time from a holder's decision to issue one call — a lease call, the issue of a journal write, the issue of the bound commit — to the moment the call has taken effect or failed. *Default:* 1 second.
 
   ```
   pause bound 1: The deployment MUST supply Lease Capability requirement 7 for EVERY lease call on this pattern and for this pattern's unfenced writes, the bound commit and every journal write, with pause bound as the atom's call pause bound.
@@ -653,15 +655,15 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
   Term commit floor: `(commit_round_trip + (4 * pause_bound))` — the same for the bound commit, with one pause more for the hand from [Open]'s return to the adopter's call.
 
 - **read bound**
-  Term read bound: the disclosed bound on one journal read under the critical section ([Open] step 3, [Close] step 2, [Refuse], [Resolve], [Reconcile] step 2). Conditions 3 and 5. *Default:* none.
+  Term read bound: the disclosed bound on one journal read under the critical section ([Open] step 3, [Close] step 2, [Refuse], [Resolve], [Reconcile] step 2). Conditions 3 and 5. *Default:* 2 seconds.
 
 - **read cap**
-  Term read cap: the most invocations [Read Invocation] returns for one act, and the most records per invocation, at least one. *Default:* none.
+  Term read cap: the most invocations [Read Invocation] returns for one act, and the most records per invocation, at least one. *Default:* 100.
 
 ### Bindings the actions read
 
 - **bindings table**
-  Term bindings table: the deployment's map from each kind the composition serves to that kind's bindings — repeatable, service identity, pairing datum, act probe, invocation completion bound, commit round trip, retention period, outcome envelope, intent candidates cap and outcome refs (the `<kind>.<outcome>` action references [Close] may write as the kind's outcome, none of them `<kind>.intended`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned` or `<kind>.escalated`). *Default:* none.
+  Term bindings table: the deployment's map from each kind the composition serves to that kind's bindings — repeatable, service identity, pairing datum, act probe, invocation completion bound, commit round trip, retention period, outcome envelope, intent candidates cap and outcome refs (the `<kind>.<outcome>` action references [Close] may write as the kind's outcome, none of them `<kind>.intended`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned` or `<kind>.escalated`). *Default:* empty: the instance serves no kind until the deployment binds one, and each binding a bound kind leaves unset takes its own default.
 
   ```
   bindings table 1: The deployment MUST supply the bindings table, with an entry for every kind the composition serves, as a setting with no default (Execution Contract Logic confinement 15, Logic confinement 17).
@@ -675,15 +677,15 @@ Term read-your-writes: Capability requirement 8 and Execution Contract Database 
 
   Term act probe: a read of the adopter's database keyed by act key and pairing datum, answering for the sweep: did the act commit, and with what outcome.
 
-  Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, [Open]'s intent write with the wait and read-back of Primitive policy 34, the commit floor, [Close]'s step-1 query (pause bound), [Close]'s step-2 re-read (read bound) and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* none.
+  Term invocation completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip, and sized by the deployment to hold [Open]'s read bound, [Open]'s intent write with the wait and read-back of Primitive policy 34, the commit floor, [Close]'s step-1 query (pause bound), [Close]'s step-2 re-read (read bound) and [Close]'s write floor; a bound below them fails every [Close] and leaves the act to the sweep. The lease length of the critical section. Read against the seam clock [Open] was injected with. *Default:* 60 seconds.
 
-  Term commit round trip: the longest one commit call takes from issue to reply. *Default:* none.
+  Term commit round trip: the longest one commit call takes from issue to reply. *Default:* 5 seconds.
 
-  Term clock allowance: the most two of the deployment's clocks may differ (Execution Contract Logic confinement 18), spent where a reading from one clock meets a stamp or an instant minted from another. *Default:* none.
+  Term clock allowance: the most two of the deployment's clocks may differ (Execution Contract Logic confinement 18), spent where a reading from one clock meets a stamp or an instant minted from another. *Default:* the deployment's, at the seam: Execution Contract Logic confinement 18 has a specification state no value for it, so it stays required at start (Logic confinement 15).
 
-  Term retention period: the keep the atom's journal need asks of each record of a kind, as the need's keep states it (Bonds journal 6); here a per-kind binding. *Default:* none.
+  Term retention period: the keep the atom's journal need asks of each record of a kind, as the need's keep states it (Bonds journal 6); here a per-kind binding. *Default:* 90 days.
 
-  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation (Invariant 6). *Default:* none.
+  Term intent candidates cap: the most database candidates an `<kind>.escalated` record names, each under reference length cap. Sizes the escalation (Invariant 6). *Default:* 16.
 
 - **outcome envelope**
   Term outcome envelope: the largest outcome payload the kind can write, sized by the adopter from the adopter's own caps, every set-valued field capped and every reference under reference length cap (Invariant 6).
@@ -931,6 +933,7 @@ open: none
 </summary>
 
 - **2026-11-23 — Split out of Recoverable Invocation.** *Chose:* the rules of Open, Close, Refuse, Yield and Read Invocation, Which closing stands, the journal's position rules and Invariant 1, 2.1, 2.6, 3, 6 and 8, moved as they stood, a rule changing only where its owner's name changed. *Over:* one page carrying the whole protocol after 57 rounds. *Because:* a pattern that has run far past the round cap does not ground, and the corpus is moving from compositions to atoms, bonds and marked glue (Scott, 2026-11-23, rulings of 05:35Z and 9:29 AM Central).
+- **2026-11-28 — Defaults, not decisions.** *Chose:* a sensible default on every knob: a journal write bound and a read bound of 2 seconds, a pause bound of 1 second, a commit round trip of 5 seconds, an invocation completion bound of 60 seconds, a read cap of 100, an intent candidates cap of 16, a retention period of 90 days and an empty bindings table; the arithmetic in the WHY shows they meet the start conditions together. The clock allowance stays the deployment's (Execution Contract Logic confinement 18). *Over:* `*Default:* none` on ten settings, each a decision every deployment had to make. *Because:* Scott, 2026-11-28 7:57 AM Central: "Decisions are waste, sensible overridable defaults for everything" (spec-format, *Defaults, not decisions*).
 
 </details>
 
