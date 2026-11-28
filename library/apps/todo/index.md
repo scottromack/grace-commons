@@ -29,7 +29,7 @@ Each job has one acceptance check, the test that says the app does it.
 
 1. **Hand out work in priority order.** Check: the team reads the list in the author's order.
 2. **Know who is on what.** Check: a claimed task shows its assignee; a reassign keeps the history; a reassign to someone the list is not shared with is refused.
-3. **Know what is done and by whom.** Check: a completed task shows its completer and stays crossed out a week; a second check-off is refused.
+3. **Know what is done and by whom.** Check: a completed task shows its completer and stays crossed out a week; a second check-off is refused: Task refuses it for complete, and the app answers `not-known` for claim, recall, reassign and move (App check 5).
 4. **Keep it the author's list.** Check: a non-author's rename, delete list, add, edit, reorder, delete, recall, reassign or invite is refused.
 
 Two answers settle what the jobs leave open (Scott, 2026-11-25 7:15 PM Central):
@@ -52,7 +52,7 @@ Ten, each used as it stands:
 - **[Credential](../../atoms/credential.idd)** — the proof checked at sign-in.
 - **[Event Log](../../atoms/event-log.idd)** — the history: the journal of task, assignment and invitation events.
 
-Not in the app (the design of 2026-11-24): Capability (Permissions covers sharing), Party Identity (a team is a Permissions group in the first version), Restorable Delete (Task's plain delete in the first version). Every call of the atoms that no row of the Actions table names is left to no action of this version, and four on purpose: Actor Identity's Mint Actor Id and Credential's Register (the actor id and the credential of a person who signs in are provisioned outside the app, and the app takes an actor id as given; each such actor id is minted outside the app's actions (App permission 6), before its credential is registered (App permission 8)), Permissions' Revoke (a grant is never taken back: a member stays a member, and a deleted list's grants reach nothing) and Invitation's Revoke (a pending invitation ends by accept, decline, its expiry or the deletion of its list).
+Not in the app (the design of 2026-11-24): Capability (Permissions covers sharing), Party Identity (a team is a Permissions group in the first version), Restorable Delete (Task's plain delete in the first version). Every call of the atoms that no row, check or answer of this page names is left to no action of this version, and four on purpose: Actor Identity's Mint Actor Id and Credential's Register (the actor id and the credential of a person who signs in are provisioned outside the app, and the app takes an actor id as given; each such actor id is minted outside the app's actions (App permission 6), before its credential is registered (App permission 8)), Permissions' Revoke (a grant is never taken back: a member stays a member, and a deleted list's grants reach nothing) and Invitation's Revoke (a pending invitation ends by accept, decline, its expiry or the deletion of its list).
 
 ## Bonds
 
@@ -85,7 +85,7 @@ App permission 3: make list, accept, decline, sign in and sign out MUST NOT be g
 App permission 4: The host MUST supply EVERY list id at a scope length that DOES NOT EXCEED Permissions' string cap AND DOES NOT EXCEED Invitation's string cap.
 App permission 5: The deployment MUST NOT change Invitation's string cap for the life of Invitation's instance.
 App permission 6: The deployment MUST mint EVERY actor id a credential or a session names as its principal by Actor Identity's Mint Actor Id, on the one Actor Identity instance the app's actor id needs meet (Bonds Bond 9).
-App permission 7: The host MUST supply EVERY list id, EVERY task id, EVERY actor id AND EVERY credential id at a length that DOES NOT EXCEED EVERY string cap of an atom of the app that applies to an input carrying the id (Execution Contract Input 2).
+App permission 7: The host MUST supply EVERY list id, EVERY task id, EVERY actor id AND EVERY credential id at a length that DOES NOT EXCEED EVERY string cap of an atom of the app that applies to an input carrying the id (Execution Contract Input 2); for a list id App permission 4 governs, the tighter bound, since it leaves room for the `:member` suffix, and this rule governs every other id.
 App permission 8: The deployment MUST NOT call Credential's Register with a principal reference BEFORE Actor Identity's Mint Actor Id answers the principal reference as an actor id, on the one Actor Identity instance App permission 6 names.
 ```
 
