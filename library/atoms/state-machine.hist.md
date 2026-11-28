@@ -34,6 +34,8 @@ Entries that record a migration or a repair rather than a turn the pattern took.
 
 - **2026-11-20 — A malformed subject reference is refused, not answered with an empty list.** *Chose:* [Workflows About] answering invalid-request to a subject reference that is blank, over the string cap or not a string (Operation 85, and Operation 86 where the read of the workflow records fails too), the refuses line and the term entry listing the refusal, the answer table's row 1 and the example following. *Over:* the empty list for a malformed subject reference, which a caller could not tell from a subject no workflow carries (Operation 84). *Because:* Operation 9 and Operation 75 already answer invalid-request to the same defects in an instance id, and Scott decided it on 2026-11-19 (rounds/open-line-choices-directions-2.md, item 101: "a malformed subject reference answers invalid-request, as Operation 9 and 75 do; the signature lists the refusal").
 
+- **2026-11-28 — The transition history is a journal need.** *Chose:* the atom needs a journal (`Term need journal: records workflow events; calls append; arms event_id`, the word declared in declarations.md), met by Event Log's journal offer with nothing written (Bonds Bond 8); every admitted [Instantiate] and [Fire] appends one workflow events record through it (Operation 94), an instantiation's record carrying the workflow id, the initial state, the instantiation instant and the actor reference (Operation 95), and a fire record carrying what a history entry carried, named by its fields: the workflow id and action (Operation 96), the from state and to state (Operation 24, Operation 25), the guard satisfied (Operation 29, Operation 30), the actor reference (Operation 61) and the firing instant (Operation 68); Storage Failure and the two case tables name the journal's refusal (Execution Contract Constituent failure 1); the transition history, the history entry, its id and sequence number, Next Sequence Number, the [History] action with its refusal invalid-query and its case table, the offer `key history entry id` (which no atom consumed; its declaration leaves declarations.md) and the rules that only served them tombstoned to the journal need, 39 labels: Identity 2, 4, 8 and 10, State 4, 5, 7, 8, 9 and 16, Operation 6, 7, 21 through 23, 36, 37, 39, 42, 43, 45, 55, 57, 58, 73 and 87 through 89, Invariant 5.1, 5.2, 6.1 through 6.3 and 10.2, Check 5.1 through 5.3 and 8.1, and External check 2; Non-goal 23 in Medication Order Non-goal 19's words; Invariant 3.1, 7.1 through 7.3 and 8.3 and Check 2.1, 4.1, 6.1, 7.1, 7.2 and 8.3 re-cited to the fire records an auditor reads in the app's journal, in journal order; Clock semantics 4 kept, over a later fire; the Example's audit question and the Source's 21 CFR Part 11, ISO 9001 and HIPAA lines say the history is the journal's. *Over:* keeping the atom's own history beside the journal Event Log already keeps, and a read no other atom used. *Because:* the unit `atom: State Machine, the transition history is a journal need`, ruled by Scott; the library's standing line is Medication Order Non-goal 19 (efaa2bcb), and Capacity Constraint Enforcement's audit log took the same cure (6d80e43b).
+
 ## Migration notes
 
 - **2026-09-15 — Capability requirement 1, moved from Operation.** What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
@@ -168,4 +170,73 @@ Deleted: Composition note 10. Execution Contract Atom interface 1 owns it.
 ```
 Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
+```
+
+### What it keeps › The workflows
+
+```
+Deleted: Identity 2. The journal need owns it: the journal names each workflow events record by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 4. The journal need owns it: the journal names each workflow events record by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 8. The journal need owns it: the journal names each workflow events record by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: Identity 10. The journal need owns it: the journal names each workflow events record by the event id its append answers, and keeps it unchanged and unshared.
+Deleted: State 4. The journal need owns it: a fire record carries what a history entry carried (Operation 24, Operation 25, Operation 29, Operation 61, Operation 68, Operation 96).
+Deleted: State 5. The journal need owns it: a fire record carries what a history entry carried (Operation 24, Operation 25, Operation 29, Operation 61, Operation 68, Operation 96).
+Deleted: State 7. The journal need owns it: the workflow events stand in the journal, which keeps their order and removes and edits none, not on the workflow.
+Deleted: State 8. The journal need owns it: the workflow events stand in the journal, which keeps their order and removes and edits none, not on the workflow.
+Deleted: State 9. The journal need owns it: the workflow events stand in the journal, which keeps their order and removes and edits none, not on the workflow.
+Deleted: State 16. The journal need owns it: a fire record carries what a history entry carried (Operation 24, Operation 25, Operation 29, Operation 61, Operation 68, Operation 96).
+```
+
+### What people do › Every action
+
+```
+Deleted: Operation 6. The journal need owns it: the atom keeps no sequence number, and the journal's append answers each record's place.
+Deleted: Operation 7. The journal need owns it: the atom keeps no transition history, and an admitted instantiate appends one workflow events record (Operation 94).
+Deleted: Operation 21. The journal need owns it: an admitted fire appends one fire record through it (Operation 94).
+Deleted: Operation 22. The journal need owns it: the atom keeps no sequence number, and the journal's append answers each record's place.
+Deleted: Operation 23. The journal need owns it: the atom keeps no sequence number, and the journal's append answers each record's place.
+Deleted: Operation 73. The journal need owns it: the journal names each workflow events record by the event id its append answers, and the host mints no history entry id.
+Deleted: Operation 36. The journal need owns it: a refused action commits nothing, so no journal holds it.
+Deleted: Operation 37. The journal need owns it: the atom keeps no sequence number, and a refused action commits nothing (Execution Contract Read 4).
+Deleted: Operation 39. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 42. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 55. The journal need owns it: the journal order is the order of the workflow events, and no rule of the atom orders by firing instant.
+```
+
+### What people do › History
+
+```
+Deleted: Operation 57. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 43. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 45. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 58. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 87. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 88. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+Deleted: Operation 89. The journal need owns it: an auditor or an app reads the workflow events from the journal by range, and the atom offers no read of them.
+```
+
+### What is and what should never be (Invariants)
+
+```
+Deleted: Invariant 5.1. The journal need owns it: a workflow events record stands in the journal as appended, and the atom has no action over it.
+Deleted: Invariant 5.2. The journal need owns it: an admitted fire appends one fire record (Operation 94), and the journal keeps every record its append answered a place for (Bonds journal 1).
+Deleted: Invariant 6.1. The journal need owns it: the journal orders the workflow events by the place each append answers (Bonds journal 2), and the atom keeps no sequence number.
+Deleted: Invariant 6.2. The journal need owns it: the journal orders the workflow events by the place each append answers (Bonds journal 2), and the atom keeps no sequence number.
+Deleted: Invariant 6.3. The journal need owns it: the journal orders the workflow events by the place each append answers (Bonds journal 2), and the atom keeps no sequence number.
+Deleted: Invariant 10.2. The journal need owns it: the journal keeps the workflow events, and removes none under this atom (Bonds journal 1).
+```
+
+### Proof › Generation acceptance › Conformance checks
+
+```
+Deleted: Check 5.1. The journal need owns it: the journal orders the workflow events by the place each append answers (Bonds journal 2), and the atom keeps no sequence number.
+Deleted: Check 5.2. The journal need owns it: the journal orders the workflow events by the place each append answers (Bonds journal 2), and the atom keeps no sequence number.
+Deleted: Check 5.3. The journal need owns it: a workflow events record stands in the journal as appended, and the atom has no action over it.
+Deleted: Check 8.1. The journal need owns it: Operation 95 and Operation 96 name what each workflow events record carries.
+```
+
+### Proof › Generation acceptance › External checks
+
+```
+Deleted: External check 2. The journal need owns it: a deployment counts the fire records the app's journal holds, one for each admitted fire (Operation 94).
 ```

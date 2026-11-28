@@ -54,8 +54,6 @@ Term list id: opaque — the one value naming a list of tasks, minted when the l
 
 Term workflow id: opaque — the one value naming one running workflow, minted when the workflow is made and never reused.
 
-Term history entry id: opaque — the one value naming one recorded transition of a running workflow, minted when the history entry is appended and never reused in its workflow.
-
 Term party id: opaque — the one value naming one external party, minted when the party is enrolled and never reused.
 
 Term chain id: opaque — the one value naming one custody chain, minted when the chain is originated and never reused.
@@ -117,6 +115,8 @@ Term task events: opaque — the record type of the journal records a to-do app 
 Term assignment events: opaque — the record type of the journal records a to-do app appends for an assignment's actions; plain, carrying no seal.
 
 Term invitation events: opaque — the record type of the journal records a to-do app appends for an invitation's actions; plain, carrying no seal.
+
+Term workflow events: opaque — the record type of the journal records State Machine's admitted actions append; plain, carrying no seal.
 
 Term party events: opaque — the record type of the journal records Party Identity's admitted actions append; plain, carrying no seal.
 
