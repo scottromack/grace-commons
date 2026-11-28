@@ -106,7 +106,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints hold id. Needs key actor id. Offers key hold id.
 
-**[List](./atoms/list.md)** (417 lines). List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it.
+**[List](./atoms/list.md)** (447 lines). List holds a name, an author and an id for each list an app makes: make a list, rename it, delete it, read it.
 
 - Mints list id. Needs key actor id. Offers key list id.
 

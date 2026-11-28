@@ -188,8 +188,8 @@ Term ok: the answer [Rename List] and [Delete List] give once the call is admitt
 
 | Call | Case | Answer | Effect on the lists |
 |---|---|---|---|
-| [Rename List] | the list exists and the name differs | ok | the list's name becomes the name given, its list id and author stay (List 4, Execution Contract Input 4, Invariant 2.1, List 5, Operation 6) |
-| [Rename List] | the list exists and the name is its own | ok | none, no write (Operation 7, Operation 6) |
+| [Rename List] | the list exists and the name differs | [Ok] | the list's name becomes the name given, its list id and author stay (List 4, Execution Contract Input 4, Invariant 2.1, List 5, Operation 6) |
+| [Rename List] | the list exists and the name is its own | [Ok] | none, no write (Operation 7, Operation 6) |
 | [Rename List] | no list carries the list id | [Unknown List] | none (Operation 5) |
 
 - `rename_list("l1", "Weekly shop")` — answers ok: the list reads as Weekly shop, still author a1.
@@ -203,6 +203,15 @@ Kind:       Member
 Member of:  the action rejection
 Role:       Outcome
 Projection: unknown-list
+
+#### Ok
+
+The answer [Rename List] and [Delete List] give once the call is admitted (Operation 6, Operation 8); it carries nothing.
+
+Kind:       Member
+Member of:  the action answer
+Role:       Outcome
+Projection: ok
 
 ### Delete List
 
@@ -223,8 +232,8 @@ Operation 9: IF no list carries the list id THEN [Delete List] MUST NOT write.
 
 | Call | Case | Answer | Effect on the lists |
 |---|---|---|---|
-| [Delete List] | the list exists | ok | the list has ended (List 6, Operation 8) |
-| [Delete List] | no list carries the list id | ok | none, no write (Operation 9, Operation 8) |
+| [Delete List] | the list exists | [Ok] | the list has ended (List 6, Operation 8) |
+| [Delete List] | no list carries the list id | [Ok] | none, no write (Operation 9, Operation 8) |
 
 ### Read List
 
@@ -249,8 +258,26 @@ Operation 12: [Read List] MUST NOT write.
 
 | Call | Case | Answer | Effect on the lists |
 |---|---|---|---|
-| [Read List] | the list exists | its name and author | none (Operation 10, Operation 12) |
-| [Read List] | no list carries the list id, a blank, over-cap (Execution Contract Input 2, Query 5) or non-string one included, or the list was deleted | none | none (Operation 11, Operation 12, List 6) |
+| [Read List] | the list exists | [Found], its name and author | none (Operation 10, Operation 12) |
+| [Read List] | no list carries the list id, a blank, over-cap (Execution Contract Input 2, Query 5) or non-string one included, or the list was deleted | [None] | none (Operation 11, Operation 12, List 6) |
+
+#### Found
+
+The answer [Read List] gives when a list carries the list id: the list's name and author (Operation 10).
+
+Kind:       Member
+Member of:  the Read List answer
+Role:       Outcome
+Projection: found
+
+#### None
+
+The answer [Read List] gives when no list carries the list id, a blank, over-cap or non-string one included, and for a list that was deleted (Operation 11, List 6); it carries nothing, and it is no rejection.
+
+Kind:       Member
+Member of:  the Read List answer
+Role:       Outcome
+Projection: none
 
 ## What is and what should never be (Invariants)
 
@@ -292,7 +319,7 @@ Term need key: key actor id; pairs lists.
 
 Term offer key: key list id; carried by lists; ends Delete List; calls Read List.
 
-No bond serves the four actions: the app's flow calls them.
+The app's flow calls the four actions; the key offer names [Delete List] under ends and [Read List] under calls, for the app to call.
 
 ## Left to others
 
@@ -384,6 +411,9 @@ Term cited: list id, actor id: Declarations.
 [Unknown List]: #unknown-list
 [Invalid Request]: #invalid-request
 [Storage Failure]: #storage-failure
+[Ok]: #ok
+[Found]: #found
+[None]: #none
 
 ## Status
 
@@ -397,7 +427,7 @@ Term cited: list id, actor id: Declarations.
 ```
 status: done — 2026-11-25
 formal: pending — no model yet; new formal modelling is paused (budget.toml formal_new_models, Scott 2026-11-23) and Lean replaces the model layer
-last gate: 2026-11-25 — Final Critique 4, a delta round (diff base 4a4063ea: Final Critique 3's cures and the on end commit, 3 labels reached), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at f5f4ab98 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 1 foundational, Kind C, and it did not stand under either triage: its trace put a second [Delete List] on an ended list in the row "the list exists", but the page's Delete List text says a list id no list carries is left as it is since an earlier call may already have deleted it, List Record says a deleted list's record has ended, and Read List counts a deleted list among those no list carries, so a re-delete falls in the row "no list carries the list id", which answers ok and writes nothing (Operation 9), ends no value and so owes no on end call (Bonds Key 3); its cure would restate Bonds Key 3 on this page, which the placement rule refuses; the blind second triage (an Opus subagent) placed it no defect and found no foundational edge of its own, and no cure was made)
+last gate: 2026-11-28 — Final Critique 5, a delta round (diff base f5f4ab98, 2 labels, Capability requirement 2, which cites Execution Contract Logic confinement 16 as 20258c18 changed it, and Term offer key, which bf3c98b8 gave `calls Read List` as the atom's existence read for Bonds Key 26), one reader (Linus opencode-go/beam-free; GRID and EOS not run; the Claude reader off), frozen at e53d8535 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational-rated finding (the offer line's `ends Delete List` leaves a deleted list id open to reuse, with a cure that writes the non-reuse into the offer line) was refuted by both triages: Identity 4, Invariant 1.2 and Capability requirement 2 citing Logic confinement 16 already forbid any reuse, so no conforming build differs, and the cure would restate Logic confinement 16; the checker's four hits placed one false (`answers list id` is a bare id, not a code), one false (Operation 10 and the case row state what found carries) and two refining cured (the registry's found and none had no term entry, nor did ok, which the checker passes over: the three entries are written, Kind Member, Role Outcome), and the blind second triage's own rhetorical find cured (the sentence after the offer line said no bond serves the four actions, while the offer now names Delete List under ends and Read List under calls); model redraw: none; 2026-11-25 — Final Critique 4, a delta round (diff base 4a4063ea: Final Critique 3's cures and the on end commit, 3 labels reached), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at f5f4ab98 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 1 foundational, Kind C, and it did not stand under either triage: its trace put a second [Delete List] on an ended list in the row "the list exists", but the page's Delete List text says a list id no list carries is left as it is since an earlier call may already have deleted it, List Record says a deleted list's record has ended, and Read List counts a deleted list among those no list carries, so a re-delete falls in the row "no list carries the list id", which answers ok and writes nothing (Operation 9), ends no value and so owes no on end call (Bonds Key 3); its cure would restate Bonds Key 3 on this page, which the placement rule refuses; the blind second triage (an Opus subagent) placed it no defect and found no foundational edge of its own, and no cure was made)
 
 open: none
 ```
