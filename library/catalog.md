@@ -190,7 +190,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints disclosure id. Offers key disclosure id.
 
-**[Session](./atoms/session.md)** (970 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
+**[Session](./atoms/session.md)** (971 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 
 - Mints session id. Needs key actor id; key credential id; follow-up Issue. Offers key session id.
 
