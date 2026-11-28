@@ -31,7 +31,7 @@ Software gets dates wrong in a few recurring ways, and each is a question of wha
 Identity 1: The atom MUST identify a place by the place id.
 Identity 2: The atom MUST NOT reuse a place id.
 Identity 3: The atom MUST NOT normalize a time zone.
-Identity 4: The atom MUST compare a time zone with the zone names code point for code point.
+Identity 4: The atom MUST compare a time zone code point for code point, with the zone names and with the place's time zone.
 ```
 
 Term place: a time zone and the day the weeks start on there, where dates are read — a [Place].
@@ -111,7 +111,7 @@ Projection: place_id
 
 #### Time Zone
 
-A name among the deployment's zone names, such as America/Chicago or the link US/Central, recorded as the call carries it and compared codepoint for codepoint.
+A name among the deployment's zone names, such as America/Chicago or the link US/Central, recorded as the call carries it and compared code point for code point.
 
 Kind:       Field
 Field of:   Place
@@ -198,7 +198,7 @@ Term skipped time: a wall time that no instant matches: the place's clock jumps 
 
 Term repeated time: a wall time that two instants match: the place's clock shows the wall time twice, as when the clocks go back.
 
-Term gap: the local times a place's clock jumps over at one change of the place's offset; the gap's length is how much the offset grows at the change, an hour in most places.
+Term gap: the wall times a place's clock jumps over at one change of the place's offset; the gap's length is how much the offset grows at the change, an hour in most places.
 
 Term forward resolution: the instant the place's clock shows as the wall time plus the length of the gap the wall time falls in — the instant the clock shows as 03:30 for a wall time of 02:30 in a one-hour gap opening at 02:00.
 
@@ -210,7 +210,7 @@ Term later match: the second of a repeated time's two matching instants.
 
 Term amount: the years, the months and the days a [Shift] call moves a local date by, each a number as the call carries it, a whole number or not.
 
-Term whole amount: an amount whose years, months and days are each a whole number; an amount that is not whole is refused as an invalid amount (Operation 22), so no landing month, shifted date or date range is read for it, and Operation 24 and Operation 25 reach a whole amount only.
+Term whole amount: an amount whose years, months and days are each a whole number; Operation 24 and Operation 25 reach a whole amount only, so neither reads a landing month or a shifted date for an amount that is not whole.
 Term signed amount: an amount whose years, months and days are each a whole number, and are all zero or more, or all zero or less.
 
 Term overflow: clamp | reject — what [Shift] does where the landing month holds no day of the local date's number — an [Overflow].
@@ -812,7 +812,7 @@ Check 2.1: An auditor MUST find no two places sharing a place id (Identity 2).
 Check 2.2: An auditor MUST find EVERY place's time zone among the zone names (Invariant 1.1).
 Check 2.3: An auditor MUST find EVERY place's week start among the days of the week (Invariant 1.2).
 Check 3.1: An auditor MUST find EVERY version of a place carrying the place id of the place's first version (Invariant 2.1).
-Check 4.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on a call with the row's inputs (Operation 12 through 37).
+Check 4.1: An auditor MUST find, for EVERY row of the conformance table, the row's answer on a call with the row's inputs (Operation 10, Operation 12 through 37).
 ```
 
 Term version: a record as it stood at the commit that wrote it, which Execution Contract Database 5 keeps readable after the record changes.
@@ -892,7 +892,7 @@ Term terms: place, time zone, time zone rules, zone names, seam, week start, day
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-28` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -900,9 +900,9 @@ Term terms: place, time zone, time zone rules, zone names, seam, week start, day
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-28
 formal: verified — calendar-time.als + 6 twins (the static data model: State 1, Invariant 1.1, 1.2, Identity 2 and 3 checked on every place an admitted [Open] or [Change] leaves, Identity 4 through Invariant 1.1); calendar-time.tla + 6 twins (across steps: Invariant 2.1 and State 2 over [Open] and [Change]; Invariant 3.1 and Operation 28 through 36 as now moves an hour a step over a window crossing midnight in every zone; Invariant 4.1 and Operation 24 over one [Shift] call on a date range scaled to 2027 and 2028); the vote no of 2026-11-08 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 7; Operation 12 through 21, 2026-11-11
-last gate: 2026-11-27 — Final Critique 3, a delta round (diff base 668e1fe8, 108 labels, the reach of Final Critique 2's cures), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6266d296 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing foundational; the second triage's one foundational: Invariant 1.1 holds only while the time zone rules keep every name a place carries, and no rule asked the deployment to keep one, so a rules release that drops a name a place carries, such as a legacy link like US/Central, leaves a place that Day, Resolve and Show have no rule to answer, and two builds answer it differently; Capability requirement 5 now asks the deployment to keep every zone name a place has carried among the zone names; the settle's refining cures: the Conformance row for a shift by 1.5 days cites Operation 22 alone and a new row for a shift by 1 day from 9999-12-31 carries Operation 25, Operation 24 applies to a whole amount as Operation 25 does, Term whole amount no longer says no date lies from the landing day for an amount that is not whole, and Invariant 1.1 and Term time zone read the zone names; no model redraw: the models' amounts and zone names are unchanged); 2026-11-27 — Final Critique 2, a delta round (diff base 4b0bd47, 117 labels, the reach of the conversion to the bond shape, the reorganisation and the sweeps since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 668e1fe8 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing; the second triage's one foundational: Operation 25 answered out-of-range for a shifted date outside the date range, and the Execution Contract Refusal 1 order puts out-of-range ahead of invalid-amount, but an amount that is not whole has no shifted date, so a build that read Operation 25 over one, as shift(9999-12-31, 0, 0, 1.5, clamp) could, answered out-of-range where another answered invalid-amount; Operation 25 now applies to a whole amount, Term whole amount; the settle's refining cures: forward resolution and back resolution are the instant the clock shows as the wall time plus or minus the gap's length, since a skipped wall time has no matching instant to move; the Day Start entry says the first time the clock shows, as its Term does; the acronyms API, ISO, UTC, RFC, IANA and CLDR are spelled out at their first use; no model redraw: the model's amounts are whole numbers and its answers for them are unchanged); 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
+last gate: 2026-11-28 — Final Critique 4, a delta round (diff base 6266d296, 109 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at c641746a — foundational count 0 after the blind second triage, clean, one sample; Linus reported no finding and pressed three questions (Resolve with an invalid choice on a plain wall time against Operation 14 and 15, Shift with zero days across a month boundary against Invariant 4.1, Show for a date two days ahead against Operation 28 through 36), all held by Execution Contract Read 4, by construction and by the partition of the day counts; the blind second triage, one cold reader on Opus 5.5, re-traced all three and found four refining wording defects of its own, cured (Identity 4 names the place's own time zone beside the zone names, so a link and its target are two names whichever side is compared; Term whole amount no longer claims no date range is read for an amount that is not whole; Check 4.1 cites Operation 10 for the row that needs it; Term gap says wall times, which carry the date) and one rhetorical spelling ("codepoint" in the Time Zone entry); 2026-11-27 — Final Critique 3, a delta round (diff base 668e1fe8, 108 labels, the reach of Final Critique 2's cures), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6266d296 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing foundational; the second triage's one foundational: Invariant 1.1 holds only while the time zone rules keep every name a place carries, and no rule asked the deployment to keep one, so a rules release that drops a name a place carries, such as a legacy link like US/Central, leaves a place that Day, Resolve and Show have no rule to answer, and two builds answer it differently; Capability requirement 5 now asks the deployment to keep every zone name a place has carried among the zone names; the settle's refining cures: the Conformance row for a shift by 1.5 days cites Operation 22 alone and a new row for a shift by 1 day from 9999-12-31 carries Operation 25, Operation 24 applies to a whole amount as Operation 25 does, Term whole amount no longer says no date lies from the landing day for an amount that is not whole, and Invariant 1.1 and Term time zone read the zone names; no model redraw: the models' amounts and zone names are unchanged); 2026-11-27 — Final Critique 2, a delta round (diff base 4b0bd47, 117 labels, the reach of the conversion to the bond shape, the reorganisation and the sweeps since), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 668e1fe8 — foundational count 1 after the blind second triage, cured, not clean, no sample (Linus found nothing; the second triage's one foundational: Operation 25 answered out-of-range for a shifted date outside the date range, and the Execution Contract Refusal 1 order puts out-of-range ahead of invalid-amount, but an amount that is not whole has no shifted date, so a build that read Operation 25 over one, as shift(9999-12-31, 0, 0, 1.5, clamp) could, answered out-of-range where another answered invalid-amount; Operation 25 now applies to a whole amount, Term whole amount; the settle's refining cures: forward resolution and back resolution are the instant the clock shows as the wall time plus or minus the gap's length, since a skipped wall time has no matching instant to move; the Day Start entry says the first time the clock shows, as its Term does; the acronyms API, ISO, UTC, RFC, IANA and CLDR are spelled out at their first use; no model redraw: the model's amounts are whole numbers and its answers for them are unchanged); 2026-11-08 — Final Critique 1, frozen at 4b0bd47 — foundational count 0, clean, one sample
 
 open: none
 ```

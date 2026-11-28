@@ -261,7 +261,7 @@
   "audience": "common",
   "composed_by": [],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 4,
   "kind": "atom",
   "models": {
@@ -272,7 +272,7 @@
   "regulated_by": [],
   "security": false,
   "standards": [],
-  "status": "doing",
+  "status": "done \u2014 2026-11-28",
   "title": "Calendar Time"
  },
  "capability": {
