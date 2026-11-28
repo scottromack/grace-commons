@@ -437,7 +437,7 @@ Operation 34: IF owing pattern EQUALS blank THEN [List Owed] MUST answer invalid
 Operation 35: IF listed status IS NOT IN open, flagged, discharged THEN [List Owed] MUST answer invalid-request.
 Operation 36: [List Owed] MUST NOT write.
 Operation 39: [List Owed] MUST NOT answer an owed record that is not a matching owed record.
-Operation 40: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed (Term continuation key) THEN [List Owed] MUST answer invalid-request.
+Operation 40: IF continuation key DOES NOT EQUAL blank AND the continuation key is malformed THEN [List Owed] MUST answer invalid-request.
 ```
 
 The case space, and the rule that owns each case:
@@ -658,7 +658,7 @@ Check 2.1: An auditor MUST find no two owed records sharing an owing pattern and
 Check 3.1: An auditor MUST find a fulfilment id and a discharge instant on EVERY discharged owed record (State 3).
 Check 3.2: An auditor MUST find a flag instant and an actor reference on EVERY flagged owed record (State 4).
 Check 3.3: An auditor MUST find, for EVERY owed record, no count of committed versions entering discharged that EXCEEDS one (Invariant 3.1).
-Check 3.4: An auditor MUST find no owed record whose status IS IN open, flagged in a committed version later than a committed version in which the owed record's status EQUALS discharged (Invariant 3.2, State 7).
+Check 3.4: IF an owed record's status in a committed version EQUALS discharged THEN an auditor MUST find no later committed version in which the owed record's status IS IN open, flagged (Invariant 3.2, State 7).
 Check 4.1: An auditor MUST find no flag instant that PRECEDES the owed record's due-by instant (Invariant 4.1).
 Check 5.1: An auditor MUST find EVERY owed record of one committed version in EVERY later committed version (Invariant 5.1, State 9).
 ```

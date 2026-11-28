@@ -467,7 +467,7 @@ Composition note 2: A composing pattern MUST supply an opaque destroyed id that 
 Composition note 3: A composing pattern MUST NOT supply a destroyed id derived from a person's data.
 Composition note 4: A composing pattern MUST own the authority reference's meaning.
 Composition note 5: A composing pattern MUST call [Read Tombstone] for an id the destroyed pattern's database holds no record for.
-Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable (Execution Contract Read 1) THEN a composing pattern MUST NOT remove the destroyed record.
+Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable THEN a composing pattern MUST NOT remove the destroyed record (Execution Contract Read 1).
 Composition note 7: A composing pattern MUST own whether a duplicate answer permits removing the destroyed record.
 Composition note 8: A composing pattern MUST NOT supply an authority reference derived from a person's data.
 Composition note 9: A composing pattern MUST NOT supply an actor reference derived from a person's data, such as the account name of the person whose record was destroyed.

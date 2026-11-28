@@ -368,7 +368,7 @@ Term verification failure: material-mismatch | no-active-credential — the reas
 
 ```
 Operation 18: IF no effective-active credential EXISTS for the pair THEN [Verify] MUST answer no-active-credential.
-Operation 19: [Verify] MUST NOT distinguish the reason no effective-active credential EXISTS for the pair.
+Operation 19: [Verify] MUST NOT distinguish the reasons for which the pair has no effective-active credential.
 Operation 20: [Verify] MUST NOT check presented material BEFORE the window reading.
 Operation 21: A proceeding verify MUST check the presented material against the recorded verifier PER the credential type's check function.
 Operation 22: IF the check function answers no match THEN [Verify] MUST answer material-mismatch.
@@ -753,7 +753,7 @@ NOTE: the owners — a pattern that discloses a compromise (Non-goal 19, Composi
 ```
 Deleted: Composition note 1. Bonds Follow-up 1 owns it: a session opens after a verified answer as an action that follows [Verify], and the atom issues none (Non-goal 5).
 Deleted: Composition note 3. Bonds Key 3 owns it: what a revoked credential ends beyond itself is the on end of a key need that meets this atom's key offer, which the app calls in [Revoke]'s transaction.
-Composition note 4: A composing pattern that enrolls a party MUST call [Register] ONLY AFTER the party's record EXISTS.
+Composition note 4: A composing pattern that enrolls a party MUST call [Register] ONLY AFTER the write of the party's record.
 Composition note 5: A composing pattern that keeps an event log MUST append an event on EVERY admitted action.
 Composition note 6: A composing pattern that keeps an event log MUST append an event on EVERY refused action.
 Composition note 7: A composing pattern that keeps an event log MUST append an event on EVERY verify answer.

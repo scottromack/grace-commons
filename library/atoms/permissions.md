@@ -344,7 +344,7 @@ The case space, and the rule that owns each case:
 - **Invariant 9 — Timestamp ordering.**
   ```
   Invariant 9.1: IF revocation instant DOES NOT EQUAL blank THEN revocation instant MUST NOT PRECEDE grant instant.
-  Invariant 9.2: A grant MUST stand in active at an instant ONLY IF the grant is live at the instant (Term live at an instant).
+  Invariant 9.2: A grant MUST stand in active at an instant ONLY IF the grant is live at the instant.
   ```
 - **Invariant 11 — A pair is held once.**
   ```
@@ -488,7 +488,7 @@ Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcar
 Deleted: Composition note 1. Execution Contract Conformance 9 owns it: a deployment declares which apps it wired in.
 Composition note 2: A composing pattern MUST own the scope vocabulary.
 Composition note 3: A composing pattern MUST own the binding between the authenticated caller and the subject reference.
-Composition note 4: A composing pattern needing grantor attribution MUST attest [Grant] under the grantor's credential.
+Composition note 4: A composing pattern needing grantor attribution MUST attest [Grant] under the grantor's sign-in proof.
 Composition note 5: A composing pattern MUST own the sweep removing a departing subject's grants and the writing of the record of the removal (Deprovisioning 5).
 ```
 
@@ -565,7 +565,7 @@ Check 1.5: An auditor MUST find no grant whose revocation instant PRECEDES the g
 Check 1.6: An auditor MUST find no active grant carrying revocation instant (State 11).
 Check 2.1: An auditor MUST reconstruct the grants standing in active at a past instant from grant instant and revocation instant (Invariant 9.2).
 Check 3.1: An auditor MUST find denied for a pair no active grant matches (Operation 18).
-Check 3.2: An auditor MUST find no permitted answer for which no matching active grant EXISTS (Operation 17).
+Check 3.2: An auditor MUST find a matching active grant for EVERY permitted answer (Operation 17).
 Check 3.3: An auditor MUST find permitted for a pair an active grant matches (Invariant 7.1).
 Check 4.1: An auditor MUST find no grant whose status moved out of revoked (Invariant 2.2, Operation 10).
 Check 5.1: An auditor MUST find the grant set never shrinking across two readings (Invariant 10.1).

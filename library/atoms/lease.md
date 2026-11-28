@@ -32,7 +32,7 @@ A pattern that needs one writer at a time on a key, where a writer can stop with
 ### The leases
 
 ```
-Identity 1: The atom MUST identify a lease by the pair (key, holder).
+Identity 1: The atom MUST identify a lease by the pair of key and holder.
 Identity 2: The atom MUST compare keys by byte identity.
 Identity 3: The atom MUST NOT normalize a key.
 Identity 4: The atom MUST compare holders by byte identity.
@@ -212,7 +212,7 @@ Operation 1b: [Take] MUST answer EXACTLY ONE OF expires_at, unavailable, a [Take
 Operation 2: The [Take] of the waiter first in arrival order on the line MUST succeed at the first host reading at which the key is free.
 Operation 2c: The host MUST admit a waiter at a host reading only once EVERY [Take] arriving at the reading stands in the line.
 Operation 3: [Take] MUST NOT wait past the waiter's last reading.
-Operation 4: IF a waiter's bound DOES NOT EXCEED the host's reading AND another holder holds the key once the host has admitted at the reading (Operation 2c) THEN [Take] MUST answer unavailable.
+Operation 4: IF a waiter's bound DOES NOT EXCEED the host's reading AND another holder holds the key once the host has admitted at the reading THEN [Take] MUST answer unavailable (Operation 2c).
 Operation 5d: The host MUST NOT answer a [Take] that waited across a host restart.
 ```
 
@@ -231,10 +231,10 @@ try_take(key, holder, duration)
 
 ```
 Operation 6: [Try Take] MUST NOT wait.
-Operation 6a: IF the lease state EQUALS free AND no waiter stands THEN [Try Take] MUST answer taken(expires_at).
+Operation 6a: IF the lease state EQUALS free AND no waiter stands THEN [Try Take] MUST answer `taken(expires_at)`.
 Operation 6b: IF the lease state EQUALS held THEN [Try Take] MUST answer held.
 Operation 6c: IF the lease state EQUALS free AND a waiter stands THEN [Try Take] MUST answer held.
-Operation 7: [Try Take] MUST answer EXACTLY ONE OF taken(expires_at), held.
+Operation 7: [Try Take] MUST answer EXACTLY ONE OF `taken(expires_at)`, held.
 ```
 
 ### Remaining
@@ -299,7 +299,7 @@ Operation 13: [Release] MUST NOT reach another holder's grant.
   ```
 - **Invariant 5 — Standing is answered, never assumed.**
   ```
-  Invariant 5.1: [Remaining] and [Release] MUST answer against the (key, holder) pair as the host holds the pair.
+  Invariant 5.1: [Remaining] and [Release] MUST answer against the pair of key and holder as the host holds the pair.
   ```
 - **Invariant 6 — A fence instant carries its clock allowance.**
   ```
@@ -423,7 +423,7 @@ Composition note 7: A pattern MUST NOT invent a second deadline concept for a fe
 Composition note 8: A pattern that issues an unfenced write under a lease MUST state Sizing 1 through 9 as the pattern's own obligations.
 Composition note 8a: A pattern that issues an unfenced write under a lease MUST name which declared bound is each unit's bound.
 Composition note 9: IF a grant a process took on a key stands THEN the process MUST NOT take the key, Composition note 9a excepted.
-Composition note 9a: A process MAY take a key again, under a fresh holder value (Identity 6), after a take of the process answered no answer.
+Composition note 9a: A process MAY take a key again, under a fresh holder value, after a take of the process answered no answer (Identity 6).
 Composition note 10: A pattern that must prove a critical section was held MUST record the critical section.
 Composition note 11: A pattern that needs the term to cover the pattern's work MUST state that obligation by Sizing 4a.
 ```
@@ -515,6 +515,8 @@ Term bounds: duration (the term a take asks for); the clock allowance; the fence
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
+
+Term cited: separately, independently: Declarations.
 
 Term terms: fresh holder value, call in flight, unfenced write, key, holder, take, process, grant, waiter's bound, waiter's last reading, lease state, passed instant, host's reading, question, lease call, host, waiting term, remaining term, arrival term, arrival order, successful take, asking party, the holder, unit of work, unit's start, unit's bound, work's bound, budget, write margin, unanswered, start floor, unit's elapsed time, share term, work item, taken effect, holder's span, fence, fence ceiling, effect instant, clock allowance, fenced party, bare, fence margin, call pause bound ([Call Pause Bound]), live, expired, no answer, and expires_at ([Expiry Instant]).
 

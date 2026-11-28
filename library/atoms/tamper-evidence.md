@@ -398,7 +398,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
   ```
-  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence AND the original record sets of the two verifications EQUAL AND the record set matches of the two verifications EQUAL AND evidence EXISTS for the evidence id at both verifications AND no verification answering mechanism-verification-failure EXISTS among the two verifications AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
+  Invariant 7.1: IF no verification answering mechanism-verification-unavailable EXISTS among two verifications of one evidence AND the original record set of the first verification EQUALS the original record set of the second AND the record set match of the first verification EQUALS the record set match of the second AND evidence EXISTS for the evidence id at both verifications AND no verification answering mechanism-verification-failure EXISTS among the two verifications AND no anchor change EXISTS between the two verifications THEN the two verifications MUST answer alike.
   ```
 - **Invariant 8 — Mechanism opacity.**
   ```
@@ -443,7 +443,7 @@ Retention asymmetry 2: A composing pattern MUST own the cascading purge of an ev
 
 ```
 Verification caching 1: An implementation MAY cache a verification result ONLY IF the mechanism's verification function consults no external anchor.
-Verification caching 2: An implementation MAY answer a cached verification result ONLY IF the evidence id, the original record set and the record set match of the call EQUAL the evidence id, the original record set and the record set match the cached result was verified over AND evidence EXISTS for the evidence id.
+Verification caching 2: An implementation MAY answer a cached verification result ONLY IF the evidence id of the call EQUALS the evidence id the cached result was verified over AND the original record set of the call EQUALS the original record set the cached result was verified over AND the record set match of the call EQUALS the record set match the cached result was verified over AND evidence EXISTS for the evidence id.
 Verification caching 4: An implementation MUST NOT answer a cached verification result that answers not-known.
 Verification caching 5: An implementation MUST NOT answer a cached verification result that answers failed-verification carrying mechanism-verification-failure.
 ```
@@ -458,7 +458,7 @@ Capability requirement 4: The deployment MUST supply the cryptographic material 
 Capability requirement 5: The deployment MUST supply record set match at the seam.
 Capability requirement 6: The deployment MAY declare the string cap ONLY IF the string cap EXCEEDS 0 PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply, at the seam, a seal check that never answers held over an original record set that differs from the sealed record set (Invariant 3.2).
-Capability requirement 8: The deployment MUST supply, at the seam, a seal check that never answers failed over an original record set that does not differ from the sealed record set while no anchor change EXISTS for the recorded proof (Invariant 3.1).
+Capability requirement 8: The deployment MUST supply, at the seam, a seal check that never answers failed over an original record set that does not differ from the sealed record set while the recorded proof carries no anchor change (Invariant 3.1).
 Capability requirement 9: The deployment MUST supply, at the seam, a seal check that answers unavailable ONLY IF the mechanism's verification function consults the mechanism's own external anchor AND that anchor is unavailable at verify time.
 Capability requirement 10: The deployment MUST present the record set a record set reference names in one form at [Seal] and at [Verify].
 Capability requirement 11: The deployment MUST supply at the seam, for each [Seal] call, an evidence id no evidence has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
@@ -648,8 +648,8 @@ Check 1.2: An auditor MUST NOT need state beyond those fields, the originating r
 Check 1.3: An auditor MUST confirm that EVERY evidence field of an evidence EQUALS the evidence field in EVERY committed version of the evidence (Invariant 1.1, Execution Contract Generation acceptance 1, Execution Contract Database 5).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
 Check 2.2: An auditor MUST NOT need privileged access to the system to verify (Invariant 4.3).
-Check 3.1: IF the record set match of a verification over an original record set that differs from the sealed record set by one byte EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
-Check 3.2: IF the record set match of a verification over the sealed record set EQUALS yes AND the seal check of that verification DOES NOT EQUAL unavailable AND DOES NOT EQUAL faulted AND no anchor change EXISTS for the recorded proof THEN an auditor MUST confirm that the verification answers verified (Invariant 3.1, Operation 19).
+Check 3.1: IF the record set match of a verification over an original record set that differs from the sealed record set by one byte EQUALS yes AND the seal check of that verification IS NOT IN unavailable, faulted THEN an auditor MUST confirm that the verification answers failed-verification carrying proof-invalid (Invariant 2.1, Operation 18).
+Check 3.2: IF the record set match of a verification over the sealed record set EQUALS yes AND the seal check of that verification IS NOT IN unavailable, faulted AND no anchor change EXISTS for the recorded proof THEN an auditor MUST confirm that the verification answers verified (Invariant 3.1, Operation 19).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid, mechanism-verification-unavailable and mechanism-verification-failure as four distinct reasons (Operation 16, Operation 17, Operation 18, Operation 35).
 ```

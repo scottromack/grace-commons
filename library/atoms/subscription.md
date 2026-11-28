@@ -476,7 +476,7 @@ Non-goal 8: The atom MUST NOT guarantee a delivery count.
 Non-goal 9: The atom MUST NOT expire a subscription.
 Non-goal 10: A deployment needing a time-bounded subscription MUST compose a temporal-subscription pattern.
 Non-goal 11: The atom MUST NOT hold a subscriber's life cycle.
-Non-goal 12: A deployment removing an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded (Lost ledger 2); an active subscription whose id is lost stays active (Lost ledger 3).
+Non-goal 12: A deployment removing an actor MUST cancel, one by one, each of the actor's active subscriptions whose subscription id the composing pattern recorded, an active subscription whose id is lost staying active (Lost ledger 2, Lost ledger 3).
 Non-goal 13: The atom MUST NOT record who called [Subscribe].
 Deleted: Non-goal 14. Non-goal 13 owns it: the atom attributes no subscription to an actor, and which pattern attests one is the app's choice.
 Non-goal 15: The atom MUST NOT gate [Cancel].
@@ -588,6 +588,8 @@ Term bounds: id entropy (the floor a subscription id's random material is drawn 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Term cited: independently: Declarations.
 
 Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, active set, active at an instant, pair, business caller, committed version, string cap, string input, audience cap, audience size.
 

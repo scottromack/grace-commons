@@ -48,7 +48,7 @@ Identity 2: The atom MUST assign the token material the seam supplies as the inv
 Identity 3: The atom MUST NOT generate an invitation token.
 Identity 4: The atom MUST NOT change an invitation's token digest.
 Identity 5: Two invitations MUST NOT share a token digest.
-Identity 6: IF the database refuses an [Initiate] write for a token digest the database holds (Capability requirement 6) THEN [Initiate] MUST answer storage-failure.
+Identity 6: IF the database refuses an [Initiate] write for a token digest the database holds THEN [Initiate] MUST answer storage-failure (Capability requirement 6).
 Identity 7: The atom MUST NOT identify an invitation by a property.
 Identity 9: The atom MUST NOT normalize a reference beyond the canonical form the seam gives the reference (Execution Contract Logic confinement 13).
 Identity 10: The atom MUST NOT confirm that an inviter reference names a known actor.
@@ -280,7 +280,7 @@ Operation 18: A resolving write MUST NOT name expired as a stored terminal.
 Operation 20: IF the invitation reads lapsed THEN a resolving write MUST answer expired.
 Operation 35: IF the database refuses the write THEN an action MUST answer storage-failure.
 Operation 40: The atom MUST NOT offer an expire action.
-Operation 52: [Initiate], [Accept], [Decline] AND [Revoke] MUST append one invitation events record through the atom's journal need for EVERY admitted call.
+Operation 52: [Initiate], [Accept], [Decline] and [Revoke] MUST append one invitation events record through the atom's journal need for EVERY admitted call.
 ```
 
 NOTE: watch the cap's refusal (Operation 49, Operation 50, Operation 51).
@@ -669,7 +669,7 @@ Non-goal 10: A deployment needing an accepting identity matched to an invitee MU
 Non-goal 11: The atom MUST NOT offer a second acceptance of one invitation.
 Non-goal 12: The atom MUST NOT record who declined.
 Non-goal 13: The atom MUST NOT record a transition history in the invitation record (Operation 52 appends each admitted write to the journal, not to the invitation record).
-Non-goal 14: A deployment needing the full transition history MUST read the admitted write events the atom appends through the atom's journal need (Operation 52) and the refused action events a composing pattern appends (Composition note 5).
+Non-goal 14: A deployment needing the full transition history MUST read the admitted write events the atom appends through the atom's journal need and the refused action events a composing pattern appends (Operation 52, Composition note 5).
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
 Deleted: Non-goal 16. Non-goal 15 owns it: the atom binds no acting reference to an actor, and which pattern attests one is the app's choice.
 Non-goal 17: The atom MUST NOT verify an accepting party's real-world credentials.

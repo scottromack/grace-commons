@@ -662,7 +662,7 @@ Projection: invalid-query
   ```
   Invariant 8.1: EVERY entry's event type MUST stand in the event types.
   Invariant 8.2: A genesis entry's event type MUST stand in the genesis types.
-  Invariant 8.3: A non-genesis entry's event type MUST NOT stand in the genesis types.
+  Invariant 8.3: The event type of an entry other than the genesis entry MUST NOT stand in the genesis types.
   Invariant 8.4: An archived chain's last entry's event type MUST stand at archived.
   ```
 - **Invariant 10 — Chain durability over this atom's own surface.**
@@ -759,7 +759,7 @@ Term offer key: key chain id; carried by chains; calls Read.
 ## Left to others
 
 ```
-Non-goal 1: The atom MUST NOT confirm that a custodian reference names a credentialed party.
+Non-goal 1: The atom MUST NOT confirm that a custodian reference names a verified party.
 Deleted: Non-goal 2. Non-goal 1 owns it: the atom confirms no custodian, and which pattern attests an actor is the app's choice.
 Non-goal 3: The atom MUST NOT decide who may call an action.
 Deleted: Non-goal 4. Non-goal 3 owns it: the atom decides no caller's authority; the app's permission does.

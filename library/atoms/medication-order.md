@@ -473,7 +473,7 @@ Operation 12: An order action MUST answer not-known ONLY IF order id DOES NOT EQ
 Operation 13: IF the order's state EQUALS on-hold THEN an order action other than [Hold] and [Reinstate] MUST answer on-hold.
 Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
 Operation 62: IF the database refuses the write THEN an action MUST answer storage-failure.
-Operation 88: [Order], [Amend], [Verify], [Hold], [Reinstate], [Dispense], [Administer], [Complete], [Cancel] AND [Discontinue] MUST append one order events record through the atom's journal need for EVERY admitted call.
+Operation 88: [Order], [Amend], [Verify], [Hold], [Reinstate], [Dispense], [Administer], [Complete], [Cancel] and [Discontinue] MUST append one order events record through the atom's journal need for EVERY admitted call.
 Operation 90: An order events record an admitted hold appends MUST carry the order id, prior state, holding actor, hold reason and hold instant the hold recorded.
 Operation 91: An order events record an admitted reinstate appends MUST carry the order id, reinstating actor and reinstatement instant the reinstate recorded.
 Operation 64: A refused action MUST leave the order as the call found the order.

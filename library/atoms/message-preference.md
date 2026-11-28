@@ -823,7 +823,7 @@ External check 3: An auditor needing the fan-out-on-no-record policy, or the def
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
-Term cited: preference id, actor id: Declarations.
+Term cited: preference id, actor id, independently: Declarations.
 
 Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the database; a preference record; a status; a supersession; a write; a rejection; the recorded timestamps; a database name.
 

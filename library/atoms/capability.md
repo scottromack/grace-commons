@@ -395,7 +395,7 @@ Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, a redemption failure
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF the token digest of the call names no capability THEN [Redeem] MUST answer not-known.
-Operation 75: IF the capability token is malformed OR EXCEEDS the maximum length THEN [Redeem] MUST answer not-known (Execution Contract Input 3).
+Operation 75: IF the capability token is malformed OR the capability token EXCEEDS the maximum length THEN [Redeem] MUST answer not-known (Execution Contract Input 3).
 Operation 24: IF the capability's status EQUALS redeemed THEN [Redeem] MUST answer exhausted.
 Operation 25: IF the capability's status EQUALS revoked THEN [Redeem] MUST answer revoked.
 Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
@@ -440,7 +440,7 @@ revoke(capability_token, revoked_by_ref, reason)
 
 ```
 Operation 35: IF the token digest of the call names no capability THEN [Revoke] MUST answer not-known.
-Operation 76: IF the capability token is malformed OR EXCEEDS the maximum length THEN [Revoke] MUST answer not-known (Execution Contract Input 3).
+Operation 76: IF the capability token is malformed OR the capability token EXCEEDS the maximum length THEN [Revoke] MUST answer not-known (Execution Contract Input 3).
 Operation 36: IF the capability's status EQUALS redeemed THEN [Revoke] MUST answer already-terminal.
 Operation 37: IF the capability's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
 Operation 38: IF the capability is lapsed THEN [Revoke] MUST answer already-terminal.
@@ -500,7 +500,7 @@ Operation 50: [Read] MUST answer EVERY capability the filter matches.
 Operation 51: [Read] MUST carry the effective status on EVERY answered capability.
 Operation 52: [Read] MUST NOT write.
 Operation 74: [Read] MUST carry the capability id on EVERY answered capability.
-Operation 68: IF a filter names a field whose value EQUALS blank OR EXCEEDS the maximum length THEN [Read] MUST answer no capability.
+Operation 68: IF a filter names a field whose value EQUALS blank OR a filter names a field whose value EXCEEDS the maximum length THEN [Read] MUST answer no capability.
 Operation 77: IF a filter names a field other than capability id, capability token and allocator reference THEN [Read] MUST answer no capability.
 Operation 78: IF a filter names two values for one field THEN [Read] MUST answer no capability.
 ```

@@ -83,8 +83,8 @@ Deleted: List 7. Non-goal 1 owns it: the atom tells no one who may change a list
 ### Every action
 
 ```
-Operation 1: IF the list id EQUALS blank THEN [Rename List] AND [Delete List] MUST answer invalid-id.
-Operation 2: IF the name EQUALS blank THEN [Make List] AND [Rename List] MUST answer invalid-name.
+Operation 1: IF the list id EQUALS blank THEN [Rename List] and [Delete List] MUST answer invalid-id.
+Operation 2: IF the name EQUALS blank THEN [Make List] and [Rename List] MUST answer invalid-name.
 Operation 3: IF the author EQUALS blank THEN [Make List] MUST answer invalid-author.
 ```
 

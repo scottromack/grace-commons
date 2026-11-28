@@ -51,7 +51,7 @@ Term closing event id: closing_event_id — the event id of a closing record. Wh
   findings 12: The register MUST hold one record per standing condition of an instance finding.
   findings 13: A reader MUST NOT rely on an order across act keys.
   findings 14: The deployment MUST persist a finding naming a kind the bindings table does not serve for at least the instance's longest retention period.
-  findings 15: The register MUST open no second record for an act finding on the act finding's deduplication key.
+  findings 15: The register MUST open no second record for an act finding on the key the act finding deduplicates on.
   NOTE: until the register moves onto an atom of its own (`roadmap.md` states where it stands), the deployment persists the register (findings 1, findings 2 and findings 14) and this pattern states its records (findings 3 through 13); the debt is that no atom owns either yet, and the atom, when it lands, takes both.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span. An act finding records a sighting; whether the act still stands escalated is [Read Invocation]'s answer, not the register's.
@@ -89,24 +89,24 @@ resolve(kind, act_key, invocation_id, intent_event_id, actor_ref, credential, di
 The human-attested close: an operator closes an open intent the sweep cannot — under `service_identity = none`, or for an escalated act the operator has investigated — supplying the disposition the operator's own run of the adopter's act probe supports. An operator corrects an outcome an operator wrote by an outcome naming it in supersedes (resolve 36).
 
 ```
-resolve 1: The operator MUST supply disposition as EXACTLY ONE OF outcome(outcome action reference, outcome data), abandoned(cause), escalated(candidates).
+resolve 1: The operator MUST supply disposition as EXACTLY ONE OF `outcome(outcome action reference, outcome data)`, `abandoned(cause)`, `escalated(candidates)`.
 resolve 2: The substrate MUST validate the operator's credential at the closing record_action and nowhere earlier.
 resolve 3: A credential failure MUST land invalid-credential with the critical section released and nothing appended.
-resolve 4: [Resolve] MUST take the critical section: take((kind, act key), operator run id, sweep lease).
-resolve 4a: IF caller kind EQUALS service THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 6: A failed take, a storage-failure and no answer included (Execution Contract Constituent failure 1, Bonds guard 2), MUST land section-unavailable.
+resolve 4: [Resolve] MUST take the critical section: `take((kind, act key), operator run id, sweep lease)`.
+resolve 4a: IF caller kind EQUALS service THEN [Resolve] MUST land `invalid-request(malformed)` with no take and nothing appended.
+resolve 6: A failed take, a storage-failure and no answer included, MUST land section-unavailable (Execution Contract Constituent failure 1, Bonds guard 2).
 resolve 7: WHEN a remaining [Resolve] queried DOES NOT EXCEED write floor:
     resolve 7a: [Resolve] MUST NOT write.
     resolve 7b: [Resolve] MUST release.
     resolve 7c: [Resolve] MUST land section-unavailable.
-resolve 38: [Resolve] MUST NOT re-read BEFORE querying remaining((kind, act key), operator run id).
-resolve 39: [Resolve] MUST NOT write the closing record of resolve 21 BEFORE querying remaining((kind, act key), operator run id) again, behind the re-read of resolve 8, for the closing record.
+resolve 38: [Resolve] MUST NOT re-read BEFORE querying `remaining((kind, act key), operator run id)`.
+resolve 39: [Resolve] MUST NOT write the closing record of resolve 21 BEFORE querying `remaining((kind, act key), operator run id)` again, behind the re-read of resolve 8, for the closing record.
 resolve 8: [Resolve] MUST re-read the journal from sequence high water for the act key under the critical section.
 NOTE: watch rule inheritance.
-resolve 9: IF an outcome or a refusal names the invocation id THEN [Resolve] MUST land already-accounted(closing event id), an outcome carrying a resolving actor excepted.
+resolve 9: IF an outcome or a refusal names the invocation id THEN [Resolve] MUST land `already-accounted(closing event id)`, an outcome carrying a resolving actor excepted.
 resolve 10: An intent event id read_record answers not-known for MUST land not-known, an intent whose payload the substrate reports Purged excepted.
-resolve 11: [Resolve] MUST read the intent by read_record(intent event id).
-resolve 12: An intent whose payload the substrate reports Purged MUST land invalid-request(purged).
+resolve 11: [Resolve] MUST read the intent by `read_record(intent event id)`.
+resolve 12: An intent whose payload the substrate reports Purged MUST land `invalid-request(purged)`.
 resolve 13: EVERY closing [Resolve] writes over a standing closing MUST carry supersedes naming that closing's event id.
 resolve 14: WHEN no closing stands:
     resolve 14a: [Resolve] MAY write any disposition as the act's closing.
@@ -114,31 +114,31 @@ resolve 15: WHEN an escalated record stands:
     resolve 15a: [Resolve] MUST name the record in supersedes for any disposition.
 resolve 16: WHEN an abandoned record stands:
     resolve 16a: [Resolve] MAY supersede the record ONLY IF disposition EQUALS outcome.
-    resolve 16b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land invalid-request(already-abandoned).
+    resolve 16b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land `invalid-request(already-abandoned)`.
 resolve 36: WHEN an outcome carrying a resolving actor stands:
     resolve 36a: [Resolve] MAY supersede the outcome ONLY IF disposition EQUALS outcome.
-    resolve 36b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land already-accounted(closing event id).
-resolve 18: An abandoned disposition for an in-flight intent MUST land invalid-request(too-young).
+    resolve 36b: IF disposition DOES NOT EQUAL outcome THEN [Resolve] MUST land `already-accounted(closing event id)`.
+resolve 18: An abandoned disposition for an in-flight intent MUST land `invalid-request(too-young)`.
 resolve 19: The too-young guard MUST compare against now injected at the operator's seam.
 resolve 32: [Resolve] MUST admit the operator's abandoned disposition for an elapsed intent as the operator's attestation that the database stood quiet for as long as the operator's judgment requires.
 resolve 21: [Resolve] MUST write the closing record under the operator's own credential with recovery set to true, resolving actor set to actor reference, acting actor reference set to the intent's actor reference, and no recovery_intended.
 resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the resolution position of resolve 24 through 29.
-resolve 24: After invalid-request(step-4), [Resolve] MUST read the record back by invocation id and return success with a hard alert.
-resolve 25: [Resolve] MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
-resolve 26: recording-failure(step-2) and a lost reply (a recording-failure(step-3) included) MUST land recording-failure(resolution), a lost reply whose read-back finds the record excepted.
+resolve 24: After `invalid-request(step-4)`, [Resolve] MUST read the record back by invocation id and return success with a hard alert.
+resolve 25: [Resolve] MUST NOT retry after `invalid-request(step-3)` or `invalid-request(step-4)`.
+resolve 26: `recording-failure(step-2)` and a lost reply, a `recording-failure(step-3)` included, MUST land `recording-failure(resolution)`, a lost reply whose read-back finds the record excepted.
 resolve 27: invalid-request MUST carry the cause: malformed, candidates-over-cap, purged, already-abandoned, too-young.
 resolve 27a: IF the grounds of more than one cause of resolve 27 apply to one call THEN [Resolve] MUST carry the cause resolve 27 lists first.
-resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-request(candidates-over-cap).
-resolve 29: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write MUST land recording-failure(resolution).
-resolve 40: [Resolve] MUST surface a hard alert for an invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write.
-resolve 30: A disposition outside the three forms resolve 1 names MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 31: A disposition whose outcome action reference IS NOT IN the kind's enumerated outcome refs MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 33: IF kind IS NOT IN the bindings table THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 33a: IF act key EQUALS blank OR invocation id EQUALS blank OR intent event id EQUALS blank THEN [Resolve] MUST land invalid-request(malformed) with no take and nothing appended.
-resolve 33b: [Resolve] MUST NOT answer already-accounted or not-known for a call that resolve 4a, resolve 30, resolve 31, resolve 33 or resolve 33a lands as invalid-request(malformed).
+resolve 28: A candidate list exceeding intent candidates cap MUST land `invalid-request(candidates-over-cap)`.
+resolve 29: An `invalid-request(step-1)`, `invalid-request(step-2)` or `invalid-request(step-3)` from the closing write MUST land `recording-failure(resolution)`.
+resolve 40: [Resolve] MUST surface a hard alert for an `invalid-request(step-1)`, `invalid-request(step-2)` or `invalid-request(step-3)` from the closing write.
+resolve 30: A disposition outside the three forms resolve 1 names MUST land `invalid-request(malformed)` with no take and nothing appended.
+resolve 31: A disposition whose outcome action reference IS NOT IN the kind's enumerated outcome refs MUST land `invalid-request(malformed)` with no take and nothing appended.
+resolve 33: IF kind IS NOT IN the bindings table THEN [Resolve] MUST land `invalid-request(malformed)` with no take and nothing appended.
+resolve 33a: IF act key EQUALS blank OR invocation id EQUALS blank OR intent event id EQUALS blank THEN [Resolve] MUST land `invalid-request(malformed)` with no take and nothing appended.
+resolve 33b: [Resolve] MUST NOT answer already-accounted or not-known for a call that resolve 4a, resolve 30, resolve 31, resolve 33 or resolve 33a lands as `invalid-request(malformed)`.
 NOTE: watch the blank id (resolve 34).
-resolve 34: An intent event id naming no `<kind>.intended` record of the act key carrying invocation id MUST land not-known, an intent whose payload the substrate reports Purged and a blank act key, invocation id or intent event id (resolve 33a) excepted.
+resolve 34: An intent event id naming no `<kind>.intended` record of the act key carrying invocation id MUST land not-known, an intent whose payload the substrate reports Purged and a blank act key, invocation id or intent event id excepted (resolve 33a).
 resolve 35: [Resolve] MUST return closing event id for the closing the write lands.
 resolve 37: IF [Resolve] holds the critical section AND [Resolve] lands a refusal THEN [Resolve] MUST release.
 ```
@@ -192,13 +192,13 @@ Term operator run id: injected at the operator's seam once per [Resolve] call, f
 ### What the substrate supplies
 
 ```
-Capability requirement 9: A read_record failing to reach the journal MUST land recording-failure(resolution) at [Resolve].
+Capability requirement 9: A read_record failing to reach the journal MUST land `recording-failure(resolution)` at [Resolve].
 Capability requirement 10: A read_record failing to reach the journal MUST NOT answer not-known.
 ```
 ```
-Capability requirement 18: A read_record that answers state-unavailable MUST land recording-failure(resolution) at [Resolve] (Execution Contract Read 1).
+Capability requirement 18: A read_record that answers state-unavailable MUST land `recording-failure(resolution)` at [Resolve] (Execution Contract Read 1).
 NOTE: watch the constituent's failed read.
-Capability requirement 19: A read_record at [Resolve] that returns nothing within read bound MUST land recording-failure(resolution).
+Capability requirement 19: A read_record at [Resolve] that returns nothing within read bound MUST land `recording-failure(resolution)`.
 ```
 ### Bounds the deployment declares
 
@@ -256,7 +256,7 @@ External check 1: An auditor MUST clear from external evidence that a declared o
 ```
 ```
 External check 5: WHEN service identity EQUALS none:
-    External check 5a: An auditor MUST clear from external evidence that the aged intents the register carries as closure-at-risk (Check 3.5) were acted on through [Resolve].
+    External check 5a: An auditor MUST clear from external evidence that an operator acted through [Resolve] on the aged intents the register carries as closure-at-risk (Check 3.5).
 ```
 ### Vocabulary
 

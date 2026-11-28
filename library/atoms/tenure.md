@@ -520,7 +520,7 @@ Projection: tenures
   ```
 - **Invariant 2 — One person holds one role in one thing once on any day, a withdrawn tenure excepted.**
   ```
-  Invariant 2.1: Two tenures sharing a person reference, a role AND an item reference MUST NOT overlap, a withdrawn tenure excepted.
+  Invariant 2.1: Two tenures sharing a person reference, a role and an item reference MUST NOT overlap, a withdrawn tenure excepted.
   ```
 - **Invariant 3 — A tenure keeps its id, its person and its thing.**
   ```

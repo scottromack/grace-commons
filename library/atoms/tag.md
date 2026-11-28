@@ -297,7 +297,7 @@ tags_on(item_reference)
 
 ```
 Operation 13: [Tags On] MUST answer EVERY tag a tagging carrying the item reference names, in code point order of tag name (Execution Contract Logic confinement 10).
-Operation 19: IF the item reference is malformed (Execution Contract Query 5) THEN [Tags On] MUST answer an empty list in place of Execution Contract Query 5's refusal.
+Operation 19: IF the item reference is malformed THEN [Tags On] MUST answer an empty list in place of Execution Contract Query 5's refusal (Execution Contract Query 5).
 ```
 
 The case space, and the rule that owns each case:

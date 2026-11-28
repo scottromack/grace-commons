@@ -184,7 +184,7 @@ Operation 30: A refused action MUST leave the commitment as the call found the c
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-Operation 43: [Place Hold], [Confirm], [Release] AND [Expire] MUST append one commitment events record through the atom's journal need for EVERY admitted call.
+Operation 43: [Place Hold], [Confirm], [Release] and [Expire] MUST append one commitment events record through the atom's journal need for EVERY admitted call.
 ```
 
 NOTE: watch the state a refusal leaves (Operation 30).
@@ -718,7 +718,7 @@ External check 1: A deployment needing the resource of a confirmed commitment re
 External check 2: A deployment needing the transitions of one commitment ordered MUST read the commitment events the atom appends through the atom's journal need (Operation 43).
 External check 3: A deployment needing a rejection observed MUST read the composing pattern that records a refused action (Non-goal 23).
 External check 4: A deployment needing a requester bound to an actor MUST read the composing attestation pattern (Non-goal 14).
-External check 5: A deployment needing the reclamation lag bounded MUST read the declared reclamation window AND find no reclamation lag of a commitment no [Expire] call answering storage-failure EXISTS for that EXCEEDS the reclamation window (Capability requirement 8, Capability requirement 12).
+External check 5: A deployment needing the reclamation lag bounded MUST find, against the declared reclamation window, no reclamation lag that EXCEEDS the reclamation window for a commitment with no [Expire] call answering storage-failure (Capability requirement 8, Capability requirement 12).
 ```
 
 ---

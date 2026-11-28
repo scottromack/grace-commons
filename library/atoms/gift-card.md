@@ -65,8 +65,8 @@ Projection: card_code
 
 ```
 Identity 2: The atom MUST find a gift card by the card code digest of the card code presented.
-Identity 3: The card code MUST serve as the bearer credential whose card code digest [Check Balance] accepts.
-Identity 4: The card code MUST serve as the bearer credential whose card code digest [Spend] accepts.
+Identity 3: The card code MUST serve as the bearer secret whose card code digest [Check Balance] accepts.
+Identity 4: The card code MUST serve as the bearer secret whose card code digest [Spend] accepts.
 Identity 6: The atom MUST NOT reuse a card code digest.
 Identity 7: The atom MUST NOT normalize a card code.
 Identity 8: The atom MUST compare two card code digests code point for code point.
@@ -389,7 +389,7 @@ Capability requirement 1: The deployment MUST supply at the seam a card id no gi
 Capability requirement 2: The deployment MUST supply at the seam a card code no gift card of the instance has carried PER Execution Contract Logic confinement 3.
 Capability requirement 3: The deployment MUST draw a card code from a cryptographically secure random source.
 Capability requirement 4: The code entropy MUST NOT EXCEED the card code's random material.
-Capability requirement 5: The deployment MUST supply the accepted currencies, each a currency whose code gives a minor unit (Term minor unit).
+Capability requirement 5: The deployment MUST supply the accepted currencies, each a currency whose code gives a minor unit.
 Capability requirement 6: The deployment MAY supply the card cap for a currency ONLY IF the card cap IS IN the positive amounts PER Execution Contract Input 2.
 Capability requirement 7: The deployment MUST supply the database PER Execution Contract Database 1 through 7, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 8: The deployment MUST NOT normalize a card code at the seam.

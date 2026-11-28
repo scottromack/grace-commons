@@ -858,7 +858,7 @@ Check 2.3: An auditor MUST find no session with two committed versions whose sta
 Check 2.4: An auditor MUST reproduce the effective status from the stored status, expiry instant and the read-time clock (Invariant 12.4).
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Expiry 5).
 Check 4.1: An auditor MUST find a revocation instant on EVERY revoked session (Invariant 8.1).
-Check 4.2: IF a revoked session carries a revoked by reference OR a revocation reason THEN an auditor MUST find on the session a revoked by reference that DOES NOT EQUAL blank AND a revocation reason that DOES NOT EQUAL blank (Invariant 8.2, Invariant 8.3, State 17).
+Check 4.2: IF a revoked session carries a revoked by reference OR a revocation reason THEN an auditor MUST find on the session a revoked by reference and a revocation reason that each DOES NOT EQUAL blank (Invariant 8.2, Invariant 8.3, State 17).
 Check 6.1: An auditor MUST find no session leaving revoked across two committed versions of the session (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no two sessions sharing a session id (Invariant 7.3, State 15).
 ```

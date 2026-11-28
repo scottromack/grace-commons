@@ -514,7 +514,7 @@ String 9: [Pending For] MUST read a blank recipient reference as matching nothin
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 4: The deployment MUST supply the notification records PER Execution Contract Database 1 through 5, Execution Contract Read 1 through 4 and Execution Contract Refusal 1.
 Capability requirement 5: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance, a restart included (Execution Contract Logic confinement 17); this rule stands in place of the change Execution Contract Input 2 lets a cap take at a later start.
+Capability requirement 6: The deployment MUST NOT change the string cap for the life of the instance, a restart included, this rule standing in place of the change Execution Contract Input 2 lets a cap take at a later start (Execution Contract Logic confinement 17).
 Capability requirement 7: The deployment MUST declare which composing patterns the deployment wired in PER Execution Contract Conformance 9.
 Capability requirement 8: The deployment MUST declare the deployment's fail-versus-expire policy, naming the delivery outcomes a composing pattern calls [Fail] for and the delivery outcomes a composing pattern calls [Expire] for, and naming no delivery outcome for both (Execution Contract Logic confinement 15, Execution Contract Logic confinement 17).
 Capability requirement 9: The deployment MUST supply at the seam a notification id no notification has carried PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
@@ -587,7 +587,8 @@ Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
 Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with an idempotency pattern.
 Composition note 6: A composing pattern MUST own a payload's retention.
-Composition note 8: A composing pattern MUST call [Fail] for each delivery outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each delivery outcome the declared policy names for expiring, and MUST NOT call either for a delivery outcome the declared policy names for neither, which leaves the notification pending (State 1, Operation 14, Capability requirement 8).
+Composition note 8: A composing pattern MUST call [Fail] for each delivery outcome the deployment's declared fail-versus-expire policy names for failing, and [Expire] for each delivery outcome the declared policy names for expiring (State 1, Operation 14, Capability requirement 8).
+Composition note 9: A composing pattern MUST NOT call [Fail] or [Expire] for a delivery outcome the declared fail-versus-expire policy names for neither, which leaves the notification pending (State 1, Operation 14, Capability requirement 8).
 ```
 
 NOTE: composing patterns — a fanout pattern and a preference-aware fanout pattern.

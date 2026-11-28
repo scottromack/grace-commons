@@ -170,7 +170,7 @@ move_item(list_id, item_id, place)
 
 ```
 Operation 3: IF the item holds no entry in the sequence THEN [Move Item] MUST answer unknown-item.
-Operation 4: IF the place IS NOT a whole number from the first place to the last THEN [Move Item] MUST answer invalid-place.
+Operation 4: IF the place IS NOT IN the whole numbers from the first place to the last THEN [Move Item] MUST answer invalid-place.
 Operation 10: [Move Item] MUST answer the entry's new place.
 Operation 12: IF the place EQUALS the entry's place THEN [Move Item] MUST NOT write.
 ```

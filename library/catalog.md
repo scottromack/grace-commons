@@ -26,7 +26,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key task id; key actor id; journal assignment events.
 
-**[Calendar Time](./atoms/calendar-time.md)** (923 lines). Calendar Time says what a date and a time of day mean in a place.
+**[Calendar Time](./atoms/calendar-time.md)** (927 lines). Calendar Time says what a date and a time of day mean in a place.
 
 - Mints place id. Offers key place id.
 
@@ -58,7 +58,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints standing id. Offers key standing id.
 
-**[Consent](./atoms/consent.md)** (874 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
+**[Consent](./atoms/consent.md)** (875 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
@@ -98,7 +98,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Needs key list id; key actor id; journal invitation events. Offers follow-up Accept.
 
-**[Lease](./atoms/lease.md)** (561 lines). A **lease** lets one worker have a thing to itself until a set time.
+**[Lease](./atoms/lease.md)** (563 lines). A **lease** lets one worker have a thing to itself until a set time.
 
 - Offers guard opaque.
 
@@ -126,7 +126,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - No bond lines yet.
 
-**[Notification](./atoms/notification.md)** (765 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
+**[Notification](./atoms/notification.md)** (766 lines). Notification records whether a single piece of information was accepted by the transport for a single recipient.
 
 - Mints notification id. Needs key opaque. Offers key notification id.
 
@@ -198,7 +198,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints workflow id. Needs key actor id; journal workflow events. Offers key workflow id.
 
-**[Subscription](./atoms/subscription.md)** (650 lines). Subscription records who wants to be told about what.
+**[Subscription](./atoms/subscription.md)** (652 lines). Subscription records who wants to be told about what.
 
 - Mints subscription id. Offers key subscription id.
 
@@ -214,7 +214,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints evidence id. Offers key evidence id.
 
-**[Task](./atoms/task.md)** (775 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
+**[Task](./atoms/task.md)** (777 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 

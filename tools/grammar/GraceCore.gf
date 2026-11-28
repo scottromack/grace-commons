@@ -6,7 +6,7 @@ abstract GraceCore = {
   flags startcat = Rule ;
   cat
     Rule ; Subj ; Cond ; Clause ; [Clause]{2} ; Obl ; Modal ; V ; Op ;
-    Obj ; Atom ; [Atom]{2} ; W ; [W]{1} ; Tail ; [Tail]{0} ;
+    Obj ; Atom ; [Atom]{2} ; W ; [W]{1} ; Tail ; [Tail]{0} ; Pred ; [Pred]{2} ; Prep ;
     CW ; [CW]{0} ; Num ; Rest ;
   fun
     -- the statement: [IF condition THEN] subject modal act object tails
@@ -28,6 +28,8 @@ abstract GraceCore = {
     CExists : Atom -> Clause ;
     -- the absence form with `for` and the identifier (section 6, Term absence form)
     CExistsFor : Atom -> Atom -> Clause ;
+    -- the absence form with any other preposition phrase after EXISTS (GRACE-lang v0.76, Term absence form)
+    CExistsPrep : Atom -> Prep -> Atom -> Clause ;
     CPred   : Atom -> Clause ;          -- a predicate the spec's own verbs carry (normalize.py, the condition)
     -- the object: none, a phrase, phrases joined by AND or OR, or a comparison the object states
     ONone : Obj ;
@@ -36,8 +38,13 @@ abstract GraceCore = {
     OOr   : [Atom] -> Obj ;
     OCmp  : Atom -> Op -> Atom -> Obj ;
     OGap  : Atom -> Op -> Obj ;          -- "a cap that X EXCEEDS": the compared side is the object
+    -- one subject's predicates joined by AND, one obligation (GRACE-lang v0.76, Rule shape 3):
+    -- "a consent id that DOES NOT EQUAL blank AND DOES NOT EXCEED the string cap"
+    OCmpAnd : Atom -> [Pred] -> Obj ;
+    MkPred  : Op -> Atom -> Pred ;
     -- the tails (section 7, Term tail; ONLY UNDER provisional, section 18) and the closing citation
     TPer       : Atom -> Tail ;
+    TPerAnd    : [Atom] -> Tail ;         -- a list of citations, one obligation (GRACE-lang v0.76, Rule shape 3)
     TOnlyIf    : Cond -> Tail ;
     TOnlyAfter : Atom -> Tail ;
     TAfter     : Atom -> Tail ;          -- sugar for ONLY AFTER (Timing 2, Timing 3)
@@ -55,5 +62,8 @@ abstract GraceCore = {
     WInt   : Int -> W ;
     -- the closed vocabulary, GRACE-lang section 13 and 14
     Must, MustNot, May : Modal ;
+    -- the prepositions an absence form's phrase may open with; `for` is CExistsFor's
+    PAmong, PUnder, PBetween, POver, PIn, POn, PAt, PBy, PWith, PFrom, PWithin, PInside, POutside, PAcross,
+      PThrough, PThroughout, PBeyond, PAgainst, PBeside, PAlong, PAround, PNear, PPast, PUpon, PInto : Prep ;
     Equals, NotEquals, Exceeds, NotExceeds, Precedes, NotPrecedes, IsIn, NotIn : Op ;
 }

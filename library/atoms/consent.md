@@ -774,7 +774,8 @@ Check 2.3: An auditor MUST find EVERY consent record's grant fields unchanged ac
 Check 3.1: An auditor MUST find no revoked consent record whose revoking actor or revocation reason EQUALS blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find no revoked consent record whose revocation instant PRECEDES the consent record's grant instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands on the candidate record with a revocation instant the at time DOES NOT PRECEDE, then granted once a fresh [Grant]'s consent record is the candidate record (Invariant 3.1, Operation 44).
-Check 5.1: An auditor MUST find [Check] answering granted for an at time that PRECEDES the candidate record's expiry instant, and expired for an at time that DOES NOT PRECEDE the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42, Operation 44).
+Check 5.1: An auditor MUST find [Check] answering granted for an at time that PRECEDES the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 42).
+Check 5.3: An auditor MUST find [Check] answering expired for an at time that DOES NOT PRECEDE the candidate record's expiry instant, where the candidate record carries no revocation instant (Operation 44).
 Check 7.1: An auditor MUST find EVERY revoked and expired consent record still answering to [Read] (Invariant 8.1; Execution Contract Generation acceptance 1).
 Check 8.2: An auditor MUST find a [Check] carrying an at time answering alike across a later [Grant] for the pair, where the at time PRECEDES the later consent record's grant instant (Invariant 10.3).
 Check 8.3: An auditor MUST find a [Check] carrying an at time answering alike across a later [Revoke] for the pair, where the at time PRECEDES the revocation instant (Invariant 10.3).

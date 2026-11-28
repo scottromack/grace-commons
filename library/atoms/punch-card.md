@@ -62,9 +62,9 @@ Projection: card_code
 
 ```
 Identity 2: The atom MUST find a punch card by the card code.
-Identity 3: The card code MUST serve as the bearer credential [Check Stamps] accepts.
-Identity 4: The card code MUST serve as the bearer credential [Stamp] accepts.
-Identity 5: The card code MUST serve as the bearer credential [Redeem] accepts.
+Identity 3: The card code MUST serve as the bearer secret [Check Stamps] accepts.
+Identity 4: The card code MUST serve as the bearer secret [Stamp] accepts.
+Identity 5: The card code MUST serve as the bearer secret [Redeem] accepts.
 Identity 7: The atom MUST NOT reuse a card code.
 Identity 8: The atom MUST NOT normalize a card code.
 Identity 9: The atom MUST compare two card codes code point for code point.

@@ -558,8 +558,8 @@ Simultaneous retention 1: The atom MUST admit two live retentions over one recor
 Simultaneous retention 1a: A caller that retries a placement whose answer was lost MUST read the record as carrying two retentions.
 Simultaneous retention 2: The atom MUST gate a purge against the purging retention's own retention deadline.
 Simultaneous retention 3: [Purge] MUST NOT read a sibling retention over one record reference.
-Simultaneous retention 4: IF a retained retention over the record EXISTS whose purge eligible EQUALS no THEN a composing pattern MUST NOT destroy the record.
-Simultaneous retention 4a: IF no composing pattern owns the destruction AND a retained retention over the record EXISTS whose purge eligible EQUALS no THEN a composing pattern MUST NOT purge a retention over the record.
+Simultaneous retention 4: IF the purge eligible of a retained retention over the record EQUALS no THEN a composing pattern MUST NOT destroy the record.
+Simultaneous retention 4a: IF no composing pattern owns the destruction AND the purge eligible of a retained retention over the record EQUALS no THEN a composing pattern MUST NOT purge a retention over the record.
 Simultaneous retention 5: A deployment that places two retentions over one record MUST compose a pattern that owns joint enforcement.
 Simultaneous retention 6: The pattern that owns joint enforcement MUST serialize a placement, the sibling read, a purge and a destruction over one record reference.
 Simultaneous retention 6a: IF a composing pattern owns the destruction THEN that pattern MUST own joint enforcement.
@@ -647,7 +647,7 @@ Non-goal 9: The atom MUST NOT place the atom's own records under retention.
 Non-goal 10: The atom MUST NOT record who authorized a purge.
 Deleted: Non-goal 11. Non-goal 10 owns it: the atom binds no purging actor, and which pattern attests one is the app's choice.
 Non-goal 12: The atom MUST NOT purge two retentions as one write.
-Non-goal 13: A deployment that declares the deployment's deadlines carry legal force, in the declaration of the composing patterns the deployment wired in (Composition note 1), MUST compose a trusted time-stamping pattern.
+Non-goal 13: A deployment that declares the deployment's deadlines carry legal force, in the declaration of the composing patterns the deployment wired in, MUST compose a trusted time-stamping pattern (Composition note 1).
 Non-goal 14: The atom MUST NOT hold an idempotency key for a placement.
 Deleted: Non-goal 15. Non-goal 14 owns it: the atom records two placements as two retentions, and which pattern answers a retried placement once is the app's choice.
 Non-goal 16: The atom MUST NOT bound the age of a standing record.

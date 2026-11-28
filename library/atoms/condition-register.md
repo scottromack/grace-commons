@@ -36,7 +36,7 @@ Identity 1: The atom MUST identify a sighting by the condition and the subject.
 Identity 2: The atom MUST identify a standing record by the standing id.
 Identity 3: The host MUST allocate a standing id at the seam that no standing record carries PER Execution Contract Logic confinement 16.
 Identity 4: The atom MUST NOT reuse a standing id.
-Identity 5: The atom MUST NOT interpret a subject beyond reading a subject carrying only white space as blank (the grammar's Term blank).
+Identity 5: The atom MUST NOT interpret a subject beyond reading a subject carrying only white space as blank PER the grammar's definition of blank.
 Identity 6: The atom MUST NOT interpret a scope beyond reading a scope carrying only white space as blank and every blank scope as one scope (the grammar's Term blank, String 6).
 Identity 7: The atom MUST NOT interpret a run id.
 ```
@@ -185,7 +185,7 @@ Operation 26: IF subject EXCEEDS the id cap OR scope EXCEEDS the id cap OR run i
 Operation 27: IF the database refuses the write THEN EVERY writing action MUST answer storage-failure.
 Operation 36: The atom MUST NOT offer a removal action.
 Operation 37: The atom MUST NOT offer a reopen action.
-Operation 45: IF condition EQUALS blank THEN [Record Sighting], [Report Standing], [Report Clear] AND [List Conditions] MUST answer invalid-request.
+Operation 45: IF condition EQUALS blank THEN [Record Sighting], [Report Standing], [Report Clear] and [List Conditions] MUST answer invalid-request.
 Operation 50: IF a write leaves a standing record whose last seen PRECEDES the standing record's first seen OR whose closing instant PRECEDES the standing record's last seen OR whose last seen PRECEDES the standing record's last seen in an earlier committed version THEN the database MUST refuse the write.
 ```
 
@@ -701,7 +701,7 @@ Check 4.1: IF a standing record's last seen PRECEDES the standing record's first
 Check 4.2: An auditor MUST find EVERY standing record's standing id, condition, scope, first run id and first seen unchanged across EVERY committed version of the standing record (Invariant 1.2; Execution Contract Generation acceptance 1).
 Check 4.3: IF a standing record's last seen PRECEDES the standing record's last seen in an earlier committed version THEN an auditor MUST report the standing record (Invariant 4.3; Execution Contract Generation acceptance 1).
 Check 4.4: IF a closed standing record's closing instant PRECEDES the standing record's last seen THEN an auditor MUST report the standing record (Invariant 4.2).
-Check 5.2: An auditor MUST find no sighting whose run id EQUALS blank and no standing record whose first run id or last run id EQUALS blank (Invariant 5.1, Invariant 5.2).
+Check 5.2: An auditor MUST find no run id of a sighting, and no first run id or last run id of a standing record, that EQUALS blank (Invariant 5.1, Invariant 5.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.

@@ -37,8 +37,8 @@ Term constituent code: constituent_code — the refusal code a constituent retur
   Term open invocations: map from `(kind, act_key)` to the set of intent records (intent event id, invocation id, the payload) of every invocation of the act that has opened and not yet closed, refused, been abandoned or been escalated. Derived index. Past the horizon it holds no intent (open invocations 7), and no reader needs one there: every read drops an intent whose retention end has passed (sequence high water 5).
 
   ```
-  open invocations 1: IF service identity DOES NOT EQUAL none THEN two open intents MUST NOT share one (kind, act key).
-  open invocations 2: IF service identity EQUALS none THEN several open intents MAY share one (kind, act key).
+  open invocations 1: IF service identity DOES NOT EQUAL none THEN two open intents MUST NOT share one `(kind, act key)`.
+  open invocations 2: IF service identity EQUALS none THEN several open intents MAY share one `(kind, act key)`.
   open invocations 3: The composition MUST rebuild open invocations from the range read's `<kind>.intended` records, less those a later closing record in the same read names through invocation id.
   open invocations 4: [Open] MUST populate open invocations.
   open invocations 5: [Close], [Refuse], [Resolve] and the sweep MUST clear an intent from open invocations ONLY AFTER a closing record naming the intent's invocation id has landed.
@@ -80,7 +80,7 @@ Which closing stands 2: A closing record MAY supersede another closing record ON
 Which closing stands 3: A closing record's carrying resolving actor MUST NOT trigger supersession; only the naming of Which closing stands 2 does, as an operator's abandonment, carrying resolving actor, naming an escalation supersedes the escalation.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
 Which closing stands 5: EVERY surface MUST count the standing closing and every record the standing closing reaches through supersedes as one closing.
-Which closing stands 7: Among the unsuperseded closings naming one invocation id, the lowest sequence number MUST stand.
+Which closing stands 7: Among the closings naming one invocation id that no closing supersedes, the lowest sequence number MUST stand.
 ```
 Which closing stands 7 decides only a record set that already breaks Invariant 2.1 and Check 2.1: it keeps every reader's answer one where a conformance failure has landed, and a conforming journal never reaches it.
 
@@ -153,13 +153,13 @@ Steps:
 1. **Validate and size.**
 
    ```
-   open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized into the intent payload (open step 1.3) and written as given, blank included.
+   open step 1.1: [Open] MUST validate act key, actor reference and credential as not blank per Primitive policies, and no other input: intent data is sized into the intent payload and written as given, blank included (open step 1.3).
    open step 1.2: IF caller kind EQUALS service THEN [Open] MUST land invalid-request.
    open step 1.3: [Open] MUST size intent payload and the kind's largest record per Primitive policy 12, for a kind in the bindings table (open step 1.9).
    open step 1.4: IF the sized intent payload EXCEEDS the substrate's payload cap OR the sized largest record EXCEEDS the substrate's payload cap THEN [Open] MUST land invalid-request.
    open step 1.5: A step-1 refusal MUST write nothing.
-   open step 1.6: [Open] MUST NOT take the critical section BEFORE reading open invocations at (kind, act key) from the journal.
-   open step 1.7: IF the read of open step 1.6 shows an open intent open step 3.5 or open step 3.7 refuses THEN [Open] MUST land act-in-flight(invocation id) carrying the invocation id of that open intent, with no take.
+   open step 1.6: [Open] MUST NOT take the critical section BEFORE reading open invocations at `(kind, act key)` from the journal.
+   open step 1.7: IF the read of open step 1.6 shows an open intent open step 3.5 or open step 3.7 refuses THEN [Open] MUST land `act-in-flight(invocation id)` carrying the invocation id of that open intent, with no take.
    open step 1.8: IF the read of open step 1.6 fails THEN [Open] MUST land journal-unavailable.
    open step 1.9: IF kind IS NOT IN the bindings table THEN [Open] MUST land invalid-request with no read and no take.
    open step 1.10: IF act key EQUALS blank OR actor reference EQUALS blank OR credential EQUALS blank THEN [Open] MUST land invalid-request.
@@ -167,19 +167,19 @@ Steps:
 2. **Take the act's critical section.**
 
    ```
-   open step 2.1: [Open] MUST take the critical section: take((kind, act key), invocation id, invocation completion bound).
-   open step 2.3: A failed take, a storage-failure and no answer included (Execution Contract Constituent failure 1, Bonds guard 2), MUST land section-unavailable with nothing written.
+   open step 2.1: [Open] MUST take the critical section: `take((kind, act key), invocation id, invocation completion bound)`.
+   open step 2.3: A failed take, a storage-failure and no answer included, MUST land section-unavailable with nothing written (Execution Contract Constituent failure 1, Bonds guard 2).
    ```
 3. **Pre-check under the critical section.**
 
    ```
    open step 3.1: [Open] MUST re-read the journal from sequence high water for the act key under the critical section.
-   open step 3.2: [Open] MUST take open invocations at (kind, act key) from the local maps.
+   open step 3.2: [Open] MUST take open invocations at `(kind, act key)` from the local maps.
    open step 3.3: Step 3 MUST NOT decide BEFORE the step-3 re-read advances the local maps (sequence high water 1).
    open step 3.4: [Open] MUST release for an in-flight open intent.
-   open step 3.5: [Open] MUST land act-in-flight(invocation id) for an in-flight open intent, carrying the invocation id of that open intent.
+   open step 3.5: [Open] MUST land `act-in-flight(invocation id)` for an in-flight open intent, carrying the invocation id of that open intent.
    open step 3.6: IF service identity DOES NOT EQUAL none THEN [Open] MUST release for an aged open intent.
-   open step 3.7: IF service identity DOES NOT EQUAL none THEN [Open] MUST land act-in-flight(invocation id) for an aged open intent, carrying the invocation id of that open intent.
+   open step 3.7: IF service identity DOES NOT EQUAL none THEN [Open] MUST land `act-in-flight(invocation id)` for an aged open intent, carrying the invocation id of that open intent.
    open step 3.8: WHEN service identity EQUALS none:
        open step 3.8a: [Open] MUST proceed past an aged open intent without refusing on the old intent, and open step 3.9, open step 3.11 and open step 3.13 answer unchanged.
        open step 3.8b: [Open] MUST leave the old intent open.
@@ -187,9 +187,9 @@ Steps:
        open step 3.8d: An operator MUST close the old intent through [Resolve].
        open step 3.8e: The new invocation's records MUST pair on the new invocation id.
    open step 3.9: WHEN repeatable EQUALS no:
-       open step 3.9a: [Open] MUST read from act closings the outcomes that stand for the act key, an outcome standing where the outcome IS the standing closing of an invocation of the key (Which closing stands 1).
+       open step 3.9a: [Open] MUST read from act closings the outcomes that stand for the act key, an outcome standing where the outcome is the standing closing of an invocation of the key (Which closing stands 1).
        open step 3.9b: IF an outcome for the act key EXISTS THEN [Open] MUST release.
-       open step 3.9c: IF an outcome for the act key EXISTS THEN [Open] MUST land act-landed(outcome event id) carrying the event id of the outcome of the lowest sequence number open step 3.9a read.
+       open step 3.9c: IF an outcome for the act key EXISTS THEN [Open] MUST land `act-landed(outcome event id)` carrying the event id of the outcome of the lowest sequence number open step 3.9a read.
    open step 3.10: [Open] MUST bound the step-3 read by read bound.
    open step 3.11: An [Open] whose read exhausts the lease MUST release.
    open step 3.12: An [Open] whose read exhausts the lease MUST land section-unavailable with nothing written.
@@ -200,21 +200,21 @@ Steps:
 4. **Intent record.**
 
    ```
-   open step 4.1: IF the remaining [Open] queried for the intent record (journal write bound 1) DOES NOT EXCEED write floor THEN [Open] MUST NOT write the intent record.
-   open step 4.2: WHEN the remaining [Open] queried for the intent record (journal write bound 1) DOES NOT EXCEED write floor:
+   open step 4.1: IF the remaining [Open] queried for the intent record DOES NOT EXCEED write floor THEN [Open] MUST NOT write the intent record (journal write bound 1).
+   open step 4.2: WHEN the remaining [Open] queried for the intent record DOES NOT EXCEED write floor:
        open step 4.2a: [Open] MUST release.
-       open step 4.2b: [Open] MUST land section-unavailable with nothing written.
-   open step 4.3: [Open] MUST make an attested append of the intent record (action reference set to `<kind>.intended`, actor reference, credential, data set to intent payload) through the atom's journal need, answering intent event id.
+       open step 4.2b: [Open] MUST land section-unavailable with nothing written (journal write bound 1).
+   open step 4.3: [Open] MUST make an attested append of the intent record, carrying action reference set to `<kind>.intended`, actor reference, credential and data set to intent payload, through the atom's journal need, answering intent event id.
    open step 4.4: Step 4's arms MUST follow the intent position of Primitive policy 19 through 23 and Primitive policy 27 through 43.
    open step 4.5: IF step 4 lands a refusal THEN [Open] MUST release.
    ```
 5. **Populate, read for the commit, and return.**
 
    ```
-   open step 5.1: [Open] MUST populate open invocations at (kind, act key) with the intent alone, the intent's sequence number and recording instant coming from the filtered range read of the next re-read (Primitive policy 38, Primitive policy 39).
-   open step 5.4: [Open] MUST query remaining((kind, act key), invocation id) as the last call [Open] makes, the release of open step 5.5 excepted.
+   open step 5.1: [Open] MUST populate open invocations at `(kind, act key)` with the intent alone, the intent's sequence number and recording instant coming from the filtered range read of the next re-read (Primitive policy 38, Primitive policy 39).
+   open step 5.4: [Open] MUST query `remaining((kind, act key), invocation id)` as the last call [Open] makes, the release of open step 5.5 excepted.
    open step 5.5: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST release.
-   open step 5.6: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST land recording-failure(outcome) with the intent left open.
+   open step 5.6: IF remaining DOES NOT EXCEED commit floor THEN [Open] MUST land `recording-failure(outcome)` with the intent left open.
    open step 5.2: IF remaining EXCEEDS commit floor THEN [Open] MUST return invocation id and intent event id.
    open step 5.3: IF remaining EXCEEDS commit floor THEN [Open] MUST hold the critical section at return.
    ```
@@ -245,21 +245,21 @@ Writes the act's outcome record after the bound commit has returned, under the c
 close 1: The adopter MUST pass [Close] the actor reference and the credential [Open] was given for the invocation.
 close 2: The composition MUST NOT retain state between [Open] and [Close].
 close 3: [Close] and [Refuse] MUST take intent event id.
-close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
+close 4: The adopter's action MUST decide not-open from the invocation's own [Open] answering [Not Open].
 close 5: The adopter MUST pass [Close] outcome data carrying only what act probe answers for the act.
-close 6: IF the step-2 re-read finds no closing record naming the invocation id AND an outcome action reference IS NOT IN the kind's outcome refs THEN [Close] MUST land recording-failure(outcome) with a hard alert, the critical section released and nothing appended.
+close 6: IF the step-2 re-read finds no closing record naming the invocation id AND an outcome action reference IS NOT IN the kind's outcome refs THEN [Close] MUST land `recording-failure(outcome)` with a hard alert, the critical section released and nothing appended.
 ```
 Steps:
 
 1. **Confirm standing.**
 
    ```
-   close step 1.1: [Close] MUST query remaining((kind, act key), invocation id).
+   close step 1.1: [Close] MUST query `remaining((kind, act key), invocation id)`.
    close step 1.2: WHEN remaining DOES NOT EXCEED write floor OR remaining EQUALS none:
        close step 1.2a: [Close] MUST write nothing.
        close step 1.2b: [Close] MUST discard the commit's reply.
        NOTE: watch negative capability — an obligation to discard a reply already in hand (close step 1.2b).
-       close step 1.2c: [Close] MUST return recording-failure(outcome).
+       close step 1.2c: [Close] MUST return `recording-failure(outcome)`.
        close step 1.2d: [Close] MUST release.
    ```
 2. **Pre-check under the critical section — proceed as landed.**
@@ -275,36 +275,36 @@ Steps:
        close step 2.2f: IF the outcome's recovery EQUALS blank AND the outcome's resolving actor EQUALS blank THEN [Close] MUST return landing actor set to invocation.
    close step 2.3: WHEN the standing closing among the closing records naming the invocation id is an abandonment OR an escalation OR a refusal:
        close step 2.3a: [Close] MUST NOT adopt the record.
-       close step 2.3b: [Close] MUST release and return recording-failure(outcome).
+       close step 2.3b: [Close] MUST release and return `recording-failure(outcome)`.
    close step 2.4: WHEN the step-2 re-read fails:
        close step 2.4a: [Close] MUST write nothing.
-       close step 2.4b: [Close] MUST return recording-failure(outcome).
+       close step 2.4b: [Close] MUST return `recording-failure(outcome)`.
        close step 2.4c: [Close] MUST release.
    ```
 3. **Outcome record.**
 
    ```
-   close step 3.1: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST make an attested append of the outcome record (action reference set to outcome action reference, actor reference, credential, data set to outcome payload) through the atom's journal need, answering outcome event id.
+   close step 3.1: IF the step-2 re-read finds no closing record naming the invocation id THEN [Close] MUST make an attested append of the outcome record, carrying action reference set to outcome action reference, actor reference, credential and data set to outcome payload, through the atom's journal need, answering outcome event id.
    close step 3.2: Step 3's arms MUST follow the outcome position of Primitive policy 19 through 23 and Primitive policy 27 through 43.
-   close step 3.3: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at step 3 MUST land recording-failure(outcome) with a hard alert.
-   close step 3.4: [Close] MUST NOT retry after recording-failure(step-2) BEFORE re-running step 2.
+   close step 3.3: An `invalid-request(step-1)`, `invalid-request(step-2)` or `invalid-request(step-3)` at step 3 MUST land `recording-failure(outcome)` with a hard alert.
+   close step 3.4: [Close] MUST NOT retry after `recording-failure(step-2)` BEFORE re-running step 2.
    close step 3.5: IF remaining DOES NOT EXCEED write floor THEN [Close] MUST NOT retry.
    close step 3.7: WHEN the lease cuts a retry short:
        close step 3.7a: [Close] MUST release.
-       close step 3.7b: [Close] MUST land recording-failure(outcome).
+       close step 3.7b: [Close] MUST land `recording-failure(outcome)`.
    close step 3.8: WHEN step 3 answers invalid-credential:
        close step 3.8a: [Close] MUST release.
-       close step 3.8b: [Close] MUST land recording-failure(outcome).
-   close step 3.9: IF [Close] lands recording-failure(outcome) at step 3 THEN [Close] MUST release.
-   close step 3.10: WHEN the remaining [Close] queried for the outcome record (journal write bound 1) DOES NOT EXCEED write floor:
-       close step 3.10a: [Close] MUST NOT write the outcome record.
-       close step 3.10b: [Close] MUST land recording-failure(outcome).
-   close step 3.11: [Close] MUST query remaining((kind, act key), invocation id) for the outcome record ONLY AFTER the step-2 re-read.
+       close step 3.8b: [Close] MUST land `recording-failure(outcome)`.
+   close step 3.9: IF [Close] lands `recording-failure(outcome)` at step 3 THEN [Close] MUST release.
+   close step 3.10: WHEN the remaining [Close] queried for the outcome record DOES NOT EXCEED write floor:
+       close step 3.10a: [Close] MUST NOT write the outcome record (journal write bound 1).
+       close step 3.10b: [Close] MUST land `recording-failure(outcome)`.
+   close step 3.11: [Close] MUST query `remaining((kind, act key), invocation id)` for the outcome record ONLY AFTER the step-2 re-read.
    ```
 4. **Clear and release.**
 
    ```
-   close step 4.1: IF the outcome record landed at step 3 THEN [Close] MUST remove the invocation id from open invocations at (kind, act key).
+   close step 4.1: IF the outcome record landed at step 3 THEN [Close] MUST remove the invocation id from open invocations at `(kind, act key)`.
    close step 4.2: IF the outcome record landed at step 3 THEN [Close] MUST release the critical section.
    close step 4.3: IF the outcome record landed at step 3 THEN [Close] MUST return outcome event id and landing actor set to invocation.
    ```
@@ -328,7 +328,7 @@ Steps:
 0. **Not open.**
 
    ```
-   refuse step 0.1: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
+   refuse step 0.1: The adopter's action MUST decide not-open from the invocation's own [Open] answering [Not Open].
    refuse step 0.2: [Refuse] MUST write nothing for a pair no [Open] returned.
    refuse step 0.3: The adopter MUST pass [Refuse] the actor reference and the credential [Open] was given for the invocation.
    NOTE: watch rule inheritance — refuse step 0.1 and refuse step 2.1 restate [Close]'s close 4 and close step 2.1 for [Refuse] rather than inheriting; the grammar has no inheritance form.
@@ -336,10 +336,10 @@ Steps:
 1. **Confirm standing, before any read.**
 
    ```
-   refuse step 1.1: [Refuse] MUST NOT read BEFORE querying remaining((kind, act key), invocation id).
+   refuse step 1.1: [Refuse] MUST NOT read BEFORE querying `remaining((kind, act key), invocation id)`.
    refuse step 1.2: WHEN remaining DOES NOT EXCEED write floor OR remaining EQUALS none:
        refuse step 1.2a: [Refuse] MUST write nothing.
-       refuse step 1.2b: [Refuse] MUST return recording-failure(refusal, constituent code).
+       refuse step 1.2b: [Refuse] MUST return `recording-failure(refusal, constituent code)`.
        refuse step 1.2c: [Refuse] MUST release.
    refuse step 1.3: A yielded caller MUST NOT read at [Close] or [Refuse].
    refuse step 1.4: A yielded caller MUST NOT adopt at [Close] or [Refuse].
@@ -348,7 +348,7 @@ Steps:
 
    ```
    refuse step 2.1: [Refuse] MUST re-read the journal from sequence high water for the invocation id under the critical section.
-   refuse step 2.2: IF a closing record naming the invocation id EXISTS THEN [Refuse] MUST land already-accounted(closing event id).
+   refuse step 2.2: IF a closing record naming the invocation id EXISTS THEN [Refuse] MUST land `already-accounted(closing event id)`.
    refuse step 2.3: IF a closing record naming the invocation id EXISTS THEN [Refuse] MUST append nothing.
    refuse step 2.4: [Refuse] MUST NOT report already-accounted as not-open.
    refuse step 2.5: IF a closing record naming the invocation id EXISTS THEN [Refuse] MUST release.
@@ -356,21 +356,21 @@ Steps:
 3. **Refusal record.**
 
    ```
-   refuse step 3.1: [Refuse] MUST make an attested append of the refusal record (action reference set to `<kind>.refused`, actor reference, credential, data set to invocation id, intent event id, kind, act key, reason and constituent code) through the atom's journal need, answering refusal event id.
-   refuse step 3.3: [Refuse] MUST read the refusal back by invocation id for invalid-request(step-4).
-   refuse step 3.4: [Refuse] MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
-   refuse step 3.5: recording-failure(step-2) and recording-failure(step-3) MUST land recording-failure(refusal, constituent code) with the intent left open, a step-3 whose record the read-back of Primitive policy 32a finds excepted.
-   refuse step 3.6: A lost reply whose one read-back finds nothing MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.7: invalid-credential MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.8: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.9: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST remove the invocation id from open invocations at (kind, act key).
+   refuse step 3.1: [Refuse] MUST make an attested append of the refusal record, carrying action reference set to `<kind>.refused`, actor reference, credential and data set to invocation id, intent event id, kind, act key, reason and constituent code, through the atom's journal need, answering refusal event id.
+   refuse step 3.3: [Refuse] MUST read the refusal back by invocation id for `invalid-request(step-4)`.
+   refuse step 3.4: [Refuse] MUST NOT retry after `invalid-request(step-3)` or `invalid-request(step-4)`.
+   refuse step 3.5: `recording-failure(step-2)` and `recording-failure(step-3)` MUST land `recording-failure(refusal, constituent code)` with the intent left open, a step-3 whose record the read-back of Primitive policy 32a finds excepted.
+   refuse step 3.6: A lost reply whose one read-back finds nothing MUST land `recording-failure(refusal, constituent code)` with the intent left open.
+   refuse step 3.7: invalid-credential MUST land `recording-failure(refusal, constituent code)` with the intent left open.
+   refuse step 3.8: An `invalid-request(step-1)`, `invalid-request(step-2)` or `invalid-request(step-3)` MUST land `recording-failure(refusal, constituent code)` with the intent left open.
+   refuse step 3.9: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST remove the invocation id from open invocations at `(kind, act key)`.
    refuse step 3.10: [Refuse] MUST release the critical section.
    refuse step 3.11: The composition MUST NOT suppress a refusal record.
-   refuse step 3.12: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST return refusal event id, with a hard alert for an invalid-request(step-4).
-   refuse step 3.13: WHEN the remaining [Refuse] queried for the refusal record (journal write bound 1) DOES NOT EXCEED write floor:
-       refuse step 3.13a: [Refuse] MUST NOT write the refusal record.
-       refuse step 3.13b: [Refuse] MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.14: [Refuse] MUST query remaining((kind, act key), invocation id) for the refusal record ONLY AFTER the step-2 re-read.
+   refuse step 3.12: IF the write answers an event id OR a read-back finds the refusal record THEN [Refuse] MUST return refusal event id, with a hard alert for an `invalid-request(step-4)`.
+   refuse step 3.13: WHEN the remaining [Refuse] queried for the refusal record DOES NOT EXCEED write floor:
+       refuse step 3.13a: [Refuse] MUST NOT write the refusal record (journal write bound 1).
+       refuse step 3.13b: [Refuse] MUST land `recording-failure(refusal, constituent code)` with the intent left open.
+   refuse step 3.14: [Refuse] MUST query `remaining((kind, act key), invocation id)` for the refusal record ONLY AFTER the step-2 re-read.
    ```
 ### Yield
 
@@ -445,7 +445,7 @@ read invocation 19: The app's key check of a written invocation id MUST call [Re
 
 - **Invariant 2 — One writer per act.**
   ```
-  Invariant 2.1: Two unsuperseded closing records MUST NOT name one intent's invocation id.
+  Invariant 2.1: Two closing records no closing supersedes MUST NOT name one intent's invocation id.
   ```
   ```
   Invariant 2.6: The section titled Which closing stands IS AUTHORITATIVE FOR which closing is the invocation's.
@@ -473,7 +473,7 @@ read invocation 19: The app's key check of a written invocation id MUST call [Re
 
 - **Invariant 8 — Positioned codes.**
   ```
-  Invariant 8.1: EVERY code an adopter's action exports that could land before the commit and after the commit MUST carry the position — recording-failure(intent) and recording-failure(outcome) at least.
+  Invariant 8.1: EVERY code an adopter's action exports that could land before the commit and after the commit, `recording-failure(intent)` and `recording-failure(outcome)` included, MUST carry the position.
   Invariant 8.2: The adopter's signature MUST declare the payload.
   Invariant 8.3: A caller receiving intent MAY retry the action.
   Invariant 8.4: A caller receiving outcome MUST NOT retry the action.
@@ -502,17 +502,17 @@ Primitive policy 7a: The composition MUST NOT inspect actor reference or credent
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor reference under reference length cap.
 Primitive policy 9: intent data MUST carry the invocation's parameters and pairing datum.
 Primitive policy 10: intent data MUST NOT carry a field the substrate or the constituent stamps or mints.
-Primitive policy 10a: intent data MUST NOT carry a field named for invocation id, kind and act key (Term intent payload names the fields the composition adds).
-Primitive policy 10b: outcome data MUST NOT carry a field named for invocation id, intent event id, kind and act key (Term outcome payload names the fields the composition adds).
-Primitive policy 10c: outcome data MUST NOT carry a field named for recovery, acting actor reference, resolving actor and supersedes (Term outcome shape and Term supersedes name the fields a closing adds).
+Primitive policy 10a: intent data MUST NOT carry a field named for invocation id, kind and act key, the fields the intent payload adds to intent data.
+Primitive policy 10b: outcome data MUST NOT carry a field named for invocation id, intent event id, kind and act key, the fields the outcome payload adds to outcome data.
+Primitive policy 10c: outcome data MUST NOT carry a field named for recovery, acting actor reference, resolving actor and supersedes, the fields a closing adds to outcome data in the outcome shape.
 Primitive policy 11: The composition MUST write invocation id, kind and act key into EVERY record the composition appends.
 Primitive policy 11a: The composition MUST write intent event id into EVERY record of the invocation but the intent.
-Primitive policy 12: [Open] MUST size intent payload and, for a kind in the bindings table (open step 1.9), the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload.
+Primitive policy 12: [Open] MUST size intent payload and, for a kind in the bindings table, the kind's largest record, each separately, against the substrate's payload cap as the substrate measures a payload (open step 1.9).
 Primitive policy 13: [Open] MUST refuse invalid-request for an act whose intent payload or whose largest record does not fit.
 Primitive policy 13a: IF the largest record of any kind in the bindings table, sized as Primitive policy 12 sizes a largest record, on the settings the start reads, EXCEEDS the substrate's payload cap THEN the instance MUST NOT start.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for three comparisons alone: the age of an open intent against recording instant under clock allowance, at step 1 and at step 3, the retention drop of sequence high water 5, and the advance of the mark under settle bound (sequence high water 2).
-Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for the retention drop of sequence high water 5 and the advance of the mark under settle bound (sequence high water 2) alone.
+Primitive policy 15a: [Close], [Refuse] and [Read Invocation] MUST use now for the retention drop of sequence high water 5 and the advance of the mark under settle bound alone (sequence high water 2).
 Primitive policy 17: The adopter's action MUST carry invocation id from [Open] into [Close] and [Refuse] as a parameter of each.
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
 ```
@@ -539,19 +539,19 @@ Term as the substrate measures a payload: the serialized envelope `{action_ref, 
 ```
 Primitive policy 19: IF position EQUALS intent THEN invalid-credential MUST pass through unchanged with nothing written.
 NOTE: watch position scoping — every rule of this family scopes by IF position = … (Primitive policy 19 through 23, Primitive policy 27 through 43); the corpus's answer is the condition, not a new form.
-Primitive policy 20: IF position EQUALS intent THEN [Open] MUST NOT report invalid-request(step-4) BEFORE reading back by invocation id.
+Primitive policy 20: IF position EQUALS intent THEN [Open] MUST NOT report `invalid-request(step-4)` BEFORE reading back by invocation id.
 Primitive policy 21: WHEN the read-back of Primitive policy 20 finds the record:
     Primitive policy 21a: The action MUST proceed with a hard alert.
 Primitive policy 22: WHEN the read-back of Primitive policy 20 finds nothing:
     Primitive policy 22a: The action MUST land invalid-request.
-Primitive policy 23: IF position EQUALS intent THEN recording-failure(step-2) and recording-failure(step-3) MUST land recording-failure(intent), a step-3 whose record the read-back of Primitive policy 32a finds excepted.
-Primitive policy 27: IF position EQUALS outcome THEN the action MUST read event id back by invocation id for invalid-request(step-4).
-Primitive policy 28: IF position EQUALS outcome THEN the action MUST return success with a hard alert for an invalid-request(step-4) whose read-back finds the record.
-Primitive policy 29: IF position EQUALS outcome THEN the writer MUST retry recording-failure(step-2) under the critical section, to the terminus at most.
-Primitive policy 30: A retry that reaches the terminus MUST land recording-failure(outcome).
-Primitive policy 31: IF position EQUALS outcome THEN invalid-credential MUST land recording-failure(outcome).
+Primitive policy 23: IF position EQUALS intent THEN `recording-failure(step-2)` and `recording-failure(step-3)` MUST land `recording-failure(intent)`, a step-3 whose record the read-back of Primitive policy 32a finds excepted.
+Primitive policy 27: IF position EQUALS outcome THEN the action MUST read event id back by invocation id for `invalid-request(step-4)`.
+Primitive policy 28: IF position EQUALS outcome THEN the action MUST return success with a hard alert for an `invalid-request(step-4)` whose read-back finds the record.
+Primitive policy 29: IF position EQUALS outcome THEN the writer MUST retry `recording-failure(step-2)` under the critical section, to the terminus at most.
+Primitive policy 30: A retry that reaches the terminus MUST land `recording-failure(outcome)`.
+Primitive policy 31: IF position EQUALS outcome THEN invalid-credential MUST land `recording-failure(outcome)`.
 Primitive policy 32: The composition MUST treat an attested append whose reply is lost as unknown at every position.
-Primitive policy 32a: The composition MUST treat recording-failure(step-3) as a lost reply.
+Primitive policy 32a: The composition MUST treat `recording-failure(step-3)` as a lost reply.
 Primitive policy 33: The composition MUST NOT retry a lost-reply write blind.
 Primitive policy 34: The composition MUST NOT read back a lost-reply write BEFORE journal write bound has elapsed since the issue, the elapse read on the host's clock through a remaining the writer queries, never on a clock the caller reads.
 Primitive policy 35: The composition MUST read back by invocation id through the filtered range read over the delta range as sequence high water stood at the issue of the write read back.
@@ -561,12 +561,12 @@ Primitive policy 37: WHEN the read-back finds nothing:
     Primitive policy 37b: The composition MUST land the position's existing arm.
 Primitive policy 38: The composition MUST take the intent's sequence number and recording instant from the filtered range read.
 Primitive policy 39: The composition MUST NOT take the intent's sequence number and recording instant from the one-record read.
-Primitive policy 40: IF position EQUALS outcome THEN an invalid-request(step-4) whose read-back finds nothing MUST land recording-failure(outcome) with a hard alert.
-Primitive policy 41: IF position EQUALS intent THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land invalid-request.
-Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land recording-failure(outcome) with a hard alert.
-Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
-Primitive policy 44: The composition MUST treat recording-failure(step-4) as recording-failure(step-2) at every position.
-Primitive policy 45: The composition MUST treat an attested append that answers state-unavailable as recording-failure(step-2) at every position (Execution Contract Read 1).
+Primitive policy 40: IF position EQUALS outcome THEN an `invalid-request(step-4)` whose read-back finds nothing MUST land `recording-failure(outcome)` with a hard alert.
+Primitive policy 41: IF position EQUALS intent THEN `invalid-request(step-1)`, `invalid-request(step-2)` and `invalid-request(step-3)` MUST land invalid-request.
+Primitive policy 42: IF position EQUALS outcome THEN `invalid-request(step-1)`, `invalid-request(step-2)` and `invalid-request(step-3)` MUST land `recording-failure(outcome)` with a hard alert.
+Primitive policy 43: The action MUST NOT retry after `invalid-request(step-3)` or `invalid-request(step-4)`.
+Primitive policy 44: The composition MUST treat `recording-failure(step-4)` as `recording-failure(step-2)` at every position.
+Primitive policy 45: The composition MUST treat an attested append that answers state-unavailable as `recording-failure(step-2)` at every position (Execution Contract Read 1).
 Primitive policy 46: The vocabulary of a kind MUST declare `<kind>.intended`, the enumerated outcome refs `<kind>.<outcome>`, and `<kind>.refused`.
 Primitive policy 46a: The vocabulary of a kind MUST NOT declare an outcome ref among `<kind>.intended`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated`.
 Primitive policy 47: The composition MUST derive `<kind>.recovery_intended`, `<kind>.abandoned` and `<kind>.escalated` from the vocabulary.
@@ -759,14 +759,14 @@ A derived implementation of Durable Intent is acceptable when the following are 
 #### Conformance checks
 
 ```
-Check 1.1: EVERY outcome record whose intent is inside the horizon MUST follow, in the journal's sequence, an intent record with the same invocation id attested under the actor the outcome names — the outcome's own actor reference where recovery is absent, the outcome's acting actor reference where recovery EQUALS true.
+Check 1.1: EVERY outcome record whose intent is inside the horizon MUST follow, in the journal's sequence, an intent record with the same invocation id attested under the actor the outcome names, the outcome's own actor reference where recovery is absent, the outcome's acting actor reference where recovery EQUALS true.
 Check 1.2: An auditor MUST decide inside the horizon by the one-record read of the intent event id answering the intent record within the keep.
 Check 1.3: An auditor MUST NOT decide inside the horizon by arithmetic on the outcome's stamp or by the presence of an answer.
 Check 1.4: An auditor MUST answer purged, never absent, for an outcome whose intent lies past the keep of the atom's journal need.
-Check 2.1: For EVERY elapsed intent inside the horizon, two unsuperseded closing records of any of the four kinds MUST NOT name the intent's invocation id at any reading inside the horizon.
+Check 2.1: For EVERY elapsed intent inside the horizon, two closing records of any of the four kinds that no closing supersedes MUST NOT name the intent's invocation id at any reading inside the horizon.
 Check 2.2: For EVERY elapsed intent inside the horizon, two `<kind>.intended` records MUST NOT carry the intent's invocation id.
-Check 2.3: Two intents MUST NOT stand open on one (kind, act key) at any reading inside the horizon, for a kind whose service identity DOES NOT EQUAL none.
-Check 2.4: An auditor MUST read supersession transitively PER the section titled Which closing stands and count the reachable set as one closing.
+Check 2.3: Two intents MUST NOT stand open on one `(kind, act key)` at any reading inside the horizon, for a kind whose service identity DOES NOT EQUAL none.
+Check 2.4: An auditor MUST read supersession transitively PER the section titled Which closing stands and count every closing the reading reaches as one closing.
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
 Check 2.6: An auditor MUST report an outcome matching no outcome shape as a failure to conform.
 ```
@@ -813,8 +813,8 @@ Projection: section_unavailable
 Not Open 1: The composition MUST NOT decide not-open.
 Not Open 2: The adopter's action MUST hold [Open]'s returned pair on the action's own call stack for the life of the invocation.
 Not Open 3: The composition MUST NOT decide not-open from a map or a range read.
-Not Open 4: [Close] MUST land recording-failure(outcome) at step 1 for a pair no [Open] returned.
-Not Open 5: [Refuse] MUST land recording-failure(refusal, constituent code) at step 1 for a pair no [Open] returned.
+Not Open 4: [Close] MUST land `recording-failure(outcome)` at step 1 for a pair no [Open] returned.
+Not Open 5: [Refuse] MUST land `recording-failure(refusal, constituent code)` at step 1 for a pair no [Open] returned.
 ```
 Not Open 4 and Not Open 5 are decided where the grant answers none (close step 1.2, refuse step 1.2), an expired grant included: the composition cannot tell a pair no [Open] returned from a grant that ended, answers both alike and writes nothing. No rule checks that intent event id belongs to invocation id; the pair is the adopter's to hold whole (Not Open 2).
 
@@ -860,7 +860,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify, survive.
 
-Term cited: take, try_take, remaining, expiry instant, call in flight, no answer, key check: Bonds. invocation id, act key, critical section key, critical section holder, sealed, closing record, invocation journal: Declarations. pairing datum: Contracts. payload cap, reference length cap, attestation id width, recording instant, sequence number, next sequence number, event id, action reference, reserved namespace, invalid-credential, invalid-request(step-1), invalid-request(step-2), invalid-request(step-3), invalid-request(step-4), recording-failure(step-2), recording-failure(step-3), recording-failure(step-4): Audit Trail, held with the attested append (the app's glue).
+Term cited: take, try_take, remaining, expiry instant, call in flight, no answer, key check: Bonds. invocation id, act key, critical section key, critical section holder, sealed, closing record, invocation journal, transitively, directly, separately: Declarations. pairing datum: Contracts. payload cap, reference length cap, attestation id width, recording instant, sequence number, next sequence number, event id, action reference, reserved namespace, invalid-credential, invalid-request(step-1), invalid-request(step-2), invalid-request(step-3), invalid-request(step-4), recording-failure(step-2), recording-failure(step-3), recording-failure(step-4): Audit Trail, held with the attested append (the app's glue).
 
 Term value sets: landing actor = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. act probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. service identity = an actor | none. findings = journal-unavailable | store-unavailable | credential-refused | closure-at-risk | unbound-kind | escalated. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap.
 

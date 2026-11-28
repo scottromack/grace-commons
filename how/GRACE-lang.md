@@ -3,7 +3,7 @@ title: GRACE lang
 nav_order: 2
 ---
 
-# GRACE lang v0.75 — Minimal Earned Grammar
+# GRACE lang v0.76 — Minimal Earned Grammar
 
 GRACE is a small domain-specific language for specifying software behaviour, written as a controlled subset of English: a person reads it as plain English, and a machine parses it.
 
@@ -172,6 +172,10 @@ Term rule form: `LABEL: statement` on one line, or `LABEL: WHEN condition:` foll
 
 Term child: a rule inside a WHEN block.
 
+Term citation: a parenthesis that closes a rule and names rules, sections or documents, each label carrying the label's number, as `(Execution Contract Read 1)` or `(Operation 3, Invariant 2.1)`.
+
+Term arm payload: the names an answer's arm carries in parentheses against the arm's name, as `invalid-request(step-3)`; a call written with its inputs, as `take((kind, act key), invocation id, invocation completion bound)`, is spelled the same way.
+
 ```
 Rule shape 1: EVERY rule MUST carry a label.
 Rule shape 2: EVERY statement MUST match one statement shape.
@@ -181,11 +185,20 @@ Rule shape 5: A writer MUST NOT write a copula enumeration as a rule.
 Rule shape 6: EVERY rule MUST match the rule form.
 Rule shape 7: A label MUST name the label's family.
 Rule shape 8: A label MUST NOT carry an abbreviation.
+Rule shape 9: A writer MUST write a citation only at the rule's end.
+Rule shape 10: A writer MUST write an arm's payload, and a call written with the call's inputs, in a code span.
+Rule shape 11: A writer MUST NOT write a parenthesis in a rule outside a citation or a code span.
+Rule shape 12: A writer MUST join a list of subjects with lower-case and.
+Rule shape 13: The parser MUST read one subject's predicates joined by AND, and a list of citations a tail names, as one obligation.
 ```
 
 NOTE: a copula enumeration is *X is one of a, b, c*.
 
+NOTE: the forms Rule shape 9 through 13 settle, from the grammar's run over the corpus: a citation mid-rule, `(Execution Contract Read 1) THEN ...`, moves to the rule's end; `invalid-request(step-3)` and `act-in-flight(invocation id)` sit in a code span; a tuple such as `(kind, act key)` sits in a code span, and a gloss in parentheses is rephrased; `[Assign], [Recall] and [Reassign] MUST append ...` joins its subjects in lower case, since upper-case AND joins a condition's clauses and an object's members; `a consent id that DOES NOT EQUAL blank AND DOES NOT EXCEED the string cap` and `PER Execution Contract Logic confinement 3, Execution Contract Logic confinement 14 AND Execution Contract Logic confinement 16` are each one obligation.
+
 WHY:
+Rule shape 9 through 13 are v0.76's, the maintainer's ruling of 2026-11-27, 8:02 to 8:06 AM Central, on the grammar's run over the corpus: a citation that stands mid-rule cuts the statement in two, and the parser reads a closing citation alone, as `tools/grace/normalize.py` lowers a rule's cited field; an arm's payload against the arm's name is a spelling, so the payload sits in a code span as other spellings do (Earned vocabulary 16); a list of one subject's predicates, or of citations, adds no act, so the list obliges once.
+
 A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (the entry *Never mint an acronym* in `spec-format.md`). In the section shape a rule's family is the heading it sits under, so Rule shape 7 reads as it read through v0.74; in the tree order a rule stands where its subject is first used, an Identity rule after the term entry of the field it rules over, and its standard family names it there (v0.75, the maintainer's approval of the tree order on 2026-11-18 and his question the same day, "should the parser be that brittle?").
 
 #### Standard label families
@@ -282,7 +295,13 @@ Term condition operator: EQUALS | DOES NOT EQUAL | EXISTS | IS IN | IS NOT IN | 
 
 Term blank: a value that is absent, empty, or carries only whitespace, code points with the Unicode White_Space property as Unicode 6.3 and every later version define it (U+180E, the Mongolian vowel separator, has none since 6.3) — a caller's input, a stored field or a deployment setting that holds nothing.
 
-Term absence form: `no thing EXISTS`, with `for` and the identifier where one names the thing — the one way a condition says a record, an event or a condition is not there.
+Term absence form: `no thing EXISTS`, with a preposition phrase after EXISTS where one places the thing — `for` and the identifier where one names the thing, or another preposition, as `EXISTS among two verifications`, `EXISTS under the grant`, `EXISTS between the two commits` — the one way a condition says a record, an event or a condition is not there.
+
+Term predicate: a condition's clause carrying a verb the specification declares, with the verb's subject and the verb's object, as `the database refuses the write`.
+
+Term relative comparison: a phrase whose relative clause, opened by whose, that or which, carries a condition operator, as `a workflow whose current state IS IN the terminal states` or `a consent id that DOES NOT EQUAL blank`; the parser reads the comparison as the comparison of the subject, the object or the clause the phrase stands as.
+
+Term proper name: a name the English dictionary the grammar reads (the Grammatical Framework's DictEng) writes capitalised, as European or Monday.
 
 Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
 
@@ -339,9 +358,15 @@ Earned vocabulary 19: A writer MUST write the negative of PRECEDES as DOES NOT P
 Earned vocabulary 20: A writer MUST NOT compare two instants with EXCEEDS.
 Earned vocabulary 21: The parser MUST read `the call supplies an optional input` as `the optional input DOES NOT EQUAL blank`.
 Earned vocabulary 22: The parser MUST read `the call omits an optional input` as `the optional input EQUALS blank`.
+Earned vocabulary 23: A writer MAY write a condition's clause as a predicate.
+Earned vocabulary 24: A subject, an object or a clause MAY carry one relative comparison.
+Earned vocabulary 25: A phrase MAY carry could or cannot, stating what is possible and obliging nothing.
+Earned vocabulary 26: A rule MAY carry a proper name.
 ```
 
 WHY:
+Earned vocabulary 23 through 26 are v0.76's, the maintainer's ruling of 2026-11-27, 8:02 to 8:06 AM Central. A predicate is the corpus's commonest condition, `IF the database refuses the write`, 382 rules when the grammar first read the corpus: a declared verb reads one way, and rephrasing each as a comparison buys nothing. A relative comparison names a thing by a test, `a value that DOES NOT EQUAL blank`; one to a subject, an object or a clause, because the phrase *a field whose value EQUALS blank* reads the same as the comparison of *a field whose value* with blank, and a second operator in one phrase has two readings. Could and cannot inside a phrase say what is possible, `every code that could land on more than one side of the commit`, and the three modals stay the only obligations. A proper name is the dictionary's, never minted: *European* in *the European Union*; a negative number stays a named term (Closed vocabulary 34).
+
 One operator, one sense: EXISTS asks whether a thing is there, EQUALS blank whether a value is missing, IS IN whether a value belongs to a set. The operators are English words so a rule read aloud says what it means. `=` and `|` stay only where a value set is declared. The rule nouns are the grammar's for the reason blank is: every spec's rules lean on them, so a declaration in each spec would redeclare a constituent's term (Closed vocabulary 17); words a spec declares for itself stay the spec's. Renamed second senses (*argument*, State Machine's *instance*, Party Identity's *identifier*, Audit Trail's *tail*, bare *section* beside *critical section*) are history, in the Changes section.
 
 ---
@@ -582,7 +607,7 @@ record verb record_action: Audit Trail
 
 Term actors: (every subject in this document, agent or not) the grammar; the lock list (Section 21); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent; the corpus; a code span.
 
-Term record verbs: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land, promote, rest, take, rank, omit, order, oblige.
+Term record verbs: decide, join, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land, promote, rest, take, rank, omit, order, oblige.
 
 Term qualifiers: ratified — accepted into Section 21 by Principle 2; migrated — rewritten in this language, declared by the spec's own qualifiers line as `migrated — rewritten in GRACE lang vN (date)`, which is how a tool tells a migrated spec from an unmigrated one without guessing from a fence.
 
@@ -724,7 +749,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their family, never abbreviated; the standard sentences of a key, a key within an owner, a link and a range, and every record a record type; the tombstone, in the spec or in the spec's history file; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; MUST / MUST NOT / MAY; EVERY / EXACTLY ONE / EXACTLY ONE OF; flat IF and flat WHEN; flat AND, flat OR, never both in one condition; OR only inside conditions and term declarations; EQUALS / DOES NOT EQUAL / EXISTS / the absence form with a preposition phrase / IS IN / IS NOT IN / EXCEEDS / DOES NOT EXCEED / PRECEDES / DOES NOT PRECEDE; blank; `=` and `|` only in a value set; ONLY AFTER / ONLY IF / WITHIN / PER; MUST NOT EXCEED for ≥, no AT LEAST, no STRICTLY; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; IS AUTHORITATIVE FOR (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic AFTER sugar under MUST and MAY; positive `MUST … BEFORE` illegal; one obligation per sentence, one subject's predicates joined by AND and a tail's list of citations each one obligation; the predicate clause; one relative comparison to a subject, an object or a clause; could and cannot inside a phrase; a proper name the dictionary capitalises; a citation only at a rule's end, an arm's payload in a code span and no other parenthesis in a rule; lower-case and joining a list of subjects; labels named for their family, never abbreviated; the standard sentences of a key, a key within an owner, a link and a range, and every record a record type; the tombstone, in the spec or in the spec's history file; the range citation; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations, as declared arithmetic, every operator in the operator's own pair of parentheses and a division only there, naming the division's rounding, and never in a rule; nothing read by precedence; closed value sets; no pronouns, Section 13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.

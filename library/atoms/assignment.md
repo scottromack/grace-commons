@@ -158,7 +158,7 @@ State 13: The atom MUST NOT re-derive an instant an assignment carries from a la
 ### Every action
 
 ```
-Operation 40: [Assign], [Recall] AND [Reassign] MUST append one assignment events record through the atom's journal need for EVERY admitted call.
+Operation 40: [Assign], [Recall] and [Reassign] MUST append one assignment events record through the atom's journal need for EVERY admitted call.
 ```
 
 The case space, and the rule that owns each case:
@@ -518,7 +518,7 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 ```
 Composition note 3: A composing pattern MUST own whether an assignee may hold the task.
 Composition note 4: A composing pattern MUST own whether a completed task's assignment is recalled.
-Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] and [Reassign] under the assigner's credential.
+Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] and [Reassign] under the assigner's sign-in proof.
 ```
 
 NOTE: composing patterns — an app names the atoms it composes; this pattern names none.

@@ -271,7 +271,7 @@ Operation 11: IF the observation id names no observation THEN a chain action MUS
 Operation 12: A chain action MUST answer not-known ONLY IF the observation id names no observation.
 Operation 13: IF the observation's state EQUALS retracted THEN a chain action MUST answer already-retracted.
 Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
-Operation 55: The order of a read's answer (Operation 42, Operation 43) MUST NOT stand for the order the observed events happened in.
+Operation 55: The order of a read's answer MUST NOT stand for the order the observed events happened in (Operation 42, Operation 43).
 Operation 60: IF value carries a string that EXCEEDS the string cap THEN a content-checking action MUST answer invalid-observation.
 ```
 

@@ -57,6 +57,7 @@ where when what while this these those its it their them they no not any each bo
 nor other another every all some one two three only also own same such per via including whether if
 outside inside beyond until upon past near along around behind except among toward towards despite unless once
 zero four five six seven eight nine ten first second third fourth fifth sixth seventh eighth ninth tenth
+could cannot
 EVERY EXACTLY ONE OF NO , . ; : 's '""".split()
 # the cardinals beside one, two and three are the numbers normalize.py reads as words (NUMBER_WORDS, zero to
 # ten), and the ordinals are their kin: English closed-class words, as the determiners above are
@@ -190,6 +191,7 @@ def dicteng_path() -> Path:
 
 
 _DICT: set[str] | None = None
+_PROPER: set[str] | None = None
 
 
 def dicteng() -> set[str]:
@@ -198,6 +200,7 @@ def dicteng() -> set[str]:
     global _DICT
     if _DICT is None:
         _DICT = set()
+        _PROPER_FORMS.clear()
         p = dicteng_path()
         for q in (p, p.parent / "IrregEng.gf"):
             if not q.exists():
@@ -207,15 +210,44 @@ def dicteng() -> set[str]:
                     continue
                 forms = [f for f in re.findall(r'"([^"]+)"', ln) if re.fullmatch(r"[a-z][a-z-]*", f)]
                 _DICT |= set(forms)
+                _PROPER_FORMS.update(f for f in re.findall(r'"([^"]+)"', ln) if re.fullmatch(r"[A-Z][a-z]+", f))
                 if forms:
                     _DICT |= inflections(forms[0])
     return _DICT
 
 
+_PROPER_FORMS: set[str] = set()
+
+
+def proper_names() -> set[str]:
+    """DictEng's capitalised entries, the proper names a rule may carry (GRACE-lang v0.76, Term proper
+    name: European, Monday; the maintainer's ruling of 2026-11-27, 8:06 AM Central)."""
+    dicteng()
+    return _PROPER_FORMS
+
+
+_NAMES: dict[str, list[str]] = {}
+
+
+def pattern_names(root: Path) -> list[str]:
+    key = str(root)
+    if key not in _NAMES:
+        names = []
+        for d in ("atoms", "compositions", "apps"):
+            for q in sorted((root / "library" / d).rglob("*")):
+                if q.suffix in (".md", ".idd") and not q.name.endswith(".hist.md") and q.is_file():
+                    m = re.search(r"^title: (.+)$", q.read_text(encoding="utf-8")[:400], re.M)
+                    if m:
+                        names.append(m.group(1).strip().strip('"'))
+        _NAMES[key] = names
+    return _NAMES[key]
+
+
 def page_sources(page: Path, root: Path) -> dict[str, list[str]]:
     text = page.read_text(encoding="utf-8")
     lines = text.splitlines()
-    pg = [ln[5:] for ln in lines if ln.startswith("Term ")]
+    # a Term line in the tree order stands indented under the rule it serves
+    pg = [ln.lstrip()[5:] for ln in lines if ln.lstrip().startswith("Term ")]
     # a term entry's or an action's heading: #### in the section shape, ### for an action in the tree order
     heads = [ln.lstrip("#").strip() for ln in lines if ln.startswith(("### ", "#### "))]
     pg += heads + ["[" + h + "]" for h in heads]
@@ -224,6 +256,9 @@ def page_sources(page: Path, root: Path) -> dict[str, list[str]]:
     ec = (root / "library" / "execution-contract.md").read_text(encoding="utf-8")
     labels += re.findall(r"^\s*(?:\*\*|- )?([A-Z][A-Za-z]*(?: [a-z]+)*) \d+[a-z]?:", ec, re.M)
     pg += labels + ["Execution Contract", "GRACE-lang", "Non-goals", "through"]
+    # the library's pattern names, each a spec's name as its title gives it (GRACE-lang Term name), named in a
+    # rule as Execution Contract and GRACE-lang are: "MUST compose Restorable Delete"
+    pg += pattern_names(root)
     decl = (root / "library" / "declarations.md").read_text(encoding="utf-8")
     dc = [ln[5:] for ln in decl.splitlines() if ln.startswith("Term ")]
     gl = (root / "how" / "GRACE-lang.md").read_text(encoding="utf-8")
@@ -247,7 +282,8 @@ def lexicon(page: Path, root: Path, need: set[str] | None = None) -> tuple[dict[
                 lex.setdefault(w, "page")
         d = dicteng()
         for w in sorted(need):
-            if w not in lex and w not in KEYWORDS and not reserved(w) and (w in d or w.lower() in d) and not w.isdigit():
+            if w not in lex and w not in KEYWORDS and not reserved(w) and (w in d or w.lower() in d or w in proper_names()) \
+                    and not w.isdigit():
                 lex[w] = "DictEng"
         # a code span, a code spelling such as a template (Term rule symbol: "a code spelling such as a
         # template sits in a code span"; Earned vocabulary 16), is a phrase's word as the rule writes it
@@ -442,7 +478,8 @@ SHAPES = ["plain MUST", "plain MUST NOT", "IF … MUST", "plain MAY", "IF … MU
 
 
 # GLM's S2: "ought" is an English modal outside GRACE-lang's three; a page finding, never a modal
-NOT_MODALS = {"ought", "should", "shall", "must", "may", "might", "can", "could", "will", "would"}
+# could and cannot stand inside a phrase since GRACE-lang v0.76 (Earned vocabulary 25), function words above
+NOT_MODALS = {"ought", "should", "shall", "must", "may", "might", "can", "will", "would"}
 
 
 def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str) -> tuple[str, str, str]:
@@ -454,11 +491,13 @@ def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str)
                   `EXISTS for`, the WHEN block, the tails ONLY AFTER, AFTER, WITHIN, BEFORE and ONLY UNDER,
                   IS AUTHORITATIVE FOR and a code span are the Rule's since the grammar's own cures
                   (2026-11-27): a rule that fails at one of them is read for what else stands there.
-      GRACE-lang  no clause admits it and normalize.py takes it as text: a parenthetical before the rule's
-                  end (a mid-rule citation, an arm's payload, a tuple), a closing parenthetical with no
-                  number, AND joining subjects, a comparison inside a phrase (held with SCmp).
+      GRACE-lang  no clause admits it or bars it. Since v0.76 (the maintainer's ruling of 2026-11-27) none
+                  is left: a citation stands only at a rule's end, an arm's payload or a call in a code span,
+                  no other parenthesis in a rule (Rule shape 9 to 11), lower-case and joins subjects (Rule
+                  shape 12), and a phrase carries one comparison (Earned vocabulary 24), so each is a page's.
       page        the page writes outside GRACE-lang: a word no source supplies, a modal outside the three,
-                  EXISTS qualified otherwise than by `for`,
+                  EXISTS qualified otherwise than by a preposition phrase, a parenthesis outside a citation
+                  or a code span, AND joining subjects, a second comparison inside one phrase,
                   a lower-case reserved word, IS or ONLY outside its form, a second obligation, OR outside
                   a condition, a rule symbol.
     """
@@ -474,20 +513,20 @@ def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str)
     if at == "WHEN":
         return "page", "WHEN after a rule's start (Term rule form)", "open the block with WHEN, its statements as children"
     if prev == "EXISTS":
-        return "page", f"EXISTS qualified otherwise than by for ({at})", "rephrase with for (Term absence form), or amend the form"
+        return "page", f"EXISTS qualified otherwise than by a preposition phrase ({at})", "rephrase (Term absence form)"
     if at in ("BEFORE", "WITHIN", "AFTER", "UNDER", "AUTHORITATIVE", "FOR") or (at == "ONLY" and prev not in KEYWORDS) \
             or at.startswith("`"):
         return "grammar", f"{at} where the Rule takes none", "read the rule"
     if at == ATTACHED:
-        return "GRACE-lang", "a parenthesis against its word (an arm's payload or a call)", \
-            "say where a citation, an arm's payload or a tuple stands, or rephrase"
+        return "page", "a parenthesis against its word (an arm's payload or a call)", \
+            "write the arm or the call in a code span (Rule shape 10)"
     if at == ")" and "(" in before:
         inner = before[len(before) - before[::-1].index("("):]
         if i == len(toks) - 1 and not any(numberish(t) for t in inner):
-            return "GRACE-lang", "a closing parenthetical with no number", \
-                "say where a citation, an arm's payload or a tuple stands, or rephrase"
-        return "GRACE-lang", "a parenthetical before the rule's end", \
-            "say where a citation, an arm's payload or a tuple stands, or rephrase"
+            return "page", "a closing parenthetical with no number", \
+                "rephrase, or write a tuple in a code span (Rule shape 11)"
+        return "page", "a parenthetical before the rule's end", \
+            "move the citation to the rule's end (Rule shape 9), or rephrase"
     if at in NOT_MODALS:
         return "page", f"'{at}', no modal of GRACE-lang's three", "rephrase in closed vocabulary"
     if at in ("EXCEED", "EQUAL", "PRECEDE") and prev == "not":
@@ -495,13 +534,13 @@ def home(row: dict, toks: list[str], lex: dict[str, str], form: dict, text: str)
     if at in ("after", "within", "before", "exactly") and prev in ("ONLY", "MUST", "NOT") or at == "exactly":
         return "page", f"a reserved word in lower case ({at})", "write it in upper case or rephrase (Casing 2)"
     if at == "(" or (")" in before and "(" in before and at not in lex):
-        return "GRACE-lang", "a parenthetical before the rule's end", "say where a citation, an arm's payload or a tuple stands, or rephrase"
+        return "page", "a parenthetical before the rule's end", "move the citation to the rule's end (Rule shape 9), or rephrase"
     if ")" in before and before.index(")") < len(before) and before[-1] == ")":
-        return "GRACE-lang", "words after a parenthetical", "say where a citation, an arm's payload or a tuple stands, or rephrase"
+        return "page", "words after a parenthetical", "move the citation to the rule's end (Rule shape 9), or rephrase"
     if at in ("DOES", "EXISTS", "EQUALS", "EXCEEDS", "PRECEDES", "EQUAL", "IS"):
-        return "GRACE-lang", "a comparison inside a phrase (held with SCmp)", "rule whether a phrase may carry an operator"
+        return "page", "a second comparison inside one phrase", "write one comparison to a subject, an object or a clause (Earned vocabulary 24)"
     if at == "AND" and "MUST" not in before and "MAY" not in before:
-        return "GRACE-lang", "AND joining subjects", "rule whether AND joins subjects, or write lower-case and"
+        return "page", "AND joining subjects", "write lower-case and (Rule shape 12)"
     if at in ("MUST", "MAY") or (at == "AND" and prev != ","):
         return "page", "a second obligation", "split the rule (Rule shape 3)"
     if at in ("OR", "or", "and", "NOT"):
@@ -551,7 +590,8 @@ def swaps(toks: list[str], lex: dict[str, str]) -> list[tuple[str, list[str]]]:
 def pretest(page: Path, root: Path = ROOT, keep: Path | None = None) -> dict:
     t0 = time.monotonic()
     doc = ir.parse(page, root)
-    rules = [r for r in doc["rules"] if not r["text"].lstrip().startswith("Deleted:")]
+    # a tombstone carries no obligation, and a PROVISIONAL: line has no normative force (GRACE-lang Surface 15)
+    rules = [r for r in doc["rules"] if not r["text"].lstrip().startswith(("Deleted:", "PROVISIONAL:"))]
     forms = normalize.lower_doc(doc)["rules"]
     toks = {r["label"]: tokenize(r["text"]) for r in rules}
     need = {t for ts in toks.values() for t in ts}

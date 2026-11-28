@@ -1041,7 +1041,7 @@ Check 3.3: An auditor MUST find no allocation event of a pool later in the journ
 Check 3.4: IF no purged audit event EXISTS THEN an auditor MUST find the pool state the replay holds on reaching EVERY allocation event equal to open (Check 2.1, Operation 10, Operation 11).
 Check 4.1: An auditor MUST find EVERY release event's closing balance equal to the released total (Operation 23).
 Check 4.2: An auditor MUST find no release event's closing balance below zero (Invariant 5.1).
-Check 7.1: An auditor MUST find prior capacity, new capacity, adjusting actor reference and a reason on EVERY adjustment event, AND a new capacity that DOES NOT EQUAL the prior capacity (State 17, Operation 31).
+Check 7.1: An auditor MUST find, on EVERY adjustment event, prior capacity, adjusting actor reference, a reason and a new capacity that DOES NOT EQUAL the prior capacity (State 17, Operation 31).
 Check 7.2: IF no purged audit event EXISTS THEN an auditor MUST find EVERY adjustment event's prior capacity equal to the capacity the replay holds on reaching the audit event (Check 2.1, Operation 33).
 Check 7.3: IF no purged audit event EXISTS THEN an auditor MUST find the allocated the replay holds at EVERY adjustment event no higher than the new capacity (Check 2.1, Operation 32).
 Check 7.4: An auditor MUST find no adjustment event of a pool later in the journal's order than a state-change event of the pool whose new state EQUALS closed (Invariant 3.3, Operation 29).

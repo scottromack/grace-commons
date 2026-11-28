@@ -406,7 +406,7 @@ read_comment(comment_id)
 ```
 
 ```
-Operation 29: [Read Comment] MUST answer the comment's comment id, target reference, author reference, text (blank where the comment stands retracted, Operation 31), added instant, status AND, for a reply, the parent's comment id.
+Operation 29: [Read Comment] MUST answer the comment's comment id, target reference, author reference, text, added instant, status AND, for a reply, the parent's comment id, the text standing blank where the comment stands retracted (Operation 31).
 Operation 30: [Read Comment] MUST NOT write.
 Operation 31: IF the comment's status EQUALS retracted THEN [Read Comment] MUST answer blank text.
 ```

@@ -331,7 +331,7 @@ Operation 65: An admitted suspend MUST record the party's verification event lis
 Operation 66: A mark-keeping action MUST NOT change the suspension mark.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 43: A refused action MUST NOT append an event.
-Operation 62: EVERY admitted enroll, admitted verify, admitted suspend, admitted reinstate AND admitted close MUST append one party events record through the atom's journal need.
+Operation 62: EVERY admitted enroll, admitted verify, admitted suspend, admitted reinstate and admitted close MUST append one party events record through the atom's journal need.
 Operation 44: The atom MUST NOT offer a party removal surface.
 Operation 45: The atom MUST NOT offer an event removal surface.
 Operation 46: The atom MUST NOT offer an enrollment field update surface.

@@ -18,11 +18,13 @@ Declaration 3: A specification MUST NOT declare a word this page declares.
 Declaration 4: A declared word that a key offer names as the offer's key MUST name ONE key in an app AND ONE atom of the app MUST mint the key (Bonds Key 2).
 ```
 
-Term declaration type: opaque | duration.
+Term declaration type: opaque | duration | adverb.
 
 Term opaque: a value compared by byte identity and never read for meaning.
 
 Term duration: a length of time.
+
+Term adverb: a manner word, saying how an act is done or how a claim holds, that no rephrase in the grammar's words keeps (GRACE-lang v0.76, the maintainer's ruling of 2026-11-27, 8:06 AM Central).
 
 ### The words
 
@@ -125,6 +127,16 @@ Term commitment events: opaque — the record type of the journal records Provis
 Term order events: opaque — the record type of the journal records Medication Order's admitted actions append; plain, carrying no seal.
 
 Term pool events: opaque — the record type of the journal records Capacity Constraint Enforcement's admitted actions append; plain, carrying no seal.
+
+Term transitively: adverb — through every link of a chain in turn, so that what a link reaches through the links after it counts as reached.
+
+Term directly: adverb — by the actor's own act, with no pattern, call or record between the actor and what the act touches.
+
+Term separately: adverb — once for each of the things named, no act serving two of them.
+
+Term independently: adverb — with no value, record or act of one taken from or shared with another.
+
+Term provably: adverb — in a way an auditor can check from the records alone, with no word of the actor's.
 
 Term idempotency key: opaque — the value a caller sends with a request so that a repeat of the request carrying the same value is answered as the first was and never acted on twice.
 

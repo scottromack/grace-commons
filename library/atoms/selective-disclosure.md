@@ -399,7 +399,7 @@ Capability requirement 1: The deployment MUST supply now at the seam PER Executi
 Capability requirement 5: The deployment MUST supply the disclosure records PER Execution Contract Database 1, Execution Contract Database 2, Execution Contract Database 3, Execution Contract Database 4, Execution Contract Database 5, Execution Contract Database 6, Execution Contract Database 7, Execution Contract Database 8, Execution Contract Read 1 through 4, Execution Contract Refusal 1, Execution Contract Query 1 through 5, Execution Contract Input 1 and Execution Contract Input 4.
 Capability requirement 6: The deployment MUST call [Record] for EVERY transmission of a subject's data to a party beside the subject.
 Capability requirement 8: The deployment MAY declare the string cap PER Execution Contract Input 2.
-Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16 (Term disclosure id).
+Capability requirement 9: The deployment MUST supply the disclosure id at the seam PER Execution Contract Logic confinement 3 and Execution Contract Logic confinement 16.
 Capability requirement 10: The deployment MUST supply the clock allowance at the seam PER Execution Contract Logic confinement 18.
 ```
 
@@ -530,7 +530,7 @@ Check 2.3: An auditor MUST find EVERY disclosure record's authority type standin
 Check 2.4: An auditor MUST find EVERY disclosure record's disclosure id distinct from the disclosure id of every other disclosure record in one database instance (Identity 5).
 Check 3.1: An auditor MUST find EVERY disclosure record's fields unchanged across EVERY committed version of the disclosure record (Invariant 1.1; Execution Contract Generation acceptance 1).
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
-Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
+Check 5.2: An auditor MUST find an authority type query answering the disclosure records carrying the authority type and no other disclosure record (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
 ```
 

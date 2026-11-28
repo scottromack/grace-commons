@@ -259,6 +259,10 @@ def actions_of(subject: str, terms: list[dict], sigs: list[dict] | None = None) 
     `any action carrying` an input names those the signatures give (`action_set_of`); a set the signatures do not resolve names none. An `admitted <action>` Term is the call of that action where its definition says no more
     of the call than that the action admits it, that no rule refused it, or that it answers (`an [Order] call the action admits`) and
     the action its bracket names is the one its name does; a call narrowed by anything else (`a [Fire] call whose tasks ...`) names none."""
+    # a list of bracketed actions, joined by commas and a lower-case and (GRACE-lang v0.76, Rule shape 12) or by the
+    # upper-case AND the pages wrote before it: each action, never one name run together ("rename_list_and_delete_list")
+    if re.fullmatch(r"\[[^\]]+\](?:(?:,\s*|\s+(?:and|AND)\s+|,\s*(?:and|AND)\s+)\[[^\]]+\])+", subject.strip()):
+        return [snake_of(x) for x in re.findall(r"\[([^\]]+)\]", subject)]
     m = re.fullmatch(r"\[(.+)\]", subject.strip())
     if m:
         return [snake_of(m.group(1))]

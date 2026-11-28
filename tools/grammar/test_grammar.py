@@ -118,7 +118,16 @@ class Parse(unittest.TestCase):
              "[Add] MUST answer over-cap (the sum).",
              "[Add] MUST answer over-cap(Identity 2).",
              "The atom MUST NOT take a `payment`.",
-             "The atom MUST keep four amounts for a third currency."]
+             "The atom MUST keep four amounts for a third currency.",
+             # v0.76, the maintainer's ruling of 2026-11-27 (TEXTS[19] on)
+             "IF no money EXISTS among the sums THEN [Add] MUST answer over-cap.",
+             "The atom MUST keep a sum that DOES NOT EQUAL blank AND DOES NOT EXCEED the number cap.",
+             "[Add] MUST answer over-cap PER Identity 2, Identity 3 AND Identity 4.",
+             "[Add] and [Compare] MUST answer over-cap.",
+             "The atom MUST keep every sum that could exceed the number cap.",
+             "The atom MUST NOT keep a sum for the European Union.",
+             "[Add] MUST answer `over-cap(sum)`.",
+             "The atom MUST keep a sum that DOES NOT EQUAL blank AND a currency that DOES NOT EQUAL blank."]
 
     @classmethod
     def setUpClass(cls):
@@ -184,6 +193,25 @@ class Parse(unittest.TestCase):
         # Term rule symbol: "a code spelling such as a template sits in a code span"
         self.assertEqual(len(self.trees(self.TEXTS[17])), 1)
         self.assertEqual(len(self.trees(self.TEXTS[18])), 1)
+
+    def test_v076_forms(self):
+        # GRACE-lang v0.76: the absence form with another preposition (Term absence form); one subject's
+        # predicates joined by AND and a tail's list of citations, each one obligation (Rule shape 13);
+        # lower-case and joining subjects (Rule shape 12); could inside a phrase (Earned vocabulary 25);
+        # a proper name the dictionary capitalises (Earned vocabulary 26); an arm's payload in a code span
+        # (Rule shape 10)
+        self.assertIn("CExistsPrep", self.trees(self.TEXTS[19])[0])
+        self.assertIn("OCmpAnd", self.trees(self.TEXTS[20])[0])
+        self.assertIn("TPerAnd", self.trees(self.TEXTS[21])[0])
+        for t in self.TEXTS[19:26]:
+            self.assertEqual(len(self.trees(t)), 1, t)
+        # loop 2 on each new constructor
+        for t in self.TEXTS[19:22]:
+            tree = self.trees(t)[0]
+            text = grammar.linearize_many(self.pgf, "GraceLexEng", {"x": tree})["x"]
+            self.assertEqual(grammar.parse_many(self.pgf, [("x", text.split())])["x"]["trees"], [tree], t)
+        # two subjects' comparisons in one object stay two comparisons, never one phrase (Earned vocabulary 24)
+        self.assertEqual(self.trees(self.TEXTS[26]), [])
 
     def test_ought_is_no_modal(self):
         # GLM's S2: "ought" is filed to the page, never admitted as a modal

@@ -231,6 +231,10 @@ Term reader's date: the local date the place's clock shows at now.
 
 Term day count: how many calendar days the read date lies back from the reader's date: 0 for the reader's date itself, 1 for the date before, -1 for the date after.
 
+Term one day ahead: -1 — the day count of the date after the reader's date.
+
+Term two days ahead: -2 — the day count of the date two days after the reader's date.
+
 Term week: the seven dates from a date whose day of the week is the place's week start.
 
 Term week count: how many weeks the read date's week lies back from the week holding the reader's date: 0 for the reader's own week, 1 for the week before.
@@ -585,13 +589,13 @@ show(place_id, instant)
 Operation 27: IF the read date IS NOT IN the date range THEN [Show] MUST answer out-of-range.
 Operation 28: IF the day count EQUALS 0 THEN [Show] MUST answer today as the relative day.
 Operation 29: IF the day count EQUALS 1 THEN [Show] MUST answer yesterday as the relative day.
-Operation 30: IF the day count EQUALS -1 THEN [Show] MUST answer tomorrow as the relative day.
+Operation 30: IF the day count EQUALS one day ahead THEN [Show] MUST answer tomorrow as the relative day.
 Operation 31: IF the day count EXCEEDS 1 AND the week count EQUALS 0 THEN [Show] MUST answer current-week as the relative day.
 Operation 32: IF the day count EXCEEDS 1 AND the week count EQUALS 1 THEN [Show] MUST answer last-week as the relative day.
 Operation 33: IF the week count EXCEEDS 1 AND the month count EQUALS 0 THEN [Show] MUST answer current-month as the relative day.
 Operation 34: IF the week count EXCEEDS 1 AND the month count EQUALS 1 THEN [Show] MUST answer last-month as the relative day.
 Operation 35: IF the week count EXCEEDS 1 AND the month count EXCEEDS 1 THEN [Show] MUST answer full-date as the relative day.
-Operation 36: IF the day count DOES NOT EXCEED -2 THEN [Show] MUST answer full-date as the relative day.
+Operation 36: IF the day count DOES NOT EXCEED two days ahead THEN [Show] MUST answer full-date as the relative day.
 Operation 37: [Show] MUST answer the read date, the read time, the offset AND the read date's day of the week.
 ```
 
@@ -847,7 +851,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-07) through the Grace connector.
 
-Term terms: place, time zone, time zone rules, zone names, seam, week start, day of the week, calendar, calendar date, month length, local date, date range, local time, times of day, offset, now, zone action, place action, date action, query action, day start, day end, day span, choice, forward choice, first choice, wall time, matching instant, plain time, skipped time, repeated time, gap, forward resolution, back resolution, earlier match, later match, amount, signed amount, overflow, month move, landing month, landing day, shifted date, read date, read time, reader's date, day count, week, week count, month count, relative day, reading, version, conformance table.
+Term terms: place, time zone, time zone rules, zone names, seam, week start, day of the week, calendar, calendar date, month length, local date, date range, local time, times of day, offset, now, zone action, place action, date action, query action, day start, day end, day span, choice, forward choice, first choice, wall time, matching instant, plain time, skipped time, repeated time, gap, forward resolution, back resolution, earlier match, later match, amount, signed amount, overflow, month move, landing month, landing day, shifted date, read date, read time, reader's date, day count, one day ahead, two days ahead, week, week count, month count, relative day, reading, version, conformance table.
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

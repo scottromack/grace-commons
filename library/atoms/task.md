@@ -140,7 +140,7 @@ State 12: A done task MUST carry completer.
 Operation 35: IF the task id is malformed THEN [Edit] MUST answer not-known (Execution Contract Input 1).
 Operation 36: IF the task id is malformed THEN [Complete] MUST answer not-known (Execution Contract Input 1).
 Operation 37: IF the task id is malformed THEN [Delete] MUST answer not-known (Execution Contract Input 1).
-Operation 48: [Add], [Edit], [Complete] AND [Delete] MUST append one task events record through the atom's journal need for EVERY admitted call.
+Operation 48: [Add], [Edit], [Complete] and [Delete] MUST append one task events record through the atom's journal need for EVERY admitted call.
 ```
 
 NOTE: watch the untyped input (Operation 35, Operation 36, Operation 37).
@@ -518,9 +518,11 @@ Re-adding 2: [Add] MUST answer a fresh task id for such a task.
 
 ### Description policy
 
+Term normal form C: the composed form the Unicode Standard names Normalization Form C, in which a letter and the marks it carries stand as one code point wherever one exists.
+
 ```
-Description 1: The atom MUST trim a description's leading and trailing white space (the grammar's Term blank).
-Description 2: The atom MUST normalize a description to Unicode normal form C.
+Description 1: The atom MUST trim a description's leading and trailing white space PER the grammar's definition of blank.
+Description 2: The atom MUST normalize a description to normal form C.
 Description 3: The atom MUST preserve a description's internal white space as Description 2's normal form leaves the white space.
 Description 4: IF the normalized description EQUALS blank THEN [Add] MUST answer invalid-description.
 Description 5: IF the description the call carries EXCEEDS the description cap THEN [Add] MUST answer invalid-description (Execution Contract Input 2).
@@ -670,7 +672,7 @@ Check 1.5: An auditor MUST find EVERY done task carrying completer (State 12).
 Check 2.1: An auditor MUST find no deleted task whose task id IS IN the tasks (Invariant 4.1; Invariant 2.1; Invariant 3.1; Execution Contract Generation acceptance 1).
 Check 2.2: An auditor MUST find no two tasks sharing a task id across the tasks' committed versions (Identity 5; Execution Contract Generation acceptance 1).
 Check 2.3: An auditor MUST find a task's task id unchanged across an edit (Invariant 8.3; Execution Contract Generation acceptance 1).
-Check 2.4: An auditor MUST find no task whose task state EQUALS pending in a committed version that comes after a committed version in which the task state EQUALS done (Invariant 2.1; State 9; Execution Contract Generation acceptance 1).
+Check 2.4: IF a committed version's task state EQUALS done THEN an auditor MUST find no later committed version of the task whose task state EQUALS pending (Invariant 2.1; State 9; Execution Contract Generation acceptance 1).
 Check 2.5: An auditor MUST find a task's list id unchanged across the task's committed versions (Invariant 9.1; Execution Contract Generation acceptance 1).
 Check 3.1: An auditor MUST find no two tasks in one list's active set sharing a normalized description (Invariant 6.1).
 Check 3.3: An auditor MUST find an edit changing no field beside description AND last edit instant (Invariant 5.2; Execution Contract Generation acceptance 1).
@@ -706,7 +708,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, task, description, description cap, task state, addition instant, last edit instant, completion instant, completer, active set, new description, window, window start, default window, ok.
+Term terms: now, task, description, description cap, normal form C, task state, addition instant, last edit instant, completion instant, completer, active set, new description, window, window start, default window, ok.
 
 Term cited: task id, list id, actor id, task events: Declarations.
 
