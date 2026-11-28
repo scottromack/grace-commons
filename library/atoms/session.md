@@ -526,7 +526,7 @@ Operation 39: [Read] MUST NOT write.
 Operation 52: [Read] MUST NOT carry the session token digest on an answered session.
 Operation 53: IF a filter names a field whose value EQUALS blank THEN [Read] MUST answer no session.
 Operation 59: [Read] MUST carry principal reference, issued by reference, issuance instant, expiry instant and status on EVERY answered session.
-Operation 60: [Read] MUST carry revocation instant, revoked by reference and revocation reason on EVERY answered revoked session.
+Operation 60: [Read] MUST carry revocation instant on EVERY answered revoked session, and revoked by reference and revocation reason on EVERY answered session [Revoke] stood in revoked.
 Operation 61: IF the filter names a field other than principal reference and issued by reference OR the filter carries more than one value on a named field OR the filter's value on principal reference EXCEEDS the maximum length of principal reference OR the filter's value on issued by reference EXCEEDS the maximum length of issued by reference THEN [Read] MUST answer no session (String 6, Execution Contract Input 2, Execution Contract Query 1, Execution Contract Query 5).
 Operation 63: [Read] MUST carry the session id on EVERY answered session.
 Operation 64: [Read] MUST answer the sessions in issuance instant order, earliest first, then by session id ascending (Execution Contract Read 5, Execution Contract Logic confinement 10).
@@ -568,6 +568,13 @@ Operation 80: [Read Session] MUST answer EVERY revocation instant, revoked by re
 Operation 78: [Read Session] MUST NOT answer a session token digest.
 Operation 79: [Read Session] MUST NOT write.
 ```
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the database |
+|---|---|---|---|
+| [Read Session] | no session carries the session id | [Not Known] | none (Operation 76, Operation 79) |
+| [Read Session] | a session carries the session id | the session, carrying its session id, principal reference, credential id, issued by reference, issuance instant, expiry instant, effective status and every revocation instant, revoked by reference and revocation reason it carries, and no session token digest | none (Operation 77, Operation 78, Operation 79, Operation 80) |
 
 ## What is and what should never be (Invariants)
 
@@ -843,14 +850,14 @@ This atom's acceptance is provable: an external auditor clears it from the sessi
 
 ```
 Check 1.1: An auditor MUST find an expiry instant on EVERY session (Invariant 10.1).
-Check 1.2: An auditor MUST find one principal reference, issued by reference, issuance instant and expiry instant per session across the session's whole life (Invariant 1.1, Invariant 2.1; Execution Contract Generation acceptance 1).
+Check 1.2: An auditor MUST find one session token digest, principal reference, credential id, issued by reference, issuance instant and expiry instant per session across the session's whole life (Invariant 1.1, Invariant 2.1; Execution Contract Generation acceptance 1).
 Check 1.3: An auditor MUST find no session whose issuance instant DOES NOT PRECEDE the session's expiry instant (Operation 8, Operation 10, Operation 56).
 Check 2.1: An auditor MUST find no stored expired status on any session (Invariant 12.1).
 Check 2.2: An auditor MUST find no expiry time stamp beside expiry instant (Invariant 12.2).
 Check 2.3: An auditor MUST find no session with two committed versions whose status EQUALS active (Invariant 12.3; Execution Contract Generation acceptance 1).
 Check 2.4: An auditor MUST reproduce the effective status from the stored status, expiry instant and the read-time clock (Invariant 12.4).
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issuance instant, expiry instant and revocation instant (Invariant 3.1, Expiry 5).
-Check 4.1: An auditor MUST find a revocation instant, a revoked by reference that DOES NOT EQUAL blank and a revocation reason that DOES NOT EQUAL blank on EVERY revoked session (Invariant 8.1 through 8.3).
+Check 4.1: An auditor MUST find a revocation instant on EVERY revoked session, and a revoked by reference that DOES NOT EQUAL blank and a revocation reason that DOES NOT EQUAL blank on EVERY session [Revoke] stood in revoked (Invariant 8.1 through 8.3).
 Check 6.1: An auditor MUST find no session leaving revoked across two committed versions of the session (Invariant 5.1; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no two sessions sharing a session id (Invariant 7.3, State 15).
 ```
@@ -933,7 +940,7 @@ Term cited: actor id, session id, credential id: Declarations.
 
 ## Status
 
-`done — 2026-11-25` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -941,9 +948,9 @@ Term cited: actor id, session id, credential id: Declarations.
 </summary>
 
 ```
-status: done — 2026-11-25
+status: doing
 formal: verified — session.als + 17 twins (the static data model: State 1, 2 and 4 through 7, Identity 1, Invariant 7.1, 8.1 through 8.3, 10.1, 12.1 and 12.2, Check 1.3, Operation 4, 5, 10 and 58 checked on every version an ordered sequence of admitted calls leaves); session.tla + 14 twins (across steps, while the clock moves: Invariant 1.1, 2.1, 3.1, 3.3, 4.1, 5.1, 6.1, 7.2, 9.2, 11.1, 12.3 and 12.4, Operation 20, 27 and 39, Concurrency 4, with Invariant 1.2 and 9.1, State 10 and 11, Identity 5 and 6 checked through them); the vote no of 2026-06-03 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; Invariant 6.2 cannot be stated (External check 2); owed rows: Operation 52; Operation 37, 53 and 61, 2026-11-11; both re-derived over the session token digest, 2026-11-21; model redraw deferred to Lean: session.als and session.tla, State 4, State 16, State 17, Invariant 1.1, Invariant 8.2, Invariant 8.3, Operation 66 through 75, 2026-11-28
-last gate: 2026-11-27 — Final Critique 31, a delta round (diff base 88366445, 17 labels, the reach of Final Critique 30's settle, the grammar batch and the String policy tombstones), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 431dc37f — foundational count 0 after the blind second triage, clean, one sample (Linus claimed two foundational findings and the triages placed both refuted: that Term filter lists "a field other than principal reference and issued by reference" among the shapes a [Filter] names while requiring none, though the first clause only lists the shapes a caller can send, a term entry carries no obligation, and Operation 61 answers no session for such a filter, as the Filter entry and the Read case table say; and that Operation 65 leaves a default session duration that is absent, zero or negative without a refusal, though Operation 48 refuses a blank default and Operation 56 one that does not exceed the zero duration, and the rejection line agrees; the blind second triage, one cold reader on Opus 5.5, found one refining inconsistency of its own, that Term default session duration still named only absence and a value that does not exceed the zero duration as a misconfiguration after Operation 65 added the value that is no window length, cured by adding it and citing Operation 65, a term entry that changes no rule); 2026-11-25 — Final Critique 30, a delta round (diff base 7748eafc, 4 labels reached: Operation 3, 57, 64 and 65, the settle of Final Critique 29), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 88366445 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 2 foundational, 3 refining and 1 rhetorical; both its foundational findings were placed no defect and refining by both triages: Operation 64 cites Execution Contract Read 5 as the default its own order stands in place of, and Read 5 says a specification that names its own order keeps it, as Favorite, Communication, Tenure and Reaction cite it; Operation 65's citation of Execution Contract Input 1 reached a setting that Input 1 does not, so Operation 65 and Invalid Request now say the default is no window length, the page's own Term, and no build differed; refining not cured: that the default's validity gates every [Issue] call, which Term default session duration states, and Operation 57's malformed Reason, which Execution Contract Input 1 and Input 3 define; one rhetorical, the happy-path-only example, declined, since Rejection paths holds the refusals)
+last gate: 2026-11-28 — Final Critique 32, a delta round (diff base 431dc37f, 89 labels, the reach of the String policy tombstones, the Login dissolve and the key offers' existence reads), one reader (Linus opencode/beam-free; GRID and EOS not run; the Claude reader off), frozen at bf3c98b8 — foundational count 1, cured, not clean, no sample: Check 4.1 demanded a revoked by reference and a revocation reason on EVERY revoked session, though [Revoke Sessions For Credential] records the revocation instant alone (State 17, Operation 70, Operation 71), so a session the credential cascade revoked failed the audit that Invariant 8.2 and Invariant 8.3 scope to [Revoke]'s sessions; cured by scoping the two fields to every session [Revoke] stood in revoked, and Operation 60's restatement for [Read] cured the same way by the settle itself; refining: Check 1.2 omitted the session token digest and the credential id that Invariant 1.1 holds immutable, added; 2026-11-27 — Final Critique 31, a delta round (diff base 88366445, 17 labels, the reach of Final Critique 30's settle, the grammar batch and the String policy tombstones), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 431dc37f — foundational count 0 after the blind second triage, clean, one sample (Linus claimed two foundational findings and the triages placed both refuted: that Term filter lists "a field other than principal reference and issued by reference" among the shapes a [Filter] names while requiring none, though the first clause only lists the shapes a caller can send, a term entry carries no obligation, and Operation 61 answers no session for such a filter, as the Filter entry and the Read case table say; and that Operation 65 leaves a default session duration that is absent, zero or negative without a refusal, though Operation 48 refuses a blank default and Operation 56 one that does not exceed the zero duration, and the rejection line agrees; the blind second triage, one cold reader on Opus 5.5, found one refining inconsistency of its own, that Term default session duration still named only absence and a value that does not exceed the zero duration as a misconfiguration after Operation 65 added the value that is no window length, cured by adding it and citing Operation 65, a term entry that changes no rule); 2026-11-25 — Final Critique 30, a delta round (diff base 7748eafc, 4 labels reached: Operation 3, 57, 64 and 65, the settle of Final Critique 29), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 88366445 — foundational count 0 after the blind second triage, clean, one sample (Linus's report counted 2 foundational, 3 refining and 1 rhetorical; both its foundational findings were placed no defect and refining by both triages: Operation 64 cites Execution Contract Read 5 as the default its own order stands in place of, and Read 5 says a specification that names its own order keeps it, as Favorite, Communication, Tenure and Reaction cite it; Operation 65's citation of Execution Contract Input 1 reached a setting that Input 1 does not, so Operation 65 and Invalid Request now say the default is no window length, the page's own Term, and no build differed; refining not cured: that the default's validity gates every [Issue] call, which Term default session duration states, and Operation 57's malformed Reason, which Execution Contract Input 1 and Input 3 define; one rhetorical, the happy-path-only example, declined, since Rejection paths holds the refusals)
 
 open: none
 ```
