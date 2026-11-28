@@ -214,7 +214,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints evidence id. Offers key evidence id.
 
-**[Task](./atoms/task.md)** (767 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
+**[Task](./atoms/task.md)** (775 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 
