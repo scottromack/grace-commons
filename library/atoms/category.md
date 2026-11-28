@@ -626,7 +626,7 @@ Term seam: the atom's input and output boundary as the section titled Logic Conf
 
 ## Needs
 
-The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice (Bonds Key 27). A home holds an item reference, a reference to a record another atom keeps; the category id and the parent category name records this atom keeps and are no need (Bond 1).
+The bond this atom needs, of a bond kind [Bonds](../bonds.md) states; which atom meets it is the app's choice (Bonds Key 27). A home holds an item reference, a reference to a record another atom keeps; the category id and the parent category each name a record this atom keeps and are no need (Bond 1).
 
 Term need key: key opaque; pairs homes; on end Unplace.
 
@@ -648,7 +648,7 @@ Non-goal 4: The atom MUST NOT file an item under several names.
 Non-goal 5: The atom MUST NOT move a category under another category.
 Non-goal 6: The atom MUST NOT turn a tag into a category.
 Non-goal 7: The atom MUST NOT draw the menu.
-Non-goal 8: The atom MUST NOT count the items in a category.
+Non-goal 8: The atom MUST NOT record or answer a count of the items in a category.
 ```
 
 NOTE: the owners — the composing pattern that knows the caller, such as one built on [Session](./session.md) or the app's [Permissions](./permissions.md) (Non-goal 1, 2); Catalog *(forthcoming)* (Non-goal 3; External check 1); [Tag](./tag.md) (Non-goal 4); Category Move *(forthcoming)* (Non-goal 5); Tag Promotion *(forthcoming)*, which graduates a busy tag into a category, as communities already do by hand (Non-goal 6); the composing pattern that shows the menu (Non-goal 7); the composing pattern that shows the category, reading [List Items] (Non-goal 8).
@@ -783,7 +783,7 @@ Term terms: category, categories, category id, category name, parent category, s
 ```
 status: done — 2026-11-27
 formal: pending — no model yet
-last gate: 2026-11-27 — Final Critique 6, a delta round (diff base 3e5074a7, 52 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Term highest position has no named category on a creating action, was refuted by Term named category, which the delta set did not hold: for [Create] and [Create Under] it is the category the call would record, whose siblings are the parent's children or the top-level categories; the one refining finding, that the `items` arm of [List Items] was no declared name, is cured by Term items)
+last gate: 2026-11-28 — Final Critique 7, a delta round (diff base 29e021c7, 3 labels), one reader (Linus opencode/minimax-m3 on Zen; GRID and EOS not run), frozen at 99f2dd54 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Non-goal 8 has three readings of count, was placed refining by both triages: the answer of [List Items] is fixed by its signature and Operation 23, and a derived counter no action reads is no behaviour; it is cured by Non-goal 8 reading `record or answer a count`, and the Needs sentence at line 629 now reads `each name a record this atom keeps`); 2026-11-27 — Final Critique 6, a delta round (diff base 3e5074a7, 52 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample (Linus's one foundational report, that Term highest position has no named category on a creating action, was refuted by Term named category, which the delta set did not hold: for [Create] and [Create Under] it is the category the call would record, whose siblings are the parent's children or the top-level categories; the one refining finding, that the `items` arm of [List Items] was no declared name, is cured by Term items)
 
 open: none
 ```
