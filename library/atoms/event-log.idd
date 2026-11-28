@@ -45,7 +45,7 @@ Term event id: the opaque value naming one event — an [Event Id]; allocated on
 
 #### Event Id
 
-Allocated by the host at the I/O seam on [Append]; one event id names one event in the whole instance, whatever the event's [Stream] (Invariant 6.1). It supports equality but carries no ordering — ordering is [Sequence Number]'s job.
+Allocated by the host at the seam on [Append]; one event id names one event in the whole instance, whatever the event's [Stream] (Invariant 6.1). It supports equality but carries no ordering — ordering is [Sequence Number]'s job.
 
 Kind:       Field
 Field of:   Event
@@ -194,7 +194,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the log |
 |---|---|---|---|
-| [Append] | supplied stream well-formed, data within the cap, database accepts | event id and the sequence number the event carries | one event lands carrying the supplied stream and that stream's next sequence number, which rises, and no other stream's does; no field of the landed event changes afterward (Operation 1, Operation 3, Operation 23, Operation 24, State 6, State 10, Invariant 2.1) |
+| [Append] | supplied stream well-formed, data within the cap, database accepts | [Appended], carrying the event id and the sequence number the event carries | one event lands carrying the supplied stream and that stream's next sequence number, which rises, and no other stream's does; no field of the landed event changes afterward (Operation 1, Operation 3, Operation 23, Operation 24, State 6, State 10, Invariant 2.1) |
 | [Append] | supplied stream malformed | [Invalid Stream] | none — the precondition failed before the write (Operation 25, Execution Contract Read 4) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5, Execution Contract Read 4) |
 | [Append] | data omitted, or not a sequence of bytes | [Invalid Payload] | none — the precondition failed before the write (Operation 22, Execution Contract Read 4) |
@@ -209,6 +209,15 @@ Each example names the stream the app supplies at the seam; the call itself carr
 - The database refuses the write. On the stream `ledger`, `append(the bytes encoding {type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so the next sequence number of `ledger` stays at 2 (Operation 9, Execution Contract Database 1).
 - Retried, the write commits. On the stream `ledger`, `append(the bytes encoding {type: "withdrawal", amount: 100})` → accepted; answers `event_id e2` and `sequence_number 2`.
 - On the stream `fees`, `append(the bytes encoding {type: "fee", amount: 2})` → accepted; answers `event_id e3` and `sequence_number 1`: the first event of `fees` carries one, whatever `ledger` holds (State 5, State 10), and its event id names no other event of the instance (Invariant 6.1).
+
+#### Appended
+
+The answer [Append] gives once the call is admitted (Operation 4, Operation 23): the [Event Id] and the [Sequence Number] the new [Event] carries. The [Event] has landed.
+
+Kind:       Member
+Member of:  the Append answer
+Role:       Outcome
+Projection: appended
 
 #### Invalid Payload
 
@@ -496,6 +505,7 @@ Term terms: event id, seam, now, transition, business caller, event, stream, sup
 [Next Sequence Number]: #next-sequence-number
 [Query]: #query
 [Stream]: #stream
+[Appended]: #appended
 [Invalid Stream]: #invalid-stream
 [Invalid Payload]: #invalid-payload
 [Invalid Query]: #invalid-query
@@ -503,7 +513,7 @@ Term terms: event id, seam, now, transition, business caller, event, stream, sup
 
 ## Status
 
-`doing` — see the Ledger.
+`done — 2026-11-28` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -511,9 +521,9 @@ Term terms: event id, seam, now, transition, business caller, event, stream, sup
 </summary>
 
 ```
-status: doing
+status: done — 2026-11-28
 formal: verified — event-log.tla + 3 twins (2026-06-03); event-log.als + 11 twins (the static data model, 2026-11-12: State 2 through 5, Invariant 3.1, 3.2, 4.1, 5.1, 5.2 and 6.1 and Operation 5 and 16 checked on every log a fresh instance and admitted [Append] calls leave and on every answer an admitted [Read] gives over such a log, Invariant 3.1, 4.1 and 6.1 a cross-check with the TLA+ model; nothing testable in Alloy for Invariant 1.1, 1.2 and 2.1: each compares the log or an event with a later version of it, which a single state cannot show, so they are the TLA+ model's; nor for Invariant 7.2, which names the field that is the order, a definition no state can break, the Invariant 5.2 check holding a read to it); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes a TLA+ check of Invariant 2 (across steps); owed rows: Invariant 2, 2026-11-12; model redraw deferred to Lean: event-log.als and event-log.tla, Identity 11, State 1, State 2, State 4, State 5, State 6, State 10, Operation 3, Operation 24, Operation 25, Operation 26, Operation 27, Invariant 3.1, Invariant 3.2, Invariant 4.1, Invariant 5.1, Invariant 5.4, Invariant 7.2, Non-goal 17, Check 1.1, Check 2.1, Check 2.3, Check 3.2, Check 3.6, Check 3.7, Check 4.1 and Check 4.2 (the models hold one sequence per instance, and the pattern keeps one per stream, unit `atom: Event Log keeps a stream per need (Bonds journal 8)`), 2026-11-28
-last gate: 2026-11-27 — Final Critique 22, a delta round (diff base e4a04ffc, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2d072a28 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim, that Non-goal 15 (the atom MUST NOT append two events in one transaction) cannot hold beside Execution Contract Database 1 and Multi-write atomicity, was placed refining by the first triage and rhetorical by the blind second: Non-goal 15 limits the atom's own call, which takes one data and answers one event id and one sequence number, and an app action's two appends are two calls that commit as the app action's one transaction; the wording cure (Non-goal 15 names the call, `in one call to [Append]`) ends the misreading
+last gate: 2026-11-28 — Final Critique 23, a delta round (diff base 2d072a28, 48 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 6c034b93 — foundational count 0 after the blind second triage, clean, one sample; Linus reported no finding and named three questions it pressed and held (an open-ended sequence range, a lost reply on Append, two concurrent appends on one stream), each of which the blind second triage placed refuted on the page and the Execution Contract (Term query and Query 1, Error model 1 with Database 1 and 3, State 6 and State 10 with Database 2); the checker's one real hit, that the success arm `appended` of Append had no entry, was cured with an `Appended` entry and the case row naming it, its other hits placed false (`events` is the plural of the declared Event; the standards lines gloss ISO, IEC, NIST, SP and WAL in the form the corpus uses); one rhetorical item cured, the Event Id entry's `I/O seam` now `seam`; Identity 2 placed refuted, it names which id the host allocates, which Logic confinement 3 does not; 2026-11-27 — Final Critique 22, a delta round (diff base e4a04ffc, 7 labels), one reader (Linus opencode-go/beam-free; GRID and EOS not run), frozen at 2d072a28 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational claim, that Non-goal 15 (the atom MUST NOT append two events in one transaction) cannot hold beside Execution Contract Database 1 and Multi-write atomicity, was placed refining by the first triage and rhetorical by the blind second: Non-goal 15 limits the atom's own call, which takes one data and answers one event id and one sequence number, and an app action's two appends are two calls that commit as the app action's one transaction; the wording cure (Non-goal 15 names the call, `in one call to [Append]`) ends the misreading
 
 open: none
 ```
