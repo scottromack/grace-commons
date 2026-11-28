@@ -3641,8 +3641,7 @@ def check_views_current(root: Path) -> list[Finding]:
     import subprocess
     import tempfile
     views = ["library/graph.md", "library/catalog.md", "library/atoms/index.md", "_data/patterns.json", "_data/stats.json",
-             "evidence/enforcement.md", "library/apps/todo/connections.md",
-             "library/apps/recoverable-invocation/connections.md"]
+             "evidence/enforcement.md", "library/apps/todo/connections.md"]
 
     def view_text(path: Path, name: str) -> str:
         text = path.read_text(encoding="utf-8")

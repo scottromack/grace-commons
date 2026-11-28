@@ -41,7 +41,8 @@ class Catalog(unittest.TestCase):
     def test_app_entry_names_its_bond_instances(self):
         for app in self.data["apps"]:
             self.assertIn(f"(./apps/{app.parent.name}/index.md)", self.text)
-        self.assertIn("- Sweep needs key invocation id: met by Durable Intent.", self.text)
+        # the to-do app since Recoverable Invocation as an app was deleted (Scott 2026-11-28 7:51 AM Central)
+        self.assertIn("- Session needs key credential id: met by Credential.", self.text)
 
     def test_bond_graph_edges(self):
         lines = catalog.bond_graph(ROOT, self.data)
@@ -150,11 +151,11 @@ class Connections(unittest.TestCase):
         # Scott 2026-11-27 11:25 AM Central: "yes every app"
         apps = sorted(p.parent.name for p in (ROOT / "library" / "apps").glob("*/index.md"))
         self.assertEqual(sorted(catalog.CONNECTOR_APPS), apps)
-        page = catalog.connections_page(ROOT / "library" / "apps" / "recoverable-invocation" / "index.md",
-                                        catalog.corpus(ROOT))
-        self.assertIn('  c_sweep -->|"critical section key"| c_lease', page)
-        self.assertIn("| — | — | glue | commit 1 (", page)
-        self.assertIn(") | not drawn: names no atom |", page)
+        # unit `app: Recoverable Invocation deleted, it was a test` (Scott 2026-11-28 7:51 AM Central): the to-do
+        # app is the one app; a glue line names its atom in the tally
+        page = catalog.connections_page(ROOT / "library" / "apps" / "todo" / "index.md", catalog.corpus(ROOT))
+        self.assertIn('  c_assignment -->|"task id"| c_task', page)
+        self.assertIn("| Assignment | — | glue | claim (bond candidate) | tag |", page)
 
 
 if __name__ == "__main__":

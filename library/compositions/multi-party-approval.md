@@ -47,7 +47,7 @@ What it waits on is narrow. Each of its five state-changing actions waits on cal
 - **[Permissions](../atoms/permissions.idd)** — the authorization surface for the chain-level actions and the read.
 - **[Assignment](../atoms/assignment.idd)** — the in-tray binding: one responsibility record per step, naming its approver, recalled when the step or its chain ends.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every intent, outcome and refusal record is an attributed, sealed, retention-governed Audit Trail event.
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five state-changing actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five state-changing actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 

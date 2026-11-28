@@ -43,7 +43,7 @@ What the composition is *not*: it is not the consent-collection UI (user interfa
 - **[Permissions](../atoms/permissions.idd)** — the inward authorization surface: which internal actor may administer a consent record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every state-changing act of the composition is an attributed, sealed, retention-governed Audit Trail event.
 - **[Retention Window](../atoms/retention-window.idd)** — the consent retention instance: one placement over each consent record, marking how long the controller must be able to produce it.
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol [Record Consent] and [Withdraw Consent] follow around the Consent write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 

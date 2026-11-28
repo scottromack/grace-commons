@@ -10,7 +10,7 @@ nav_order: 8
 
 Every atom and app in one page, small enough to keep loaded whole: what each one is, the ids it mints, and what it needs and offers, by bond kind and declared word ([Bonds](./bonds.md), [Declarations](./declarations.md)). Read this first; open a page only for its rules. The [bond graph](./graph.md) draws the same needs and offers.
 
-53 atoms, 44 with bond lines; 2 app(s).
+53 atoms, 44 with bond lines; 1 app(s).
 
 ## Atoms
 
@@ -227,17 +227,6 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 - Mints spot id, waitlist id. Offers key waitlist id; key spot id.
 
 ## Apps
-
-**[Recoverable Invocation as an app](./apps/recoverable-invocation/index.md)**. Atoms: Durable Intent, Escalation, Event Log, Lease, Sweep.
-
-- Durable Intent needs guard critical section key: met by Lease.
-- Durable Intent needs journal closing record, intent record: met by Event Log.
-- Escalation needs guard critical section key: met by Lease.
-- Escalation needs key invocation id: met by Durable Intent.
-- Escalation needs journal closing record: met by Event Log.
-- Sweep needs guard critical section key: met by Lease.
-- Sweep needs key invocation id: met by Durable Intent.
-- Sweep needs journal closing record, recovery_intended: met by Event Log.
 
 **[Shared Todo as an app](./apps/todo/index.md)**. Atoms: Actor Identity, Assignment, Credential, Event Log, Invitation, List, Ordering, Permissions, Session, Task.
 

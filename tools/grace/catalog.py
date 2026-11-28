@@ -265,7 +265,7 @@ def bond_graph(root: Path, data: dict | None = None) -> list[str]:
 # Unit `site: an app's connector diagram, generated — the to-do app first` (Scott 2026-11-27 10:56 AM Central,
 # "Yes,"): an app page's connector diagram is generated from the same bond lines, never drawn by hand. Every render
 # change is pretested on one page; Scott 2026-11-27 11:25 AM Central, on the pretest: "yes every app".
-CONNECTOR_APPS = ("todo", "recoverable-invocation")
+CONNECTOR_APPS = ("todo",)
 GLUE_LINE = re.compile(r"^([a-z][\w ]*?): (.+?)\s*\{birth: ([^}]+)\}\s*$")
 
 

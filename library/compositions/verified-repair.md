@@ -33,7 +33,7 @@ What the composition is not. It is not a verifier: cold readers and engines are 
 
 ## Composes
 
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol of the composition's one irreversible write, a commit to the repository. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol of the composition's one irreversible write, a commit to the repository. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 - **[Audit Trail](./audit-trail.md)** — the journal of rounds, verdicts, triage records, rulings and escalations, and the protocol's journal; the journal's enumeration is read from the Event Log instance it carries (Composes 8).

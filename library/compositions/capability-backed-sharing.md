@@ -44,7 +44,7 @@ This is a composition, not a new primitive. Capability, Selective Disclosure, Au
 - **[Capability](../atoms/capability.idd)** — the bearer-token primitive and the source of the audit asymmetry.
 - **[Selective Disclosure](../atoms/selective-disclosure.idd)** — the disclosure-accounting record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every authorization, disclosure and revocation is sealed through.
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the three acting actions follow around their constituent writes: an intent before the write, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the three acting actions follow around their constituent writes: an intent before the write, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 

@@ -40,7 +40,7 @@ What the composition is *not*: it is not a DAG-model (DAG — directed acyclic g
 
 - **[Provenance](../atoms/provenance.idd)** — the structural custody chain: one current custodian at all times, hand-to-hand transfers, the outgoing custodian read from chain state.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate: every custody action records through it, and each record is appended to Event Log, attested by Actor Identity, placed under Retention Window and sealed by Tamper Evidence at the configured cadence.
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five custody actions follow around the Provenance write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five custody actions follow around the Provenance write: an intent before it, an outcome after it, and a sweep that closes the record of a write whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 

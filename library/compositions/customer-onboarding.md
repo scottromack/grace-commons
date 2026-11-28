@@ -44,7 +44,7 @@ What the composition is *not*: it is not the verification workflow (document OCR
 - **[Party Identity](../atoms/party-identity.idd)** — the persistent, verifiable identity record and its lifecycle.
 - **[Retention Window](../atoms/retention-window.idd)** — the policy-bounded lifetime of the party record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
-- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five acting actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](../apps/recoverable-invocation/index.md)'s.
+- **[Durable Intent](../atoms/durable-intent.idd)** — the protocol the five acting actions follow around their constituent writes: an intent before the commit, an outcome after it, and a sweep that closes the record of a commit whose outcome never landed; this pattern restates none of it. The protocol's bindings and the instance's start are [Recoverable Invocation](./recoverable-invocation.md)'s.
 - **[Sweep](../atoms/sweep.idd)** — the clean-up run of the same protocol: it closes what an invocation left open, from what the adopter's database can say; this pattern restates none of it.
 - **[Escalation](../atoms/escalation.idd)** — the operator's closing and the findings of the same protocol; this pattern restates none of it.
 
