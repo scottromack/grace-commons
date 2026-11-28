@@ -16,7 +16,7 @@ audience: common
 
 Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty or a beneficial owner (the person who ultimately owns or controls a company). It answers the question every regulated system settles before doing business: *who is this party, and has their identity been checked?*
 
-The record keeps the party's enrollment, the full history of identity checks — each one's method, result and supporting evidence — and every later change, with who made it and why. A party stands in one of four states — unverified, verified, suspended or closed — and closed is permanent, so a party who returns after closure needs a fresh enrollment.
+The record keeps the party's enrollment, the full history of identity checks — each one's method, result and supporting evidence — and the party's current standing. Every change of standing, with who made it and why, the atom appends to the app's journal, and the journal, not the atom, keeps that record. A party stands in one of four states — unverified, verified, suspended or closed — and closed is permanent, so a party who returns after closure needs a fresh enrollment.
 
 The central guarantee is that a party cannot stand verified without a passing check recorded since the most recent suspension, so a downstream process can require *a verified party* and trust that the standing rests on a recorded check rather than a flipped flag.
 
@@ -33,13 +33,11 @@ The compliance framing is consistent across regimes. FATF (Financial Action Task
 ```
 Identity 1: The atom MUST identify a party by the party id.
 Identity 2: The atom MUST identify a verification event by the verification id.
-Identity 3: The atom MUST identify a state change event by the state change id.
 Identity 4: The atom MUST take an assigned id from the id material the seam supplies.
 Deleted: Identity 5. Execution Contract Logic confinement 3 owns it: the host injects every id the atom assigns.
 Identity 6: The atom MUST NOT change an assigned id.
 Identity 7: Two parties MUST NOT share a party id.
 Identity 8: Two verification events MUST NOT share a verification id.
-Identity 9: Two state change events MUST NOT share a state change id.
 Identity 10: The atom MUST NOT identify a party by an enrollment field.
 Identity 11: The atom MUST compare a reference byte for byte.
 Identity 12: The atom MUST NOT normalize a reference.
@@ -49,15 +47,19 @@ Identity 15: The atom MUST NOT confirm that an acting reference names a known ac
 Identity 16: The atom MUST NOT match two parties as one natural person.
 ```
 
-Term party: the record this atom holds — one external party's enrollment, verification history and state history.
+Term party: the record this atom holds — one external party's enrollment, verification history and current state.
 
 Term verification event: the record of one identity check — its method, result, evidence and acting reference — appended to a party and never changed.
 
-Term state change event: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
+Term transition record: the party events record a transitioning action appends through the atom's journal need (Operation 62) — one transition of one party, carrying the party id, the prior state, the new state, the acting reference, the instant and, for a reasoned action, the reason; the journal keeps it, not the party.
+
+Term event id: the value the journal's append answers for the transition record a transitioning action appended — an [Event Id]; the journal need's arm event_id.
+
+Term journal order: the order the app's journal reads the party events back in, the place each append answered (Bonds journal 2).
 
 Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and the atom never changes.
 
-Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the one reference an action's call carries for who acted, which the action records. On a state change event an admitted verify appends, the acting reference is the verifying actor reference.
+Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating actor reference OR closing actor reference — the one reference an action's call carries for who acted, which the action records. On the transition record an admitted verify appends, the acting reference is the verifying actor reference.
 
 Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
@@ -65,12 +67,9 @@ NOTE: watch the seam citation (Term seam, Term transition).
 
 ```
 State 1: EVERY party MUST carry party id, EVERY enrollment field and a state.
-State 2: EVERY party MUST carry a state change log.
 State 3: EVERY party MUST carry a verification event list.
 State 4: EVERY verification event MUST carry verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant.
-State 5: EVERY state change event MUST carry state change id, the prior state, the new state, an acting reference and an instant.
-State 6: A state change event MAY carry a reason.
-State 7: EVERY state change event a reasoned action appended MUST carry a reason.
+State 8: A party MAY carry a suspension mark.
 ```
 
 ### Ordering
@@ -86,7 +85,7 @@ Ordering 6: A deployment needing a verifiable time anchor MUST compose a trusted
 
 #### Party
 
-The record this atom defines: one external party's enrollment, verification history and state history. Carries [Party Id], [Name], [Date Of Birth], [Document Type], [Document Reference], [Enrollment Instant], [Enrolling Actor Reference], a [Current State], a [State-Change Log] and a [Verification Event] list.
+The record this atom defines: one external party's enrollment, verification history and current state. Carries [Party Id], [Name], [Date Of Birth], [Document Type], [Document Reference], [Enrollment Instant], [Enrolling Actor Reference], a [Current State], a [Verification Event] list and, once the party has been suspended, a [Suspension Mark]. Its transitions are [Transition Record]s in the app's journal, not fields of the party.
 
 Kind: Type
 Projection: state
@@ -98,12 +97,11 @@ The record of one identity check, appended to a party and never changed. Carries
 Kind: Type
 Projection: verification_event
 
-#### State-Change Event
+#### Transition Record
 
-The record of one transition, appended to a party and never changed. Carries [State Change Id], [Prior State], [New State], an acting reference, an instant and — for a suspend, a reinstate or a close — a [Reason].
+One party events record a transitioning action appends through the atom's journal need (Operation 62): one transition of one party, carrying the [Party Id], the [Prior State], the [New State], the acting reference, the instant and — for a suspend, a reinstate or a close — a [Reason], and named by the [Event Id] the journal's append answers. The journal keeps it; the party carries none.
 
 Kind: Type
-Projection: state_change_event
 
 #### Party Id
 
@@ -169,13 +167,13 @@ Kind:       Field
 Field of:   Party
 Projection: state
 
-#### State-Change Log
+#### Suspension Mark
 
-The party's append-only, insertion-ordered list of [State-Change Event]s. It travels with the record on [Read], which is what makes a party's whole biography answerable from one surface.
+The place the party's most recent [Suspend] stands in the party's [Verification Event] list: the count of verification events the list held when that suspend was admitted, so a verification event inserted after it follows the suspension by insertion order, and no instant decides it (Ordering 3 through 5). Written by [Suspend] alone; a party never suspended carries none.
 
 Kind:       Field
 Field of:   Party
-Projection: state_change_log
+Projection: suspension_mark
 
 #### Verification Id
 
@@ -225,33 +223,33 @@ Kind:       Field
 Field of:   Verification Event
 Projection: verified_at
 
-#### State Change Id
+#### Event Id
 
-The opaque, immutable identity of a [State-Change Event]. Answered directly by every transitioning action, so an attestation binds to one specific suspension rather than to whichever was most recent when the caller looked.
+The value the journal's append answers for the transition record a transitioning action appended. Answered directly by every transitioning action, so an attestation binds to one specific suspension rather than to whichever was most recent when the caller looked.
 
 Kind:       Field
-Field of:   State-Change Event
-Projection: state_change_id
+Field of:   Transition Record
+Projection: event_id
 
 #### Prior State
 
-The state the party left. Recorded on every [State-Change Event].
+The state the party left. Recorded on every transition record.
 
 Kind:       Field
-Field of:   State-Change Event
+Field of:   Transition Record
 Projection: prior_state
 
 #### New State
 
-The state the party entered. Recorded on every [State-Change Event].
+The state the party entered. Recorded on every transition record.
 
 Kind:       Field
-Field of:   State-Change Event
+Field of:   Transition Record
 Projection: new_state
 
 #### Fresh Verification
 
-A [Verification Event] carrying `passed` that follows the party's most recent [Suspend] in insertion order — or the enrollment, where the party was never suspended. What [Reinstate] requires, and what every [Verified] party carries.
+A [Verification Event] carrying `passed` inserted in the party's verification event list after its [Suspension Mark], the place the party's most recent [Suspend] stands in that list — or any such event, where the party was never suspended and carries no mark. What [Reinstate] requires, and what every [Verified] party carries.
 
 Kind: Type
 Projection: fresh_verification
@@ -288,7 +286,11 @@ Kind:      Member
 Member of: the party state
 Role:      Outcome
 
-Term fresh verification: a verification event whose verification result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
+Term fresh verification: a verification event whose verification result EQUALS passed and whose verification place EXCEEDS the party's suspension mark, or, where the party carries no suspension mark, a verification event whose verification result EQUALS passed.
+
+Term suspension mark: the party's verification event list length an admitted suspend found — the place the party's most recent suspend stands in the verification event list, by insertion order; a party no admitted suspend has reached carries none (a [Suspension Mark]).
+
+Term verification place: a verification event's position in its party's verification event list, counted from one in insertion order.
 
 Term state: unverified | verified | suspended | closed.
 
@@ -296,7 +298,7 @@ Term state: unverified | verified | suspended | closed.
 
 ### Every action
 
-Term verify answer: verification id and an optional state change id — what verify answers, written `verify_answer(verification_id, state_change_id)` in the signature.
+Term verify answer: verification id and an optional event id — what verify answers, written `verify_answer(verification_id, event_id)` in the signature.
 
 ```
 Operation 1: IF a required string input EQUALS blank THEN a writing action MUST answer invalid-request.
@@ -315,15 +317,18 @@ Operation 24: An admitted verify MUST record now as the verification event's ver
 Operation 25: IF the party's state EQUALS unverified AND the verification result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification id.
-Operation 29: An admitted verify driving no transition MUST NOT answer a state change id.
+Operation 29: An admitted verify driving no transition MUST NOT answer an event id.
 Operation 30: An admitted suspend MUST stand the party in suspended.
 Operation 31: An admitted reinstate MUST stand the party in verified.
 Operation 32: An admitted close MUST stand the party in closed.
-Operation 33: A transitioning action MUST append a state change event carrying a fresh state change id.
-Operation 34: A transitioning action MUST record the prior state, the new state, the acting reference and now on the state change event.
-Operation 35: A reasoned action MUST record reason on the state change event.
-Operation 36: An admitted verify MUST NOT record a reason on a state change event.
-Operation 37: A transitioning action MUST answer the state change id.
+Operation 34: A transitioning action MUST record the prior state, the new state, the acting reference and now on the transition record.
+Operation 35: A reasoned action MUST record reason on the transition record.
+Operation 36: An admitted verify MUST NOT record a reason on a transition record.
+Operation 37: A transitioning action MUST answer the event id.
+Operation 63: A transition record MUST carry the party id.
+Operation 64: An admitted enroll MUST NOT record a suspension mark.
+Operation 65: An admitted suspend MUST record the party's verification event list length as the suspension mark.
+Operation 66: A mark-keeping action MUST NOT change the suspension mark.
 Operation 41: A refused action MUST leave the party as the call found the party.
 Operation 43: A refused action MUST NOT append an event.
 Operation 62: EVERY admitted enroll, admitted verify, admitted suspend, admitted reinstate AND admitted close MUST append one party events record through the atom's journal need.
@@ -332,7 +337,7 @@ Operation 45: The atom MUST NOT offer an event removal surface.
 Operation 46: The atom MUST NOT offer an enrollment field update surface.
 Operation 47: The atom MUST NOT offer a reopen surface.
 Operation 51: An admitted read MUST answer EVERY matching party.
-Operation 52: An admitted read MUST answer the state change log and the verification event list PER matching party, each in insertion order.
+Operation 52: An admitted read MUST answer the verification event list PER matching party in insertion order.
 Operation 53: An admitted read MUST answer the matching parties in insertion order.
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 61: An admitted read MUST NOT answer a party that is not a matching party.
@@ -355,6 +360,8 @@ Term writing action: [Enroll] | [Verify] | [Suspend] | [Reinstate] | [Close] —
 Term transitioning action: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
 
 Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied reason.
+
+Term mark-keeping action: an admitted verify, an admitted reinstate OR an admitted close — every admitted party action but suspend, none of which writes the suspension mark.
 
 Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's existence and standing before reading the call's remaining inputs.
 
@@ -441,13 +448,13 @@ Operation 42: A refused [Enroll] MUST NOT record a party.
 
 #### Verify
 
-The behavior that records one identity check as a [Verification Event] — its method, result, evidence and acting reference — and, where the party stands in [Unverified] and the result is `passed`, stands the party in [Verified] and appends a [State-Change Event] in the same transition. Records a check against a [Suspended] party without lifting the suspension.
+The behavior that records one identity check as a [Verification Event] — its method, result, evidence and acting reference — and, where the party stands in [Unverified] and the result is `passed`, stands the party in [Verified] in the same transition, the party events record it appends then being a transition record. Records a check against a [Suspended] party without lifting the suspension.
 
 Kind: Operation
 
 ```
 verify(party_id, verifying_actor_ref, verification_method, verification_result, evidence_ref)
-  answers verify_answer(verification_id, state_change_id)
+  answers verify_answer(verification_id, event_id)
   refuses not-known | already-closed | invalid-request | storage-failure
 ```
 
@@ -465,7 +472,7 @@ Kind: Operation
 
 ```
 suspend(party_id, suspending_actor_ref, reason)
-  answers state_change_id
+  answers event_id
   refuses not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure
 ```
 
@@ -504,7 +511,7 @@ Kind: Operation
 
 ```
 reinstate(party_id, reinstating_actor_ref, reason)
-  answers state_change_id
+  answers event_id
   refuses not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure
 ```
 
@@ -541,7 +548,7 @@ Kind: Operation
 
 ```
 close(party_id, closing_actor_ref, reason)
-  answers state_change_id
+  answers event_id
   refuses not-known | already-closed | invalid-request | storage-failure
 ```
 
@@ -549,7 +556,7 @@ close(party_id, closing_actor_ref, reason)
 
 #### Read
 
-The read-only query answering the [Party] records matching its [Query] in insertion order, each carrying its enrollment fields, its full [State-Change Log] and its full [Verification Event] list. Refuses a filter it cannot read ([Invalid Query]) rather than ignoring it.
+The read-only query answering the [Party] records matching its [Query] in insertion order, each carrying its enrollment fields and its full [Verification Event] list. Refuses a filter it cannot read ([Invalid Query]) rather than ignoring it.
 
 Kind: Operation
 
@@ -615,8 +622,7 @@ Projection: invalid-query
   ```
 - **Invariant 8 — No transition is silent.**
   ```
-  Invariant 8.1: EVERY party MUST stand in the state the party's state change log reaches from unverified in insertion order.
-  Invariant 8.2: A party's state change log length MUST NOT fall.
+  Invariant 8.1: EVERY party MUST stand in the state a replay of the transition records naming the party reaches from unverified in journal order.
   ```
 
 ## When something happens
@@ -663,7 +669,6 @@ Capability requirement 11: The deployment MUST supply id material naming no reco
 Deleted: Capability requirement 12. Execution Contract Logic confinement 16 owns it: the host supplies one id it allocates to one call.
 Deleted: Capability requirement 13. Execution Contract Input 2 owns it: the host allocates an id that is not blank.
 Deleted: Capability requirement 14. Execution Contract Input 2 owns it: the host allocates an id that does not exceed the cap.
-Capability requirement 15: The deployment MUST supply id material whose verification id DOES NOT EQUAL the state change id.
 ```
 
 #### Reason
@@ -682,13 +687,13 @@ Kind:         Parameter
 Parameter of: Enroll, Verify, Suspend, Reinstate and Close
 Projection:   now
 
-Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns, each fresh: carried by no record of the database instance when the atom assigns it (Capability requirement 11), supplied to one call (Execution Contract Logic confinement 16), and not blank and within the length bound (Execution Contract Input 2).
+Term assigned id: party id OR verification id — every opaque name this atom assigns, each fresh: carried by no record of the database instance when the atom assigns it (Capability requirement 11), supplied to one call (Execution Contract Logic confinement 16), and not blank and within the length bound (Execution Contract Input 2).
 
 Term database instance: one named database a call is routed to; assigned id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O (input and output) boundary; the host injects the clock reading and the id material here.
 
-Term id material: what the seam supplies to one call for the ids it assigns — the party id on an admitted enroll, the verification id and the state change id on an admitted verify, the state change id unused where the verify drives no transition (Operation 29), and the state change id on every other transitioning action (Operation 4, Operation 22, Operation 33).
+Term id material: what the seam supplies to one call for the ids it assigns — the party id on an admitted enroll and the verification id on an admitted verify (Operation 4, Operation 22); the event id a transitioning action answers is the journal's append answer, not id material.
 
 Term transition: the atom's evaluation of one call against the party records.
 
@@ -736,9 +741,10 @@ Non-goal 20: The atom MUST NOT propagate a state change to a downstream system.
 Non-goal 21: The atom MUST NOT terminate a party's open commitment.
 Non-goal 22: The atom MUST NOT model a pending verification.
 Non-goal 23: The atom MUST NOT guarantee that a party reaches verified.
+Non-goal 24: The atom MUST NOT record a transition history.
 ```
 
-NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an attribute update pattern (Non-goal 3, Non-goal 4); a pattern that bounds retention (Non-goal 12, Non-goal 13); the composing system (Non-goal 21); the pattern that runs the verification workflow (Non-goal 5, Non-goal 22, Composition note 2).
+NOTE: the owners — an identity resolution pattern (Non-goal 1, Non-goal 2); an attribute update pattern (Non-goal 3, Non-goal 4); a pattern that bounds retention (Non-goal 12, Non-goal 13); the composing system (Non-goal 21); the pattern that runs the verification workflow (Non-goal 5, Non-goal 22, Composition note 2); the atom's journal need, which the app's journal meets (Non-goal 24, Operation 62).
 
 ---
 
@@ -747,8 +753,8 @@ Composition note 1: A composing pattern that opens activity to a party MUST gate
 Composition note 2: A composing pattern that runs the verification workflow MUST own the verification workflow.
 Composition note 3: A composing pattern that invites a party MUST call [Enroll] ONLY AFTER the invited party accepts.
 Composition note 4: A composing pattern that attests actors MUST attest the actor behind EVERY admitted enroll, EVERY admitted verify, EVERY admitted suspend, EVERY admitted reinstate AND EVERY admitted close.
-Composition note 5: A composing pattern that attests actors MUST bind an attestation to EVERY assigned id a writing action answers.
-Composition note 6: A composing pattern that keeps an audit trail MUST record EVERY verification event and EVERY state change event.
+Composition note 5: A composing pattern that attests actors MUST bind an attestation to EVERY id a writing action answers.
+Composition note 6: A composing pattern that keeps an audit trail MUST record EVERY verification event and EVERY transition record.
 Composition note 7: A composing pattern that records consent MUST name the party id as the data subject.
 Composition note 8: A composing pattern MUST NOT scrub an enrollment field.
 Deleted: Composition note 11. Operation 62 owns it: the atom appends through its own journal need, and which atom serves the need is the app's choice.
@@ -763,7 +769,7 @@ Term composing pattern: a pattern an app wires beside this atom — one that att
 
 ### Banking — onboarding under BSA/AML
 
-`enroll("Ada Okafor", 1984-03-02, "passport", doc_p41, officer_o7)` → `party_pk3`, standing unverified. A document check runs elsewhere; its result lands here: `verify(party_pk3, officer_o7, "manual-document-review", passed, ev_c19)` → `(ver_v88, chg_s12)`. The party now stands verified, and both ids come back — one binds an attestation to the check, the other to the transition.
+`enroll("Ada Okafor", 1984-03-02, "passport", doc_p41, officer_o7)` → `party_pk3`, standing unverified. A document check runs elsewhere; its result lands here: `verify(party_pk3, officer_o7, "manual-document-review", passed, ev_c19)` → `(ver_v88, evt_e12)`. The party now stands verified, and both ids come back — one binds an attestation to the check, the other to the transition.
 
 ### Healthcare — patient enrollment
 
@@ -771,16 +777,16 @@ Term composing pattern: a pattern an app wires beside this atom — one that att
 
 ### Sanctions match, suspension, and the evidence to come back
 
-A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanctions-screen match pending review")` → `chg_s31`, standing suspended. A fresh document review runs during the investigation: `verify(party_pk3, analyst_a2, "manual-document-review", passed, ev_c44)` → `(ver_v96)` — recorded, and the party stays suspended, because evidence gathered during an investigation does not clear it. Then `reinstate(party_pk3, compliance_c4, "match resolved as false positive")` → `chg_s37`, standing verified. Had the reinstate been attempted before `ver_v96`, it would have answered no-passed-verification-since-suspend.
+A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanctions-screen match pending review")` → `evt_e31`, standing suspended. A fresh document review runs during the investigation: `verify(party_pk3, analyst_a2, "manual-document-review", passed, ev_c44)` → `(ver_v96)` — recorded, and the party stays suspended, because evidence gathered during an investigation does not clear it. Then `reinstate(party_pk3, compliance_c4, "match resolved as false positive")` → `evt_e37`, standing verified. Had the reinstate been attempted before `ver_v96`, it would have answered no-passed-verification-since-suspend.
 
 ### Enrollment in error
 
-`enroll(...)` → `party_zz1`, then immediately `close(party_zz1, officer_o7, "enrolled in error — duplicate of party_pk3")` → `chg_s44`. The record persists in closed with the stated reason. There is no way to retract the enrollment, and that absence is structural: an auditor reads the mistake and its correction rather than a gap.
+`enroll(...)` → `party_zz1`, then immediately `close(party_zz1, officer_o7, "enrolled in error — duplicate of party_pk3")` → `evt_e44`. The record persists in closed with the stated reason. There is no way to retract the enrollment, and that absence is structural: an auditor reads the mistake and its correction rather than a gap.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** *Show me every party you treat as verified, and the evidence.* Filter to `state = verified`; each record answers with its full verification event list and state change log, and Invariant 4.1 is what makes a passed check after the most recent suspend present on every one of them — structurally, rather than by policy.
-- **Investigation of a reinstatement.** *Who restored this party, on what basis?* The state change log carries the reinstatement's actor, instant and reason; the verification event list carries the check that made it admissible. The two are separate records because they answer separate questions — what evidence arrived, and who decided it was enough.
+- **Regulator audit.** *Show me every party you treat as verified, and the evidence.* Filter to `state = verified`; each record answers with its full verification event list, and Invariant 4.1 is what makes a passed check after the most recent suspend present on every one of them — structurally, rather than by policy.
+- **Investigation of a reinstatement.** *Who restored this party, on what basis?* The app's journal carries the reinstatement's transition record, named by the event id the reinstate answered: its actor, instant and reason. The party's verification event list carries the check that made it admissible, inserted after the suspension mark. The two are separate records because they answer separate questions — what evidence arrived, and who decided it was enough.
 - **Breach investigation.** *Which parties were enrolled in this window?* The enrollment instant range filter answers it, and Ordering 5 says what that answer is worth: instants are advisory, so a reconstruction that must be defensible uses insertion order and the composing trusted time-stamping pattern for wall-time bounds.
 
 ---
@@ -807,7 +813,7 @@ It inherits from:
 
 ### Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the party records, with their committed versions (Execution Contract Generation acceptance 1).
+This atom's acceptance is provable: an external auditor clears it from the party records, with their committed versions (Execution Contract Generation acceptance 1), and the transition records the app's journal holds.
 
 #### Conformance checks
 
@@ -820,22 +826,18 @@ Check 3.2: An auditor MUST find EVERY verification event unchanged across EVERY 
 Check 3.3: An auditor MUST find no fall in a party's verification event list length across two committed versions of the party (Invariant 6.3; Execution Contract Generation acceptance 1).
 Check 3.4: An auditor MUST find no verification event whose verification result DOES NOT EQUAL passed AND DOES NOT EQUAL failed (Operation 21).
 Check 3.5: An auditor MUST find EVERY verification event in the same place in the party's verification event list across EVERY committed version of the party carrying the verification event (Invariant 6.2; Execution Contract Generation acceptance 1).
-Check 4.2: An auditor MUST find the state change id, the prior state, the new state, an acting reference and an instant on EVERY state change event (State 5).
-Check 4.3: An auditor MUST find a reason on EVERY state change event a reasoned action appended (State 7).
-Check 4.4: An auditor MUST find no fall in a party's state change log length across two committed versions of the party (Invariant 8.2; Execution Contract Generation acceptance 1).
-Check 4.5: An auditor MUST find no reason on a state change event an admitted verify appended (Operation 36).
-Check 4.6: An auditor MUST find no state change event recording a transition outside the permitted transitions (Operation 14, Operation 15, Operation 16, Operation 25, Operation 26, Operation 30, Operation 31, Operation 32).
-Check 5.1: An auditor MUST replay a party's state change log in insertion order from unverified to the party's state (Invariant 8.1, Ordering 3, Operation 7).
-Check 5.2: An auditor MUST reconstruct EVERY party's enrollment, verification history and state history from one read (State 1, State 2, State 3).
+Check 4.5: An auditor MUST find no reason on a transition record in the app's journal an admitted verify appended (Operation 36).
+Check 4.6: An auditor MUST find no transition record in the app's journal recording a transition outside the permitted transitions (Operation 14, Operation 15, Operation 16, Operation 25, Operation 26, Operation 30, Operation 31, Operation 32).
+Check 5.1: An auditor MUST replay the transition records naming a party in the app's journal in journal order from unverified to the party's state (Invariant 8.1, Operation 7).
+Check 5.2: An auditor MUST reconstruct EVERY party's enrollment and verification history from one read (State 1, State 3).
 Check 6.4: An auditor MUST find EVERY enrollment field unchanged across EVERY committed version of the party carrying the enrollment field (Non-goal 3; Execution Contract Generation acceptance 1).
 Check 7.1: An auditor MUST find no party id on two parties (Identity 7).
 Check 7.2: An auditor MUST find no verification id on two verification events (Identity 8).
-Check 7.3: An auditor MUST find no state change id on two state change events (Identity 9).
 ```
 
 NOTE: Invariant 1.1 owes no check here: Execution Contract Database 6 binds the atom's own actions, and a purge another specification declares, as a pattern that bounds retention does under Execution Contract Database 4, is answered by that specification's records (Capability requirement 10, Non-goal 13).
 
-Term permitted transition: unverified-to-verified | verified-to-suspended | suspended-to-verified | unverified-to-closed | verified-to-closed | suspended-to-closed — every transition a state change event may record.
+Term permitted transition: unverified-to-verified | verified-to-suspended | suspended-to-verified | unverified-to-closed | verified-to-closed | suspended-to-closed — every transition a transition record may record.
 
 Term cited: party id, actor id, party events: Declarations.
 
@@ -860,9 +862,9 @@ External check 11: A deployment needing an evidence reference resolved MUST read
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
-Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a reasoned action; an admitted enroll; an admitted verify; an admitted suspend; an admitted reinstate; an admitted close; an admitted read; a writing action; a refused action; a required string input; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; a party's verification event list length; a party's state change log length.
+Term actors: the atom; the deployment; the database; the database instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a transition record; the journal; an action; a party action; a transitioning action; a reasoned action; an admitted enroll; an admitted verify; an admitted suspend; an admitted reinstate; an admitted close; an admitted read; a writing action; a refused action; a required string input; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; a party's verification event list length.
 
-Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
+Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a verification event list and, once suspended, a suspension mark. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. The transition records are party events records in the app's journal, each carrying the party id, the prior state, the new state, an acting reference, an instant and, for a reasoned action, a reason (Operation 34, Operation 35, Operation 63).
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
@@ -874,7 +876,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, verify answer, verification event, state change event, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
+Term terms: party, verify answer, verification event, transition record, event id, journal order, suspension mark, verification place, mark-keeping action, assigned id, enrollment field, acting reference, reference, database instance, seam, transition, now, date form, date of birth start, party action, transitioning action, state, state check, required string input, fresh verification, insertion order, length bound, reasoned action, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result, committed version.
 
 Term cited: Execution Contract Database 1 through 7 — one transaction per action, guards read inside it, committed means kept, the database never edits, every committed version stays readable, an atom's no-removal rules bind its own actions, every call goes to one database instance. Execution Contract Error model 1 — a lost answer is none of the three. Execution Contract Generation acceptance 1 — a check comparing a record with an earlier state reads its committed versions. Execution Contract Input 2 — a bound is a default cap. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. Execution Contract Logic confinement 11 — now is the clock reading at the call. Execution Contract Order 1 — commits have one order. Execution Contract Query 1 through 4 — a filter carries one value of its axis or a range, a range holds both its ends, a record without the filtered value fails the filter, filters combine as all-of. Execution Contract Read 4 — a rule saying what an action does holds only for a call the action admits. Execution Contract Refusal 1 — the refusal listed first answers.
 
@@ -889,7 +891,7 @@ Term cited: Execution Contract Database 1 through 7 — one transaction per acti
 [Read]: #read
 [Party]: #party
 [Verification Event]: #verification-event
-[State-Change Event]: #state-change-event
+[Transition Record]: #transition-record
 [Party Id]: #party-id
 [Name]: #name
 [Date Of Birth]: #date-of-birth
@@ -898,14 +900,14 @@ Term cited: Execution Contract Database 1 through 7 — one transaction per acti
 [Enrollment Instant]: #enrollment-instant
 [Enrolling Actor Reference]: #enrolling-actor-reference
 [Current State]: #current-state
-[State-Change Log]: #state-change-log
+[Suspension Mark]: #suspension-mark
 [Verification Id]: #verification-id
 [Verifying Actor Reference]: #verifying-actor-reference
 [Verification Method]: #verification-method
 [Verification Result]: #verification-result
 [Evidence Reference]: #evidence-reference
 [Verification Instant]: #verification-instant
-[State Change Id]: #state-change-id
+[Event Id]: #event-id
 [Prior State]: #prior-state
 [New State]: #new-state
 [Reason]: #reason
@@ -939,7 +941,7 @@ Term cited: Execution Contract Database 1 through 7 — one transaction per acti
 
 ```
 status: done — 2026-11-27
-formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 7, 8 and 9 checked (Identity 5 left the page to Execution Contract Logic confinement 3 at Final Critique 14; the model still checks that every assigned id a record carries is the id material the seam supplied) on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Execution Contract Logic confinement 16, Capability requirement 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11
+formal: verified — party-identity.tla + 4 twins (2026-06-03); party-identity.als + 14 twins (the static data model, 2026-11-11: State 1, 4, 5 and 7, Operation 21 and 36, Invariant 2.1, 3.1, 4.1 and 8.1 and Identity 7, 8 and 9 checked (Identity 5 left the page to Execution Contract Logic confinement 3 at Final Critique 14; the model still checks that every assigned id a record carries is the id material the seam supplied) on every party record an admitted [Enroll], [Verify], [Suspend], [Reinstate] or [Close] leaves, with its verification event list and state change log, insertion order read as the calls' commit order and a recorded instant free of it; Invariant 3.1 and 8.1 read off one record's state change log, Invariant 2.1, 3.1 and 4.1 a cross-check with the TLA+ model, Identity 7 through 9 resting on the deployment's id material, never supplied to two calls (Execution Contract Logic confinement 16, Capability requirement 15); nothing testable in Alloy for Invariant 1.1, 5.1, 6.1 through 6.3 and 8.2, Identity 6 or Non-goal 3: each compares a record with a later version of it, which a single state cannot show, so they are the TLA+ model's); coverage 2026-11-10 (unit formal: more coverage for the yes votes): owes TLA+ checks of Invariant 1.1, 5.1, 6.2, 6.3 and 8.2 and Identity 6 (across steps); owed rows: Invariant 1.1; Invariant 5.1; Invariant 6.2; Invariant 6.3; Invariant 8.2; Identity 6, 2026-11-11; model redraw deferred to Lean: party-identity.als and party-identity.tla, Identity 3, Identity 9, State 2, State 5, State 6, State 7, Operation 29, Operation 33, Operation 34, Operation 35, Operation 36, Operation 37, Operation 63 through 66, Invariant 3.1, Invariant 4.1, Invariant 8.1, Invariant 8.2, Ordering 3, Capability requirement 15, Check 4.2, Check 4.3, Check 4.5, Check 5.1, Check 5.2 and Check 7.3 (the state change log the models hold is the journal need's, and the fresh verification is read from the suspension mark, unit `atom: Party Identity, the state change log is a journal need`), 2026-11-28
 last gate: 2026-11-27 — Final Critique 16, a delta round, one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 1d57d1e5 — foundational count 0 after the blind second triage, clean, one sample (Linus reported 2 foundational: String 1 against String 5, refuted on GRACE-lang Term blank, which makes blank a predicate and not a comparison, and on the page's refusals (Operation 1, Operation 10, Query 5), which leave no blank string input to compare; and Ordering 6 against External check 5, placed refining, wording: the check named a different trigger from the rule it reads, and is cured to Ordering 6's own, a verifiable time anchor; the blind second triage placed the first refuted and the second refining and made no other cure but the spelling of `time-stamping` in Term composing pattern and the Breach investigation example, which the grammar batch left; the checker said nothing); 2026-11-26 — Final Critique 15, a delta round, frozen at 0f3a7969 — foundational count 0 after the blind second triage, clean, one sample (Linus reported 2 foundational, both refuted on the page's text: Operation 25 stands the party in verified on a passed verify of an unverified party, which Operation 26 only bounds, and Operation 49 answers invalid-query for a filter value outside an axis's admitted values, a blank party id among them; the refining item refuted by Operation 3 and the rhetorical item refuted by Term query axes and the Query entry, which state that an over-bound party id is admitted and matches nothing; the blind second triage placed none; the checker said nothing); 2026-11-26 — Final Critique 14, a delta round, frozen at 7058080c — foundational count 1, not clean, no sample (Linus reported 1 foundational, Check 1.1 and Check 3.4 selecting rather than demanding, cured; 12 refining and 3 rhetorical placed: 6 refining cured, 4 refuted on the page's text or the corpus's rules, 2 filed to Scott; the checker's one hit and one rhetorical cured); 2026-11-22 — Final Critique 13, a delta round, frozen at 5aa9eb62 — foundational count 0, clean, one sample (Linus reported 2 foundational, both refuted on the page's text: Term invalid request and Operation 12 order not-known ahead of invalid-request for an over-bound party id, and Term query axes states the page's own answer for a filter value, which Query 5 keeps; the blind second triage placed none foundational); 2026-11-05 — Final Critique 12, a delta round, frozen at 29399d0 — foundational count 0, clean, no sample; 2026-11-04 — Final Critique 11 — foundational count 1, not clean, no sample
 
 open: none

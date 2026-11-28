@@ -42,6 +42,8 @@ Entries that record a migration rather than a turn the pattern took.
 
 - **2026-11-26 — GLM's remaining items: the lost-enroll read returns candidates, the two rejection groupings are defined, the attestation owner is one noun.** *Chose:* the Indeterminate outcome NOTE says the read narrows to candidates and, where two identical enrollments remain, the caller treats both as live or closes one with a reason (S4); Term value sets defines the action rejection and the party-action rejection the Member entries name (N1); What it is names the pattern that attests actors, as Composition notes 4 and 5 do (N2); FATF Recommendation 10 for customer due diligence, the Source entry naming all three (N3); the External checks fence loses its stray blank line (N5). No rule changes (ir.py --same: the summary alone reads differently). *Over:* moving Term cited to its first use (N4) and dropping the migrated qualifier (N6), each the corpus's form on every converted page; and B2, which the key-checked-on-write rules answer (4151edcc, Bonds Key 21 through 26). *Because:* unit `atom: Party Identity, GLM's remaining items`, from assets/design/party-identity-atom-review.md.
 
+- **2026-11-28 — The state change log is a journal need.** *Chose:* the party events record each admitted transitioning action appends through the atom's journal need (Operation 62), Term transition record, carries what a state change event carried, named by its fields: the party id (Operation 63), the prior state, the new state, the acting reference and now (Operation 34) and, for a reasoned action, the reason (Operation 35), none on a verify's (Operation 36), the Prior State and New State entries now fields of the transition record; a transitioning action answers the journal's event id, the journal need's arm event_id, where it answered the state change id (Operation 37, the signatures, Term verify answer, the Event Id entry), and a verify driving no transition answers none (Operation 29), so an attestation still binds to one suspension (Composition note 5 now binds every id a writing action answers); the fresh verification is placed by a field of the party, the suspension mark, which an admitted suspend sets to the party's verification event list length (Operation 65), an admitted enroll leaves unset (Operation 64) and no other admitted action changes (Operation 66, Term mark-keeping action), so a passed verification event whose verification place exceeds the mark follows the most recent suspend by insertion order and no instant decides it (Term fresh verification, Term verification place, State 8; Ordering 3 through 5); the state change log, the state change event, the state change id and the rules and checks that only served them tombstoned to the journal need, 13 labels: Identity 3 and 9, State 2 and 5 through 7, Operation 33, Invariant 8.2, Capability requirement 15, Check 4.2 through 4.4 and 7.3; Non-goal 24 in Medication Order Non-goal 19's words; Invariant 8.1 and Check 5.1 re-cited to the transition records naming the party in the app's journal, in journal order, and Check 4.5 and 4.6, which serve Operation 36 and the permitted transitions, re-cited to the transition records in the app's journal rather than tombstoned; Check 5.2 reconstructs the enrollment and the verification history from one read, the state history being the journal's; Operation 52 answers the verification event list alone; the Example's ids are event ids, and its investigation of a reinstatement reads the journal. *Over:* keeping a second history on the record beside the party events the atom already appends (Operation 62), and placing the fresh verification by a recorded instant, which Ordering 4 and 5 forbid. *Because:* the unit `atom: Party Identity, the state change log is a journal need`, ruled by Scott, queued by the first weekly bond sweep; the library's standing line is Medication Order Non-goal 19 (efaa2bcb), and State Machine's transition history took the same cure (99f2dd54).
+
 ## Deleted rules
 
 The spec's tombstones, moved here from the page on 2026-11-13 because the spec is done (GRACE-lang Hard invariant 25 and Hard invariant 27, since v0.71): each `Deleted:` line byte for byte and in the page's order, under the heading it stood under there. A tombstone carries no obligation, and each still reserves its label: no rule of [Party Identity](./party-identity.md) may carry it again.
@@ -181,4 +183,42 @@ Deleted: Composition note 10. Composition note 8 owns it.
 ```
 Deleted: String 5. GRACE-lang Term blank owns it: a value carrying only white space is blank.
 Deleted: String 6. GRACE-lang Term blank owns it: an absent value is blank.
+```
+
+### What it keeps › The parties
+
+```
+Deleted: Identity 3. The journal need owns it: the journal names each transition record by the event id its append answers.
+Deleted: Identity 9. The journal need owns it: the journal names each transition record by the event id its append answers, and no two appends answer one place (Bonds journal 1, Bonds journal 2).
+Deleted: State 2. The journal need owns it: the party's transitions stand in the journal as transition records (Operation 62), and the party carries no state change log.
+Deleted: State 5. The journal need owns it: a transition record carries what a state change event carried (Operation 34, Operation 63).
+Deleted: State 6. The journal need owns it: a transition record carries the reason a reasoned action records (Operation 35).
+Deleted: State 7. The journal need owns it: a transition record carries the reason a reasoned action records (Operation 35).
+```
+
+### What people do › Every action
+
+```
+Deleted: Operation 33. The journal need owns it: a transitioning action's admitted call appends one transition record through it (Operation 62), and the journal's append answers the record's event id.
+```
+
+### What is and what should never be (Invariants)
+
+```
+Deleted: Invariant 8.2. The journal need owns it: the journal keeps every transition record its append answered a place for, unchanged (Bonds journal 1).
+```
+
+### Optional
+
+```
+Deleted: Capability requirement 15. The journal need owns it: the event id a transitioning action answers is the journal's append answer, not id material the seam supplies.
+```
+
+### Proof › Generation acceptance › Conformance checks
+
+```
+Deleted: Check 4.2. The journal need owns it: Operation 34 and Operation 63 name what each transition record carries.
+Deleted: Check 4.3. The journal need owns it: Operation 35 names the reason each transition record a reasoned action appends carries.
+Deleted: Check 4.4. The journal need owns it: the journal keeps every transition record its append answered a place for, unchanged (Bonds journal 1).
+Deleted: Check 7.3. The journal need owns it: the journal names each transition record by the event id its append answers, and no two appends answer one place (Bonds journal 1, Bonds journal 2).
 ```
