@@ -14,7 +14,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 ## Atoms
 
-**[Actor Identity](./atoms/actor-identity.md)** (796 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
+**[Actor Identity](./atoms/actor-identity.md)** (815 lines). Actor Identity answers one question: "who authorized this action, and can you prove it?"
 
 - Mints actor id. Offers key actor id.
 
@@ -190,7 +190,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints disclosure id. Offers key disclosure id.
 
-**[Session](./atoms/session.md)** (942 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
+**[Session](./atoms/session.md)** (963 lines). Session answers "is this login still good, and for whom?" without re-checking the password on every request.
 
 - Mints session id. Needs key actor id; key credential id; follow-up Issue. Offers key session id.
 
@@ -214,7 +214,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints evidence id. Offers key evidence id.
 
-**[Task](./atoms/task.md)** (747 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
+**[Task](./atoms/task.md)** (767 lines). Task keeps the tasks of a list: it records a task in one list, edits it while it is still open, marks it done and saves who did it, and deletes it, or deletes every task of a list when the list ends.
 
 - Mints task id. Needs key list id; key actor id; journal task events. Offers key task id.
 

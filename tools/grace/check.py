@@ -469,7 +469,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive",
-            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-app-key-read", "B-record-no-need"}
+            "W-unstated-exception", "B-bond-unmet", "B-bond-ambiguous", "B-bond-on-end-idle", "B-record-no-need"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule carries no
 # arithmetic (Closed vocabulary 9, Closed vocabulary 11) — which is where
@@ -2126,6 +2126,16 @@ def bond_findings(root: Path) -> list[Finding]:
         # dissolved, the first dissolve` (Scott 2026-11-27 6:43 PM Central): the runs action takes at least one input
         # per value the need takes, the app supplying the rest (Follow-up 2, Follow-up 8), and every answer the offer
         # follows carries one value per word of carries and no other (Follow-up 7)
+        # unit `atoms: every key offer names its existence read` (Scott 2026-11-27 8:02 to 8:06 AM Central): a key
+        # offer names under calls one read the offering atom declares, its existence read; a gate finding, so the
+        # app's key check always has a read to make (bonds.md Key 26; B-app-key-read gates with it)
+        if b["kind"] == "key" and b["side"] == "offer" and "calls" in kinds.get("key", {}).get("offer", []):
+            own = page_actions(b["path"].read_text(encoding="utf-8"))
+            calls = b["fields"].get("calls") or set()
+            if not calls or any(c not in own for c in calls):
+                findings.append(Finding(b["path"], b["line"], "B-key-read",
+                                        "a key offer names under calls the offering atom's existence read, an action "
+                                        "the atom declares (bonds.md Key 26)"))
         if b["kind"] == "follow-up":
             text_b = b["path"].read_text(encoding="utf-8")
             own = page_actions(text_b)

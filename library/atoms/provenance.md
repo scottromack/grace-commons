@@ -754,7 +754,7 @@ Term need key: key actor id; pairs custodian references.
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
-Term offer key: key chain id; carried by chains.
+Term offer key: key chain id; carried by chains; calls Read.
 
 ## Left to others
 

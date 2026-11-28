@@ -549,6 +549,26 @@ The case space, and the rule that owns each case:
 | [Read] | a filter outside the next row's cases | the matching sessions, each carrying its principal reference, issued by reference, issuance instant, expiry instant, status, revocation fields once revoked, effective status and session id, and no session token digest | none (Operation 37, Operation 38, Operation 52, Operation 59, Operation 60, Operation 63, Operation 64) |
 | [Read] | a filter naming a blank value, or a value that EXCEEDS the maximum length of its field, or more than one value on a named field, or a field other than principal reference and issued by reference | no session | none (Operation 37, Operation 53, Operation 61, Term filter) |
 
+### Read Session
+
+The read that answers one session by its session id, with its derived [Effective Status] and never its [Session Token Digest]: the existence read the session id offer names (Offers; Bonds Key 26). It writes nothing, and the session id grants nothing (Identity 7); a session id no session carries answers not-known.
+
+Kind: Operation
+
+```
+read_session(session_id)
+  answers session
+  refuses not-known
+```
+
+```
+Operation 76: IF no session carries the session id THEN [Read Session] MUST answer not-known.
+Operation 77: [Read Session] MUST answer the session's session id, principal reference, credential id, issued by reference, issuance instant, expiry instant AND effective status.
+Operation 80: [Read Session] MUST answer EVERY revocation instant, revoked by reference AND revocation reason the session carries.
+Operation 78: [Read Session] MUST NOT answer a session token digest.
+Operation 79: [Read Session] MUST NOT write.
+```
+
 ## What is and what should never be (Invariants)
 
 - **Invariant 3 — Validity bound conjunctive, by derivation.**
@@ -674,7 +694,7 @@ NOTE: watch the seam citation (Term seam, Term transition, Term business caller)
 The current clock reading (the pipeline's `clock_t`), pipeline-injected at the I/O seam on every action — not caller-trusted, not read inside any transition, not shown as a signature parameter. It is consumed only to stamp immutable write timestamps ([Issuance Instant], [Revocation Instant]) and to evaluate the pure expiry derivation in [Validate] and [Read] (no write).
 
 Kind:         Parameter
-Parameter of: Issue, Validate, Revoke, Revoke Sessions For Credential and Read
+Parameter of: Issue, Validate, Revoke, Revoke Sessions For Credential, Read and Read Session
 Projection:   now
 
 ### Token format
@@ -703,7 +723,7 @@ Term need follow-up: runs Issue; takes actor id, credential id.
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states. The session id names one session and grants nothing (Identity 7); [Validate] and [Revoke] take the session token digest.
 
-Term offer key: key session id; carried by sessions.
+Term offer key: key session id; carried by sessions; calls Read Session.
 
 ## Left to others
 
@@ -881,6 +901,7 @@ Term cited: actor id, session id, credential id: Declarations.
 [Revoke]: #revoke
 [Revoke Sessions For Credential]: #revoke-sessions-for-credential
 [Read]: #read
+[Read Session]: #read-session
 [Session Token]: #session-token
 [Session Token Digest]: #session-token-digest
 [Session Id]: #session-id

@@ -449,6 +449,24 @@ The case space, and the rule that owns each case:
 
 - `mint_actor_id()` — answers an actor id, say `act-7`: one actor stands, and `act-7` names that party wherever a record names the party.
 
+### Read Actor
+
+The read that answers whether an actor id is held: an actor this atom minted carries it. It is the existence read the actor id offer names (Offers; Bonds Key 26), as Task's Read Task is for task ids (Scott, 2026-11-27 8:06 AM Central). It writes nothing; an actor id no actor carries answers not-known.
+
+Kind: Operation
+
+```
+read_actor(actor_id)
+  answers actor
+  refuses not-known
+```
+
+```
+Operation 46: IF no actor carries the actor id THEN [Read Actor] MUST answer not-known.
+Operation 47: [Read Actor] MUST answer the actor's actor id.
+Operation 48: [Read Actor] MUST NOT write.
+```
+
 ## What is and what should never be (Invariants)
 
 - **Invariant 2 — Action binding.**
@@ -578,7 +596,7 @@ NOTE: watch the cap's floor (Capability requirement 5).
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states; the atom needs none.
 
-Term offer key: key actor id; carried by actors.
+Term offer key: key actor id; carried by actors; calls Read Actor.
 
 ## Left to others
 
@@ -743,6 +761,7 @@ Term cited: actor id: Declarations.
 [Attest]: #attest
 [Verify]: #verify
 [Read]: #read
+[Read Actor]: #read-actor
 [Mint Actor Id]: #mint-actor-id
 [Actor]: #actor
 [Actor Id]: #actor-id

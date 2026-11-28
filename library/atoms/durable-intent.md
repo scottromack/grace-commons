@@ -700,7 +700,7 @@ Term contract need commit: asks the act under act key, the key the app supplies 
 
 ## Offers
 
-Term offer key: key invocation id; carried by intent record, closing record.
+Term offer key: key invocation id; carried by intent record, closing record; calls Read Invocation.
 
 ## Left to others
 

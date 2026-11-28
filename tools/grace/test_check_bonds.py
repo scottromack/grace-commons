@@ -219,9 +219,12 @@ class BondTest(unittest.TestCase):
         app.write_text("# Pair\n\n- [Key Offerer](../../atoms/key-offerer.md)\n- [Key Needer](../../atoms/key-needer.md)\n")
         self.write("key-needer", atom("Key Needer", "Term need key: key invocation id; pairs closing record.\n"))
         self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record.\n"))
-        self.assertEqual(self.codes(), ["B-app-key-read"])
-        self.assertIn("B-app-key-read", check.ADVISORY)
-        self.write("key-offerer", atom("Key Offerer", "Term offer key: key invocation id; carried by intent record; calls exists.\n"))
+        # unit `atoms: every key offer names its existence read`: both the offer's own finding and the app's gate
+        self.assertIn("B-app-key-read", self.codes())
+        self.assertIn("B-key-read", self.codes())
+        self.assertNotIn("B-app-key-read", check.ADVISORY)
+        self.write("key-offerer", atom("Key Offerer", "```\nexists(invocation_id)\n  answers yes\n```\n\n"
+                                       "Term offer key: key invocation id; carried by intent record; calls Exists.\n"))
         self.assertEqual(self.codes(), [])
 
     def test_a_bond_instance_names_an_ambiguous_need_and_an_offer_it_meets(self):
@@ -458,6 +461,21 @@ Term follow-up offer fields: after, the action; answering, the answers; carries,
                                     .replace("after Accept", "after Accept Follower")))
         self.write("follower", atom("Follower", self.FOLLOWER))
         self.assertEqual(self.codes(), [])
+
+    def test_a_key_offer_naming_no_existence_read_gates(self):
+        # unit `atoms: every key offer names its existence read` (Scott 2026-11-27): Key 26 is a gate finding where
+        # the bonds page gives the key offer its calls field
+        (self.root / "library" / "bonds.md").write_text(
+            BONDS.replace("Term key offer fields: key, the value; carried by, the records.",
+                          "Term key offer fields: key, the value; carried by, the records; calls, the read."))
+        read = "```\nread_thing(thing_id)\n  answers thing\n  refuses not-known\n```\n\n"
+        self.write("key-offerer", atom("Key Offerer", read + "Term offer key: key invocation id; carried by intent record.\n"))
+        self.assertIn("B-key-read", self.codes())
+        self.assertNotIn("B-key-read", check.ADVISORY)
+        self.write("key-offerer", atom("Key Offerer", read + "Term offer key: key invocation id; carried by intent record; calls Read Other.\n"))
+        self.assertIn("B-key-read", self.codes())
+        self.write("key-offerer", atom("Key Offerer", read + "Term offer key: key invocation id; carried by intent record; calls Read Thing.\n"))
+        self.assertNotIn("B-key-read", self.codes())
 
     def test_the_repository_bonds_gate(self):
         root = Path(HERE).parents[1]

@@ -693,7 +693,7 @@ Term need key: key actor id; pairs principal references.
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
-Term offer key: key preference id; carried by preference records.
+Term offer key: key preference id; carried by preference records; calls Read.
 
 ## Left to others
 

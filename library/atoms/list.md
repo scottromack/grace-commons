@@ -290,7 +290,7 @@ Term need key: key actor id; pairs lists.
 
 ## Offers
 
-Term offer key: key list id; carried by lists; ends Delete List.
+Term offer key: key list id; carried by lists; ends Delete List; calls Read List.
 
 No bond serves the four actions: the app's flow calls them.
 

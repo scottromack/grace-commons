@@ -433,6 +433,25 @@ Term window start: (now - the window) — the instant that lies the window befor
 - `read("l1")` — answers the open tasks of `l1` and the ones finished in the last week, each with its completer.
 - `read("l1", 1 day)` — the same with the window narrowed to one day: a task finished two days ago is left out.
 
+### Read Task
+
+The read that answers one task by its task id, pending or done, with its stored fields: the existence read Task's key offer names (Offers; Bonds Key 26). It writes nothing; a task id no task carries answers not-known.
+
+Kind: Operation
+
+```
+read_task(task_id)
+  answers task
+  refuses not-known
+```
+
+```
+Operation 54: IF no task carries the task id THEN [Read Task] MUST answer not-known.
+Operation 55: [Read Task] MUST answer the task's task id, list id, description, addition instant AND task state.
+Operation 57: [Read Task] MUST answer EVERY last edit instant, completion instant AND completer the task carries.
+Operation 56: [Read Task] MUST NOT write.
+```
+
 ## What is and what should never be (Invariants)
 
 - **Invariant 1 — Membership exclusivity.**
@@ -549,7 +568,7 @@ Term need journal: records task events; calls append; arms event_id.
 
 ## Offers
 
-Term offer key: key task id; carried by tasks; ends Delete, Delete List Tasks.
+Term offer key: key task id; carried by tasks; ends Delete, Delete List Tasks; calls Read Task.
 
 ## Left to others
 
@@ -694,6 +713,7 @@ Term cited: task id, list id, actor id, task events: Declarations.
 [Delete]: #delete
 [Delete List Tasks]: #delete-list-tasks
 [Read]: #read
+[Read Task]: #read-task
 [Task Record]: #task-record
 [Description]: #description
 [Addition Instant]: #addition-instant

@@ -677,7 +677,7 @@ Term now: the deployment's clock reading at the call, as Execution Contract Logi
 
 The bond this atom offers, of a bond kind [Bonds](../bonds.md) states.
 
-Term offer key: key place id; carried by places.
+Term offer key: key place id; carried by places; calls Read.
 
 ## Left to others
 
