@@ -40,6 +40,8 @@ Identity 4: The atom MUST NOT interpret an actor reference.
 
 Term erasure tombstone: the record that one record was destroyed — the record this atom holds, an [Erasure Tombstone].
 
+Term destroyed record: the record of the destroyed pattern that the call's destroyed id names, destroyed by the destroying pattern in the call's transaction.
+
 Term destroyed id: the opaque id the destroyed record carried in the destroyed pattern — a [Destroyed Id].
 
 Term destroyed pattern: the name of the pattern the destroyed record belonged to — a [Destroyed Pattern].
@@ -467,7 +469,7 @@ Composition note 2: A composing pattern MUST supply an opaque destroyed id that 
 Composition note 3: A composing pattern MUST NOT supply a destroyed id derived from a person's data.
 Composition note 4: A composing pattern MUST own the authority reference's meaning.
 Composition note 5: A composing pattern MUST call [Read Tombstone] for an id the destroyed pattern's database holds no record for.
-Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable THEN a composing pattern MUST NOT remove the destroyed record (Execution Contract Read 1).
+Composition note 6: IF [Record Destruction] answers invalid-request OR [Record Destruction] answers storage-failure OR [Record Destruction] answers state-unavailable THEN a composing pattern MUST NOT remove the destroyed record in the transaction that made the call (Execution Contract Read 1).
 Composition note 7: A composing pattern MUST own whether a duplicate answer permits removing the destroyed record.
 Composition note 8: A composing pattern MUST NOT supply an authority reference derived from a person's data.
 Composition note 9: A composing pattern MUST NOT supply an actor reference derived from a person's data, such as the account name of the person whose record was destroyed.
@@ -562,7 +564,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — drafted in GRACE lang v0.69 (2026-11-01) through the Grace connector.
 
-Term terms: erasure tombstone, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, string input, derived from a person's data, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
+Term terms: erasure tombstone, destroyed record, destroyed id, destroyed pattern, authority reference, actor reference, seam, authority kind, deployment kind, reference cap, pattern name cap, page size, zero, now, destruction instant, recognized kinds, string input, derived from a person's data, window, window start, window end, listing key, continuation key, matching erasure tombstone, none, committed version.
 
 <!-- Term registry — shortcut-reference definitions. -->
 
@@ -600,7 +602,7 @@ Term terms: erasure tombstone, destroyed id, destroyed pattern, authority refere
 ```
 status: done — 2026-11-27
 formal: verified — erasure-tombstone.als + 16 twins (the static data model: State 1, Invariant 2.1, 3.1, 3.2, 4.1, 4.2 and 4.3, Identity 2, 3 and 4, Operation 1, 2, 5, 8 and 9 checked on every database a run of admitted [Record Destruction] calls leaves, State 4 through Invariant 3.1); erasure-tombstone.tla + 13 twins (across steps: Invariant 1.1, 1.2, 2.1 and 5.1, Identity 1, Operation 1, 4, 12, 15, 16, 18, 20 and 24 over every sequence of record, read and list calls, retries and refused writes included, at a page size of 1 and of 2); the vote no of 2026-11-02 superseded by the maintainer's ruling of 2026-11-09 (both models; only the writing vetoes one), and neither vetoed; owed rows: Operation 11; Operation 14, 19 and 25 through 28; Clock dependence 1, 2026-11-11
-last gate: 2026-11-27 — Final Critique 7, a delta round (diff base cf9777df, 15 labels, the reach of Final Critique 6's settle and the changes since), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational-rated finding (Capability requirement 2 omits Read 5, Read 6 and Query 2) was refuted: Term listing key and Operation 16, Term page size, Operation 15 and Non-goal 16, and Term window displace them, and no cure was owed
+last gate: 2026-11-28 — Final Critique 8, a delta round (diff base 29e021c7, 1 label: Composition note 6, whose citation the grammar sweep moved to the end of the rule), one reader (Linus opencode-go/beam-free; GRID and EOS not run; the Claude reader off), frozen at ed887a75 — foundational count 0 after the blind second triage, clean, one sample; Linus rated one finding foundational, that Composition note 6 sets no order between the removal and the destruction and says nothing of a lost answer, and both triages refuted it: Composition note 1 puts the removal and the call in one transaction (Execution Contract Database 1), so a failed destruction fails the whole app action (Constituent failure 1), no build can remove before it commits, and a retry is a second call that meets duplicate (Error model 1, Operation 4); of three refining, the citation and the unreachable invalid-request arm are placed no defect (Operation 6, 7 and 9 reach it with the record identifiable), and the settle took the second triage's own refining findings: Term destroyed record declares what Composition note 1, 6 and 7 and Invariant 3 name (Closed vocabulary 4), and Composition note 6 says the removal it forbids is the one in the call's transaction; the checker said nothing); 2026-11-27 — Final Critique 7, a delta round (diff base cf9777df, 15 labels, the reach of Final Critique 6's settle and the changes since), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 29e021c7 — foundational count 0 after the blind second triage, clean, one sample; Linus's one foundational-rated finding (Capability requirement 2 omits Read 5, Read 6 and Query 2) was refuted: Term listing key and Operation 16, Term page size, Operation 15 and Non-goal 16, and Term window displace them, and no cure was owed
 
 open: none
 ```

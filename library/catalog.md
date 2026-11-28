@@ -74,7 +74,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints invocation id. Needs guard critical section key; journal closing record, intent record. Offers key invocation id.
 
-**[Erasure Tombstone](./atoms/erasure-tombstone.idd)** (620 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
+**[Erasure Tombstone](./atoms/erasure-tombstone.idd)** (622 lines). Erasure Tombstone keeps the permanent record that one record was destroyed, and under what authority.
 
 - No bond lines yet.
 
