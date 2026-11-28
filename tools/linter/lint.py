@@ -2963,6 +2963,8 @@ def check_range_form(root: Path) -> list[Finding]:
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS]
         md_files += [Path(dirpath) / f for f in filenames if f.endswith((".md", ".idd"))]
+    # RELEASES.md quotes each commit subject as written (release-notes.py), so a subject's dash is no range of labels
+    md_files = [p for p in md_files if p.relative_to(root).as_posix() != "RELEASES.md"]
     out: list[Finding] = []
     for md in sorted(md_files):
         try:

@@ -2,6 +2,274 @@
 
 Grace Commons is versioned by minor version on the way to 1.0.0: 0.1 bonds and every atom converted, 0.2 the grammar at 100% (every rule line one tree), 0.3 the Lean statements generated from the trees, 0.4 code and tests from the trees, 1.0.0 the shared to-do app shipped; dissolving the compositions comes after 1.0.0. The minor versions are numbered in the order they close (Scott, 2026-11-27). Atoms keep their own semantic versions. Each entry is generated from the commit subjects between two tags (`assets/release-notes.py` in grace-council), never written by hand.
 
+## v0.2.0 — 2026-11-28
+
+102 commits since v0.1.0.
+
+### Durable Intent
+
+- Durable Intent: Final Critique 19 — a delta round, foundational count 0, clean: the Critical Section Unavailable entry and its table row name open step 2.3, 3.12 and 4.2b, Term cited lists key check; done (5e58c49a)
+- Durable Intent: Final Critique 18 — a delta round, foundational count 1, cured, not clean: the key check calls Read Invocation with the kind and act key; doing (d30b61c3)
+- Durable Intent: Final Critique 17 — a delta round, foundational count 0, clean: act section 5 names the guard need's arm, two entries read as the rules do; done (f484af9b)
+- Durable Intent: Final Critique 16 — a delta round, foundational count 1 after the blind second triage, cured, not clean: the Critical Section Unavailable entry names [Open]'s refusal alone, [Resolve]'s is Escalation's (98d2951e)
+- Durable Intent: Final Critique 15 — a delta round, foundational count 2 after the blind second triage, cured, not clean: close step 3.11 and refuse step 3.14 oblige the write's own reading after the step-2 re-read, read invocation 18 answers a blank act key not-known with no read, refuse step 3.1 takes the attested append's form (412a4c68)
+- Durable Intent: Final Critique 14 — a full round, foundational count 1, cured, not clean: Primitive policy 21 and 22 judge the read-back of Primitive policy 20 (068600ab)
+- Durable Intent: Final Critique 13 — a delta round, foundational count 1, cured: Term caller kind compares the kind's service identity in the canonical form the actor reference takes (0bfa7bf9)
+- Durable Intent: Final Critique 12 — a delta round, foundational count 1, cured: yield 8 cites Execution Contract Constituent failure 1; Term caller kind names the spelling it compares (87c20e48)
+- Durable Intent: Final Critique 11 — [Yield]'s failed release answers ok (yield 8); Term caller kind cites Primitive policy 7a (2d072a28)
+
+### Shared Todo as an app
+
+- Shared Todo as an app: Final Critique 9 — a delta round, foundational count 1: App permission 8 orders the actor id's mint before its credential's Register, App check 5 cites Task's Completion Instant (858474a5)
+- Shared Todo as an app: Final Critique 8 — a delta round, foundational count 1: App permission 7 names every credential id, App check 4's reading, the sign in row's session duration (d8fd983e)
+- Shared Todo as an app: Final Critique 7 — a delta round, foundational count 0 after the blind second triage, clean: Ledger line only, no cure (b718f88b)
+- Shared Todo as an app: Final Critique 6 — a delta round, foundational count 0 after the blind second triage, clean: the read list row's "counted" says it counts in the sequence's numbering (c8411da4)
+- Shared Todo as an app: Final Critique 5 — a full round, foundational count 3, cured, not clean; each check's read comes before the atom's call it guards, the host holds every id within every string cap, reassign's not-known follows App check 2 (b49c05a0)
+- Shared Todo as an app: Final Critique 4 — a delta round, foundational count 2, cured, not clean; the key check's not-known follows Execution Contract Refusal 3, and the deployment holds Invitation's string cap (6ba66cf6)
+
+### Invitation
+
+- Invitation: Final Critique 22 — a delta round, foundational count 0 after the blind second triage, clean: Term records types the accepting identity and the offered scope the offer line carries (b6e92553)
+- Invitation: Final Critique 21 — a delta round, foundational count 0 after the blind second triage, clean: the tombstone's one wording slip cured, the page done (503227a5)
+- Invitation: Final Critique 20 — a delta round, foundational count 1 after the blind second triage, cured, not clean: Operation 6 holds invalid-request off every call with an absent invitee (9820deb2)
+- Invitation: Final Critique 19 — a clean delta round; External check 8 owns what Check 5.1 and 5.2 cannot see on a list-revoked invitation, the atom stays done (82ae4049)
+
+### atom
+
+- atom: Event Log keeps a stream per need (Bonds journal 8) — 99 lines (1077bebb)
+- atom: Party Identity, the state change log is a journal need — 60 lines (b34e69f0)
+- atom: State Machine, the transition history is a journal need — 137 lines (99f2dd54)
+- atom: Capacity Constraint Enforcement, the audit log is a journal need — 1172 lines (6d80e43b)
+
+### Calendar Time
+
+- Calendar Time: Final Critique 5 — a clean delta round; Operation 11 gets a conformance row; the atom stays done (136c1460)
+- Calendar Time: Final Critique 4 — a clean delta round; four wording cures; the atom is done (2435f21e)
+- Calendar Time: Final Critique 3 — a delta round, foundational count 1, cured: Capability requirement 5 keeps every zone name a place has carried among the zone names; Conformance row for Operation 25; Operation 24 applies to a whole amount (e58c04a8)
+
+### Legal Hold
+
+- Legal Hold: Final Critique 17 — a clean delta round; the heading of the breach example names no unglossed acronym; the atom is done (e3395ca0)
+- Legal Hold: Final Critique 16 — a delta round counting one foundational finding, cured; Check 4.3 binds the auditor's read to the committed version (680817ec)
+- Legal Hold: Final Critique 15 — a delta round, foundational count 1 after the blind second triage, cured, not clean: Check 4.2 states only a necessary condition (a035d840)
+
+### Message Preference
+
+- Message Preference: Final Critique 18 — a clean delta round grounds the page; Resumption 3 names the key a call carries (e53d8535)
+- Message Preference: Final Critique 17 — a delta round, foundational count 0, clean; Resumption 3 points at Operation 8 and Operation 45; the atom is done (7ab66428)
+- Message Preference: Final Critique 16 — a delta round, foundational count 1, cured, not clean; a degenerate declared channel set now stands aside from Operation 1, 2, 3, 14, 16 and Resumption 3; the atom is doing (e1a90eb8)
+
+### Notification
+
+- Notification: Final Critique 20 — a clean delta round; the What it is gloss of Failed and Fail's description say what Failed's definition says (edfee5f1)
+- Notification: Final Critique 19 — a clean full round; ten refining cures; the atom is done (877b7831)
+- Notification: Final Critique 18 — a delta round, foundational count 1 after the blind second triage, cured, not clean: a delivery outcome the declared policy names for neither stays pending and no composing pattern calls Fail or Expire for it (6266d296)
+
+### Provenance
+
+- Provenance: Final Critique 17 — a delta round, foundational count 0, clean; the atom stays done (58c6d9b7)
+- Provenance: Final Critique 16 — a delta round, foundational count 0, clean; the atom is done (6c301e3b)
+- Provenance: Final Critique 15 — a delta round, foundational count 1 after the blind second triage, cured, not clean: Operation 61 cites Input 4 for a blank metadata (63a426a6)
+
+### Session
+
+- Session: Final Critique 33 — a delta round, foundational count 1, cured, not clean: Check 4.1 names a set the records do not mark, written in record terms; doing (09308f3c)
+- Session: Final Critique 32 — a delta round, foundational count 1, cured, not clean: Check 4.1 demanded a revoked by reference and a revocation reason on every revoked session, though [Revoke Sessions For Credential] records the revocation instant alone (161b9931)
+- Session: Final Critique 31 — a clean delta round; the default session duration term names the value that is no window length (40724aa9)
+
+### Subscription
+
+- Subscription: Final Critique 18 — a delta round, foundational count 0 after the blind second triage, clean: External check 2 names Identity 7's three properties, Operation 8 lists Operation 33, the page done (1c3019a2)
+- Subscription: Final Critique 17 — a delta round counting one foundational finding, cured; a lost id no longer overrides a cancellation (7d7d8e3d)
+- Subscription: Final Critique 16 — a clean delta round; the id names the subscription and the app's permission gates Cancel, on Scott's ruling (c0ea3296)
+
+### Task
+
+- Task: Final Critique 18 — a delta round, foundational count 2, cured: Read Task answers not-known for a malformed task id, the task state members carry Projections; doing (b737c85a)
+- Task: Final Critique 17 — a delta round, foundational count 0, clean; the atom is done (d0498ffd)
+- Task: Final Critique 16 — a delta round, foundational count 1, cured; Description 3 keeps the white space as Description 2's normal form leaves it (72288323)
+
+### site
+
+- site: the connector diagram heads with the app's atomic weight and carries each glue line's birth tag (ab7c25aa)
+- site: every app page gets its connector diagram — Recoverable Invocation's added (e8885fe8)
+- site: an app's connector diagram, generated — the to-do app first (9b79557b)
+
+### Credential
+
+- Credential: Final Critique 27 — a clean delta round reads the offer lines; the Offers sentence says the principal reference is the actor id (fb2b0f75)
+- Credential: Final Critique 26 — a clean delta round; the atom stays done, pinned to this round (4604358f)
+
+### Escalation
+
+- Escalation: Final Critique 4 re-placed — the blind rerun counts the intent candidates cap foundational; the atom is doing (d4ef8428)
+- Escalation: Final Critique 4 — a clean delta round; Resolve's branch gains term entries for Section Unavailable and Invalid Credential; the atom stays done (a56fb48e)
+
+### Favorite
+
+- Favorite: Final Critique 8 — a clean delta round reads the need key lines; the Ledger names the round (dbb53ea3)
+- Favorite: Final Critique 7 — a clean delta round reads the reach of the tree and grammar commits; the Ledger names the round (d976f5ab)
+
+### Observation
+
+- Observation: Final Critique 12's strict blind rerun — the checks of one state cite Database 8, Check 5.1 cites Operation 56 (b8f65e6b)
+- Observation: Final Critique 12 — a delta round, foundational count 0 after the blind second triage, clean, done: the retry sentence says where the first call committed, and the time-stamping owner is named forthcoming (23b75b78)
+
+### Owed Record
+
+- Owed Record: Final Critique 8 — a delta round, foundational count 0, clean; the atom is done (35741f8b)
+- Owed Record: Final Critique 7 — a delta round, foundational count 1, cured: a blank over-cap owing pattern on [List Owed] answers invalid-request (a19cd94d)
+
+### Permissions
+
+- Permissions: Final Critique 20 — a delta round, foundational count 0 after the blind second triage, clean: Composition note 5 owns the writing of the removal's record, Term terms drops action scope (8ff7cbd1)
+- Permissions: Final Critique 19 — a clean delta round; Composition note 5 owns the removal record (37ef2b9c)
+
+### Reaction
+
+- Reaction: Final Critique 6 — a clean delta round reads the need key lines; the Ledger names the round, one clause of the Needs section says for whom (026b4a37)
+- Reaction: Final Critique 5 — the delta round reads the grammar batch and the tree layout clean, the Ledger names the round (431dc37f)
+
+### Sweep
+
+- Sweep: Final Critique 7 — a clean delta round; reconcile step 2.12 splits into the order and the one-at-a-time rule; the atom is done (31ed791d)
+- Sweep: Final Critique 6 — reconcile step 2.12 takes the lower sequence number first between two intents of one recording instant; the page is doing (035e2bab)
+
+### Waitlist
+
+- Waitlist: Final Critique 7 — a clean delta round; Term ahead count names the commit the count is taken at; the atom is done (c641746a)
+- Waitlist: Final Critique 6 — a delta round, foundational count 1 after the blind second triage, cured, not clean: Read Spot's ahead count for a spot not waiting (9d8e1dac)
+
+### atoms
+
+- atoms: every key offer names its existence read — eight atoms, Key 26 gated (bf3c98b8)
+- atoms: held references are key needs — Favorite, Reaction, Comment, Category, Notification (6fc0bc44)
+
+### library
+
+- library: the String policy tombstones move to the history files — 27 lines, 15 atoms (59ea6ec4)
+- library: the String policy restatements tombstoned to GRACE-lang Term blank and String 1 — 15 atoms (55d5aab8)
+
+### Actor Identity
+
+- Actor Identity: Final Critique 24 — clean delta round grounds the page; [Read Actor] joins the case table (195f4477)
+
+### Capability
+
+- Capability: Final Critique 17 — a clean delta round; three refining cures; the atom is done (c4e8fc1c)
+
+### Capacity Constraint Enforcement
+
+- Capacity Constraint Enforcement: Final Critique 15 — a clean delta round; Capability requirement 5 cites Database 7, Term colliding write reads a recorded pool, Not Known drops purged audit events; the atom is done (566e4be8)
+
+### Category
+
+- Category: Final Critique 7 — a clean delta round reads the Needs section; Non-goal 8 says record or answer a count (ad91c661)
+
+### Comment
+
+- Comment: Final Critique 6 — a clean delta round reads the need key lines; the Ledger names the round (41e67308)
+
+### Communication
+
+- Communication: Final Critique 7 — a clean delta round; four lines of "code point" wording; the atom stays done (c5ec6d23)
+
+### Consent
+
+- Consent: Final Critique 24 — a clean delta round; Check 8.5 says any tie, the Term metadata line keeps no examples, the Incident investigation example cites Composition note 10, the atom stays done (e3b058fe)
+
+### Duplicate Prevention
+
+- Duplicate Prevention: Final Critique 11 — a clean delta round; the refining findings cured, the empty Invariant 4 heading dropped; the atom stays done (f0ab91ed)
+
+### Event Log
+
+- Event Log: Final Critique 22 — a clean delta round; Non-goal 15 names the call (`in one call to [Append]`); the atom stays done (efe346fd)
+
+### Execute Gated Workflow
+
+- Execute Gated Workflow: Final Critique 18 — a delta round, foundational count 0, clean: Wiring decision 5 says what it forbids in the consumption rule's words, Term completion bound becomes workflow completion bound, Invalid Query gets its entry; doing (ce7d706a)
+
+### GRACE-lang.md
+
+- GRACE-lang.md: Term blank names the Unicode version of White_Space — held cure of Task Final Critique 17 (2c284bf0)
+
+### Gift Card
+
+- Gift Card: Final Critique 7 — a clean delta round; no cure, the atom stays done (7dd2f3aa)
+
+### List
+
+- List: Final Critique 5 — a delta round, foundational count 0, clean; the atom stays done (5cdecfa2)
+
+### Moderation
+
+- Moderation: Final Critique 4 — a clean delta round; no cure, the atom stays done (1d57d1e5)
+
+### Money
+
+- Money: Final Critique 8 — a clean delta round; the share total cites the exact-arithmetic rule, one spelling of code point (5f7b3dce)
+
+### Party Identity
+
+- Party Identity: Final Critique 16 — a clean delta round; External check 5 names Ordering 6's trigger, one spelling of time-stamping (10b82910)
+
+### Post
+
+- Post: Final Critique 5 — a clean delta round; no cure owed, the page stays done (a5c0402a)
+
+### Provisional Commitment
+
+- Provisional Commitment: Final Critique 21 — a clean delta round; no cure owed, the page stays done (a527d118)
+
+### Punch Card
+
+- Punch Card: Final Critique 6 — the delta round reads the grammar batch and Logic confinement 22 clean, the Ledger names the round (25334161)
+
+### Restorable Delete
+
+- Restorable Delete: Final Critique 5 — the delta round reads the grammar batch and the library move clean, three wording cures, the Ledger names the round (78215dc4)
+
+### Role
+
+- Role: Final Critique 5 — a clean delta round; one duplicate rule deleted, Operation 20 owns the no-write rule for Read Holding (8621e296)
+
+### Selective Disclosure
+
+- Selective Disclosure: Final Critique 25 — a clean delta round reads the receipt instant term and External check 3, one wording cure and one hardening to Term receipt instant, the page is done (e3496bd5)
+
+### State Machine
+
+- State Machine: Final Critique 26 — the string cap counts as Execution Contract Input 2 counts it; the page stays doing (f6d1e31a)
+
+### Tamper Evidence
+
+- Tamper Evidence: Final Critique 25 — a clean delta round reads Verification caching 2, no rule cured, the page is done (746c2eaf)
+
+### Tenure
+
+- Tenure: Final Critique 7 — the delta round reads the Identity comparisons, Operation 36 and External check 3 clean, one wording cure, the Ledger names the round (b6fb2930)
+
+### app
+
+- app: to-do, a done task refuses claim, recall, reassign and move (dc576ba1)
+
+### bonds
+
+- bonds: the follow-up bond kind — accept grants is a bond, not glue (ad8745b8)
+
+### composition
+
+- composition: Login dissolved — no Login atom; the cascade a key on end, sign in a follow-up, glue one line (129a1ad2)
+
+### grace-lang
+
+- grace-lang: v0.76 — the grammar's ruling, the pages swept, 6195/6195 rules one tree (2c949be5)
+
+### release
+
+- release: v0.1.0 — bonds and every atom converted; the plan renumbered in the order work closes (b406facd)
+
 v0.1.0 closes the first milestone: every atom converted to the bond shape, key bonds checked on write, and every pattern's numbers stated as measured.
 
 ## v0.1.0 — 2026-11-27
