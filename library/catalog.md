@@ -58,7 +58,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints standing id. Offers key standing id.
 
-**[Consent](./atoms/consent.idd)** (875 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
+**[Consent](./atoms/consent.idd)** (877 lines). Consent records a person's agreement to have their personal data used for one named purpose, such as "marketing emails" or "behavioural analytics": when the agreement was given, who collected it, what it covers, and how it ends — the person withdraws it, or it runs out because a time limit was set at grant.
 
 - Mints consent id. Needs key actor id. Offers key consent id.
 
@@ -194,7 +194,7 @@ Every atom and app in one page, small enough to keep loaded whole: what each one
 
 - Mints session id. Needs key actor id; key credential id; follow-up Issue. Offers key session id.
 
-**[State Machine](./atoms/state-machine.idd)** (895 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
+**[State Machine](./atoms/state-machine.idd)** (897 lines). State Machine records a single named workflow — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by the pattern itself.
 
 - Mints workflow id. Needs key actor id; journal workflow events. Offers key workflow id.
 

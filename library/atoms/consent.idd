@@ -220,6 +220,8 @@ Term expiry instant: the optional instant a consent record's agreement runs out 
 
 Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; opaque content of any value (Execution Contract Input 3): it EQUALS blank only where the call leaves it absent or carries an empty string or a string of whitespace only, and a value of any other kind, an empty list or an empty object among them, is recorded as the call carries it (Operation 12).
 
+NOTE: watch the blank of a value that is not a string (Term metadata).
+
 Term revoking actor: the opaque reference naming the actor that recorded the withdrawal — a [Revoking Actor], as Execution Contract Logic confinement 13 canonicalizes it.
 
 Term revocation reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].

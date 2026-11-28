@@ -58,6 +58,8 @@ Term subject reference: the opaque reference naming the entity whose lifecycle t
 
 Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; opaque content of any value (Execution Contract Input 3), exempt from the string cap, recorded where not blank, never interpreted: it EQUALS blank only where the call leaves it absent or carries an empty string or a string of whitespace only, and a value of any other kind, an empty list or an empty object among them, is recorded as the call carries it (Identity 16).
 
+NOTE: watch the blank of a value that is not a string (Term instance metadata).
+
 Term database instance: one named database a call is routed to; workflow id uniqueness ranges over one database instance.
 
 Term declared transition: one from state, action, to state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
