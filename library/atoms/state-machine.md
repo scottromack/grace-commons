@@ -69,7 +69,7 @@ State 1: EVERY workflow MUST carry workflow id, a declaration, a current state a
 State 2: A workflow MAY carry subject reference.
 State 3: A workflow MAY carry instance metadata.
 State 6: The atom MUST NOT offer a workflow removal surface.
-State 10: The atom MUST NOT offer a transition out of a terminal state.
+State 10: The atom MUST NOT offer a declared transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
 State 15: A workflow MAY carry actor reference.
 ```
@@ -291,8 +291,8 @@ Operation 24: An admitted fire MUST set the fire record's from state to the curr
 Operation 25: An admitted fire MUST set the fire record's to state to the matched transition's to state.
 Operation 26: An admitted fire MUST stand the workflow in the matched transition's to state.
 Operation 28: An admitted fire MUST answer the matched transition's to state.
-Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the fire record.
-Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the fire record.
+Operation 29: An admitted fire over a guarded declared transition MUST record guard satisfied on the fire record.
+Operation 30: An admitted fire over an unguarded declared transition MUST NOT record guard satisfied on the fire record.
 Operation 61: IF actor reference DOES NOT EQUAL blank THEN an admitted fire MUST record actor reference on the fire record.
 Operation 68: An admitted fire MUST record the resolved firing instant on the fire record.
 Operation 33: IF the database refuses the write THEN a writing action MUST answer storage-failure.
@@ -312,7 +312,7 @@ Term addressed action: any action carrying a workflow id — [Fire], [Current], 
 
 Term writing action: [Instantiate] | [Fire] — the two actions that write.
 
-Term reading action: [Current] | [Read Declaration] | [Read Workflow] | [Workflows About] — the four that do not.
+Term reading action: [Current] | [Read Declaration] | [Read Workflow] | [Workflows About] — the four that do not write.
 
 Term resolved firing instant: the firing instant the fire record carries — the supplied value, as Execution Contract Logic confinement 12 resolves it.
 
@@ -663,7 +663,7 @@ Term transition: the atom's evaluation of one call against the workflow records.
 
 Term now: the deployment's clock reading at the call, as Execution Contract Logic confinement 11 declares it.
 
-Term string cap: the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it; 1,024 code points where a deployment declares none.
+Term string cap: the bound on a string input's length in Unicode code points, counted as Execution Contract Input 2 counts it; 1,024 code points where a deployment declares none.
 
 ## Needs
 
@@ -816,7 +816,7 @@ Term records: workflow — one running workflow, carrying workflow id, a declara
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, route, name, detect, bind, capture, count, order.
 
 Term value sets: writing action = [Instantiate] | [Fire]. reading action = [Current] | [Read Declaration] | [Read Workflow] | [Workflows About]. action rejection = invalid-request | not-known | storage-failure. Instantiate rejection = invalid-declaration. Fire rejection = terminal | invalid-transition | guard-not-satisfied. guard satisfied = true | false.
-Term bounds: string cap (the bound on a string input's length in Unicode code points, counted on the value as the call carries it, or on an id as the host allocates it, 1,024 where a deployment declares none).
+Term bounds: string cap (the bound on a string input's length in Unicode code points, counted as Execution Contract Input 2 counts it, 1,024 where a deployment declares none).
 
 Term cadences: empty.
 
@@ -865,7 +865,7 @@ Term terms: workflow, fire record, journal order, subject reference, instance me
 
 ## Status
 
-`done — 2026-11-26` — see the Ledger.
+`doing` — see the Ledger.
 
 <details markdown="block">
 <summary>
@@ -873,9 +873,9 @@ Term terms: workflow, fire record, journal order, subject reference, instance me
 </summary>
 
 ```
-status: done — 2026-11-26
+status: doing
 formal: verified — state-machine.als + 2 twins; coverage 2026-11-10 (unit formal: more coverage for the yes votes); state-machine.tla + 21 twins (across steps, 2026-11-11: one workflow under [Instantiate], offered every declaration of two state names, two actions and one guard with up to two declared transitions, and up to two admitted [Fire] calls, refusals in each refuses line's order, with what History (a read since retired to the journal need) and [Read Declaration] answer in every state they leave: Invariant 1.1 through 7.3, 8.1, 8.3, 9.1, 10.1 and 10.2); nothing testable in TLA+ for Invariant 8.2: it states a computation the atom does not make, and no model holds the condition a guard names; coverage 2026-11-11 (unit `atoms/state-machine.md formal layer`): no owed rows, 2026-11-11; [Workflows About] (Operation 80 through 86, Operation 93, Check 9.1) is not yet modelled: both models hold one workflow and the read ranges over several, so a model of two workflows under one subject reference is owed, 2026-11-17; model redraw deferred to Lean: state-machine.tla, Operation 87 through 89 (the History refusals' cases), 2026-11-26; model redraw deferred to Lean: state-machine.tla, Operation 90 through 92 ([Read Workflow]), 2026-11-26; model redraw deferred to Lean: state-machine.als and state-machine.tla, Identity 4, Operation 6, Operation 7, Operation 21, Operation 23, Operation 24, Operation 29, Operation 39, Invariant 3.1, Invariant 5.1, Invariant 5.2, Invariant 6.1, Invariant 6.2, Invariant 6.3, Invariant 7.1, Invariant 7.2, Invariant 7.3, Invariant 8.3, Invariant 10.2, Clock semantics 4, Check 6.1 and External check 2 (the transition history the models hold is the journal need's, unit `atom: State Machine, the transition history is a journal need`), 2026-11-28
-last gate: 2026-11-26 — Final Critique 25, a delta round, frozen at 7a43e1e — foundational count 0 after the blind second triage, clean, one sample; Linus's rerun claimed one foundational (Check 9.1 carrying two obligations), placed rhetorical by the first triage and refining by the blind second, cured
+last gate: 2026-11-28 — Final Critique 26, a delta round (diff base 7a43e1e, 177 labels), one reader (Linus opencode/beam-free; GRID and EOS not run), frozen at 99f2dd54 — foundational count 1 after the blind second triage, cured, not clean, one sample (Linus counted none and held that Term string cap counts a string once, on the value as the call carries it, while Execution Contract Input 2 counts it again as the seam leaves it; the blind second triage placed it foundational: a reference the deployment canonicalizes at the seam can pass one count and fail the other, and the page's measure never says it replaces Input 2's, so two builds differ; cured by naming Input 2's count in Term string cap and Term bounds)
 
 open: none
 ```
