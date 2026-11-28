@@ -2019,7 +2019,7 @@
    "preference-aware-notification-fanout"
   ],
   "domain": null,
-  "done": false,
+  "done": true,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -2035,7 +2035,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "doing",
+  "status": "done \u2014 2026-11-28",
   "title": "Subscription"
  },
  "sweep": {
